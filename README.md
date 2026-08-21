@@ -18,6 +18,37 @@ The Week 1 skeleton creates the structure and safety checks needed before applic
 
 Code-stage success does not mean W1-001 is complete. Completion requires the remaining owner approvals.
 
+## W1-002 Starter Foundation
+
+W1-002 adds the controlled local foundation for a future enterprise retrieval-augmented generation (RAG) service. RAG supplies relevant source material to an AI model before it answers. This task establishes the service boundary without loading a model, connecting to Qdrant or OpenSearch, calling AWS, ingesting documents, retrieving evidence, or generating answers.
+
+The foundation includes a minimal FastAPI application with a non-sensitive health endpoint, typed environment configuration, separate version-bounded runtime and development dependencies, and automated checks. Configuration fails fast when required values are missing or unresolved, masks optional secrets, and permits plain HTTP only for local loopback development. GPU-only packages are excluded from the default MVP dependency contract.
+
+### Owner-Tested Status
+
+- **PASS:** The final owner-executed suite reported 40 tests passed.
+- **PASS:** Ruff reported all checks passed.
+- **PASS:** MyPy reported no issues in three source files.
+- **PASS:** The owner removed `.mypy_cache`, and the final cleanliness checks passed.
+- **PASS WITH WARNING:** FastAPI's test client emitted one non-blocking Starlette deprecation warning. No dependency change was approved or executed for it.
+- **FAIL:** No failure remained in the final supplied rerun. The evidence record retains the earlier feature-test, formatting, typing, and cleanliness failures and their later results.
+- **NOT RUN:** FastAPI service startup, live HTTP testing, Docker, model loading, external-service integration, deployment, cloud mutation, rollback execution, and infrastructure teardown.
+- **Pending:** Owner documentation review, Column N Final Approval, and the owner-managed Excel tracker update.
+
+The redacted command evidence is recorded in `docs/test-evidence/W1-002.md`. The supplied package-install excerpt did not contain its final summary, so the documentation does not infer a separate installation PASS.
+
+### Why It Matters
+
+**Business use case:** Teams need a controlled and testable service foundation before investing in retrieval, models, vector databases, or cloud deployment. Establishing that boundary early makes later AI capabilities easier to govern, diagnose, and reverse.
+
+**Technical importance:** The application factory avoids import-time external connections. Typed settings reject invalid or unresolved values before runtime, and secret masking reduces accidental disclosure. Dependency separation and automated quality, security, and cleanliness checks improve reproducibility and detect drift.
+
+**Layman explanation:** W1-001 prepared the workshop; W1-002 installs the labeled wiring, fuse box, and health indicator. The AI machinery remains unplugged until later approved tasks.
+
+**Failure and rollback story:** Owner testing detected compatibility, formatting, typing, and cache-cleanliness issues before deployment. Bounded owner corrections and reruns produced the final passing suite. Code rollback and deployment rollback were **NOT RUN**; no service or cloud resource was created. The owner removed only the confirmed disposable MyPy cache.
+
+**Interview talking points:** Be prepared to explain why application factories prevent startup side effects, how fail-fast configuration avoids unsafe defaults, why runtime and development dependencies are separated, why external HTTP is rejected while loopback HTTP is allowed, why health output must not expose secrets, and how owner-executed testing preserves separation of duties.
+
 ## Owner-Controlled Workflow
 
 1. **Main Prompt and plan:** Codex inspects the approved scope read-only and prepares a pre-edit plan.
