@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "project": {
+    "name": "enterprise-ai-platform",
+    "owner": "Gyan Prakash Rai",
+    "default_environment": "sandbox",
+    "cost_center": "ai_platform_learn",
+    "repository": "https://github.com/gprai/enterprize_ai_platform",
+    "expires_at": "31/12/2026"
+  },
+  "permitted_statuses": [
+    "Not Started",
+    "In Progress",
+    "Blocked",
+    "Ready for Review",
+    "Done",
+    "Deferred"
+  ],
+  "features": [
+    {
+      "id": "MVP-001",
+      "status": "Not Started",
+      "linked_tracker_steps": [
+        "W1-03",
+        "W1-04",
+        "W1-07"
+      ]
+    }
+  ]
+}
