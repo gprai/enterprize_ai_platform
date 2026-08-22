@@ -39,6 +39,15 @@ def test_no_downloaded_model_artifact_exists_in_source_or_tests() -> None:
     assert findings == []
 
 
-def test_no_w1_002_infrastructure_definition_exists() -> None:
-    infrastructure_files = list((REPOSITORY_ROOT / "infra").rglob("*.tf"))
-    assert infrastructure_files == []
+def test_only_approved_w1_004_infrastructure_skeleton_exists() -> None:
+    expected_files = {
+        "infra/bootstrap/main.tf",
+        "infra/bootstrap/versions.tf",
+        "infra/environments/sandbox/main.tf",
+        "infra/environments/sandbox/versions.tf",
+    }
+    infrastructure_files = {
+        path.relative_to(REPOSITORY_ROOT).as_posix()
+        for path in (REPOSITORY_ROOT / "infra").rglob("*.tf")
+    }
+    assert infrastructure_files == expected_files

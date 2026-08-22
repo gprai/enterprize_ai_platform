@@ -36,6 +36,8 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 ## Evidence records
 
 - [W1-003](W1-003.md) — local testing structure, deterministic providers, opt-in markers, redacted stdout metadata, and cleanliness controls.
+- [W1-004](W1-004.md) — owner-gated lifecycle controls, offline planning, fail-closed cleanliness verification, remediation history, and owner-executed validation.
+
 # W1-003 final approval
 
 W1-003 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai on 2026-08-22. Its approved baseline is the owner-tested repository testing and evidence foundation recorded in `docs/test-evidence/W1-003.md`.
@@ -44,3 +46,10 @@ Column N authorizes only bounded closure of documentation already approved under
 
 This approval does not mean that AWS or paid tests, live integrations, deployment, rollback execution, or cloud teardown were completed; those activities remain **NOT RUN** because they were outside W1-003. The accepted Starlette/TestClient warning, two deferred W1-001 Ruff findings, retained external virtual environment, and indeterminate initial DeepEval telemetry or update-check activity remain recorded limitations.
 
+## W1-004 final approval
+
+W1-004 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from G P Rai on 2026-08-22. Its approved baseline is the owner-tested, owner-gated lifecycle foundation recorded in `docs/test-evidence/W1-004.md`. The approved local testing scope passed after the documented teardown and Ruff remediations. The offline plan-intent check passed and explicitly reported that Terraform plan was **NOT RUN**.
+
+AWS cleanliness remains **INDETERMINATE** because the required AWS inventory provider was unavailable; exit code `3` is the approved fail-closed result for that condition. AWS and paid tests, live integrations, deployment, rollback execution, Terraform apply/destroy, and cloud teardown remain **NOT RUN** and were not converted into successful outcomes by final approval. The retained external virtual environment and non-blocking Starlette/TestClient warning remain accepted limitations.
+
+The next task may rely on W1-004's approved local lifecycle contracts, deterministic test foundation, provider-free Terraform roots, and fail-closed offline behavior. It must obtain separate approval before relying on live AWS state, deployment success, rollback execution, or cloud cleanliness. The owner updates the Excel tracker after this bounded documentation closure.

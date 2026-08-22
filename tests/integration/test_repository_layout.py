@@ -33,6 +33,13 @@ class RepositoryLayoutIntegrationTests(unittest.TestCase):
         errors = validate_repository(REPOSITORY_ROOT)
         self.assertEqual([], errors, "\n".join(errors))
 
+    def test_terraform_control_roots_are_separate(self) -> None:
+        bootstrap = REPOSITORY_ROOT / "infra" / "bootstrap"
+        sandbox = REPOSITORY_ROOT / "infra" / "environments" / "sandbox"
+        self.assertNotEqual(bootstrap.resolve(), sandbox.resolve())
+        self.assertTrue((bootstrap / "versions.tf").is_file())
+        self.assertTrue((sandbox / "versions.tf").is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

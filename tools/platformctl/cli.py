@@ -1,180 +1,117 @@
-"""A dependency-free, read-only repository validator."""
+"""Offline, owner-gated lifecycle controls for the learning sandbox."""
 
 from __future__ import annotations
 
 import argparse
-import json
+import sys
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Sequence
+from typing import cast
 
-from . import __version__
-
-EXPECTED_SCHEMA_VERSION = "1.0"
-EXPECTED_PROJECT = {
-    "name": "enterprise-ai-platform",
-    "owner": "Gyan Prakash Rai",
-    "default_environment": "sandbox",
-    "cost_center": "ai_platform_learn",
-    "repository": "https://github.com/gprai/enterprize_ai_platform",
-    "expires_at": "31/12/2026",
-}
-PERMITTED_STATUSES = (
-    "Not Started",
-    "In Progress",
-    "Blocked",
-    "Ready for Review",
-    "Done",
-    "Deferred",
+from . import __version__, bootstrap, deploy, plan, rollback
+from .aws_inventory import AwsInventoryProvider, UnavailableAwsInventoryProvider
+from .contracts import (
+    Action,
+    ApprovalError,
+    ApprovalUsageRegistry,
+    Clock,
+    ContractError,
+    MutationRequest,
+    SystemClock,
+    UnavailableApprovalUsageRegistry,
+    load_approval_record,
+    validate_aws_account_id,
+    validate_aws_region,
+    validate_runtime_token,
+    validate_sha256,
 )
-EXPECTED_FEATURE = {
-    "id": "MVP-001",
-    "status": "Not Started",
-    "linked_tracker_steps": ["W1-03", "W1-04", "W1-07"],
-}
-
-REQUIRED_DIRECTORIES = (
-    "docs/architecture",
-    "docs/adr",
-    "docs/features",
-    "docs/test-evidence",
-    "docs/deployment-records",
-    "docs/rollback-records",
-    "docs/cost-estimates",
-    "docs/resource-cleanliness",
-    "tools/platformctl",
-    "infra/bootstrap",
-    "infra/modules",
-    "infra/environments/sandbox",
-    "tests/unit",
-    "tests/integration",
-    "tests/feature",
-    "tests/smoke",
-    "tests/security",
-    "tests/teardown",
-    "policies",
+from .destroy import DestroyMode, action_for_mode
+from .destroy import validate_request as validate_destroy_request
+from .validate import (
+    EXPECTED_FEATURE,
+    EXPECTED_PROJECT,
+    EXPECTED_SCHEMA_VERSION,
+    PERMITTED_STATUSES,
+    REQUIRED_DIRECTORIES,
+    REQUIRED_FILES,
+    MatrixValidationError,
+    load_feature_matrix,
+    repository_root,
+    validate_feature_matrix,
+    validate_repository,
 )
+from .verify_clean import verify_clean
 
-REQUIRED_FILES = (
-    "Makefile",
-    "feature-matrix.yaml",
-    "tools/__init__.py",
-    "tools/platformctl/__init__.py",
-    "tools/platformctl/__main__.py",
-    "tools/platformctl/cli.py",
-    "tests/__init__.py",
-    "tests/unit/__init__.py",
-    "tests/unit/test_platformctl.py",
-    "tests/integration/__init__.py",
-    "tests/integration/test_repository_layout.py",
-    "tests/feature/__init__.py",
-    "tests/feature/test_feature_matrix.py",
-    "tests/smoke/__init__.py",
-    "tests/smoke/test_platformctl_help.py",
-    "tests/security/__init__.py",
-    "tests/security/test_repository_security.py",
-    "tests/teardown/__init__.py",
-    "tests/teardown/test_repository_cleanliness.py",
-)
+__all__ = [
+    "EXPECTED_FEATURE",
+    "EXPECTED_PROJECT",
+    "EXPECTED_SCHEMA_VERSION",
+    "PERMITTED_STATUSES",
+    "REQUIRED_DIRECTORIES",
+    "REQUIRED_FILES",
+    "MatrixValidationError",
+    "build_parser",
+    "load_feature_matrix",
+    "main",
+    "repository_root",
+    "validate_feature_matrix",
+    "validate_repository",
+]
 
 
-class MatrixValidationError(ValueError):
-    """Raised when feature-matrix.yaml violates the approved contract."""
-
-
-def validate_feature_matrix(data: object) -> list[str]:
-    """Return all deviations from the owner-approved feature matrix contract."""
-    if not isinstance(data, dict):
-        return ["feature matrix must contain a top-level object"]
-
-    errors: list[str] = []
-    expected_top_level = {
-        "schema_version",
-        "project",
-        "permitted_statuses",
-        "features",
-    }
-    actual_top_level = set(data)
-    if actual_top_level != expected_top_level:
-        errors.append(
-            "top-level keys must be exactly: "
-            + ", ".join(sorted(expected_top_level))
-        )
-
-    if data.get("schema_version") != EXPECTED_SCHEMA_VERSION:
-        errors.append(f"schema_version must be {EXPECTED_SCHEMA_VERSION!r}")
-
-    if data.get("project") != EXPECTED_PROJECT:
-        errors.append("project metadata does not match the owner-approved values")
-
-    statuses = data.get("permitted_statuses")
-    if statuses != list(PERMITTED_STATUSES):
-        errors.append("permitted_statuses do not match the exact approved labels")
-
-    features = data.get("features")
-    if not isinstance(features, list):
-        errors.append("features must be a list")
-    elif features != [EXPECTED_FEATURE]:
-        errors.append(
-            "features must contain only MVP-001 with status 'Not Started' "
-            "and the approved linked tracker steps"
-        )
-
-    return errors
-
-
-def load_feature_matrix(path: Path) -> dict[str, object]:
-    """Load JSON-compatible YAML and enforce the approved contract."""
-    try:
-        raw_data = path.read_text(encoding="utf-8")
-    except OSError as exc:
-        raise MatrixValidationError(f"cannot read {path}: {exc}") from exc
-
-    try:
-        data = json.loads(raw_data)
-    except json.JSONDecodeError as exc:
-        raise MatrixValidationError(
-            f"feature matrix must be valid JSON-compatible YAML: {exc}"
-        ) from exc
-
-    errors = validate_feature_matrix(data)
-    if errors:
-        raise MatrixValidationError("; ".join(errors))
-    return data
-
-
-def repository_root() -> Path:
-    """Return the repository root without consulting external state."""
-    return Path(__file__).resolve().parents[2]
-
-
-def validate_repository(root: Path | None = None) -> list[str]:
-    """Read repository state and return code-stage validation errors."""
-    target = (root or repository_root()).resolve()
-    errors: list[str] = []
-
-    for relative_path in REQUIRED_DIRECTORIES:
-        if not (target / relative_path).is_dir():
-            errors.append(f"missing required directory: {relative_path}")
-
-    for relative_path in REQUIRED_FILES:
-        if not (target / relative_path).is_file():
-            errors.append(f"missing required file: {relative_path}")
-
-    matrix_path = target / "feature-matrix.yaml"
-    if matrix_path.is_file():
+def _runtime_token(field_name: str) -> Callable[[str], str]:
+    def parse(value: str) -> str:
         try:
-            load_feature_matrix(matrix_path)
-        except MatrixValidationError as exc:
-            errors.append(str(exc))
+            return validate_runtime_token(value, field_name)
+        except ContractError as exc:
+            raise argparse.ArgumentTypeError(str(exc)) from exc
 
-    return errors
+    return parse
+
+
+def _sha256(value: str) -> str:
+    try:
+        return validate_sha256(value)
+    except ContractError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _account_id(value: str) -> str:
+    try:
+        return validate_aws_account_id(value)
+    except ContractError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _region(value: str) -> str:
+    try:
+        return validate_aws_region(value)
+    except ContractError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _add_mutation_arguments(
+    parser: argparse.ArgumentParser, *, require_resource_expiry: bool
+) -> None:
+    parser.add_argument(
+        "--environment", required=True, type=_runtime_token("environment")
+    )
+    parser.add_argument("--aws-account-id", required=True, type=_account_id)
+    parser.add_argument("--aws-region", required=True, type=_region)
+    parser.add_argument("--target", required=True, type=_runtime_token("target"))
+    parser.add_argument("--artifact-sha256", required=True, type=_sha256)
+    parser.add_argument("--approval-record", required=True, type=Path)
+    parser.add_argument("--confirmation", required=True)
+    parser.add_argument("--executor", required=True, type=_runtime_token("executor"))
+    if require_resource_expiry:
+        parser.add_argument("--resource-expires-at", required=True)
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the intentionally small platformctl command contract."""
+    """Build the exact W1-004 offline command contract."""
     parser = argparse.ArgumentParser(
         prog="platformctl",
-        description="Read-only enterprise AI platform repository validation.",
+        description="Offline owner-gated enterprise AI platform lifecycle controls.",
     )
     parser.add_argument(
         "--version",
@@ -182,15 +119,76 @@ def build_parser() -> argparse.ArgumentParser:
         version=f"%(prog)s {__version__}",
     )
     subcommands = parser.add_subparsers(dest="command")
-    subcommands.add_parser(
-        "validate",
-        help="validate the approved code-stage repository contract",
+
+    bootstrap_parser = subcommands.add_parser(
+        "bootstrap", help="validate an approved bootstrap intent without executing it"
     )
+    _add_mutation_arguments(bootstrap_parser, require_resource_expiry=True)
+
+    plan_parser = subcommands.add_parser(
+        "plan", help="validate planning intent without running Terraform"
+    )
+    plan_parser.add_argument(
+        "--environment", required=True, type=_runtime_token("environment")
+    )
+    plan_parser.add_argument("--target", required=True, type=_runtime_token("target"))
+
+    deploy_parser = subcommands.add_parser(
+        "deploy", help="validate an approved deployment intent without executing it"
+    )
+    _add_mutation_arguments(deploy_parser, require_resource_expiry=True)
+
+    subcommands.add_parser(
+        "validate", help="validate the approved repository contract read-only"
+    )
+
+    rollback_parser = subcommands.add_parser(
+        "rollback", help="validate an approved immutable rollback intent"
+    )
+    _add_mutation_arguments(rollback_parser, require_resource_expiry=False)
+
+    destroy_parser = subcommands.add_parser(
+        "destroy", help="validate destroy-safe or sandbox purge intent"
+    )
+    destroy_parser.add_argument(
+        "--mode", required=True, choices=[mode.value for mode in DestroyMode]
+    )
+    _add_mutation_arguments(destroy_parser, require_resource_expiry=False)
+
+    clean_parser = subcommands.add_parser(
+        "verify-clean", help="classify injected tag and service inventory"
+    )
+    clean_parser.add_argument(
+        "--environment", required=True, type=_runtime_token("environment")
+    )
+
     return parser
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Run platformctl without mutating repository or external state."""
+def _mutation_request(arguments: argparse.Namespace, action: Action) -> MutationRequest:
+    return MutationRequest(
+        action=action,
+        environment=cast(str, arguments.environment),
+        aws_account_id=cast(str, arguments.aws_account_id),
+        aws_region=cast(str, arguments.aws_region),
+        target=cast(str, arguments.target),
+        artifact_sha256=cast(str, arguments.artifact_sha256),
+        confirmation=cast(str, arguments.confirmation),
+        executor=cast(str, arguments.executor),
+        resource_expires_at=cast(
+            str | None, getattr(arguments, "resource_expires_at", None)
+        ),
+    )
+
+
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    clock: Clock | None = None,
+    usage_registry: ApprovalUsageRegistry | None = None,
+    inventory_provider: AwsInventoryProvider | None = None,
+) -> int:
+    """Validate one offline lifecycle intent without performing a mutation."""
     parser = build_parser()
     arguments = parser.parse_args(argv)
 
@@ -198,11 +196,64 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.print_help()
         return 0
 
-    errors = validate_repository()
-    if errors:
-        for error in errors:
-            print(f"ERROR: {error}")
+    effective_clock = clock or SystemClock()
+    effective_usage = usage_registry or UnavailableApprovalUsageRegistry()
+    effective_inventory = inventory_provider or UnavailableAwsInventoryProvider()
+
+    try:
+        if arguments.command == "validate":
+            errors = validate_repository()
+            if errors:
+                for error in errors:
+                    print(f"ERROR: {error}", file=sys.stderr)
+                return 1
+            print("CODE-STAGE VALIDATION PASS: approved repository contract is present")
+            return 0
+
+        if arguments.command == "plan":
+            result = plan.validate_request(arguments.environment, arguments.target)
+        elif arguments.command == "verify-clean":
+            result = verify_clean(
+                effective_inventory,
+                cast(str, arguments.environment),
+                effective_clock.now(),
+            )
+        else:
+            approval = load_approval_record(cast(Path, arguments.approval_record))
+            if arguments.command == "bootstrap":
+                request = _mutation_request(arguments, Action.BOOTSTRAP)
+                result = bootstrap.validate_request(
+                    request, approval, effective_usage, effective_clock.now()
+                )
+            elif arguments.command == "deploy":
+                request = _mutation_request(arguments, Action.DEPLOY)
+                result = deploy.validate_request(
+                    request, approval, effective_usage, effective_clock.now()
+                )
+            elif arguments.command == "rollback":
+                request = _mutation_request(arguments, Action.ROLLBACK)
+                result = rollback.validate_request(
+                    request, approval, effective_usage, effective_clock.now()
+                )
+            elif arguments.command == "destroy":
+                mode = DestroyMode(cast(str, arguments.mode))
+                request = _mutation_request(arguments, action_for_mode(mode))
+                result = validate_destroy_request(
+                    mode,
+                    request,
+                    approval,
+                    effective_usage,
+                    effective_clock.now(),
+                )
+            else:
+                raise ContractError("unsupported command")
+    except ApprovalError as exc:
+        print(f"APPROVAL ERROR: {exc}", file=sys.stderr)
+        return 4
+    except ContractError as exc:
+        print(f"VALIDATION ERROR: {exc}", file=sys.stderr)
         return 1
 
-    print("CODE-STAGE VALIDATION PASS: approved repository contract is present")
-    return 0
+    output = sys.stdout if result.exit_code == 0 else sys.stderr
+    print(result.message, file=output)
+    return int(result.exit_code)

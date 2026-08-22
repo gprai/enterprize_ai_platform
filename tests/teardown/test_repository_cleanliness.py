@@ -40,12 +40,18 @@ class RepositoryCleanlinessTests(unittest.TestCase):
             findings.append(".env")
         self.assertEqual([], findings)
 
-    def test_no_terraform_implementation_exists_yet(self) -> None:
-        terraform_files = [
-            str(path.relative_to(REPOSITORY_ROOT))
+    def test_only_approved_w1_004_terraform_skeleton_exists(self) -> None:
+        expected_files = {
+            "infra/bootstrap/main.tf",
+            "infra/bootstrap/versions.tf",
+            "infra/environments/sandbox/main.tf",
+            "infra/environments/sandbox/versions.tf",
+        }
+        terraform_files = {
+            path.relative_to(REPOSITORY_ROOT).as_posix()
             for path in (REPOSITORY_ROOT / "infra").rglob("*.tf")
-        ]
-        self.assertEqual([], terraform_files)
+        }
+        self.assertEqual(expected_files, terraform_files)
 
 
 if __name__ == "__main__":

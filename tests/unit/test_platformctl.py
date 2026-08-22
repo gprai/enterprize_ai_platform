@@ -38,11 +38,22 @@ class PlatformCtlUnitTests(unittest.TestCase):
     def test_version_is_an_explicit_pre_release_version(self) -> None:
         self.assertEqual("0.1.0", __version__)
 
-    def test_parser_exposes_only_validate_subcommand(self) -> None:
+    def test_parser_exposes_w1_004_lifecycle_subcommands(self) -> None:
         parser = build_parser()
         arguments = parser.parse_args(["validate"])
         self.assertEqual("validate", arguments.command)
-        self.assertIn("validate", parser.format_help())
+        help_text = parser.format_help()
+        for command in (
+            "bootstrap",
+            "plan",
+            "deploy",
+            "validate",
+            "rollback",
+            "destroy",
+            "verify-clean",
+        ):
+            self.assertIn(command, help_text)
+        self.assertNotIn("--execute", help_text)
 
     def test_approved_matrix_has_no_errors(self) -> None:
         self.assertEqual([], validate_feature_matrix(approved_matrix()))

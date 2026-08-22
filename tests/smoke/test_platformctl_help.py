@@ -13,7 +13,17 @@ class PlatformCtlSmokeTests(unittest.TestCase):
     def test_help_is_available(self) -> None:
         help_text = build_parser().format_help()
         self.assertIn("--version", help_text)
-        self.assertIn("validate", help_text)
+        for command in (
+            "bootstrap",
+            "plan",
+            "deploy",
+            "validate",
+            "rollback",
+            "destroy",
+            "verify-clean",
+        ):
+            self.assertIn(command, help_text)
+        self.assertNotIn("--execute", help_text)
 
     def test_validate_completes_read_only_contract(self) -> None:
         output = io.StringIO()

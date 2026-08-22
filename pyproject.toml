@@ -1,7 +1,7 @@
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-src = ["src", "tests"]
+src = ["src", "tools", "tests"]
 
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "S", "UP"]
@@ -16,7 +16,7 @@ known-first-party = ["enterprise_ai_platform"]
 plugins = ["pydantic.mypy"]
 python_version = "3.11"
 mypy_path = "src"
-files = ["src", "tools/record_test_evidence.py"]
+files = ["src", "tools/record_test_evidence.py", "tools/platformctl"]
 strict = true
 show_error_codes = true
 warn_unreachable = true
