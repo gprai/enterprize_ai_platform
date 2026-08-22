@@ -16,7 +16,7 @@ known-first-party = ["enterprise_ai_platform"]
 plugins = ["pydantic.mypy"]
 python_version = "3.11"
 mypy_path = "src"
-files = ["src"]
+files = ["src", "tools/record_test_evidence.py"]
 strict = true
 show_error_codes = true
 warn_unreachable = true
@@ -25,4 +25,15 @@ warn_unreachable = true
 minversion = "8.0"
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-ra --strict-config --strict-markers -p no:cacheprovider"
+addopts = "-ra --strict-config --strict-markers -p no:cacheprovider -p no:deepeval -m \"not aws and not paid\""
+markers = [
+    "unit: isolated deterministic behavior",
+    "integration: interaction between local components or configuration",
+    "contract: machine-readable interface and schema guarantees",
+    "feature: behavior mapped to an approved feature ID",
+    "smoke: minimal startup or command-path confidence",
+    "security: security and privacy control verification",
+    "teardown: cleanup and residual-resource verification",
+    "aws: opt-in test requiring explicit AWS access approval",
+    "paid: opt-in test that may incur platform cost",
+]
