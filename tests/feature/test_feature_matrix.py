@@ -27,10 +27,15 @@ EXPECTED_STATUSES = [
     "Done",
     "Deferred",
 ]
-EXPECTED_FEATURE = {
+EXPECTED_MVP_FEATURE = {
     "id": "MVP-001",
     "status": "Not Started",
     "linked_tracker_steps": ["W1-03", "W1-04", "W1-07"],
+}
+EXPECTED_RAG_FEATURE = {
+    "id": "RAG-001",
+    "status": "Not Started",
+    "linked_tracker_steps": ["W2-03", "W2-01", "W2-02", "W2-04", "W2-08"],
 }
 
 
@@ -44,21 +49,31 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual("1.0", matrix["schema_version"])
         self.assertEqual(EXPECTED_PROJECT, matrix["project"])
         self.assertEqual(EXPECTED_STATUSES, matrix["permitted_statuses"])
-        self.assertEqual([EXPECTED_FEATURE], matrix["features"])
+        self.assertEqual(
+            [EXPECTED_MVP_FEATURE, EXPECTED_RAG_FEATURE],
+            matrix["features"],
+        )
 
     def test_tracker_steps_are_links_not_feature_ids(self) -> None:
         matrix = read_matrix()
         features = matrix["features"]
-        self.assertEqual(["MVP-001"], [feature["id"] for feature in features])
+        self.assertEqual(
+            ["MVP-001", "RAG-001"],
+            [feature["id"] for feature in features],
+        )
         self.assertEqual(
             ["W1-03", "W1-04", "W1-07"],
             features[0]["linked_tracker_steps"],
+        )
+        self.assertEqual(
+            ["W2-03", "W2-01", "W2-02", "W2-04", "W2-08"],
+            features[1]["linked_tracker_steps"],
         )
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
         matrix["features"] = [
-            EXPECTED_FEATURE,
+            EXPECTED_MVP_FEATURE,
             {
                 "id": "RAG-001",
                 "status": "Complete",

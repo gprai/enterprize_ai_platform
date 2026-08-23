@@ -1,0 +1,61 @@
+W2-08 — TENANT ISOLATION
+========================
+
+BUSINESS PURPOSE
+Tenant isolation prevents one customer or organizational unit from receiving
+another tenant's document chunks, even when those chunks are semantically
+similar to the query.
+
+ARCHITECTURE POSITION
+Tenant identity is part of both the requester's authorization context and
+the stored chunk metadata. Retrieval applies the tenant boundary together
+with classification clearance and approved role or group rules before a
+result may be returned.
+
+OWNER-EXECUTED EVIDENCE
+Result: PASS
+Check: tests/security/test_tenant_isolation.py
+Observed result: 4 passed.
+
+The complete local suite later reported 157 passed, 1 expected skip, and
+3 deselected. The Qdrant internal integration also passed using synthetic
+tenant-scoped data.
+
+TECHNICAL IMPORTANCE
+- Similarity is not authorization.
+- Filtering before return reduces the chance that unauthorized content
+  reaches application memory, logs, prompts, or downstream models.
+- A common contract keeps tenant behavior consistent across adapters.
+- Fail-closed behavior prevents missing security context from becoming broad
+  access.
+
+LAYMAN EXPLANATION
+The system searches only inside the requester's locked filing cabinet. It
+does not search every customer's cabinet and hide the wrong pages afterward.
+
+PRIVACY BOUNDARY
+Tests used synthetic local content. No evidence shows processing of real
+customer data, credentials, or sensitive business documents. A local PASS
+does not establish production residency, retention, encryption, audit, or
+compliance controls.
+
+NOT RUN
+- Live identity-provider or token validation.
+- Live AWS IAM or OpenSearch domain authorization.
+- Production penetration, privacy, or cross-region isolation testing.
+- Real multi-tenant business data.
+
+ROLLBACK AND FAILURE
+The safe response to a missing tenant, tenant mismatch, insufficient
+clearance, or unauthorized role/group is denial. Authorization must never
+retry with a broader tenant filter. No source or deployment rollback was run;
+local Qdrant teardown passed with zero project-labelled residue.
+
+PENDING
+- Column N final approval and owner-managed tracker update.
+
+INTERVIEW TALKING POINTS
+- Explain tenant isolation as a data-security boundary.
+- Explain authorization before similarity ranking.
+- Explain role-based and group-based access alongside classification.
+- Explain why local synthetic tests do not prove production compliance.

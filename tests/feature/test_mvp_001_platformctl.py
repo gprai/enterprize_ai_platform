@@ -15,9 +15,11 @@ def test_w1_004_maps_to_mvp_001_without_changing_the_matrix() -> None:
     matrix = json.loads(
         (REPOSITORY_ROOT / "feature-matrix.yaml").read_text(encoding="utf-8")
     )
-    assert [feature["id"] for feature in matrix["features"]] == ["MVP-001"]
+    feature_ids = [feature["id"] for feature in matrix["features"]]
+    assert feature_ids[0] == "MVP-001"
+    assert feature_ids.count("MVP-001") == 1
     assert FIXED_TAG_VALUES["Feature"] == "MVP-001"
-    assert "W1-MVP-001" not in {feature["id"] for feature in matrix["features"]}
+    assert "W1-MVP-001" not in set(feature_ids)
 
 
 def test_mvp_control_surface_contains_all_lifecycle_commands() -> None:
@@ -32,4 +34,3 @@ def test_mvp_control_surface_contains_all_lifecycle_commands() -> None:
         "verify-clean",
     ):
         assert command in help_text
-

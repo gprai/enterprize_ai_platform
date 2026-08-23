@@ -17,24 +17,29 @@ class RepositoryCleanlinessTests(unittest.TestCase):
             ".ruff_cache",
             ".terraform",
             ".venv",
+            "__pycache__",
             "htmlcov",
             "terraform.tfstate",
             "terraform.tfstate.backup",
         }
-        findings = [
-            str(path.relative_to(REPOSITORY_ROOT))
-            for path in REPOSITORY_ROOT.rglob("*")
-            if path.name in forbidden_names
-        ]
+        findings: list[str] = []
+        for path in REPOSITORY_ROOT.rglob("*"):
+            relative_path = path.relative_to(REPOSITORY_ROOT)
+            if ".git" in relative_path.parts:
+                continue
+            if path.name in forbidden_names or (
+                path.is_file() and path.suffix.casefold() in {".pyc", ".pyo"}
+            ):
+                findings.append(str(relative_path))
         self.assertEqual([], findings)
 
     def test_no_plan_environment_or_private_key_artifacts_exist(self) -> None:
         findings: list[str] = []
         for pattern in ("*.tfplan", "*.pem", "*.key"):
-            findings.extend(
-                str(path.relative_to(REPOSITORY_ROOT))
-                for path in REPOSITORY_ROOT.rglob(pattern)
-            )
+            for path in REPOSITORY_ROOT.rglob(pattern):
+                relative_path = path.relative_to(REPOSITORY_ROOT)
+                if ".git" not in relative_path.parts:
+                    findings.append(str(relative_path))
         environment_file = REPOSITORY_ROOT / ".env"
         if environment_file.exists():
             findings.append(".env")

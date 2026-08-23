@@ -8,9 +8,12 @@ from pathlib import Path
 from tools.platformctl import __version__
 from tools.platformctl.cli import (
     EXPECTED_FEATURE,
+    EXPECTED_FEATURES,
     EXPECTED_PROJECT,
     EXPECTED_SCHEMA_VERSION,
     PERMITTED_STATUSES,
+    REQUIRED_DIRECTORIES,
+    REQUIRED_FILES,
     build_parser,
     validate_feature_matrix,
     validate_repository,
@@ -24,12 +27,13 @@ def approved_matrix() -> dict[str, object]:
         "permitted_statuses": list(PERMITTED_STATUSES),
         "features": [
             {
-                "id": EXPECTED_FEATURE["id"],
-                "status": EXPECTED_FEATURE["status"],
+                "id": feature["id"],
+                "status": feature["status"],
                 "linked_tracker_steps": list(
-                    EXPECTED_FEATURE["linked_tracker_steps"]
+                    feature["linked_tracker_steps"]
                 ),
             }
+            for feature in EXPECTED_FEATURES
         ],
     }
 
@@ -56,6 +60,11 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertNotIn("--execute", help_text)
 
     def test_approved_matrix_has_no_errors(self) -> None:
+        self.assertIs(EXPECTED_FEATURE, EXPECTED_FEATURES[0])
+        self.assertEqual(
+            ["MVP-001", "RAG-001"],
+            [feature["id"] for feature in EXPECTED_FEATURES],
+        )
         self.assertEqual([], validate_feature_matrix(approved_matrix()))
 
     def test_unapproved_status_is_rejected(self) -> None:
@@ -74,7 +83,37 @@ class PlatformCtlUnitTests(unittest.TestCase):
             }
         )
         errors = validate_feature_matrix(matrix)
-        self.assertTrue(any("only MVP-001" in error for error in errors))
+        self.assertTrue(
+            any("owner-approved ordered feature set" in error for error in errors)
+        )
+
+    def test_missing_duplicate_or_reordered_feature_is_rejected(self) -> None:
+        features = approved_matrix()["features"]
+        variants = (
+            features[:1],  # type: ignore[index]
+            list(reversed(features)),  # type: ignore[arg-type]
+            [features[0], features[0]],  # type: ignore[index]
+        )
+        for variant in variants:
+            with self.subTest(variant=variant):
+                matrix = approved_matrix()
+                matrix["features"] = variant
+                self.assertTrue(validate_feature_matrix(matrix))
+
+    def test_w2_required_paths_extend_the_repository_contract(self) -> None:
+        self.assertIn("docker", REQUIRED_DIRECTORIES)
+        self.assertIn(
+            "src/enterprise_ai_platform/retrieval/adapters",
+            REQUIRED_DIRECTORIES,
+        )
+        for required_file in (
+            "docker-compose.yml",
+            "docker/qdrant-test-runner.Dockerfile",
+            "src/enterprise_ai_platform/retrieval/adapters/qdrant.py",
+            "tests/integration/test_qdrant.py",
+            "tests/teardown/test_w2_001_qdrant_lifecycle.py",
+        ):
+            self.assertIn(required_file, REQUIRED_FILES)
 
     def test_missing_repository_reports_errors_without_creating_paths(self) -> None:
         missing_root = Path("definitely-not-an-enterprise-ai-platform-root")

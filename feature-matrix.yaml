@@ -25,6 +25,17 @@
         "W1-04",
         "W1-07"
       ]
+    },
+    {
+      "id": "RAG-001",
+      "status": "Not Started",
+      "linked_tracker_steps": [
+        "W2-03",
+        "W2-01",
+        "W2-02",
+        "W2-04",
+        "W2-08"
+      ]
     }
   ]
 }

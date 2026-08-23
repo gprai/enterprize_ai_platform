@@ -29,6 +29,7 @@ from .destroy import DestroyMode, action_for_mode
 from .destroy import validate_request as validate_destroy_request
 from .validate import (
     EXPECTED_FEATURE,
+    EXPECTED_FEATURES,
     EXPECTED_PROJECT,
     EXPECTED_SCHEMA_VERSION,
     PERMITTED_STATUSES,
@@ -44,6 +45,7 @@ from .verify_clean import verify_clean
 
 __all__ = [
     "EXPECTED_FEATURE",
+    "EXPECTED_FEATURES",
     "EXPECTED_PROJECT",
     "EXPECTED_SCHEMA_VERSION",
     "PERMITTED_STATUSES",

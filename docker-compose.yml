@@ -1,0 +1,63 @@
+name: enterprise-ai-w2-004a
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.19.0-unprivileged@sha256:a0e04fe623cb064502cd869cefc1dc7ce359d8edd481063b5bd351c0a0a2c91e
+    platform: linux/amd64
+    restart: "no"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - qdrant_internal
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    cpus: "1.0"
+    mem_limit: 1g
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    stop_grace_period: 20s
+    healthcheck:
+      test: ["CMD-SHELL", "bash -ec ': > /dev/tcp/127.0.0.1/6333'"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 5s
+
+  qdrant_test_runner:
+    profiles:
+      - "qdrant-test"
+    build:
+      context: .
+      dockerfile: docker/qdrant-test-runner.Dockerfile
+    platform: linux/amd64
+    restart: "no"
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    environment:
+      ENTERPRISE_AI_RUN_QDRANT_INTEGRATION: "1"
+      ENTERPRISE_AI_QDRANT_INTEGRATION_URL: "http://qdrant:6333"
+    networks:
+      - qdrant_internal
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    cpus: "1.0"
+    mem_limit: 512m
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    stop_grace_period: 10s
+
+volumes:
+  qdrant_data:
+    name: enterprise-ai-w2-004a_qdrant_data
+
+networks:
+  qdrant_internal:
+    internal: true

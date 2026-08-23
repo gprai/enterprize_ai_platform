@@ -28,8 +28,19 @@ EXPECTED_FEATURE = {
     "status": "Not Started",
     "linked_tracker_steps": ["W1-03", "W1-04", "W1-07"],
 }
+EXPECTED_FEATURES = (
+    EXPECTED_FEATURE,
+    {
+        "id": "RAG-001",
+        "status": "Not Started",
+        "linked_tracker_steps": ["W2-03", "W2-01", "W2-02", "W2-04", "W2-08"],
+    },
+)
 
 REQUIRED_DIRECTORIES = (
+    "docker",
+    "src/enterprise_ai_platform/retrieval",
+    "src/enterprise_ai_platform/retrieval/adapters",
     "docs/architecture",
     "docs/adr",
     "docs/features",
@@ -55,7 +66,20 @@ REQUIRED_DIRECTORIES = (
 
 REQUIRED_FILES = (
     "Makefile",
+    "docker-compose.yml",
+    "docker/qdrant-test-runner.Dockerfile",
+    "docker/qdrant-test-runner.Dockerfile.dockerignore",
+    "docker/qdrant-test-runner.requirements.txt",
     "feature-matrix.yaml",
+    "src/enterprise_ai_platform/retrieval/__init__.py",
+    "src/enterprise_ai_platform/retrieval/authorization.py",
+    "src/enterprise_ai_platform/retrieval/errors.py",
+    "src/enterprise_ai_platform/retrieval/models.py",
+    "src/enterprise_ai_platform/retrieval/vector_store.py",
+    "src/enterprise_ai_platform/retrieval/adapters/__init__.py",
+    "src/enterprise_ai_platform/retrieval/adapters/fake.py",
+    "src/enterprise_ai_platform/retrieval/adapters/opensearch.py",
+    "src/enterprise_ai_platform/retrieval/adapters/qdrant.py",
     "tools/__init__.py",
     "tools/platformctl/__init__.py",
     "tools/platformctl/__main__.py",
@@ -78,20 +102,27 @@ REQUIRED_FILES = (
     "tests/unit/test_platformctl.py",
     "tests/unit/test_platformctl_lifecycle.py",
     "tests/unit/test_platformctl_verify_clean.py",
+    "tests/unit/test_models.py",
     "tests/integration/__init__.py",
+    "tests/integration/test_opensearch.py",
     "tests/integration/test_repository_layout.py",
     "tests/integration/test_platformctl_dry_run.py",
+    "tests/integration/test_qdrant.py",
     "tests/contract/test_platformctl_cli_contract.py",
+    "tests/contract/test_vector_store.py",
     "tests/feature/__init__.py",
     "tests/feature/test_feature_matrix.py",
     "tests/feature/test_mvp_001_platformctl.py",
+    "tests/feature/test_w2_001_retrieval_contract.py",
     "tests/fakes/aws_inventory.py",
     "tests/smoke/__init__.py",
     "tests/smoke/test_platformctl_help.py",
     "tests/security/__init__.py",
     "tests/security/test_platformctl_approval_gates.py",
+    "tests/security/test_tenant_isolation.py",
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
+    "tests/teardown/test_w2_001_qdrant_lifecycle.py",
 )
 
 
@@ -131,10 +162,10 @@ def validate_feature_matrix(data: object) -> list[str]:
     features = data.get("features")
     if not isinstance(features, list):
         errors.append("features must be a list")
-    elif features != [EXPECTED_FEATURE]:
+    elif features != list(EXPECTED_FEATURES):
         errors.append(
-            "features must contain only MVP-001 with status 'Not Started' "
-            "and the approved linked tracker steps"
+            "features must exactly match the owner-approved ordered feature set: "
+            "MVP-001, RAG-001"
         )
 
     return errors
