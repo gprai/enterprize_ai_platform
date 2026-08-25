@@ -1,12 +1,16 @@
 """Feature tests for the owner-approved feature matrix."""
 
-from __future__ import annotations
-
 import json
+import tempfile
 import unittest
+from copy import deepcopy
 from pathlib import Path
 
 from tools.platformctl.cli import validate_feature_matrix
+from tools.platformctl.validate import (
+    EXPECTED_RAG_IMPLEMENTATION_PATHS,
+    EXPECTED_RAG_LINKED_TRACKER_STEPS,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 MATRIX_PATH = REPOSITORY_ROOT / "feature-matrix.yaml"
@@ -34,8 +38,9 @@ EXPECTED_MVP_FEATURE = {
 }
 EXPECTED_RAG_FEATURE = {
     "id": "RAG-001",
+    "implementation_paths": list(EXPECTED_RAG_IMPLEMENTATION_PATHS),
     "status": "Not Started",
-    "linked_tracker_steps": ["W2-03", "W2-01", "W2-02", "W2-04", "W2-08"],
+    "linked_tracker_steps": list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
 }
 
 
@@ -66,7 +71,7 @@ class FeatureMatrixTests(unittest.TestCase):
             features[0]["linked_tracker_steps"],
         )
         self.assertEqual(
-            ["W2-03", "W2-01", "W2-02", "W2-04", "W2-08"],
+            list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
             features[1]["linked_tracker_steps"],
         )
 
@@ -82,6 +87,79 @@ class FeatureMatrixTests(unittest.TestCase):
         ]
         self.assertTrue(validate_feature_matrix(matrix))
 
+    def test_cumulative_rag_contract_is_owned_only_by_rag_001(self) -> None:
+        matrix = read_matrix()
+        features = matrix["features"]
+        mvp_feature, rag_feature = features
 
-if __name__ == "__main__":
-    unittest.main()
+        self.assertEqual(["MVP-001", "RAG-001"], [item["id"] for item in features])
+        for step in ("W2-05", "W2-06", "W2-07"):
+            self.assertNotIn(step, mvp_feature["linked_tracker_steps"])
+        self.assertEqual(
+            list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
+            rag_feature["linked_tracker_steps"],
+        )
+        self.assertEqual(
+            list(EXPECTED_RAG_IMPLEMENTATION_PATHS),
+            rag_feature["implementation_paths"],
+        )
+
+    def test_missing_duplicate_reordered_or_misplaced_contract_is_rejected(
+        self,
+    ) -> None:
+        variants: list[dict[str, object]] = []
+
+        missing_step = deepcopy(read_matrix())
+        missing_step["features"][1]["linked_tracker_steps"].remove("W2-07")
+        variants.append(missing_step)
+
+        duplicate_step = deepcopy(read_matrix())
+        duplicate_step["features"][1]["linked_tracker_steps"].append("W2-07")
+        variants.append(duplicate_step)
+
+        reordered_paths = deepcopy(read_matrix())
+        reordered_paths["features"][1]["implementation_paths"].reverse()
+        variants.append(reordered_paths)
+
+        duplicate_path = deepcopy(read_matrix())
+        duplicate_path["features"][1]["implementation_paths"].append(
+            "src/enterprise_ai_platform/ingestion/pipeline.py"
+        )
+        variants.append(duplicate_path)
+
+        misplaced_step = deepcopy(read_matrix())
+        misplaced_step["features"][0]["linked_tracker_steps"].append("W2-05")
+        variants.append(misplaced_step)
+
+        additional_feature = deepcopy(read_matrix())
+        additional_feature["features"].append(
+            {
+                "id": "UNAPPROVED-001",
+                "status": "Not Started",
+                "linked_tracker_steps": ["W2-05"],
+                "implementation_paths": list(EXPECTED_RAG_IMPLEMENTATION_PATHS),
+            }
+        )
+        variants.append(additional_feature)
+
+        for variant in variants:
+            with self.subTest(variant=variant):
+                self.assertTrue(validate_feature_matrix(variant))
+
+    def test_trailing_content_is_rejected_as_malformed_json(self) -> None:
+        valid_text = MATRIX_PATH.read_text(encoding="utf-8")
+
+        with self.assertRaises(json.JSONDecodeError):
+            json.loads(valid_text + "\ntrailing-content")
+
+    def test_duplicate_json_key_is_rejected_by_repository_loader(self) -> None:
+        from tools.platformctl.validate import MatrixValidationError, load_feature_matrix
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            duplicate = Path(temporary_directory) / "feature-matrix-duplicate-test.json"
+            duplicate.write_text(
+                '{"schema_version":"1.0","schema_version":"1.0"}',
+                encoding="utf-8",
+            )
+            with self.assertRaises(MatrixValidationError):
+                load_feature_matrix(duplicate)

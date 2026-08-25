@@ -1,0 +1,78 @@
+W2-05 EMBEDDER — OWNER-EXECUTED EVIDENCE
+==========================================
+
+Status: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Final Approval After Owner Test: APPROVED
+Reviewer: Not supplied by the owner
+Approval date: Not supplied by the owner
+
+BUSINESS PURPOSE
+Turn text into consistent numeric vectors for later semantic retrieval while keeping ordinary tests deterministic, private and independent of a real model download.
+
+APPROVED CONTRACT
+- Model: sentence-transformers/all-MiniLM-L6-v2
+- Revision: 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+- Dimension: 384
+- Normalized: true
+- Metric: cosine
+- Device: CPU only
+- Default/maximum batch size: 32/128
+- Maximum items per call: 1,024
+- Maximum input: 256 wordpieces; overlength input is rejected
+- Runtime: explicit verified snapshot, offline, local-files-only, no token, no remote code
+- Concurrency: one process-wide CPU encode operation
+
+IMMUTABLE ARTIFACT EVIDENCE
+- Remote revision metadata: PASS
+- Approved payload presence: PASS
+- Download: PASS — 11 files, approximately 91.6 MB
+- Snapshot inside E:\AI\.model-cache\enterprise_ai_platform\W2-002: PASS
+- Missing approved snapshot files: none
+- Unexpected snapshot files: none
+- model.safetensors size: 90,868,376 bytes — PASS
+- model.safetensors SHA-256: 53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db — PASS
+- Repository-local model/cache artifacts: none — PASS
+
+FINAL OWNER-EXECUTED RESULTS
+- Real-model offline CPU integration: PASS — 1 passed in 27.65 seconds
+- Deprecated dimension-method warning after remediation: absent
+- W2-002 post-inference cleanliness: PASS — 5 passed
+- Ruff: PASS — All checks passed
+- Authoritative MyPy: PASS — 30 configured source files
+- Affected groups: PASS — 169 passed, 7 subtests passed, 1 accepted warning
+- Complete suite: PASS — 186 passed, 2 expected skips, 3 deselections, 7 subtests passed, 1 accepted warning
+- Repository validator: PASS
+
+HISTORICAL FAILURES AND RECOVERY
+- Feature-matrix serialization, stale consumers, a mutable fixture, and an incorrect test path/order each failed during remediation and were corrected under bounded approvals.
+- Ruff failed during import-layout remediation; the exact read-only diff was applied and the final gate passed.
+- An over-broad non-authoritative MyPy command reported test-only findings. The configured gate subsequently passed.
+- MyPy with Windows cache target NUL ended INDETERMINATE because the tool crashed internally. The external temporary-cache rerun passed, and the temporary cache was removed.
+- Repository .mypy_cache residue caused four cleanliness failures. The exact cache was removed and the affected tests passed.
+- The first real-model run passed with a deprecated-method FutureWarning. The approved API rename removed it; the final real-model run passed without that warning.
+
+ACCEPTED WARNINGS / GAPS
+- Starlette/FastAPI TestClient deprecation warning: accepted, non-blocking and unrelated to embedding behavior.
+- Hugging Face unauthenticated-rate-limit warning: accepted; no token was used.
+- No vulnerability-scan or software-bill-of-materials evidence was supplied.
+- Reviewer and approval date: not supplied by the owner.
+
+NOT RUN / DEFERRED
+- Qdrant mutation, collection creation and ingestion: NOT RUN
+- AWS, OpenSearch, cloud, registry and paid services: NOT RUN
+- Deployment, production data, application rollback and cloud teardown: NOT RUN
+- External model-cache removal: NOT RUN — intentionally deferred through W2-06 and W2-07
+- Final Approval After Owner Test: APPROVED
+- Excel tracker update: Pending after documentation closure
+
+ACCESS, PRIVACY, COST AND RESIDUE
+- Hugging Face could observe public IP, repository/revision and normal request metadata.
+- No enterprise document, prompt, query, credential or personal data was sent.
+- API charge: USD 0; local network, disk, CPU and memory usage were accepted.
+- The verified cache at E:\AI\.model-cache\enterprise_ai_platform\W2-002 is intentional external residue and a prerequisite for W2-06 and W2-07.
+
+ROLLBACK / TEARDOWN
+No deployment or data mutation occurred, so production rollback was NOT RUN. Temporary test variables and MyPy cache were removed. The immutable model cache is retained until the owner-approved Week 2 teardown checkpoint.
+
+APPROVED BASELINE AND NEXT-TASK HANDOVER
+The approved baseline is the bounded embedding contract, deterministic fake, verified immutable model snapshot, normalized 384-dimensional offline CPU output, process-wide concurrency control, passing local verification and clean repository state. W2-06 and W2-07 may rely on this baseline and the retained external cache. They may not treat ingestion, vector-store mutation, cloud integration, deployment, production data handling or compliance as tested or approved. Cache teardown remains deferred, and the owner-managed Excel tracker update remains pending.

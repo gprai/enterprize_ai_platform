@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "dataset_name": "enterprise-ai-learning-corpus-v1",
+  "documents": [
+    {
+      "source_path": "approved/source-of-truth-v1.1.md",
+      "source_id": "DOC-SOT-V1.1",
+      "tenant_id": "tenant-a",
+      "classification": "INTERNAL",
+      "allowed_roles": [
+        "reader"
+      ],
+      "allowed_groups": [],
+      "data_owner": "Gyan Prakash Rai",
+      "media_type": "text/markdown"
+    },
+    {
+      "source_path": "approved/coaching-blueprint.md",
+      "source_id": "DOC-COACHING-BLUEPRINT",
+      "tenant_id": "tenant-a",
+      "classification": "INTERNAL",
+      "allowed_roles": [
+        "reader"
+      ],
+      "allowed_groups": [],
+      "data_owner": "Gyan Prakash Rai",
+      "media_type": "text/markdown"
+    },
+    {
+      "source_path": "restricted-fixtures/restricted-test.txt",
+      "source_id": "DOC-RESTRICTED-TEST",
+      "tenant_id": "tenant-b",
+      "classification": "RESTRICTED",
+      "allowed_roles": [
+        "reader"
+      ],
+      "allowed_groups": [],
+      "data_owner": "Gyan Prakash Rai",
+      "media_type": "text/plain"
+    }
+  ]
+}

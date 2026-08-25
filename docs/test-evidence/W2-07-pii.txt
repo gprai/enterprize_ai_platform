@@ -1,0 +1,105 @@
+W2-07 PII AND INGESTION SECURITY EVIDENCE — W2-003
+DOCUMENT STATUS: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+REVIEWER: Gyan Prakash Rai, Project Owner and Final Approval Reviewer.
+APPROVAL DATE AND TIME: 2026-08-25 13:45 SGT (UTC+08:00).
+
+BUSINESS PURPOSE
+Prove that unsafe content is rejected before tokenization, embedding or vector
+storage and that tenant and PII exceptions fail closed.
+
+APPROVED POLICY
+QUARANTINE — SG_NRIC_FIN, PASSPORT_NUMBER, BANK_ACCOUNT, PAYMENT_CARD,
+HEALTH_INFORMATION, BIOMETRIC_IDENTIFIER and CREDENTIAL_SECRET.
+REDACT — PERSON, EMAIL_ADDRESS, PHONE_NUMBER, LOCATION and IP_ADDRESS.
+PLACEHOLDERS — <PERSON>, <EMAIL_ADDRESS>, <PHONE_NUMBER>, <LOCATION> and
+<IP_ADDRESS>.
+
+OWNER-EXECUTED RESULTS
+PASS — PII, source-path and PDF security group: 17 passed.
+PASS — strict manifest and PII-policy tests after the documented stale
+privacy-assertion remediation; final focused group result: 22 passed.
+PASS — tenant and retrieval consumer group: 21 passed, 1 approved Qdrant skip
+and 1 deselection.
+PASS — CLI, rollback and teardown group: 9 passed.
+PASS — focused post-remediation pipeline/security/CLI regression: 17 passed.
+PASS — final complete suite: 239 passed, 3 skipped, 3 deselected,
+9 subtests passed and 1 warning.
+
+PROVEN BOUNDARIES
+PASS — plausible NRIC/FIN shapes remain high-risk regardless of checksum result.
+PASS — high-risk PII causes zero tokenizer, Embedder and VectorStore calls.
+PASS — common PII uses exact typed angle-bracket replacements.
+PASS — traversal, absolute paths, non-POSIX paths, symlinks, invalid UTF-8,
+binary/NUL content, PDF disguise, empty files and oversized files fail closed.
+PASS — malformed, encrypted, image-only, over-page and character-expanding PDFs
+fail closed before downstream provider calls.
+PASS — exception authorization checks exact owner, document, entity set, expiry,
+tenant and the combined INGESTOR plus ADMIN roles.
+PASS — CLI exposes no ordinary exception self-approval argument.
+PASS — strict public manifests contain no raw source text, PII match text,
+embeddings, exception rationale, stack trace, secret or absolute source path.
+
+PRIVACY AND ACCESS
+All repository fixtures are synthetic and contain no real regulated or personal
+value. Ordinary tests used an injected deterministic analyzer. The real Presidio
+NLP model was not constructed, downloaded or executed.
+
+WARNING
+One unrelated Starlette/FastAPI TestClient deprecation warning was observed in
+the complete suite. Remediation was NOT RUN; the owner accepted it as a
+recorded, non-blocking limitation of the approved baseline.
+
+DEPLOYMENT, ROLLBACK AND TEARDOWN
+NOT RUN — production ingestion, production identity integration, deployment,
+cloud rollback and cloud teardown.
+PASS — fake-boundary exact-version rollback tests.
+PASS — repository cache, manifest and quarantine absence checks.
+No quarantine-content copy, PII evidence file, container, vector collection or
+cloud resource was reported.
+
+RESIDUAL RESOURCE
+The verified W2-002 external model cache remains intentionally retained through
+W2-06 and W2-07. The external reusable virtual environment remains. Neither is
+repository-local residue.
+
+EVIDENCE GAPS AND DEFERRED WORK
+NOT RUN — real Presidio NLP, real enterprise data, live Qdrant/OpenSearch/AWS,
+production compliance validation and vulnerability scanning.
+
+FINAL OWNER APPROVAL — COLUMN N
+Prompt/task ID: W2-003.
+Reviewer: Gyan Prakash Rai.
+Reviewer role: Project Owner and Final Approval Reviewer.
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+Approval date and time: 2026-08-25 13:45 SGT (UTC+08:00).
+Final status: APPROVED WITH RECORDED WARNINGS, RISKS, EVIDENCE GAPS,
+LIMITATIONS AND DEFERRED INTEGRATIONS.
+Code review status: Approved within the bounded W2-003 implementation scope.
+Documentation review status: Approved for the complete four-document Column M
+manifest.
+Owner-executed test status: PASS within the recorded local scope after the
+preserved remediation; final complete suite 239 passed, 3 skipped,
+3 deselected, 9 subtests passed and 1 warning.
+Accepted warning: the Starlette/FastAPI TestClient warning is non-blocking;
+remediation was NOT RUN.
+Accepted risks, gaps and limitations: real Presidio NLP, real enterprise data,
+live vector services, production identity/compliance and vulnerability scanning
+were not proven by the local fake boundary.
+NOT RUN and deferred: real Presidio NLP, real enterprise data,
+Qdrant/OpenSearch/AWS, deployment, production rollback, cloud teardown and
+production compliance validation. These require separate owner approvals and
+evidence.
+Rollback and teardown: fake-boundary exact-version rollback tests PASSED;
+actual application/source rollback, Docker teardown and cloud rollback/teardown
+were NOT RUN. Repository-local residue checks PASSED.
+Residual resources: the reusable external virtual environment remains. The
+verified W2-002 external model cache remains intentionally through W2-06 and
+W2-07; removal is deferred to W2-10/the approved Week 2 teardown checkpoint.
+Approval condition: documentation-only closure of the exact four-document
+manifest while preserving every PASS, historical FAIL, NOT RUN, warning,
+limitation, rollback, teardown and residual-resource fact.
+Approved baseline and next-task handover: the next task may rely on the approved
+PII-before-embedding, quarantine, typed-redaction, source-safety, tenant and
+dual-role exception controls. It may not infer real Presidio, enterprise-data,
+live vector-store, cloud, production identity or compliance evidence.
+Tracker update responsibility: Owner — Gyan Prakash Rai.

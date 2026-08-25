@@ -43,12 +43,14 @@ def auth(*roles: Role, tenant_id: str = "tenant-a") -> AuthContext:
     )
 
 
-def chunk(index: int = 0) -> Chunk:
+def chunk(index: int = 0, *, version: str = "v1") -> Chunk:
     content_hash = "a" * 64
     return Chunk(
         tenant_id="tenant-a",
+        source_id="DOC-POLICY-001",
+        media_type="text/markdown",
         document_id="policy-001",
-        document_version="v1",
+        document_version=version,
         classification=Classification.INTERNAL,
         allowed_roles=frozenset({Role.READER}),
         allowed_groups=frozenset({"finance"}),
@@ -59,7 +61,7 @@ def chunk(index: int = 0) -> Chunk:
         chunk_id=deterministic_chunk_id(
             tenant_id="tenant-a",
             document_id="policy-001",
-            document_version="v1",
+            document_version=version,
             content_hash=content_hash,
             chunk_index=index,
         ),
@@ -78,10 +80,16 @@ def test_create_upsert_search_delete_contract_is_idempotent() -> None:
         store = InMemoryVectorStore()
         specification = CollectionSpec(name="w2_001_contract")
         first = chunk()
+        second_version = chunk(version="v2")
         await store.create_or_validate_collection(specification)
         await store.create_or_validate_collection(specification)
         await store.upsert_chunks(specification, (first,), auth(Role.INGESTOR))
         await store.upsert_chunks(specification, (first,), auth(Role.INGESTOR))
+        await store.upsert_chunks(
+            specification,
+            (second_version,),
+            auth(Role.INGESTOR),
+        )
 
         results = await store.search(
             specification,
@@ -89,7 +97,24 @@ def test_create_upsert_search_delete_contract_is_idempotent() -> None:
             vector(),
             auth(Role.READER),
         )
-        assert [result.chunk_id for result in results] == [first.chunk_id]
+        assert {result.chunk_id for result in results} == {
+            first.chunk_id,
+            second_version.chunk_id,
+        }
+
+        await store.delete_by_document_version(
+            specification,
+            "policy-001",
+            "v2",
+            auth(Role.ADMIN),
+        )
+        remaining = await store.search(
+            specification,
+            Query(text="policy", top_k=5),
+            vector(),
+            auth(Role.READER),
+        )
+        assert [result.chunk_id for result in remaining] == [first.chunk_id]
 
         await store.delete_by_document_id(
             specification,

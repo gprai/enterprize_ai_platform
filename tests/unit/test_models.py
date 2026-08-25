@@ -34,6 +34,8 @@ def normalized_vector(axis: int = 0) -> tuple[float, ...]:
 def metadata(**overrides: object) -> dict[str, object]:
     values: dict[str, object] = {
         "tenant_id": "tenant-a",
+        "source_id": "DOC-POLICY-001",
+        "media_type": "text/markdown",
         "document_id": "policy-001",
         "document_version": "v1",
         "classification": Classification.INTERNAL,
@@ -150,6 +152,8 @@ def test_pii_exception_requires_owner_rationale_and_unexpired_time() -> None:
         owner="privacy-owner",
         rationale="Synthetic exception for contract validation",
         expires_at=now + timedelta(hours=1),
+        document_id="policy-001",
+        entity_types=frozenset({"PASSPORT_NUMBER"}),
     )
     approved = Document(
         **metadata(
@@ -159,6 +163,8 @@ def test_pii_exception_requires_owner_rationale_and_unexpired_time() -> None:
         content="Approved synthetic exception",
     )
     assert approved.is_indexable(now)
+    assert approved.source_id == "DOC-POLICY-001"
+    assert approved.media_type == "text/markdown"
     assert not approved.is_indexable(now + timedelta(hours=2))
     with pytest.raises(ValidationError):
         Document(

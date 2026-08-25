@@ -6,6 +6,7 @@ import hashlib
 import math
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -101,11 +102,18 @@ class ApprovedException(StrictModel):
     owner: str = Field(min_length=1, max_length=200)
     rationale: str = Field(min_length=1, max_length=1000)
     expires_at: datetime
+    document_id: str = Field(min_length=1, max_length=256)
+    entity_types: frozenset[str] = Field(min_length=1, max_length=20)
 
-    @field_validator("owner")
+    @field_validator("owner", "document_id")
     @classmethod
     def reject_obsolete_owner(cls, value: str) -> str:
         return _validate_identifier(value)
+
+    @field_validator("entity_types")
+    @classmethod
+    def validate_entity_types(cls, values: frozenset[str]) -> frozenset[str]:
+        return frozenset(_validate_identifier(value) for value in values)
 
     @field_validator("expires_at")
     @classmethod
@@ -120,6 +128,8 @@ class DocumentMetadata(StrictModel):
     """Metadata required on documents and their derived chunks."""
 
     tenant_id: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9-]*$")
+    source_id: str = Field(min_length=1, max_length=256)
+    media_type: Literal["text/plain", "text/markdown", "application/pdf"]
     document_id: str = Field(min_length=1, max_length=256)
     document_version: str = Field(min_length=1, max_length=128)
     classification: Classification
@@ -131,7 +141,13 @@ class DocumentMetadata(StrictModel):
     ingestion_status: IngestionStatus
     approved_exception: ApprovedException | None = None
 
-    @field_validator("tenant_id", "document_id", "document_version", "data_owner")
+    @field_validator(
+        "tenant_id",
+        "source_id",
+        "document_id",
+        "document_version",
+        "data_owner",
+    )
     @classmethod
     def reject_obsolete_identifiers(cls, value: str) -> str:
         return _validate_identifier(value)
@@ -149,6 +165,11 @@ class DocumentMetadata(StrictModel):
             raise ValueError(
                 "approved_exception is required only for APPROVED_EXCEPTION PII status"
             )
+        if (
+            self.approved_exception is not None
+            and self.approved_exception.document_id != self.document_id
+        ):
+            raise ValueError("approved_exception must match the exact document_id")
         return self
 
     def is_indexable(self, now: datetime) -> bool:

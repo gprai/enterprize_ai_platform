@@ -27,6 +27,17 @@ QDRANT_INTEGRATION_URL = "ENTERPRISE_AI_QDRANT_INTEGRATION_URL"
 INTERNAL_QDRANT_URL = "http://qdrant:6333"
 
 
+class RetryHealthClient:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def get_collections(self) -> object:
+        self.calls += 1
+        if self.calls == 1:
+            raise RuntimeError("synthetic unavailable boundary")
+        return object()
+
+
 def vector() -> tuple[float, ...]:
     return tuple([1.0] + [0.0] * (APPROVED_EMBEDDING_DIMENSION - 1))
 
@@ -44,6 +55,8 @@ def chunk() -> Chunk:
     content_hash = "d" * 64
     return Chunk(
         tenant_id="tenant-a",
+        source_id="DOC-QDRANT-POLICY",
+        media_type="text/plain",
         document_id="policy-qdrant",
         document_version="v1",
         classification=Classification.INTERNAL,
@@ -78,6 +91,26 @@ def approved_internal_qdrant_url() -> str:
     return url
 
 
+def test_qdrant_retry_is_bounded_and_uses_injected_approved_delay() -> None:
+    async def scenario() -> None:
+        client = RetryHealthClient()
+        delays: list[float] = []
+
+        async def record_sleep(delay: float) -> None:
+            delays.append(delay)
+
+        store = QdrantVectorStore(
+            client,
+            retry_delay=lambda: 0.15,
+            sleep=record_sleep,
+        )
+        assert await store.healthcheck()
+        assert client.calls == 2
+        assert delays == [0.15]
+
+    asyncio.run(scenario())
+
+
 def test_local_qdrant_round_trip_and_collection_cleanup() -> None:
     qdrant_url = approved_internal_qdrant_url()
 
@@ -99,9 +132,10 @@ def test_local_qdrant_round_trip_and_collection_cleanup() -> None:
                 auth(Role.READER),
             )
             assert [result.chunk_id for result in results] == [source_chunk.chunk_id]
-            await store.delete_by_document_id(
+            await store.delete_by_document_version(
                 specification,
                 source_chunk.document_id,
+                source_chunk.document_version,
                 auth(Role.ADMIN),
             )
             assert (

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import math
+import secrets
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any, TypeVar
@@ -38,6 +40,12 @@ _SPEC_POINT_ID = "00000000-0000-5000-8000-000000000001"
 _RECORD_TYPE = "enterprise_ai_record_type"
 _CHUNK_RECORD = "chunk"
 _SPEC_RECORD = "collection_spec"
+_RETRY_BASE_SECONDS = 0.1
+_RETRY_JITTER_MILLISECONDS = 50
+
+
+def _retry_delay_seconds() -> float:
+    return _RETRY_BASE_SECONDS + secrets.randbelow(_RETRY_JITTER_MILLISECONDS + 1) / 1000
 
 
 def _qdrant_point_id(chunk_id: str) -> str:
@@ -47,11 +55,28 @@ def _qdrant_point_id(chunk_id: str) -> str:
 class QdrantVectorStore:
     """Async Qdrant implementation that never returns Qdrant SDK objects."""
 
-    def __init__(self, client: Any, *, max_attempts: int = DEFAULT_MAX_ATTEMPTS) -> None:
+    def __init__(
+        self,
+        client: Any,
+        *,
+        max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+        retry_delay: Callable[[], float] = _retry_delay_seconds,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    ) -> None:
         if max_attempts < 1 or max_attempts > DEFAULT_MAX_ATTEMPTS:
             raise ValueError("max_attempts must be between 1 and 2")
         self._client = client
         self._max_attempts = max_attempts
+        self._retry_delay = retry_delay
+        self._sleep = sleep
+
+    async def _wait_before_retry(self, deadline: float) -> None:
+        delay = self._retry_delay()
+        if not math.isfinite(delay) or not 0.1 <= delay <= 0.15:
+            raise VectorStoreValidationError
+        if asyncio.get_running_loop().time() + delay >= deadline:
+            raise VectorStoreTimeoutError
+        await self._sleep(delay)
 
     async def _execute(
         self,
@@ -72,9 +97,11 @@ class QdrantVectorStore:
             except TimeoutError:
                 if attempt + 1 == self._max_attempts:
                     raise VectorStoreTimeoutError from None
+                await self._wait_before_retry(deadline)
             except Exception:
                 if attempt + 1 == self._max_attempts:
                     raise VectorStoreUnavailableError from None
+                await self._wait_before_retry(deadline)
         raise VectorStoreUnavailableError
 
     @staticmethod
@@ -319,6 +346,49 @@ class QdrantVectorStore:
                 qmodels.FieldCondition(
                     key="document_id",
                     match=qmodels.MatchValue(value=document_id),
+                ),
+            ]
+        )
+        await self._execute(
+            lambda: self._client.delete(
+                collection_name=specification.name,
+                points_selector=qmodels.FilterSelector(filter=delete_filter),
+                wait=True,
+            ),
+            timeout,
+        )
+
+    async def delete_by_document_version(
+        self,
+        specification: CollectionSpec,
+        document_id: str,
+        document_version: str,
+        auth_context: AuthContext,
+        *,
+        timeout_seconds: float | None = None,
+    ) -> None:
+        timeout = validated_timeout(timeout_seconds)
+        require_delete_authorized(auth_context)
+        if not document_id.strip() or not document_version.strip():
+            raise VectorStoreValidationError
+        await self._ensure_collection(specification, timeout)
+        delete_filter = qmodels.Filter(
+            must=[
+                qmodels.FieldCondition(
+                    key=_RECORD_TYPE,
+                    match=qmodels.MatchValue(value=_CHUNK_RECORD),
+                ),
+                qmodels.FieldCondition(
+                    key="tenant_id",
+                    match=qmodels.MatchValue(value=auth_context.tenant_id),
+                ),
+                qmodels.FieldCondition(
+                    key="document_id",
+                    match=qmodels.MatchValue(value=document_id),
+                ),
+                qmodels.FieldCondition(
+                    key="document_version",
+                    match=qmodels.MatchValue(value=document_version),
                 ),
             ]
         )

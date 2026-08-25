@@ -105,7 +105,50 @@ def require_upsert_authorized(
             raise VectorStoreAuthorizationError
         if not chunk.is_indexable(evaluated_at):
             raise VectorStoreValidationError
+        if chunk.pii_status is PiiStatus.APPROVED_EXCEPTION:
+            require_ingestion_authorized(
+                chunk,
+                auth_context,
+                detected_entity_types=(
+                    ()
+                    if chunk.approved_exception is None
+                    else chunk.approved_exception.entity_types
+                ),
+                now=evaluated_at,
+            )
     return materialized
+
+
+def require_ingestion_authorized(
+    metadata: DocumentMetadata,
+    auth_context: AuthContext,
+    *,
+    detected_entity_types: Iterable[str] = (),
+    now: datetime | None = None,
+) -> datetime:
+    """Authorize one exact tenant/document/PII boundary before provider calls."""
+
+    evaluated_at = require_active_context(auth_context, now)
+    if metadata.tenant_id != auth_context.tenant_id:
+        raise VectorStoreAuthorizationError
+    if Role.INGESTOR not in auth_context.roles:
+        raise VectorStoreAuthorizationError
+    if metadata.pii_status is not PiiStatus.APPROVED_EXCEPTION:
+        if metadata.pii_status not in {PiiStatus.CLEAR, PiiStatus.REDACTED}:
+            raise VectorStoreValidationError
+        return evaluated_at
+
+    exception = metadata.approved_exception
+    if (
+        exception is None
+        or Role.ADMIN not in auth_context.roles
+        or exception.owner != metadata.data_owner
+        or exception.document_id != metadata.document_id
+        or exception.entity_types != frozenset(detected_entity_types)
+        or not exception.is_valid(evaluated_at)
+    ):
+        raise VectorStoreAuthorizationError
+    return evaluated_at
 
 
 def require_delete_authorized(auth_context: AuthContext, now: datetime | None = None) -> None:

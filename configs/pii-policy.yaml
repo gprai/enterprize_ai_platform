@@ -1,0 +1,20 @@
+schema_version: "1.0"
+quarantine_entities:
+  - SG_NRIC_FIN
+  - PASSPORT_NUMBER
+  - BANK_ACCOUNT
+  - PAYMENT_CARD
+  - HEALTH_INFORMATION
+  - BIOMETRIC_IDENTIFIER
+  - CREDENTIAL_SECRET
+redactions:
+  - entity_type: PERSON
+    placeholder: "<PERSON>"
+  - entity_type: EMAIL_ADDRESS
+    placeholder: "<EMAIL_ADDRESS>"
+  - entity_type: PHONE_NUMBER
+    placeholder: "<PHONE_NUMBER>"
+  - entity_type: LOCATION
+    placeholder: "<LOCATION>"
+  - entity_type: IP_ADDRESS
+    placeholder: "<IP_ADDRESS>"

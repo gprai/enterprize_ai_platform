@@ -28,17 +28,98 @@ EXPECTED_FEATURE = {
     "status": "Not Started",
     "linked_tracker_steps": ["W1-03", "W1-04", "W1-07"],
 }
+EXPECTED_RAG_IMPLEMENTATION_PATHS = (
+    "docker-compose.yml",
+    "docker/qdrant-test-runner.Dockerfile",
+    "docker/qdrant-test-runner.Dockerfile.dockerignore",
+    "docker/qdrant-test-runner.requirements.txt",
+    "src/enterprise_ai_platform/retrieval/__init__.py",
+    "src/enterprise_ai_platform/retrieval/authorization.py",
+    "src/enterprise_ai_platform/retrieval/errors.py",
+    "src/enterprise_ai_platform/retrieval/models.py",
+    "src/enterprise_ai_platform/retrieval/vector_store.py",
+    "src/enterprise_ai_platform/retrieval/adapters/__init__.py",
+    "src/enterprise_ai_platform/retrieval/adapters/fake.py",
+    "src/enterprise_ai_platform/retrieval/adapters/opensearch.py",
+    "src/enterprise_ai_platform/retrieval/adapters/qdrant.py",
+    "tests/unit/test_models.py",
+    "tests/contract/test_vector_store.py",
+    "tests/integration/test_opensearch.py",
+    "tests/integration/test_qdrant.py",
+    "tests/feature/test_w2_001_retrieval_contract.py",
+    "tests/security/test_tenant_isolation.py",
+    "tests/teardown/test_w2_001_qdrant_lifecycle.py",
+    "src/enterprise_ai_platform/embeddings/__init__.py",
+    "src/enterprise_ai_platform/embeddings/base.py",
+    "src/enterprise_ai_platform/embeddings/errors.py",
+    "src/enterprise_ai_platform/embeddings/fake.py",
+    "src/enterprise_ai_platform/embeddings/sentence_transformer.py",
+    "tests/unit/test_embedder.py",
+    "tests/contract/test_embedder.py",
+    "tests/integration/test_sentence_transformer_embedder.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/security/test_embedder_security.py",
+    "tests/teardown/test_w2_002_embedder_cleanliness.py",
+    "requirements.txt",
+    "configs/pii-policy.yaml",
+    "configs/eval/w2-starter.jsonl",
+    "data/sample/corpus-manifest.json",
+    "data/sample/approved/source-of-truth-v1.1.md",
+    "data/sample/approved/coaching-blueprint.md",
+    "data/sample/restricted-fixtures/restricted-test.txt",
+    "src/enterprise_ai_platform/ingestion/__init__.py",
+    "src/enterprise_ai_platform/ingestion/errors.py",
+    "src/enterprise_ai_platform/ingestion/models.py",
+    "src/enterprise_ai_platform/ingestion/identity.py",
+    "src/enterprise_ai_platform/ingestion/normalization.py",
+    "src/enterprise_ai_platform/ingestion/loaders.py",
+    "src/enterprise_ai_platform/ingestion/pii.py",
+    "src/enterprise_ai_platform/ingestion/tokenizer.py",
+    "src/enterprise_ai_platform/ingestion/chunking.py",
+    "src/enterprise_ai_platform/ingestion/pipeline.py",
+    "tests/unit/test_chunking.py",
+    "tests/unit/test_ingestion.py",
+    "tests/contract/test_ingestion_manifest.py",
+    "tests/contract/test_pii_policy.py",
+    "tests/integration/test_ingestion_pdf.py",
+    "tests/integration/test_ingestion_tokenizer.py",
+    "tests/integration/test_dependency_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+    "tests/security/test_pii.py",
+    "tests/security/test_ingestion_paths.py",
+    "tests/smoke/test_ingestion_cli.py",
+    "tests/rollback/test_w2_003_ingestion_rollback.py",
+    "tests/teardown/test_w2_003_ingestion_cleanliness.py",
+)
+EXPECTED_RAG_LINKED_TRACKER_STEPS = (
+    "W2-03",
+    "W2-01",
+    "W2-02",
+    "W2-04",
+    "W2-08",
+    "W2-05",
+    "W2-06",
+    "W2-07",
+)
+EXPECTED_RAG_FEATURE = {
+    "id": "RAG-001",
+    "implementation_paths": list(EXPECTED_RAG_IMPLEMENTATION_PATHS),
+    "status": "Not Started",
+    "linked_tracker_steps": list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
+}
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
-    {
-        "id": "RAG-001",
-        "status": "Not Started",
-        "linked_tracker_steps": ["W2-03", "W2-01", "W2-02", "W2-04", "W2-08"],
-    },
+    EXPECTED_RAG_FEATURE,
 )
 
 REQUIRED_DIRECTORIES = (
+    "configs",
+    "configs/eval",
+    "data/sample",
+    "data/sample/approved",
+    "data/sample/restricted-fixtures",
     "docker",
+    "src/enterprise_ai_platform/ingestion",
     "src/enterprise_ai_platform/retrieval",
     "src/enterprise_ai_platform/retrieval/adapters",
     "docs/architecture",
@@ -60,6 +141,7 @@ REQUIRED_DIRECTORIES = (
     "tests/fakes",
     "tests/smoke",
     "tests/security",
+    "tests/rollback",
     "tests/teardown",
     "policies",
 )
@@ -120,6 +202,7 @@ REQUIRED_FILES = (
     "tests/security/__init__.py",
     "tests/security/test_platformctl_approval_gates.py",
     "tests/security/test_tenant_isolation.py",
+    *EXPECTED_RAG_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -128,6 +211,15 @@ REQUIRED_FILES = (
 
 class MatrixValidationError(ValueError):
     """Raised when feature-matrix.yaml violates the approved contract."""
+
+
+def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise MatrixValidationError("feature matrix must not contain duplicate keys")
+        result[key] = value
+    return result
 
 
 def validate_feature_matrix(data: object) -> list[str]:
@@ -179,7 +271,10 @@ def load_feature_matrix(path: Path) -> dict[str, object]:
         raise MatrixValidationError(f"cannot read {path}: {exc}") from exc
 
     try:
-        data = cast(object, json.loads(raw_data))
+        data = cast(
+            object,
+            json.loads(raw_data, object_pairs_hook=_reject_duplicate_keys),
+        )
     except json.JSONDecodeError as exc:
         raise MatrixValidationError(
             f"feature matrix must be valid JSON-compatible YAML: {exc}"

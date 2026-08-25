@@ -20,10 +20,13 @@ EXPECTED_RUNTIME_PACKAGES = {
     "opentelemetry-sdk",
     "presidio-analyzer",
     "presidio-anonymizer",
+    "pypdf",
     "pydantic",
     "pydantic-settings",
+    "pyyaml",
     "qdrant-client",
     "sentence-transformers",
+    "tokenizers",
     "uvicorn",
 }
 EXPECTED_DEVELOPMENT_PACKAGES = {

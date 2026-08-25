@@ -56,6 +56,8 @@ def chunk(
     document_id = f"{tenant_id}-policy"
     return Chunk(
         tenant_id=tenant_id,
+        source_id=f"DOC-{tenant_id.upper()}-POLICY",
+        media_type="text/plain",
         document_id=document_id,
         document_version="v1",
         classification=classification,

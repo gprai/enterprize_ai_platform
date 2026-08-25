@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+from copy import deepcopy
 from pathlib import Path
 
 from tools.platformctl import __version__
@@ -25,16 +26,7 @@ def approved_matrix() -> dict[str, object]:
         "schema_version": EXPECTED_SCHEMA_VERSION,
         "project": dict(EXPECTED_PROJECT),
         "permitted_statuses": list(PERMITTED_STATUSES),
-        "features": [
-            {
-                "id": feature["id"],
-                "status": feature["status"],
-                "linked_tracker_steps": list(
-                    feature["linked_tracker_steps"]
-                ),
-            }
-            for feature in EXPECTED_FEATURES
-        ],
+        "features": [deepcopy(feature) for feature in EXPECTED_FEATURES],
     }
 
 
@@ -112,6 +104,26 @@ class PlatformCtlUnitTests(unittest.TestCase):
             "src/enterprise_ai_platform/retrieval/adapters/qdrant.py",
             "tests/integration/test_qdrant.py",
             "tests/teardown/test_w2_001_qdrant_lifecycle.py",
+            "src/enterprise_ai_platform/embeddings/__init__.py",
+            "src/enterprise_ai_platform/embeddings/base.py",
+            "src/enterprise_ai_platform/embeddings/errors.py",
+            "src/enterprise_ai_platform/embeddings/fake.py",
+            "src/enterprise_ai_platform/embeddings/sentence_transformer.py",
+            "tests/unit/test_embedder.py",
+            "tests/contract/test_embedder.py",
+            "tests/integration/test_sentence_transformer_embedder.py",
+            "tests/feature/test_w2_002_embedder_contract.py",
+            "tests/security/test_embedder_security.py",
+            "tests/teardown/test_w2_002_embedder_cleanliness.py",
+            "configs/pii-policy.yaml",
+            "configs/eval/w2-starter.jsonl",
+            "data/sample/corpus-manifest.json",
+            "src/enterprise_ai_platform/ingestion/pipeline.py",
+            "tests/unit/test_chunking.py",
+            "tests/unit/test_ingestion.py",
+            "tests/security/test_pii.py",
+            "tests/rollback/test_w2_003_ingestion_rollback.py",
+            "tests/teardown/test_w2_003_ingestion_cleanliness.py",
         ):
             self.assertIn(required_file, REQUIRED_FILES)
 
@@ -120,7 +132,3 @@ class PlatformCtlUnitTests(unittest.TestCase):
         errors = validate_repository(missing_root)
         self.assertTrue(errors)
         self.assertFalse(missing_root.exists())
-
-
-if __name__ == "__main__":
-    unittest.main()

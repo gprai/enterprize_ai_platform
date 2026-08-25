@@ -1,0 +1,3 @@
+Synthetic tenant-b isolation fixture.
+
+This document is restricted to tenant-b and must never be returned to tenant-a. PII tests use typed placeholders such as <PERSON>, <EMAIL_ADDRESS>, <PHONE_NUMBER>, <LOCATION>, and <IP_ADDRESS>; no real personal or regulated value is present.

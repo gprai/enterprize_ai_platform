@@ -167,6 +167,32 @@ class InMemoryVectorStore:
             for chunk_id in delete_ids:
                 del collection.chunks[chunk_id]
 
+    async def delete_by_document_version(
+        self,
+        specification: CollectionSpec,
+        document_id: str,
+        document_version: str,
+        auth_context: AuthContext,
+        *,
+        timeout_seconds: float | None = None,
+    ) -> None:
+        validated_timeout(timeout_seconds)
+        require_delete_authorized(auth_context)
+        if not document_id.strip() or not document_version.strip():
+            raise VectorStoreValidationError
+        self._require_available()
+        async with self._lock:
+            collection = self._collection(specification)
+            delete_ids = [
+                chunk_id
+                for chunk_id, chunk in collection.chunks.items()
+                if chunk.tenant_id == auth_context.tenant_id
+                and chunk.document_id == document_id
+                and chunk.document_version == document_version
+            ]
+            for chunk_id in delete_ids:
+                del collection.chunks[chunk_id]
+
     async def healthcheck(self, *, timeout_seconds: float | None = None) -> bool:
         validated_timeout(timeout_seconds)
         return self._available

@@ -30,6 +30,8 @@ def chunk() -> Chunk:
     content_hash = "c" * 64
     return Chunk(
         tenant_id="tenant-a",
+        source_id="DOC-OPENSEARCH-POLICY",
+        media_type="text/plain",
         document_id="policy-opensearch",
         document_version="v1",
         classification=Classification.CONFIDENTIAL,
@@ -81,6 +83,17 @@ class FakeCluster:
         return {"status": "green"}
 
 
+class RetryCluster:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def health(self) -> dict[str, str]:
+        self.calls += 1
+        if self.calls == 1:
+            raise RuntimeError("synthetic unavailable boundary")
+        return {"status": "green"}
+
+
 class FakeOpenSearchClient:
     def __init__(self) -> None:
         self.indices = FakeIndices()
@@ -121,10 +134,17 @@ class FakeOpenSearchClient:
         filters = body["query"]["bool"]["filter"]
         tenant_id = filters[0]["term"]["tenant_id"]
         document_id = filters[1]["term"]["document_id"]
+        document_version = (
+            filters[2]["term"]["document_version"] if len(filters) == 3 else None
+        )
         delete_ids = [
             key
             for key, value in self.documents.items()
             if value["tenant_id"] == tenant_id and value["document_id"] == document_id
+            and (
+                document_version is None
+                or value["document_version"] == document_version
+            )
         ]
         for key in delete_ids:
             del self.documents[key]
@@ -151,18 +171,51 @@ def test_injected_opensearch_boundary_carries_spec_filters_and_no_sdk_results() 
         assert client.last_search is not None
         filters = client.last_search["query"]["bool"]["filter"]
         assert {"term": {"tenant_id": "tenant-a"}} in filters
+        assert "source_id" in client.indices.created[specification.name]["mappings"][
+            "properties"
+        ]
+        assert "media_type" in client.indices.created[specification.name]["mappings"][
+            "properties"
+        ]
+        exception_properties = client.indices.created[specification.name]["mappings"][
+            "properties"
+        ]["approved_exception"]["properties"]
+        assert exception_properties["document_id"] == {"type": "keyword"}
+        assert exception_properties["entity_types"] == {"type": "keyword"}
         assert all(
             result.__class__.__module__.startswith("enterprise_ai_platform")
             for result in results
         )
         assert await store.healthcheck()
 
-        await store.delete_by_document_id(
+        await store.delete_by_document_version(
             specification,
             source_chunk.document_id,
+            source_chunk.document_version,
             auth(Role.ADMIN),
         )
         assert client.documents == {}
+
+    asyncio.run(scenario())
+
+
+def test_opensearch_retry_is_bounded_and_uses_injected_approved_delay() -> None:
+    async def scenario() -> None:
+        client = FakeOpenSearchClient()
+        client.cluster = RetryCluster()
+        delays: list[float] = []
+
+        async def record_sleep(delay: float) -> None:
+            delays.append(delay)
+
+        store = OpenSearchVectorStore(
+            client,
+            retry_delay=lambda: 0.1,
+            sleep=record_sleep,
+        )
+        assert await store.healthcheck()
+        assert client.cluster.calls == 2
+        assert delays == [0.1]
 
     asyncio.run(scenario())
 

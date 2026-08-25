@@ -1,0 +1,104 @@
+W2-06 INGESTION EVIDENCE — W2-003
+DOCUMENT STATUS: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+REVIEWER: Gyan Prakash Rai, Project Owner and Final Approval Reviewer.
+APPROVAL DATE AND TIME: 2026-08-25 13:45 SGT (UTC+08:00).
+
+BUSINESS PURPOSE
+Prove that approved local documents can pass through deterministic identity,
+normalization, tokenization, chunking, embedding and vector-store contracts
+without losing tenant, provenance or rollback boundaries.
+
+OWNER-EXECUTED RESULTS
+PASS — Python 3.13.7.
+PASS — pip check reported no broken requirements.
+PASS AFTER OWNER INSTALLATION — pypdf 6.16.2 was installed; PyYAML 6.0.3
+and tokenizers 0.22.2 were present.
+PASS AFTER REMEDIATION — focused chunking, ingestion, manifest and policy group:
+initially 21 passed and 1 stale assertion failed; final result 22 passed.
+PASS — retrieval consumer group: 21 passed, 1 approved Qdrant skip and
+1 deselection.
+PASS — feature/platformctl group: 22 passed and 9 subtests passed.
+PASS — CLI, rollback and teardown group: 9 passed.
+PASS AFTER REMEDIATION — Ruff: all checks passed after one B904 correction.
+PASS AFTER REMEDIATION — MyPy: no issues in 40 source files after two typing
+root causes were corrected.
+PASS — repository validator reported the approved repository contract present.
+PASS AFTER ENVIRONMENT CORRECTION — offline real-tokenizer test: 1 passed after
+TRANSFORMERS_OFFLINE was set.
+PASS — focused post-remediation regression: 17 passed.
+PASS — final complete suite: 239 passed, 3 skipped, 3 deselected,
+9 subtests passed and 1 warning.
+
+APPROVED SKIPS
+NOT RUN — live Qdrant integration in the ordinary host suite.
+NOT RUN — real Sentence Transformer embedding integration in the ordinary suite.
+The offline W2-003 tokenizer test was separately opted in and passed.
+
+ROLLBACK AND TEARDOWN
+PASS — automated exact-version compensation and rollback-indeterminate tests.
+NOT RUN — actual application/source rollback; no tested implementation rollback
+was requested.
+NOT RUN — Docker, cloud and production teardown; W2-003 created no such resource.
+PASS — external temporary MyPy cache removal and absence verification.
+PASS — repository-local cache, manifest and quarantine absence checks.
+
+WARNING
+One Starlette/FastAPI TestClient deprecation warning was observed. Remediation
+was NOT RUN in W2-003; the owner accepted it as a recorded, non-blocking
+limitation of the approved baseline.
+
+SECURITY, PRIVACY AND COST
+Ordinary tests used deterministic fakes and synthetic documents. The offline
+tokenizer read the retained local snapshot without model inference. No paid
+service or cloud operation was tested. The owner-installed pypdf wheel changed
+the external reusable virtual environment; actual cost was not supplied.
+
+RESIDUAL RESOURCE
+The external W2-002 cache at
+E:\AI\.model-cache\enterprise_ai_platform\W2-002
+is intentionally retained through W2-06 and W2-07. The reusable external
+virtual environment remains and includes pypdf 6.16.2.
+
+EVIDENCE GAPS AND DEFERRED WORK
+NOT RUN — real Qdrant ingestion/deletion, live OpenSearch/AWS, real MiniLM
+embedding for W2-003, real Presidio NLP, deployment, production rollback and
+cloud-cleanliness proof. No vulnerability scan, SBOM or fully locked transitive
+dependency graph was supplied.
+
+FINAL OWNER APPROVAL — COLUMN N
+Prompt/task ID: W2-003.
+Reviewer: Gyan Prakash Rai.
+Reviewer role: Project Owner and Final Approval Reviewer.
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+Approval date and time: 2026-08-25 13:45 SGT (UTC+08:00).
+Final status: APPROVED WITH RECORDED WARNINGS, RISKS, EVIDENCE GAPS,
+LIMITATIONS AND DEFERRED INTEGRATIONS.
+Code review status: Approved within the bounded W2-003 implementation scope.
+Documentation review status: Approved for the complete four-document Column M
+manifest.
+Owner-executed test status: PASS within the recorded local scope after the
+preserved remediations; final complete suite 239 passed, 3 skipped,
+3 deselected, 9 subtests passed and 1 warning.
+Accepted warning: the Starlette/FastAPI TestClient warning is non-blocking;
+remediation was NOT RUN.
+Accepted risks, gaps and limitations: no vulnerability scan, SBOM or fully
+locked transitive dependency graph; local fake and offline-tokenizer evidence
+does not prove production, cloud, identity, compliance or live integration.
+NOT RUN and deferred: real Qdrant ingestion/deletion, OpenSearch/AWS, real
+MiniLM embedding for W2-003, real Presidio NLP, deployment, production rollback
+and cloud-cleanliness proof. These require separate owner approvals and evidence.
+Rollback and teardown: fake-boundary exact-version rollback tests PASSED;
+actual application/source rollback, Docker teardown and cloud rollback/teardown
+were NOT RUN. Temporary MyPy caches and tokenizer environment variables were
+removed, and repository-local residue checks PASSED.
+Residual resources: the reusable external virtual environment remains with
+pypdf 6.16.2. The verified external W2-002 cache remains intentionally through
+W2-06 and W2-07; removal is deferred to W2-10/the approved Week 2 teardown.
+Approval condition: documentation-only closure of the exact four-document
+manifest while preserving every PASS, historical FAIL, NOT RUN, warning,
+limitation, rollback, teardown and residual-resource fact.
+Approved baseline and next-task handover: the next task may rely on the approved
+local ingestion, deterministic identity, tokenizer, chunking, provenance and
+exact-version compensation contracts. It may not infer live vector-store,
+cloud, deployment, production rollback, identity or compliance evidence.
+Tracker update responsibility: Owner — Gyan Prakash Rai.
