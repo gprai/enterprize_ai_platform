@@ -1,6 +1,6 @@
 # ADR-003 — Vector-store boundary for local retrieval
 
-- **Status:** Owner-approved for W2-001 implementation; Column N final task approval pending
+- **Status:** W2-001 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**; reviewer name and approval date/timestamp were not supplied and remain an evidence gap
 - **Decision scope:** W2-001 local retrieval
 
 ## Business decision

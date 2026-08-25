@@ -47,8 +47,16 @@ NOT RUN
 - Production embedding generation or model download.
 - Production schema migration or compatibility validation.
 
-PENDING
-- Column N final approval and owner-managed tracker update.
+FINAL OWNER APPROVAL
+- Prompt/task ID: W2-001.
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Component status: Approved as part of the final-approved W2-001 local
+  retrieval baseline.
+- Reviewer name: Not supplied — accepted evidence gap.
+- Approval date and timestamp: Not supplied — accepted evidence gap.
+- Historical PASS, FAIL, NOT RUN, warnings and limitations remain exactly as
+  recorded above and in docs/test-evidence/W2-001.md.
+- Tracker update responsibility: Owner.
 
 INTERVIEW TALKING POINTS
 - Explain why domain models should not expose vendor request objects.

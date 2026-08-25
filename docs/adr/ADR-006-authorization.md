@@ -1,6 +1,6 @@
 # ADR-006 — Authorization at the retrieval boundary
 
-- **Status:** Owner-approved for W2-001 implementation; Column N final task approval pending
+- **Status:** W2-001 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**; reviewer name and approval date/timestamp were not supplied and remain an evidence gap
 - **Decision scope:** SEC-001 retrieval authorization and tenant isolation
 
 ## Business decision

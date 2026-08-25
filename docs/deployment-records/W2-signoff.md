@@ -6,13 +6,13 @@
 - Column L content draft: **Completed under approved Column L**
 - Owner content review: **Completed**
 - Column M documentation approval: **APPROVED FOR COLUMN M DOCUMENTATION FINALIZATION — W2-REVIEW-001**
-- Column N final owner approval: **Pending**
-- Gate state: **WEEK 3 HANDOVER — CONDITIONALLY APPROVED**
-- Full Week 2 sign-off: **Pending; not final**
-- W2-12 tracker state: **In Progress**; only the owner may change it after successful Column N closure
+- Column N final owner approval: **Approved**
+- W2-12 gate state: **Verified and Approved**
+- Week 3 handover: **Pending owner tracker/prompt reconciliation, a clean committed baseline and resolution or explicit reconciliation of W1-08**
+- W2-12 tracker state: **Done — owner-reconciled after successful Column N closure**
 - Tracker update responsibility: **Owner**
 
-This draft records the bounded Week 2 gate decision without inventing final reviewer, decision or timestamp facts. Until every condition is satisfied, the platform remains on the final-approved local-retrieval baseline.
+This record closes the bounded W2-12 review without expanding the approved local-only evidence. W2-12 is owner-reconciled and W2-13 is final-approved; remaining pre-Week-3 actions are tracker/prompt reconciliation, the clean committed baseline and the separate W1-08 prerequisite.
 
 ## Approved Week 2 baseline
 
@@ -127,21 +127,13 @@ Remaining open **INDETERMINATE** activities: None. Historical INDETERMINATE tool
 
 Bedrock and evaluation-provider inputs are deferred or mocked for this checkpoint. Any Week 3 live provider use requires a separate exact owner approval covering credentials, region, model, privacy, residency, cost, network and teardown.
 
-## Conditional gate decision
+## Gate decision and remaining handover boundary
 
-**WEEK 3 HANDOVER — CONDITIONALLY APPROVED**
+**W2-12 — VERIFIED AND APPROVED**
 
-This is not final Week 2 approval. The conditions are:
+The separately approved ADR, authorization and W2-001 component-document corrections are complete. `RAG-001` is consistently `In Progress`. Owner-executed targeted tests, consumer-contract tests, repository validation, the complete suite, Ruff, strict MyPy and repository-cleanliness verification passed. All three W2-REVIEW-001 manifest documents are closed together by this Column N action.
 
-1. Correct the known ADR-003, ADR-006 and authorization-document wording gaps through separately approved documentation remediation.
-2. Correct the stale W2-001 component-document Column N state in W2-01, W2-02, W2-03, W2-04 and W2-08.
-3. Reconcile `RAG-001` to `In Progress` under separate exact configuration/content approval; do not mark it Done.
-4. Preserve owner-managed tracker state, with W2-12 remaining `In Progress` until successful Column N closure.
-5. Complete owner review and Column M/Column N reconciliation for all three W2-REVIEW-001 documents.
-6. Confirm no unresolved blocking runtime or evidence conflict remains.
-7. Keep live Bedrock, OpenSearch, LLM and paid evaluation as separately approved activities.
-
-Until these conditions are satisfied, remain on the final-approved local-retrieval baseline.
+W2-12 is owner-reconciled as `Done`, and W2-13 is final-approved through its four-document closure. Week 3 must not begin until the owner reconciles the remaining tracker/prompt cells, establishes a clean committed baseline and resolves or explicitly reconciles W1-08. Live Bedrock, OpenSearch, LLM and paid evaluation remain separately approved activities and are not implied by this sign-off.
 
 ## Content-edit rollback
 
@@ -150,18 +142,48 @@ If this draft is rejected, remove only the two W2-REVIEW-001 CREATE documents af
 ## Final Owner Approval
 
 - Prompt/task ID: `W2-REVIEW-001`
-- Reviewer exact name: **Pending Column N**
-- Reviewer role: **Pending Column N**
-- Exact owner decision: **Pending Column N**
-- Approval date and time/timezone: **Pending Column N**
-- Final status: **Pending Column N**
-- Documentation review status: **Pending owner review**
-- Owner-executed test status: Existing approved Week 2 evidence reconciled; no new test or command was run by this document task
-- Accepted warnings and risks: **Pending Column N confirmation**
-- Evidence gaps and limitations: **Pending Column N confirmation**
-- NOT RUN and INDETERMINATE acceptance: **Pending Column N confirmation**
-- Deferred actions and owners: **Pending Column N confirmation**
-- Deployment, rollback, teardown and residual-resource facts: **Pending Column N confirmation**
-- Conditions: **Pending Column N confirmation**
-- Next-task handover: **Pending Column N confirmation**
-- Tracker update responsibility: Owner
+- Reviewer exact name: **Gyan Prakash Rai**
+- Reviewer role: **Project Owner and Final Approval Reviewer**
+- Exact owner decision: **Approved**
+- Approval date and time/timezone: **2026-08-25 23:32:08 SGT (UTC+08:00)**
+- Final status: **Verified and Approved**
+- Documentation review status: **Approved; all three Column M manifest documents closed together**
+- Owner-executed test status: **PASS** — targeted feature and consumer checks, complete suite, Ruff, strict MyPy, repository validation and cleanliness verification passed; expected skips/deselections and the accepted warning remain recorded
+- Accepted warnings and risks: All warnings and risks already recorded in the three-document manifest are accepted; no additional items
+- Evidence gaps and limitations: All manifest gaps and limitations remain accepted, including the unrecorded BuildKit cache numeric size; no additional items
+- NOT RUN and INDETERMINATE acceptance: All manifest **NOT RUN** activities remain **NOT RUN**; none is converted to PASS; no remaining INDETERMINATE activity exists and historical evidence remains preserved
+- Deferred actions and owners: All recorded deferrals remain open; responsible owner: **Gyan Prakash Rai**
+- Deployment, rollback, teardown and residual-resource facts: Approved local-only evidence; production/cloud deployment **NOT RUN**; bounded local State N rollback passed while application/source/cloud rollback remains **NOT RUN**; local teardown passed; the external virtual environment, disclosed shared base images and shared BuildKit cache remain accepted, with BuildKit numeric size not recorded
+- Conditions: Preserve historical results, warnings, limitations and NOT RUN work; close all three manifest documents together; only the owner updates Excel
+- Next-task handover: Owner reconciles W2-12, completes and reconciles W2-13, then establishes a clean committed baseline before Week 3
+- Tracker update responsibility: **Owner — Gyan Prakash Rai**
+
+## W2-13 Final Owner Approval and Week 2 learning closure
+
+- Prompt/task: `WEEKLY-LEARN-001` / W2-13
+- Canonical learning record: `docs/learning/W2-learning-review.md`
+- Column M state: **Reviewed and closed through the complete four-document manifest**
+- Reviewer: **Gyan Prakash Rai — Project Owner and Final Approval Reviewer**
+- Owner teach-back: **PASS**
+- Owner decision: **FINAL APPROVAL AFTER OWNER TEACH-BACK — APPROVED**
+- Approval timestamp: **2026-08-25 23:59:08 SGT (UTC+08:00)**
+- Column N final status: **APPROVED FOR USER TRACKER UPDATE — W2-13**
+- Runtime impact: None; this is a learning and documentation-only handover
+- Prior W2-12 approval: Preserved unchanged
+
+The W2-13 record summarizes the complete Week 2 business outcome, local-retrieval architecture, decisions, historical failures, evidence limits, rollback, teardown and interview preparation. It does not replace the detailed W2-11 architecture record at `docs/architecture/local-retrieval.md` and does not expand any PASS, deployment or cloud claim.
+
+W2-13 is final-approved after the owner-reviewed teach-back and complete four-document Column N closure. Week 3 still requires owner-managed tracker reconciliation, a clean committed baseline and resolution or explicit governing reconciliation of the separate W1-08 open control gap.
+
+All recorded warnings, risks, evidence gaps, limitations, NOT RUN work and historical INDETERMINATE evidence remain unchanged. W2-13 ran no new test, deployment, rollback or teardown. Approved Week 2 deployment evidence remains local-only; State N rollback and local teardown passed; production/cloud deployment, application/source/cloud rollback and cloud teardown remain **NOT RUN**. The external virtual environment, disclosed shared base images and shared BuildKit cache remain accepted, with BuildKit numeric size not recorded.
+
+### W2-13 Column M manifest
+
+| Exact path | Classification | Column M state | Column N requirement |
+|---|---|---|---|
+| `docs/learning/W2-learning-review.md` | CREATE | Final-approved | Closed |
+| `docs/deployment-records/W2-signoff.md` | UPDATE | Final handover reconciled | Closed |
+| `docs/test-evidence/W2-REVIEW-001.md` | UPDATE | Downstream handover reconciled | Closed |
+| `docs/test-evidence/README.md` | UPDATE | Final learning record indexed | Closed |
+
+Tracker update responsibility: **Owner — Gyan Prakash Rai**.

@@ -52,8 +52,9 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W2-002](W2-002.md) — bounded embedding contracts, deterministic fake testing, immutable real-model verification, offline CPU inference, remediation history, and retained-cache evidence.
 - [W2-003](W2-003.md) — secure local ingestion, deterministic identity, PII-before-embedding controls, offline tokenizer verification, exact-version compensation, remediation history, and cleanliness evidence.
 - [W2-004](W2-004.md) — internal-only local retrieval, authorized top-five results, tenant isolation, regression and known-good rollback validation, exact collection removal, Docker teardown, external model-cache removal, and zero-residue evidence.
-- [W2-REVIEW-001](W2-REVIEW-001.md) — **Column L content draft completed; owner content review completed; Column M documentation approval granted; Column N final approval pending; W2-12 remains In Progress; Week 3 handover is conditional and Week 2 sign-off is not final.**
-- [W2 Week 2 sign-off](../deployment-records/W2-signoff.md) — **Column L content draft completed; owner content review completed; Column M documentation approval granted; Column N final approval pending; W2-12 remains In Progress; Week 3 handover is conditional and Week 2 sign-off is not final.**
+- [W2-REVIEW-001](W2-REVIEW-001.md) — **Column N closed: W2-12 is Verified and Approved by Gyan Prakash Rai on 2026-08-25 at 23:32:08 SGT (UTC+08:00) and was subsequently owner-reconciled to Done. W2-13 is also final-approved; remaining handover work is tracker prompt-cell reconciliation, the clean committed baseline and the separate W1-08 prerequisite.**
+- [W2 Week 2 sign-off](../deployment-records/W2-signoff.md) — **W2-12 and W2-13 are approved within the recorded local-only scope. Historical warnings, gaps, NOT RUN work and retained-resource facts remain visible; Week 3 remains gated by the clean baseline and W1-08 prerequisite.**
+- [W2-13 Week 2 learning review](../learning/W2-learning-review.md) — **FINAL APPROVAL AFTER OWNER TEACH-BACK — APPROVED by Gyan Prakash Rai on 2026-08-25 at 23:59:08 SGT (UTC+08:00). The four-document Column N manifest is closed; this business/interview summary complements the unchanged detailed W2-11 local-retrieval architecture record.**
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
 
@@ -164,3 +165,32 @@ Qdrant remained internal-only with no Windows host, LAN or public port. The exte
 - Conditions: documentation-only reconciliation of all five manifest documents; historical outcomes and limitations remain unchanged
 - Next-task handover: local retrieval and authorization are approved dependencies. The next task may not infer real Presidio, generated answers, citations, final safe abstention, deployment or cloud readiness; the W2-002 model cache has been removed.
 - Tracker update responsibility: Owner
+
+## W2-REVIEW-001 final approval
+
+W2-REVIEW-001 received **Approved** from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-25 at 23:32:08 SGT (UTC+08:00). Its final status is **Verified and Approved**. All three Column M manifest documents were closed together.
+
+The prerequisite ADR, authorization, W2-001 component-evidence and `RAG-001` status reconciliations completed under separate bounded approvals. Owner-executed verification passed for the targeted feature and consumer contracts, repository validation, complete suite, Ruff, strict MyPy and repository cleanliness. The complete suite recorded 261 passed, 7 expected skips, 3 deselected, 10 subtests and the existing accepted warning.
+
+All warnings, risks, evidence gaps and limitations already recorded in the three-document manifest remain accepted; no additional item was accepted. All recorded **NOT RUN** work remains **NOT RUN**. No remaining INDETERMINATE activity exists, while historical INDETERMINATE evidence remains preserved. All recorded deferrals remain open under Gyan Prakash Rai.
+
+Deployment evidence remains local-only; production and cloud deployment are **NOT RUN**. Bounded local State N rollback passed; application/source/cloud rollback remains **NOT RUN**. Local teardown passed. The external virtual environment, disclosed shared base images and shared BuildKit cache remain accepted; BuildKit numeric size remains an accepted evidence gap.
+
+The owner reconciled W2-12 to Done, and W2-13 subsequently completed its canonical learning record and four-document Column N closure. Remaining pre-Week-3 work is the W2-13 tracker prompt-cell reconciliation, the clean committed baseline and the separately recorded W1-08 prerequisite. Tracker update responsibility: **Owner — Gyan Prakash Rai**.
+
+## W2-13 final owner approval
+
+The canonical final-approved W2-13 record is stored at `docs/learning/W2-learning-review.md`. It summarizes the complete Week 2 business outcome, architecture flow, decisions, evidence boundaries, historical failures, security/privacy/cost trade-offs, rollback, teardown and interview preparation using only final-approved Week 2 evidence.
+
+The owner-reviewed teach-back received **PASS** and W2-13 received **FINAL APPROVAL AFTER OWNER TEACH-BACK — APPROVED** from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-25 at 23:59:08 SGT (UTC+08:00). Corrections requested: None. Final status: **APPROVED FOR USER TRACKER UPDATE — W2-13**.
+
+No new runtime test, command, deployment, rollback or teardown applied to this learning-only task. All warnings, risks, evidence gaps, limitations, NOT RUN activities and historical INDETERMINATE evidence remain preserved. Approved Week 2 evidence remains local-only; State N rollback and local teardown passed; production/cloud deployment and application/source/cloud rollback remain **NOT RUN**. The external environment, disclosed shared base images and shared BuildKit cache remain accepted; BuildKit numeric size remains unrecorded.
+
+Column N reconciled all four W2-13 manifest documents together:
+
+1. `docs/learning/W2-learning-review.md`
+2. `docs/deployment-records/W2-signoff.md`
+3. `docs/test-evidence/W2-REVIEW-001.md`
+4. `docs/test-evidence/README.md`
+
+The detailed W2-11 architecture record at `docs/architecture/local-retrieval.md` remains unchanged and is not duplicated or replaced. The owner must reconcile the W2-13 tracker prompt/status cells and establish a clean committed baseline. W3-001 remains gated by the separately recorded W1-08 control-gap prerequisite. Tracker update responsibility: **Owner — Gyan Prakash Rai**.

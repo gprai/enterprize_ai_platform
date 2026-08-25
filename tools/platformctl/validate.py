@@ -120,7 +120,7 @@ EXPECTED_RAG_LINKED_TRACKER_STEPS = (
 EXPECTED_RAG_FEATURE = {
     "id": "RAG-001",
     "implementation_paths": list(EXPECTED_RAG_IMPLEMENTATION_PATHS),
-    "status": "Not Started",
+    "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
 }
 EXPECTED_FEATURES = (

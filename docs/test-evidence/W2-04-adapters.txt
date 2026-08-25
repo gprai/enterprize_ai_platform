@@ -48,10 +48,22 @@ NOT RUN
 - Production retry, throttling, failover, latency, or capacity testing.
 - Paid service or cloud deployment testing.
 
-PENDING
+DEFERRED
 - Live OpenSearch work requires a separate opt-in approval and factual
   evidence.
-- Column N final approval and owner-managed tracker update.
+
+FINAL OWNER APPROVAL
+- Prompt/task ID: W2-001.
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Component status: Approved as part of the final-approved W2-001 local
+  retrieval baseline.
+- Reviewer name: Not supplied — accepted evidence gap.
+- Approval date and timestamp: Not supplied — accepted evidence gap.
+- Injected-client OpenSearch evidence remains local contract evidence and is
+  not live AWS/OpenSearch proof. Historical PASS, FAIL, NOT RUN, warnings and
+  limitations remain exactly as recorded above and in
+  docs/test-evidence/W2-001.md.
+- Tracker update responsibility: Owner.
 
 INTERVIEW TALKING POINTS
 - Explain dependency injection at an external service boundary.

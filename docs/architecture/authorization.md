@@ -11,19 +11,22 @@ W2-001 receives an established requester identity as an authorization context. T
 ## End-to-end decision flow
 
 1. The caller supplies the authenticated subject, tenant, roles, groups where applicable, and classification clearance.
-2. The retrieval service validates that the operation is allowed for the supplied role.
-3. The adapter limits candidate records to the same tenant.
-4. Classification clearance and record-level role or group rules further restrict candidates.
-5. Similarity ranking operates within the authorized candidate set.
-6. Only authorized chunks and their approved provenance are returned.
-7. Administrative deletion uses its separately approved operation gate and remains tenant-scoped.
+2. `RetrievalService` validates that the authorization context is active and structurally valid and builds the provider-neutral retrieval policy.
+3. `RetrievalService` embeds the approved query and delegates retrieval through the `VectorStore` boundary.
+4. The selected adapter constructs its provider-specific filters from the approved policy.
+5. Qdrant restricts candidates by tenant, classifications permitted by clearance, role/group access-control lists, PII status and ingestion status.
+6. Similarity ranking operates only within that authorized candidate set.
+7. Returned-result validation provides defence in depth before an adapter returns chunks across the retrieval boundary.
+8. Administrative deletion uses its separately approved operation gate and remains tenant-scoped.
 
 This ordering matters: filtering after content is returned could expose unauthorized text to memory, logs, prompts, or downstream services.
+
+Source identity and document version support provenance, deterministic identity, idempotent upsert, version-aware deletion and evidence traceability. They are lifecycle fields, not current query-authorization filters. Semantic similarity cannot override any authorization decision.
 
 ## Adapter responsibilities
 
 - The deterministic fake must reproduce the contract's allow and deny decisions for offline tests.
-- Qdrant must translate the authorization context into its approved filtering behavior while remaining internal-only in local testing.
+- Qdrant must translate the provider-neutral policy into tenant, clearance-permitted classification, role/group ACL, PII-status and ingestion-status filters while remaining internal-only in local testing. It must also reject any returned result that fails the approved authorization revalidation.
 - OpenSearch must preserve the same contract through its client request boundary. Injected-client tests do not prove live AWS policy or service configuration.
 - No adapter may silently broaden a tenant, classification, role, or group condition when it retries or handles a backend error.
 

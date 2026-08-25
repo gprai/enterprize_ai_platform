@@ -105,7 +105,7 @@
         "tests/rollback/test_w2_004_local_rollback.py",
         "tests/teardown/test_w2_004_retrieval_cleanliness.py"
       ],
-      "status": "Not Started",
+      "status": "In Progress",
       "linked_tracker_steps": [
         "W2-03",
         "W2-01",

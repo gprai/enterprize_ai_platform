@@ -88,6 +88,23 @@ NOT RUN
 - Registry push, deployment, vulnerability scan, or cloud teardown.
 - Real business or sensitive data.
 
+FINAL OWNER APPROVAL
+- Prompt/task ID: W2-001.
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Component status: Approved as part of the final-approved W2-001 local
+  retrieval baseline.
+- Reviewer name: Not supplied — accepted evidence gap.
+- Approval date and timestamp: Not supplied — accepted evidence gap.
+- Approved scope: Internal-only Qdrant on Linux/AMD64 with no host-port
+  publication, an approved one-shot runner, successful collection cleanup and
+  successful task-owned Docker teardown.
+- Deployment, registry push, vulnerability scanning, production persistence,
+  application/source rollback, cloud rollback and cloud teardown remain NOT
+  RUN exactly as recorded above and in docs/test-evidence/W2-001.md.
+- Shared Python and Qdrant base-image caches may remain as accepted reusable
+  local resources; they are not project-labelled Compose residue.
+- Tracker update responsibility: Owner.
+
 LAYMAN EXPLANATION
 Qdrant was a private filing room with no street-facing door. A temporary test
 worker entered through a private corridor, tested a synthetic drawer,
