@@ -1,0 +1,72 @@
+services:
+  local_retrieval_runner:
+    profiles:
+      - local-retrieval
+    build:
+      context: .
+      dockerfile: docker/local-retrieval-runner.Dockerfile
+    platform: linux/amd64
+    user: "10001:10001"
+    working_dir: /workspace
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    cpus: 2
+    mem_limit: 2g
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    networks:
+      - qdrant_internal
+    environment:
+      RUN_W2_004_LOCAL_RETRIEVAL: "1"
+      W2_004_QDRANT_URL: http://qdrant:6333
+      W2_004_MODEL_SNAPSHOT: /opt/model-cache/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+      HF_HOME: /opt/model-cache
+      HF_HUB_CACHE: /opt/model-cache
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      CUDA_VISIBLE_DEVICES: "-1"
+    volumes:
+      - type: bind
+        source: ${W2_002_MODEL_SNAPSHOT_HOST:?W2_002_MODEL_SNAPSHOT_HOST must identify the verified snapshot}
+        target: /opt/model-cache/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+        read_only: true
+      - type: bind
+        source: ${W2_002_MODEL_BLOBS_HOST:?W2_002_MODEL_BLOBS_HOST must identify the approved model blob directory}
+        target: /opt/model-cache/models--sentence-transformers--all-MiniLM-L6-v2/blobs
+        read_only: true
+      - type: bind
+        source: ./configs/pii-policy.yaml
+        target: /workspace/configs/pii-policy.yaml
+        read_only: true
+      - type: bind
+        source: ./configs/eval/w2-starter.jsonl
+        target: /workspace/configs/eval/w2-starter.jsonl
+        read_only: true
+      - type: bind
+        source: ./data/sample/corpus-manifest.json
+        target: /workspace/data/sample/corpus-manifest.json
+        read_only: true
+      - type: bind
+        source: ./data/sample/approved/source-of-truth-v1.1.md
+        target: /workspace/data/sample/approved/source-of-truth-v1.1.md
+        read_only: true
+      - type: bind
+        source: ./data/sample/approved/coaching-blueprint.md
+        target: /workspace/data/sample/approved/coaching-blueprint.md
+        read_only: true
+      - type: bind
+        source: ./data/sample/restricted-fixtures/restricted-test.txt
+        target: /workspace/data/sample/restricted-fixtures/restricted-test.txt
+        read_only: true
+    labels:
+      com.enterprise-ai.w2-004.role: local-retrieval-test-runner
+      com.enterprise-ai.w2-004.python-index: sha256:adafcc17694d715c905b4c7bebd96907a1fd5cf183395f0ebc4d3428bd22d92d
+      com.enterprise-ai.w2-004.python-linux-amd64-manifest: sha256:781449467ffb6f04218f09b1ecdcdc7d22b289ee5da9ec498b024e24ad7a6db7

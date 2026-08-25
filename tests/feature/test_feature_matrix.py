@@ -93,7 +93,7 @@ class FeatureMatrixTests(unittest.TestCase):
         mvp_feature, rag_feature = features
 
         self.assertEqual(["MVP-001", "RAG-001"], [item["id"] for item in features])
-        for step in ("W2-05", "W2-06", "W2-07"):
+        for step in ("W2-05", "W2-06", "W2-07", "W2-09", "W2-10"):
             self.assertNotIn(step, mvp_feature["linked_tracker_steps"])
         self.assertEqual(
             list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
@@ -116,6 +116,12 @@ class FeatureMatrixTests(unittest.TestCase):
         duplicate_step = deepcopy(read_matrix())
         duplicate_step["features"][1]["linked_tracker_steps"].append("W2-07")
         variants.append(duplicate_step)
+
+        misplaced_w2_004_step = deepcopy(read_matrix())
+        misplaced_w2_004_step["features"][0]["linked_tracker_steps"].append(
+            "W2-09"
+        )
+        variants.append(misplaced_w2_004_step)
 
         reordered_paths = deepcopy(read_matrix())
         reordered_paths["features"][1]["implementation_paths"].reverse()

@@ -90,6 +90,20 @@ EXPECTED_RAG_IMPLEMENTATION_PATHS = (
     "tests/smoke/test_ingestion_cli.py",
     "tests/rollback/test_w2_003_ingestion_rollback.py",
     "tests/teardown/test_w2_003_ingestion_cleanliness.py",
+    "docker-compose.w2-004.yml",
+    "docker/local-retrieval-runner.Dockerfile",
+    "docker/local-retrieval-runner.Dockerfile.dockerignore",
+    "docker/local-retrieval-runner.requirements.txt",
+    "Makefile",
+    "src/enterprise_ai_platform/retrieval/service.py",
+    "tools/verify_w2_004_local.py",
+    "tests/unit/test_retrieval_service.py",
+    "tests/unit/test_verify_w2_004_local.py",
+    "tests/contract/test_retrieval_service.py",
+    "tests/feature/test_local_retrieval.py",
+    "tests/security/test_w2_004_retrieval_security.py",
+    "tests/rollback/test_w2_004_local_rollback.py",
+    "tests/teardown/test_w2_004_retrieval_cleanliness.py",
 )
 EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W2-03",
@@ -100,6 +114,8 @@ EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W2-05",
     "W2-06",
     "W2-07",
+    "W2-09",
+    "W2-10",
 )
 EXPECTED_RAG_FEATURE = {
     "id": "RAG-001",

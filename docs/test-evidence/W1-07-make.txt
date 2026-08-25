@@ -1,0 +1,33 @@
+W1-07 — Makefile controls
+
+Record type: Retrospective evidence-gap reconciliation
+Original tracker step: W1-07
+Evidence-record ID: W1-07-make
+Canonical evidence path: docs/test-evidence/W1-07-make.txt
+Aggregate evidence source: docs/test-evidence/W1-001.md; docs/deployment-records/W1-signoff.md where consistent
+Purpose: Provide a reviewable command vocabulary for local validation and test categories without silently performing deployment or cloud mutation.
+Supported historical result: The W1-001 aggregate evidence supports the repository foundation and direct owner-executed validation/test outcomes; it does not retain a dedicated make-help or Make target transcript.
+Historical Make intent: Local validation and category-specific test targets were part of the accepted repository foundation. Mutating targets were not automatically executed.
+Original make help output: Unavailable.
+Original Make preflight output: Unavailable.
+Original step-level command output availability: Original step-level evidence unavailable.
+Retrospective command execution: NOT RUN.
+Current repository use restriction: The present Makefile contains later W2 targets and was not used to recreate or represent the original W1 state.
+Evidence limitation: The aggregate W1-001 record proves the underlying direct commands in its tested scope, not contemporaneous invocation through Make.
+Deployment status: NOT RUN.
+Rollback facts: NOT RUN because no release or managed resource was created.
+Teardown facts: The W1-001 cleanliness test passed within its coded scope; no resource-deletion teardown occurred.
+Remaining action: Owner decides whether to accept the missing step transcript; any change to Makefile requires a separately approved code/configuration task.
+Responsible owner: Gyan Prakash Rai
+Tracker update responsibility: Owner
+Current reconciliation approval:
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner, Learner and Approval Reviewer
+Decision: APPROVED WITH QUALIFICATIONS
+Documentation review: APPROVED
+Approval timestamp: 2026-08-25 21:38:20 SGT (UTC+08:00)
+Approval scope: Accuracy of this retrospective gap disclosure; original Make output remains unavailable and retrospective execution remains NOT RUN.
+Evidence completeness: QUALIFIED
+W1-08 control status: OPEN CONTROL GAP
+Final status: APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION
+Tracker update responsibility: Owner

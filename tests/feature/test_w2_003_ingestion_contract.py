@@ -54,10 +54,25 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
     mvp, rag = matrix["features"]
 
     assert [mvp["id"], rag["id"]] == ["MVP-001", "RAG-001"]
-    assert rag["implementation_paths"][-len(W2_003_IMPLEMENTATION_PATHS) :] == list(
+    implementation_paths = rag["implementation_paths"]
+    w2_003_start = implementation_paths.index(W2_003_IMPLEMENTATION_PATHS[0])
+    w2_003_end = w2_003_start + len(W2_003_IMPLEMENTATION_PATHS)
+    assert implementation_paths[w2_003_start:w2_003_end] == list(
         W2_003_IMPLEMENTATION_PATHS
     )
-    assert rag["linked_tracker_steps"][-2:] == ["W2-06", "W2-07"]
+    assert implementation_paths[w2_003_end] == "docker-compose.w2-004.yml"
+    assert all(
+        implementation_paths.count(path) == 1
+        for path in W2_003_IMPLEMENTATION_PATHS
+    )
+
+    linked_steps = rag["linked_tracker_steps"]
+    w2_003_step_start = linked_steps.index("W2-06")
+    assert linked_steps[w2_003_step_start : w2_003_step_start + 2] == [
+        "W2-06",
+        "W2-07",
+    ]
+    assert linked_steps[w2_003_step_start + 2] == "W2-09"
     assert "W2-06" not in mvp["linked_tracker_steps"]
     assert "W2-07" not in mvp["linked_tracker_steps"]
     assert "src/enterprise_ai_platform/retrieval/models.py" in rag[

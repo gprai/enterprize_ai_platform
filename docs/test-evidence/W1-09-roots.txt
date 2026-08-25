@@ -1,0 +1,35 @@
+W1-09 — Terraform roots
+
+Record type: Retrospective evidence-gap reconciliation
+Original tracker step: W1-09
+Evidence-record ID: W1-09-roots
+Canonical evidence path: docs/test-evidence/W1-09-roots.txt
+Aggregate evidence source: docs/test-evidence/W1-004.md; docs/deployment-records/W1-signoff.md
+Purpose: Establish separate bootstrap and sandbox Terraform roots without defining a deployable cloud workload.
+Supported historical result: PASS within the approved W1-004 local structure and formatting scope.
+Supported facts: The bootstrap and sandbox roots existed as provider-free, resource-free skeletons; the aggregate W1-004 record reports that both roots passed formatting checks.
+Original granular formatting or validation output availability: Original step-level evidence unavailable.
+Retrospective Terraform execution: NOT RUN.
+Terraform init: NOT RUN.
+Terraform plan: NOT RUN.
+Terraform apply: NOT RUN.
+Terraform destroy: NOT RUN.
+Current repository use restriction: Current Terraform files were not used to reconstruct historical command output.
+Evidence limitation: Aggregate evidence supports the structural and formatting outcome, but no contemporaneous W1-09 transcript exists at this canonical path.
+Deployment status: NOT RUN; no cloud state or resource was created.
+Rollback facts: NOT RUN because no Terraform plan, state, or managed resource was created.
+Teardown facts: Cloud teardown was NOT RUN; no W1-09 cloud resource existed to remove.
+Remaining action: Owner decides whether the disclosed missing granular evidence is accepted.
+Responsible owner: Gyan Prakash Rai
+Tracker update responsibility: Owner
+Current reconciliation approval:
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner, Learner and Approval Reviewer
+Decision: APPROVED WITH QUALIFICATIONS
+Documentation review: APPROVED
+Approval timestamp: 2026-08-25 21:38:20 SGT (UTC+08:00)
+Approval scope: Accuracy of this retrospective gap disclosure; historical output remains unavailable and retrospective Terraform execution remains NOT RUN.
+Evidence completeness: QUALIFIED
+W1-08 control status: OPEN CONTROL GAP
+Final status: APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION
+Tracker update responsibility: Owner

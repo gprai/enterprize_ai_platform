@@ -1,0 +1,11 @@
+huggingface-hub==1.16.1
+pydantic==2.13.4
+pypdf==6.16.2
+pytest==9.1.1
+PyYAML==6.0.3
+qdrant-client==1.19.0
+safetensors==0.8.0
+sentence-transformers==5.7.0
+tokenizers==0.22.2
+torch==2.13.0
+transformers==5.15.1

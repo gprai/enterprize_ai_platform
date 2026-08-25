@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0",
+  "prompt_id": "W2-004",
+  "record_type": "local_resource_cleanliness",
+  "business_outcome": "Task-owned local retrieval resources were removed while approved reusable development resources remained available.",
+  "owner_verified_results": {
+    "docker_stop": "PASS",
+    "docker_destroy": "PASS",
+    "teardown_tests": {
+      "result": "PASS",
+      "passed": 10
+    },
+    "zero_residue_verifier": "PASS",
+    "external_model_cache_removal": "PASS"
+  },
+  "removed": [
+    "W2-004 Qdrant container",
+    "W2-004 local retrieval runner containers and runtime processes",
+    "W2-004 locally built runner image",
+    "W2-004 Qdrant data volume",
+    "W2-004 qdrant_internal project network",
+    "W2-004 task collection storage",
+    "Repository-local Python bytecode and tool caches",
+    "Repository-local task paths",
+    "External W2-002 model cache"
+  ],
+  "retained_intentionally": [
+    {
+      "resource": "External reusable project virtual environment",
+      "reason": "Shared owner-controlled development prerequisite"
+    },
+    {
+      "resource": "qdrant/qdrant:v1.19.0-unprivileged",
+      "status": "RETAINED",
+      "index_digest": "sha256:a0e04fe623cb064502cd869cefc1dc7ce359d8edd481063b5bd351c0a0a2c91e",
+      "linux_amd64_manifest": "sha256:80fb7b20ee4b49d57443b51aabdfb8514b910f333d3c4862e106fd02d1d66fa7",
+      "reason": "Shared immutable base image; not project-labelled Compose residue"
+    },
+    {
+      "resource": "docker.io/library/python:3.13.7-slim-bookworm",
+      "status": "RETAINED",
+      "index_digest": "sha256:adafcc17694d715c905b4c7bebd96907a1fd5cf183395f0ebc4d3428bd22d92d",
+      "linux_amd64_manifest": "sha256:781449467ffb6f04218f09b1ecdcdc7d22b289ee5da9ec498b024e24ad7a6db7",
+      "reason": "Shared immutable base image; not project-labelled Compose residue"
+    },
+    {
+      "resource": "Shared BuildKit cache",
+      "status": "RETAINED",
+      "purpose": "Reusable local Docker build-layer cache",
+      "size": "NOT RECORDED — OWNER-ACCEPTED EVIDENCE GAP",
+      "reason": "No owner-recorded size measurement is available",
+      "residual_risk": "Undisclosed local disk consumption and possible future cache eviction or recreation",
+      "responsible_owner": "Gyan Prakash Rai",
+      "follow_up": "Measure or remove during a future separately approved Docker-cleanliness or disk-governance task"
+    }
+  ],
+  "external_model_cache_before_removal": {
+    "file_count": 24,
+    "total_bytes": 91616135
+  },
+  "repository_findings": {
+    "unexpected_changes": 0,
+    "unexpected_ignored_files": 0,
+    "python_bytecode_or_cache": 0,
+    "task_paths": 0
+  },
+  "not_run": [
+    "Cloud-resource inventory or teardown",
+    "AWS or OpenSearch cleanup",
+    "Registry cleanup",
+    "Production deployment cleanup",
+    "Terraform execution",
+    "Kubernetes deployment or mutation",
+    "Real Presidio execution",
+    "Production PII-detection-quality validation",
+    "LLM answer generation and citations",
+    "Final Q5 safe-abstention validation",
+    "Application or source-version rollback",
+    "Git stage, commit or push by Codex",
+    "Excel tracker modification by Codex"
+  ],
+  "indeterminate": [],
+  "limitations": [
+    "Shared immutable Docker base images and BuildKit cache remain on the owner's machine.",
+    "BuildKit cache size is NOT RECORDED — OWNER-ACCEPTED EVIDENCE GAP.",
+    "This local verifier does not prove cloud or production cleanliness.",
+    "Exact test-execution timestamps and Git commit were not supplied for the Column M evidence."
+  ],
+  "deferred_actions": [
+    {
+      "action": "Measure or remove the retained BuildKit cache",
+      "owner": "Gyan Prakash Rai",
+      "workflow": "future separately approved Docker-cleanliness or disk-governance task"
+    },
+    {
+      "action": "Introduce hashed dependency locking and stronger production supply-chain attestation",
+      "owner": "Gyan Prakash Rai",
+      "workflow": "future production packaging or CI/CD hardening task"
+    },
+    {
+      "action": "Implement production deployment and cloud integration",
+      "owner": "Gyan Prakash Rai",
+      "workflow": "later owner-approved AWS lifecycle tasks"
+    }
+  ],
+  "final_owner_approval": {
+    "section_location": "$.final_owner_approval",
+    "prompt_id": "W2-004",
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner and Approval Reviewer",
+    "decision": "APPROVED FOR FINAL DOCUMENTATION CLOSURE — W2-004",
+    "approval_datetime": "2026-08-25 17:52:46 SGT (UTC+08:00)",
+    "buildkit_waiver_datetime": "2026-08-25 17:57:55 SGT (UTC+08:00)",
+    "final_status": "APPROVED FOR USER TRACKER UPDATE — W2-004",
+    "code_review_status": "Owner-tested and approved for bounded local scope",
+    "documentation_review_status": "Five-document Column M manifest reconciled and closed",
+    "owner_executed_test_status": "Local teardown tests and zero-residue verifier PASS",
+    "accepted_residual_resources_and_conditions": "External venv and disclosed shared images retained; BuildKit cache retained with numeric-size waiver; no W2-004 project-labelled or repository residue accepted",
+    "not_run": "Cloud and production cleanup, AWS/OpenSearch, Terraform, Kubernetes, application/source rollback, Codex Git and Excel mutation",
+    "indeterminate": "None",
+    "next_task_handover": "No W2-004 task-owned runtime residue or W2-002 model cache remains; shared development resources remain as disclosed.",
+    "tracker_update_responsibility": "Owner"
+  }
+}

@@ -1,0 +1,39 @@
+W1-08 — Pre-commit and secret scanning
+
+Record type: Retrospective evidence-gap reconciliation
+Original tracker step: W1-08
+Evidence-record ID: W1-08-precommit
+Canonical evidence path: docs/test-evidence/W1-08-precommit.txt
+Aggregate evidence source: docs/test-evidence/W1-003.md; docs/deployment-records/W1-signoff.md
+Implementation status: OPEN CONTROL GAP
+Pre-commit baseline present and verified: No
+Secret-scanning control present and verified: No
+Original step-level evidence: unavailable
+Test result: NOT RUN
+Retrospective execution: NOT RUN
+Current repository used as historical evidence: No
+Security implication: shift-left secret and quality enforcement is incomplete
+Completion claim permitted: No
+Tracker inconsistency: W1-08 is recorded as Done in the owner tracker, but implementation and verification are not complete; the owner must reconcile that status.
+Evidence limitation: This record discloses the gap. It is not evidence that pre-commit or secret scanning was implemented, executed, or passed.
+Deployment status: NOT RUN
+Rollback facts: NOT RUN; no W1-08 control was implemented.
+Teardown facts: NOT RUN; no W1-08 tool, hook, baseline, service, or managed resource was created by this reconciliation.
+Required remediation: new bounded implementation task and Code Edit Approval
+Responsible owner: Gyan Prakash Rai
+Target resolution: before W3-001 or before any production/cloud deployment, whichever occurs first
+Tracker update responsibility: Owner
+Documentation reconciliation: APPROVED
+Current reconciliation reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner, Learner and Approval Reviewer
+Current decision: APPROVED WITH QUALIFICATIONS
+Approval timestamp: 2026-08-25 21:38:20 SGT (UTC+08:00)
+Control implementation: OPEN CONTROL GAP
+Pre-commit control verified: No
+Secret scanning verified: No
+Test result: NOT RUN
+Completion claim permitted: No
+Approval scope: Accuracy of the gap disclosure only; this approval is not approval of W1-08 implementation or proof.
+Remediation owner: Gyan Prakash Rai
+Final status: APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION
+Tracker update responsibility: Owner

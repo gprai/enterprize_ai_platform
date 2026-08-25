@@ -1,0 +1,229 @@
+{
+  "schema_version": "1.0",
+  "prompt_id": "W2-004",
+  "tracker_step": "W2-09",
+  "evidence_subject": "local retrieval",
+  "business_outcome": "Owner-executed evidence for bounded local ingestion, authorized retrieval, tenant isolation, regression handling, known-good rollback validation and exact collection removal.",
+  "scope": {
+    "environment": "owner-controlled local environment",
+    "platform": "linux/amd64",
+    "qdrant_network": "qdrant_internal",
+    "qdrant_host_port_published": false,
+    "production_or_cloud_deployment": "NOT RUN",
+    "aws_or_opensearch": "NOT RUN",
+    "paid_service": "NOT RUN"
+  },
+  "retrieval_claims": {
+    "q1_to_q4": "PASS: expected authorized source appeared in the top five retrieval results",
+    "q5": "Retrieval behavior recorded only",
+    "final_safe_abstention": "NOT RUN",
+    "llm_answer_generation": "NOT RUN",
+    "citation_generation": "NOT RUN",
+    "pii_analyzer": "SyntheticPiiAnalyzer",
+    "real_presidio": "NOT RUN"
+  },
+  "model_integrity": {
+    "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+    "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "model_safetensors_resolved_size_bytes": 90868376,
+    "model_safetensors_sha256": "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db",
+    "snapshot_location": "external to repository",
+    "cache_final_state": "REMOVED"
+  },
+  "results": [
+    {
+      "check": "affected_local_tests",
+      "result": "PASS",
+      "passed": 38,
+      "skipped": 4,
+      "subtests_passed": 10
+    },
+    {
+      "check": "complete_cache_safe_suite",
+      "result": "PASS",
+      "passed": 260,
+      "skipped": 7,
+      "deselected": 3,
+      "subtests_passed": 10,
+      "warnings": 1
+    },
+    {
+      "check": "ruff",
+      "result": "PASS"
+    },
+    {
+      "check": "mypy",
+      "result": "PASS",
+      "source_files": 41
+    },
+    {
+      "check": "repository_contract_validation",
+      "result": "PASS"
+    },
+    {
+      "check": "compose_configuration",
+      "result": "PASS"
+    },
+    {
+      "check": "runner_image_build_and_inspection",
+      "result": "PASS",
+      "platform": "linux/amd64",
+      "user": "10001:10001",
+      "size_bytes": 427370009
+    },
+    {
+      "check": "real_local_ingestion",
+      "result": "PASS",
+      "passed": 1
+    },
+    {
+      "check": "authorized_query_and_tenant_isolation",
+      "result": "PASS",
+      "passed": 1
+    },
+    {
+      "check": "regression_exercise",
+      "result": "PASS_WITH_HISTORICAL_FAILURE_RETAINED",
+      "note": "The approved failure/remediation sequence remains visible and is not represented as an ordinary successful test."
+    },
+    {
+      "check": "known_good_rollback_validation",
+      "result": "PASS",
+      "passed": 1,
+      "scope": "local behavior validation only"
+    },
+    {
+      "check": "exact_collection_removal",
+      "result": "PASS",
+      "passed": 1
+    },
+    {
+      "check": "w2_004_teardown_tests",
+      "result": "PASS",
+      "passed": 10
+    },
+    {
+      "check": "final_zero_residue_verifier",
+      "result": "PASS"
+    }
+  ],
+  "accepted_non_blocking_warnings": [
+    "Starlette/FastAPI TestClient deprecation warning",
+    "Local Docker builds may consume significant disk, bandwidth, CPU and BuildKit cache"
+  ],
+  "evidence_gaps": [
+    "No fully hashed transitive dependency lock or production SBOM attestation was supplied.",
+    "No real Presidio execution evidence was supplied.",
+    "No production deployment or live AWS/OpenSearch evidence was supplied.",
+    "No LLM-generated-answer, citation or final Q5 safe-abstention evidence was supplied.",
+    "No semantic-quality claim beyond the approved top-five checks was proven.",
+    "BuildKit cache size is NOT RECORDED — OWNER-ACCEPTED EVIDENCE GAP.",
+    "Exact test-execution timestamps and Git commit were not supplied for the Column M evidence."
+  ],
+  "residual_resources": [
+    {
+      "resource": "External reusable project virtual environment",
+      "status": "RETAINED",
+      "acceptance": "OWNER ACCEPTED"
+    },
+    {
+      "resource": "qdrant/qdrant:v1.19.0-unprivileged",
+      "status": "RETAINED",
+      "index_digest": "sha256:a0e04fe623cb064502cd869cefc1dc7ce359d8edd481063b5bd351c0a0a2c91e",
+      "linux_amd64_manifest": "sha256:80fb7b20ee4b49d57443b51aabdfb8514b910f333d3c4862e106fd02d1d66fa7",
+      "acceptance": "OWNER ACCEPTED"
+    },
+    {
+      "resource": "docker.io/library/python:3.13.7-slim-bookworm",
+      "status": "RETAINED",
+      "index_digest": "sha256:adafcc17694d715c905b4c7bebd96907a1fd5cf183395f0ebc4d3428bd22d92d",
+      "linux_amd64_manifest": "sha256:781449467ffb6f04218f09b1ecdcdc7d22b289ee5da9ec498b024e24ad7a6db7",
+      "acceptance": "OWNER ACCEPTED"
+    },
+    {
+      "resource": "Shared BuildKit cache",
+      "status": "RETAINED",
+      "purpose": "Reusable local Docker build-layer cache",
+      "size": "NOT RECORDED — OWNER-ACCEPTED EVIDENCE GAP",
+      "reason": "No owner-recorded size measurement is available",
+      "residual_risk": "Undisclosed local disk consumption and possible future cache eviction or recreation",
+      "responsible_owner": "Gyan Prakash Rai",
+      "follow_up": "Measure or remove during a future separately approved Docker-cleanliness or disk-governance task",
+      "acceptance": "OWNER ACCEPTED BY WAIVER"
+    }
+  ],
+  "not_run": [
+    "Real Presidio execution",
+    "Production PII-detection-quality validation",
+    "Live AWS integration",
+    "Live OpenSearch integration",
+    "Terraform execution",
+    "Kubernetes deployment or mutation",
+    "Production or cloud deployment",
+    "Paid model or API execution",
+    "LLM answer generation",
+    "Citation generation",
+    "Final Q5 safe-abstention validation",
+    "Week 3 cited-RAG testing",
+    "Fully hashed transitive dependency lock creation",
+    "Application or source-version rollback",
+    "Cloud rollback or teardown",
+    "Git stage, commit or push by Codex",
+    "Excel tracker modification by Codex"
+  ],
+  "indeterminate": [],
+  "deployment_rollback_teardown": {
+    "local_docker_compose": "PASS for bounded owner-controlled test environment",
+    "qdrant_exposure": "internal-only",
+    "production_deployment": "NOT RUN",
+    "known_good_rollback_validation": "PASS",
+    "application_source_or_cloud_rollback": "NOT RUN",
+    "task_owned_local_teardown": "PASS",
+    "external_w2_002_model_cache_removal": "PASS",
+    "cloud_cost": "none"
+  },
+  "deferred_actions": [
+    {
+      "action": "Correct stale ADR-003 and ADR-006 approval wording before W3-001",
+      "owner": "Gyan Prakash Rai",
+      "workflow": "separate controlled documentation approval"
+    },
+    {
+      "action": "Introduce a fully hashed Linux/AMD64 transitive dependency lock and stronger production supply-chain attestation",
+      "owner": "Gyan Prakash Rai",
+      "workflow": "future production packaging or CI/CD hardening task"
+    },
+    {
+      "action": "Execute and validate real Presidio integration",
+      "owner": "Gyan Prakash Rai",
+      "workflow": "separately approved security/integration task"
+    },
+    {
+      "action": "Implement and prove LLM answer generation, citations and safe abstention",
+      "owner": "Gyan Prakash Rai",
+      "workflow": "Week 3 cited-RAG tasks"
+    },
+    {
+      "action": "Implement production deployment and cloud integration",
+      "owner": "Gyan Prakash Rai",
+      "workflow": "later owner-approved AWS lifecycle tasks"
+    }
+  ],
+  "final_owner_approval": {
+    "section_location": "$.final_owner_approval",
+    "prompt_id": "W2-004",
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner and Approval Reviewer",
+    "decision": "APPROVED FOR FINAL DOCUMENTATION CLOSURE — W2-004",
+    "approval_datetime": "2026-08-25 17:52:46 SGT (UTC+08:00)",
+    "buildkit_waiver_datetime": "2026-08-25 17:57:55 SGT (UTC+08:00)",
+    "final_status": "APPROVED FOR USER TRACKER UPDATE — W2-004",
+    "code_review_status": "Owner-tested and approved for bounded local scope",
+    "documentation_review_status": "Five-document Column M manifest reconciled and closed",
+    "owner_executed_test_status": "PASS within the recorded local scope; historical failures, expected skips and non-blocking warning preserved",
+    "accepted_risks_and_conditions": "Local-only approval with recorded gaps, limitations, retained resources and BuildKit numeric-size waiver",
+    "indeterminate": "None",
+    "next_task_handover": "May rely on approved local retrieval and authorization behavior; may not infer real Presidio, final safe abstention, generated answers, citations, deployment or cloud readiness. The W2-002 model cache was removed.",
+    "tracker_update_responsibility": "Owner"
+  }
+}

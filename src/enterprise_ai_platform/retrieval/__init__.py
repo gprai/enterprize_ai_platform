@@ -10,6 +10,7 @@ from .models import (
     Query,
     RetrievedChunk,
 )
+from .service import RetrievalService
 from .vector_store import VectorStore
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "CollectionSpec",
     "Document",
     "Query",
+    "RetrievalService",
     "RetrievedChunk",
     "VectorStore",
 ]

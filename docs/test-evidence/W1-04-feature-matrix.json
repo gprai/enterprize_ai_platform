@@ -1,0 +1,60 @@
+{
+  "record_type": "Retrospective evidence-gap reconciliation",
+  "task_id": "W1-04",
+  "evidence_record_id": "W1-04-feature-matrix",
+  "canonical_feature_id": "MVP-001",
+  "canonical_evidence_path": "docs/test-evidence/W1-04-feature-matrix.json",
+  "historical_result": "PASS within the W1-001 feature-matrix and repository-validation scope",
+  "historical_result_source": [
+    "docs/test-evidence/W1-001.md",
+    "docs/deployment-records/W1-signoff.md"
+  ],
+  "supported_historical_facts": [
+    "The owner-executed W1-001 feature-matrix tests reported 3 tests OK.",
+    "The owner-executed repository validator reported that the approved repository contract was present.",
+    "MVP-001 is the canonical Week 1 feature identity."
+  ],
+  "original_feature_matrix_snapshot": "Original step-level evidence unavailable",
+  "original_command_output": "Original step-level evidence unavailable",
+  "step_level_evidence_availability": "No contemporaneous W1-04 snapshot or command output was retained at this canonical path",
+  "retrospective_execution": "NOT RUN",
+  "retrospective_validation": "NOT RUN",
+  "current_matrix_inspected_only_for_identity_reconciliation": true,
+  "current_repository_used_as_historical_evidence": false,
+  "warnings": [
+    "The current matrix includes later W2 content and must not be represented as the original W1 matrix."
+  ],
+  "evidence_gaps": [
+    "Original W1 feature-matrix snapshot unavailable",
+    "Original granular W1-04 command output unavailable"
+  ],
+  "not_run": [
+    "Retrospective W1-04 validation",
+    "Deployment",
+    "Rollback execution",
+    "Cloud teardown"
+  ],
+  "indeterminate": [
+    "The exact byte-for-byte W1 feature-matrix content cannot be established from the aggregate evidence"
+  ],
+  "deployment": "NOT RUN; the matrix validation was local and created no deployment",
+  "rollback": "NOT RUN; no release or infrastructure mutation occurred",
+  "teardown": "No managed resource existed; W1-001 cleanliness tests passed within their tested repository scope",
+  "deferred_actions": [
+    "Owner decides whether to accept the missing contemporaneous snapshot in the tracker"
+  ],
+  "responsible_owner": "Gyan Prakash Rai",
+  "tracker_update_responsibility": "Owner",
+  "final_owner_approval": {
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner, Learner and Approval Reviewer",
+    "decision": "APPROVED WITH QUALIFICATIONS",
+    "documentation_review_decision": "APPROVED",
+    "approval_timestamp": "2026-08-25 21:38:20 SGT (UTC+08:00)",
+    "approval_scope": "Accuracy of the retrospective evidence-gap disclosure; not recovered contemporaneous evidence",
+    "evidence_completeness": "QUALIFIED",
+    "w1_08_control_status": "OPEN CONTROL GAP",
+    "tracker_update_responsibility": "Owner",
+    "final_status": "APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION"
+  }
+}

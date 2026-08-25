@@ -10,7 +10,17 @@
 - Owner decision: **OWNER APPROVAL — APPROVED**
 - Excel tracker update: **Pending owner action**
 
-This record confirms the owner-approved Week 1 baseline. It is not evidence of a production deployment, live AWS validation, rollback execution, or cloud teardown.
+This record confirms the historically owner-approved Week 1 baseline, qualified by the evidence and control gaps disclosed below. It is not evidence of complete step-level evidence, a production deployment, live AWS validation, rollback execution, or cloud teardown.
+
+## Evidence-completeness qualification
+
+- Nine original step-level evidence files for W1-03 through W1-11 were not captured contemporaneously.
+- Retrospective evidence-gap reconciliation records were created later. They disclose what aggregate approved evidence supports; they do not recreate original command output.
+- W1-08 pre-commit and secret-scanning controls remain an **OPEN CONTROL GAP**. Their implementation and verification are not complete.
+- Any tracker status representing W1-08 as fully complete requires owner reconciliation.
+- Aggregate owner-tested evidence exists for W1-001 through W1-004, but local or mocked results do not prove AWS or production behavior.
+- Week 1 completion is therefore **QUALIFIED** by missing step-level evidence and the deferred W1-08 control.
+- Only the owner may decide whether the Week 1 tracker remains `Done`, becomes qualified, or requires reopening.
 
 ## Approved business outcome
 
@@ -24,9 +34,10 @@ Week 1 established a governed and testable enterprise AI platform foundation bef
 | `W1-GOV-001` | Source-precedence governance decision received final approval. |
 | `W1-001` | Repository contract, feature matrix, foundational CLI validation, owner testing, documentation, and final approval completed. |
 | `W1-002` | Local application/configuration foundation received final approval with its documented limitations. |
-| `W1-003` | Automated testing and evidence foundation received final approval. |
+| `W1-003` | Automated testing and aggregate evidence foundation received final approval; this did not implement the separate W1-08 pre-commit and secret-scanning baseline. |
 | `W1-004` | Owner-gated lifecycle controls, Terraform skeleton, local validation, documentation, and final approval completed within the approved local scope. |
-| `WEEKLY-LEARN-001` | Owner teach-back completed with a PASS result on 2026-08-23. |
+| `W1-08` | **OPEN CONTROL GAP** — pre-commit and secret-scanning implementation and verification remain incomplete. |
+| `WEEKLY-LEARN-001` | Owner teach-back passed on 2026-08-23; evidence completeness is qualified and reconciliation awaits Column N. |
 
 ## Approved Week 1 baseline
 
@@ -37,6 +48,7 @@ Week 1 established a governed and testable enterprise AI platform foundation bef
 - Tests are organized into unit, integration, contract, feature, smoke, security, and teardown categories.
 - AWS and paid tests are opt-in and excluded from the default local suite.
 - Evidence preserves failures, warnings, skipped activities, indeterminate outcomes, and recovery history.
+- Aggregate evidence supports the recorded task outcomes, while nine missing contemporaneous step records remain explicitly disclosed.
 - `platformctl` provides owner-gated lifecycle contracts and fails closed when live cleanliness cannot be proved.
 - Terraform bootstrap and sandbox roots are provider-free and resource-free; no deployable Week 1 cloud workload was created.
 
@@ -93,12 +105,14 @@ Week 1 established a governed and testable enterprise AI platform foundation bef
 - AWS cleanliness remains indeterminate.
 - The external development environment remains intentionally retained.
 - Fresh-environment development dependency setup should be reconciled because the current `pyproject.toml` lacks the previously used `dev` dependency group.
+- Nine contemporaneous step-level evidence records are unavailable; their retrospective records are gap disclosures, not recovered transcripts.
+- W1-08 pre-commit and secret-scanning controls require a new bounded implementation task and Code Edit Approval before W3-001 or any production/cloud deployment, whichever occurs first.
 
 ## Week 2 handover boundary
 
-Week 2 may rely on the approved governance, MVP, repository contract, configuration boundary, automated local test foundation, lifecycle approval contracts, exact Terraform skeleton, and Week 1 failure/recovery evidence.
+Week 2 may rely on the approved governance, MVP, repository contract, configuration boundary, automated local test foundation, lifecycle approval contracts, exact Terraform skeleton, and Week 1 aggregate failure/recovery evidence.
 
-Week 2 must not assume that live AWS access, provider behavior, deployment success, production readiness, rollback execution, cloud teardown, or clean cloud state was proved during Week 1. Any such activity requires its own approved task boundary and owner-executed evidence.
+Week 2 must not assume complete contemporaneous step-level evidence, a completed W1-08 control, live AWS access, provider behavior, deployment success, production readiness, rollback execution, cloud teardown, or clean cloud state was proved during Week 1. Any such activity requires its own approved task boundary and owner-executed evidence.
 
 ## Owner sign-off fields
 
@@ -110,3 +124,17 @@ Week 2 must not assume that live AWS access, provider behavior, deployment succe
 - Excel tracker updated by owner: `Pending`
 
 The owner approved this record and the Week 2 handover on 2026-08-23. The Excel tracker update remains an owner action; Codex must not perform it.
+
+## Week 1 evidence reconciliation — Final Owner Approval
+
+- Historical Week 1 sign-off: **APPROVED** by G P Rai on 2026-08-23.
+- Reconciled evidence completeness: **QUALIFIED**.
+- W1-08 control completeness: **OPEN CONTROL GAP**.
+- Reconciliation reviewer: **Gyan Prakash Rai — Project Owner, Learner and Approval Reviewer**.
+- Reconciliation decision: **APPROVED WITH QUALIFICATIONS**; documentation review **APPROVED**.
+- Reconciliation approval timestamp: **2026-08-25 21:38:20 SGT (UTC+08:00)**.
+- Accepted limitations: nine unavailable contemporaneous records; W1-08 open control gap; W1-002 installation-summary gap; historical warnings and Ruff limitations; retained external environment; live AWS state INDETERMINATE.
+- NOT RUN: retrospective commands, W1-08 verification, live Terraform/AWS, deployment, rollback, cloud teardown, paid, RAG, vector, LLM, agent and production/resilience activities.
+- INDETERMINATE: historical DeepEval activity and live AWS residual-resource state where recorded.
+- Final reconciliation status: **APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION**.
+- Tracker reconciliation and update responsibility: **Owner — Gyan Prakash Rai**.
