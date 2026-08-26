@@ -55,8 +55,11 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W2-REVIEW-001](W2-REVIEW-001.md) — **Column N closed: W2-12 is Verified and Approved by Gyan Prakash Rai on 2026-08-25 at 23:32:08 SGT (UTC+08:00) and was subsequently owner-reconciled to Done. W2-13 is also final-approved; remaining handover work is tracker prompt-cell reconciliation, the clean committed baseline and the separate W1-08 prerequisite.**
 - [W2 Week 2 sign-off](../deployment-records/W2-signoff.md) — **W2-12 and W2-13 are approved within the recorded local-only scope. Historical warnings, gaps, NOT RUN work and retained-resource facts remain visible; Week 3 remains gated by the clean baseline and W1-08 prerequisite.**
 - [W2-13 Week 2 learning review](../learning/W2-learning-review.md) — **FINAL APPROVAL AFTER OWNER TEACH-BACK — APPROVED by Gyan Prakash Rai on 2026-08-25 at 23:59:08 SGT (UTC+08:00). The four-document Column N manifest is closed; this business/interview summary complements the unchanged detailed W2-11 local-retrieval architecture record.**
+- [W3-001](W3-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-26 at 11:11:21 SGT. Final local evidence: Ruff PASS, strict MyPy PASS, 118 scoped tests passed with 1 AWS/paid test deselected, and 344 complete ordinary tests passed with 7 owner-controlled skips and 4 opt-in deselections. Live Bedrock, deployment and cloud lifecycle work remain **NOT RUN**; all six Column M documents are closed together.
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
+
+W3-001 has bounded component evidence for its [provider-neutral LLM contract](W3-01-llm-contract.txt), [Bedrock Converse boundary](W3-02-bedrock.txt), [prompt contract](W3-03-prompt.txt), and [authorized cited-RAG pipeline](W3-04-rag.txt). These records describe owner-executed local, fake and injected-stub checks. They do not establish live Bedrock behavior, deployment, production readiness, privacy/residency compliance or cloud cleanliness.
 
 W2-002 has bounded component evidence for its [W2-05 embedder](W2-05-embedder.txt). It records owner-executed fake-provider checks, immutable model download and integrity verification, offline real-model execution, repository cleanliness, and the intentionally retained external model cache. W2-002 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. The owner did not supply a reviewer name or approval date, so neither is recorded.
 
@@ -84,7 +87,7 @@ The next task may rely on W1-004's approved local lifecycle contracts, determini
 
 Nine original step-level files for W1-03 through W1-11 were unavailable. The indexed step records were created later to disclose the gap and map supported historical outcomes to approved aggregate W1-001 through W1-004 evidence. They do not recover or recreate original command output, and retrospective execution was **NOT RUN**. The current W2-expanded repository was not represented as the W1 baseline.
 
-Week 1 evidence completeness is **QUALIFIED**. W1-08 remains an **OPEN CONTROL GAP** and requires a new bounded implementation task plus Code Edit Approval before W3-001 or any production/cloud deployment, whichever occurs first. Local and mocked results do not prove live AWS, deployment, rollback, teardown, or production behavior.
+Week 1 evidence completeness is **QUALIFIED**. W1-08 remains an **OPEN CONTROL GAP** requiring a new bounded implementation task plus Code Edit Approval. The owner later accepted it as a non-blocking deferral for W3-001; it remains unresolved for any future production/cloud deployment decision. Local and mocked results do not prove live AWS, deployment, rollback, teardown, or production behavior.
 
 ### Week 1 reconciliation — Final Owner Approval
 
@@ -193,4 +196,35 @@ Column N reconciled all four W2-13 manifest documents together:
 3. `docs/test-evidence/W2-REVIEW-001.md`
 4. `docs/test-evidence/README.md`
 
-The detailed W2-11 architecture record at `docs/architecture/local-retrieval.md` remains unchanged and is not duplicated or replaced. The owner must reconcile the W2-13 tracker prompt/status cells and establish a clean committed baseline. W3-001 remains gated by the separately recorded W1-08 control-gap prerequisite. Tracker update responsibility: **Owner — Gyan Prakash Rai**.
+The detailed W2-11 architecture record at `docs/architecture/local-retrieval.md` remains unchanged and is not duplicated or replaced. The owner must reconcile the W2-13 tracker prompt/status cells and establish a clean committed baseline. The separately recorded W1-08 control gap remains open but was later accepted by the owner as a non-blocking deferral for W3-001. Tracker update responsibility: **Owner — Gyan Prakash Rai**.
+
+## W3-001 final owner approval
+
+W3-001 local owner testing passed after the recorded bounded remediations. The final evidence consists of Python 3.13.7, boto3 and botocore 1.43.78, repository validation PASS, Ruff PASS, strict MyPy PASS across 17 source files, 118 scoped tests passed with 1 AWS/paid test deselected, and 344 complete ordinary tests passed with 7 owner-controlled skips and 4 opt-in deselections. The exact implementation manifest remained 27 CREATE and 12 UPDATE paths with no delete or unapproved residue, and HEAD remained `1d4bf76f6ea2a2fb2e7ac9178dc7837981a22a8c`.
+
+Historical failures remain recorded in `W3-001.md`: global-environment dependency and Ruff mismatch, an indeterminate Ruff-version diagnostic, an import-order failure, an indeterminate MyPy cache-device failure, recursive JSON schema collection failures, explicit JSON type-export findings and four full-suite cleanliness failures caused only by `.mypy_cache`. The owner applied bounded corrections, removed the generated cache and supplied passing final reruns. The Starlette/FastAPI TestClient warning and Git LF-to-CRLF conversion warnings remain visible and are accepted as recorded.
+
+Live Bedrock authentication, authorization, model access, inference, quality, latency, quota, cost, privacy and residency validation remain **NOT RUN**. Deployment, actual application/source rollback, cloud rollback and cloud teardown remain **NOT RUN**. No AWS resource, credential, service, container or model was created or used; platform cost was USD 0. W1-08 remains an owner-accepted, non-blocking deferral and is excluded from W3-001.
+
+### W3-001 Final Owner Approval
+
+- Prompt/task ID: `W3-001`
+- Reviewer: Gyan Prakash Rai
+- Reviewer role: Project Owner and Final Approval Reviewer
+- Owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+- Approval timestamp: 2026-08-26 11:11:21 SGT
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W3-001**
+- Code and documentation review: the owner reviewed the bounded implementation, supplied test evidence and all six Column M documents; complete documentation closure is approved.
+- Owner-executed tests: repository validation, Ruff, strict MyPy, scoped tests, complete ordinary regression, automated rollback, teardown, manifest and baseline checks passed after preserved historical failures and bounded owner remediation.
+- Accepted warnings, risks, evidence gaps and limitations: all items recorded in the approved W3-001 Column M manifest are accepted; no additional item is silently accepted.
+- NOT RUN: all recorded NOT RUN activities remain NOT RUN, including live Bedrock/AWS work, deployment, actual application/source/cloud rollback, cloud teardown and W1-08 implementation/testing.
+- INDETERMINATE: all historical INDETERMINATE results remain preserved; remaining open INDETERMINATE activities: none.
+- Deployment: no local, AWS, cloud or production deployment was executed; status remains **NOT RUN**.
+- Rollback: automated fake-provider rollback contract PASS; actual application/source, Bedrock and cloud rollback remain **NOT RUN**.
+- Teardown: automated local teardown and repository cleanliness PASS after owner removal of `.mypy_cache` and `pytest.txt`; cloud teardown remains **NOT RUN** because no cloud resource was created.
+- Residual resources: external virtual environment retained; no runtime service, container, model, credential, AWS or cloud resource created; approved implementation working tree and six final-approved documents remain pending owner Git action.
+- Deferred actions and owner: all recorded deferred actions remain open under Gyan Prakash Rai unless another owner is explicitly recorded.
+- Conditions: preserve all result, warning, risk, limitation, deferral and residual-resource facts; infer no production/cloud readiness from local, fake, mocked or injected evidence; only the owner updates Excel or mutates Git.
+- Next-task handover: local provider-neutral and cited-RAG contracts are approved within the tested scope; live Bedrock, deployment, production security/compliance and cloud lifecycle require separate approval and evidence.
+- Tracker update responsibility: Owner
+- Column N reconciliation: `W3-001.md`, all four W3 component evidence files and this README closed together; no partial closure.

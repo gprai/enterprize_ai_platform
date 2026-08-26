@@ -175,6 +175,7 @@ def test_pii_exception_requires_owner_rationale_and_unexpired_time() -> None:
 
 def test_answer_distinguishes_cited_response_from_abstention() -> None:
     citation = Citation(
+        source_id="source-001",
         document_id="policy-001",
         document_version="v1",
         chunk_id="a" * 64,

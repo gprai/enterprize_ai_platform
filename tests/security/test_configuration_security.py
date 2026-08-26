@@ -29,7 +29,9 @@ def example_values() -> dict[str, str]:
 def test_environment_example_contains_only_approved_values() -> None:
     values = example_values()
 
-    assert values["ENTERPRISE_AI_AWS_REGION"] == "ap-southeast-1"
+    assert values["ENTERPRISE_AI_LLM_PROVIDER"] == "fake"
+    assert values["ENTERPRISE_AI_LLM_MODEL_ID"] == ""
+    assert values["ENTERPRISE_AI_AWS_REGION"] == ""
     assert (
         values["ENTERPRISE_AI_EMBEDDING_MODEL_ID"]
         == "sentence-transformers/all-MiniLM-L6-v2"

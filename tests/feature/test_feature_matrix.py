@@ -103,6 +103,14 @@ class FeatureMatrixTests(unittest.TestCase):
             list(EXPECTED_RAG_IMPLEMENTATION_PATHS),
             rag_feature["implementation_paths"],
         )
+        self.assertEqual(
+            ["W3-01", "W3-02", "W3-03", "W3-04"],
+            rag_feature["linked_tracker_steps"][-4:],
+        )
+        self.assertEqual(
+            "tests/teardown/test_w3_001_rag_cleanliness.py",
+            rag_feature["implementation_paths"][-1],
+        )
 
     def test_missing_duplicate_reordered_or_misplaced_contract_is_rejected(
         self,

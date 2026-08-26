@@ -19,6 +19,10 @@ from tools.platformctl.cli import (
     validate_feature_matrix,
     validate_repository,
 )
+from tools.platformctl.validate import (
+    EXPECTED_RAG_IMPLEMENTATION_PATHS,
+    EXPECTED_RAG_LINKED_TRACKER_STEPS,
+)
 
 
 def approved_matrix() -> dict[str, object]:
@@ -145,3 +149,49 @@ class PlatformCtlUnitTests(unittest.TestCase):
         errors = validate_repository(missing_root)
         self.assertTrue(errors)
         self.assertFalse(missing_root.exists())
+
+    def test_w3_cited_rag_contract_is_exactly_appended(self) -> None:
+        expected_w3_paths = (
+            "configs/rag.yaml",
+            ".env.example",
+            "src/enterprise_ai_platform/config.py",
+            "src/enterprise_ai_platform/json_contracts.py",
+            "src/enterprise_ai_platform/llm/__init__.py",
+            "src/enterprise_ai_platform/llm/errors.py",
+            "src/enterprise_ai_platform/llm/models.py",
+            "src/enterprise_ai_platform/llm/provider.py",
+            "src/enterprise_ai_platform/llm/fake.py",
+            "src/enterprise_ai_platform/llm/bedrock.py",
+            "src/enterprise_ai_platform/llm/factory.py",
+            "src/enterprise_ai_platform/rag/__init__.py",
+            "src/enterprise_ai_platform/rag/config.py",
+            "src/enterprise_ai_platform/rag/errors.py",
+            "src/enterprise_ai_platform/rag/models.py",
+            "src/enterprise_ai_platform/rag/prompt.py",
+            "src/enterprise_ai_platform/rag/service.py",
+            "tests/unit/test_config.py",
+            "tests/unit/test_llm_provider.py",
+            "tests/unit/test_bedrock_adapter.py",
+            "tests/unit/test_prompt_template.py",
+            "tests/unit/test_rag_pipeline.py",
+            "tests/contract/test_llm_provider.py",
+            "tests/contract/test_rag_config.py",
+            "tests/contract/test_rag_result.py",
+            "tests/integration/test_bedrock.py",
+            "tests/feature/test_w3_001_cited_rag.py",
+            "tests/security/test_configuration_security.py",
+            "tests/security/test_w3_001_cited_rag_security.py",
+            "tests/rollback/test_w3_001_rag_rollback.py",
+            "tests/teardown/test_w3_001_rag_cleanliness.py",
+        )
+
+        self.assertEqual(
+            expected_w3_paths,
+            EXPECTED_RAG_IMPLEMENTATION_PATHS[-len(expected_w3_paths) :],
+        )
+        self.assertEqual(
+            ("W3-01", "W3-02", "W3-03", "W3-04"),
+            EXPECTED_RAG_LINKED_TRACKER_STEPS[-4:],
+        )
+        self.assertIn("src/enterprise_ai_platform/llm", REQUIRED_DIRECTORIES)
+        self.assertIn("src/enterprise_ai_platform/rag", REQUIRED_DIRECTORIES)

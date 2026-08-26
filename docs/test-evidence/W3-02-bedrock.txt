@@ -1,0 +1,73 @@
+W3-02 — AMAZON BEDROCK CONVERSE BOUNDARY EVIDENCE
+
+DOCUMENT STATUS
+FINAL APPROVAL AFTER OWNER TEST — APPROVED. Column N documentation closure complete.
+
+BUSINESS PURPOSE
+Provide a controlled Amazon Bedrock adapter behind the provider-neutral contract while preventing accidental AWS activity during import, fake-mode operation and ordinary automated testing.
+
+OWNER-EXECUTED LOCAL RESULTS
+- Approved virtual-environment SDK versions: PASS — boto3 1.43.78 and botocore 1.43.78.
+- Bedrock adapter unit tests: PASS within the final W3-001 scoped and complete ordinary suites.
+- Lazy and injected client behavior: PASS with local stubs.
+- Bedrock Runtime Converse request and normalized response mapping: PASS with local stubs.
+- Converse-only boundary and absence of InvokeModel: PASS.
+- Botocore connect timeout 3 seconds, read timeout 20 seconds and SDK retry suppression: PASS.
+- Maximum two application attempts, bounded retry behavior and remaining-deadline arithmetic: PASS.
+- Authentication, authorization, throttling, timeout and malformed-envelope normalization: PASS with synthetic exceptions and responses.
+- Process-wide four-call gate, waiting cancellation, running cancellation, slot retention and event-loop responsiveness: PASS with local test doubles.
+- W3-001 automated rollback to the fake-provider boundary: PASS.
+- W3-001 teardown and no-import-time-AWS checks: PASS.
+- Live Amazon Bedrock integration: NOT RUN; the integration test was marked aws/paid and deselected.
+
+ACCESS, PRIVACY AND COST FACTS
+- No AWS authentication or authorization was attempted.
+- No credential chain, account, model access, quota or service availability was verified live.
+- No prompt, evidence or generated content was sent to AWS.
+- AWS resources created: none.
+- Credentials created or used: none.
+- Platform cost: USD 0.
+
+WARNINGS, RISKS, EVIDENCE GAPS AND LIMITATIONS
+- Local stubs prove adapter behavior against expected envelopes; they do not prove compatibility with a selected live model.
+- Exact AWS account, region, model ID, IAM role, quota and budget remain owner decisions before live TEST-001.
+- Privacy and data-residency approval remains dependent on the later exact account, region and model selection.
+- Live quality, latency, throttling behavior, service availability and production cost are NOT RUN.
+- No production-readiness or cloud-compliance claim is supported.
+- The Starlette/FastAPI TestClient warning is unrelated to Bedrock behavior; remediation is NOT RUN and the owner accepts the warning as recorded.
+
+DEPLOYMENT, ROLLBACK, TEARDOWN AND RESIDUE
+- Deployment: NOT RUN.
+- Actual Bedrock or application rollback: NOT RUN.
+- Cloud teardown: NOT RUN and not required because no AWS resource was created.
+- Automated fake-provider rollback contract: PASS.
+- Local repository cleanliness: PASS after owner removal of generated MyPy cache.
+- Residual cloud or provider resources: none.
+
+DEFERRED OWNER ACTIONS
+- Separately approve live Bedrock TEST-001.
+- Supply exact account, region, model ID, IAM role, quota and budget.
+- Approve privacy and residency boundaries before any live prompt.
+- Decide whether live evidence is required before a future production-readiness claim.
+
+FINAL OWNER APPROVAL
+Prompt/task ID: W3-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval timestamp: 2026-08-26 11:11:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-001
+Code and documentation review: the owner reviewed the bounded Bedrock Converse adapter, supplied local test results and all six Column M documents; documentation closure is approved.
+Owner-executed tests: SDK bounds, injected and lazy client behavior, Converse mapping, timeout, retry, concurrency, cancellation, normalized errors, automated rollback and local cleanliness passed with synthetic stubs.
+Warnings, risks, evidence gaps and limitations: all items recorded in the approved W3-001 Column M manifest are accepted; no additional item is silently accepted. Live compatibility, account, region, model, IAM, privacy, residency, quota, quality, latency and cost remain unverified.
+NOT RUN: AWS authentication/authorization, model access, live Bedrock inference, provider quota/cost evaluation, deployment, actual Bedrock/application/cloud rollback, cloud teardown, W1-08 and every other recorded NOT RUN activity remain NOT RUN.
+INDETERMINATE: every historical INDETERMINATE result remains preserved; remaining open INDETERMINATE activities: none.
+Deployment: local, AWS, cloud and production deployment NOT RUN.
+Rollback: automated fake-provider rollback contract PASS; actual Bedrock, application/source and cloud rollback NOT RUN.
+Teardown: local repository cleanliness PASS after owner cache cleanup; cloud teardown NOT RUN and not required because no cloud resource was created.
+Residual resources: external virtual environment retained; no AWS resource, credential, runtime service, container or model created; approved working tree and final documents remain pending owner Git action.
+Deferred actions and owner: all recorded live Bedrock, account, region, model, IAM, privacy, residency, quota, budget and production actions remain open under Gyan Prakash Rai unless another owner is explicitly recorded.
+Conditions: preserve all recorded classifications and limitations; infer no live Bedrock, deployment, production or cloud readiness; only the owner updates Excel or mutates Git.
+Next-task handover: any live Bedrock TEST-001 requires separate approval and exact owner decisions before execution.
+Tracker update responsibility: Owner
+Column N reconciliation: closed together with all six W3-001 manifest documents; no partial closure.

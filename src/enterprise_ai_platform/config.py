@@ -12,6 +12,7 @@ from pydantic import (
     SecretStr,
     ValidationInfo,
     field_validator,
+    model_validator,
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -38,7 +39,10 @@ class Settings(BaseSettings):
     port: int = Field(default=8000, ge=1, le=65535)
     request_timeout_seconds: int = Field(default=30, ge=1, le=120)
 
-    aws_region: str = Field(
+    llm_provider: Literal["fake", "bedrock"] = "fake"
+    llm_model_id: str | None = Field(default=None, min_length=1, max_length=200)
+    aws_region: str | None = Field(
+        default=None,
         min_length=1,
         pattern=r"^[a-z]{2}(?:-gov)?-[a-z]+-\d+$",
     )
@@ -48,7 +52,6 @@ class Settings(BaseSettings):
     qdrant_api_key: SecretStr | None = None
 
     @field_validator(
-        "aws_region",
         "embedding_model_id",
         "qdrant_url",
         "opensearch_url",
@@ -59,6 +62,22 @@ class Settings(BaseSettings):
         """Reject copied placeholders before runtime clients can be configured."""
         if isinstance(value, str) and value.strip().casefold() == TODO_MARKER.casefold():
             raise ValueError(f"{TODO_MARKER} must be replaced before runtime use")
+        return value
+
+    @field_validator("llm_model_id", "aws_region", mode="before")
+    @classmethod
+    def normalize_optional_llm_value(cls, value: object) -> object:
+        """Treat blanks as absent and reject unresolved LLM placeholders."""
+
+        if value is None:
+            return None
+        if isinstance(value, str):
+            normalized = value.strip()
+            if not normalized:
+                return None
+            if normalized.casefold() == TODO_MARKER.casefold():
+                raise ValueError(f"{TODO_MARKER} must be replaced before runtime use")
+            return normalized
         return value
 
     @field_validator("qdrant_api_key", mode="before")
@@ -86,3 +105,13 @@ class Settings(BaseSettings):
         if value.scheme == "http" and value.host not in LOOPBACK_HOSTS:
             raise ValueError(f"{info.field_name} must use HTTPS outside loopback")
         return value
+
+    @model_validator(mode="after")
+    def require_bedrock_configuration(self) -> Settings:
+        """Require explicit model and region only when Bedrock is selected."""
+
+        if self.llm_provider == "bedrock" and (
+            self.llm_model_id is None or self.aws_region is None
+        ):
+            raise ValueError("Bedrock requires llm_model_id and aws_region")
+        return self

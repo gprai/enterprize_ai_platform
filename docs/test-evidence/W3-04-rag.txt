@@ -1,0 +1,83 @@
+W3-04 — AUTHORIZED CITED-RAG PIPELINE EVIDENCE
+
+DOCUMENT STATUS
+FINAL APPROVAL AFTER OWNER TEST — APPROVED. Column N documentation closure complete.
+
+BUSINESS PURPOSE
+Return an answer only when authorized qualifying evidence supports it and every generated citation matches exactly one supplied evidence block. Otherwise, return a controlled abstention or a normalized operational failure without leaking generated content.
+
+OWNER-EXECUTED RESULTS
+- RAG policy contract: PASS, including the operative `min_score` of `0.50` and prompt version `w3-001.v1`.
+- RAG pipeline unit tests: PASS.
+- Public RAG result contract tests: PASS.
+- W3-001 cited-RAG feature test: PASS.
+- W3-001 security tests: PASS.
+- Authorization before retrieval and generation: PASS with synthetic local fixtures.
+- Evidence qualification, minimum score, minimum chunk count and context budget: PASS.
+- Conflicting-version, malformed-evidence, insufficient-evidence and no-authorized-evidence pre-provider abstentions: PASS; provider invocation remained absent and usage remained null.
+- Valid cited answer and exact citation traceability: PASS.
+- Missing, malformed, fabricated, unauthorized, wrong-version or otherwise untraceable generated citations: PASS as `invalid_generated_citation` abstentions.
+- Post-provider citation abstention retained valid normalized usage and exposed no answer or invalid citation: PASS.
+- Invalid provider usage: PASS as `LLMMalformedResponseError` behavior.
+- Invalid generated JSON and unexpected tool call: PASS as output-validation failures; no tool executed.
+- Operational provider failures remained exceptions rather than abstentions: PASS with synthetic failures.
+- W3-001 automated rollback: PASS.
+- W3-001 teardown and cleanliness: PASS.
+- Final scoped suite: PASS — 118 passed, 1 AWS/paid test deselected and 1 warning.
+- Final complete ordinary suite: PASS — 344 passed, 7 skipped, 4 deselected and 1 warning.
+- Live Bedrock cited answer and citation quality: NOT RUN.
+
+RESULT CLASSIFICATIONS PRESERVED
+- Pre-provider abstentions: `insufficient_evidence`, `no_authorized_evidence`, `conflicting_evidence`, `malformed_evidence`.
+- Post-provider citation abstention: `invalid_generated_citation`.
+- Provider-envelope, usage, authentication, authorization, timeout, throttling and availability problems remain normalized exceptions.
+- Caller cancellation remains cancellation and is not converted into an answer or abstention.
+
+SECURITY, PRIVACY AND COST
+- Synthetic local evidence only; no real enterprise data was used.
+- Unauthorized evidence did not enter a prompt.
+- Fabricated or invalid citations exposed no generated answer or citation content.
+- No raw provider output, prompt, evidence or reasoning was approved for results, errors or logs.
+- No tool execution, network call, AWS credential use, model download, service or container occurred.
+- Cost: USD 0.
+
+WARNINGS, RISKS, EVIDENCE GAPS AND LIMITATIONS
+- Local fake and stub tests do not establish live-model answer quality or citation discipline.
+- The `0.50` threshold demonstrates controlled behavior only; W3 evaluation recalibration remains deferred.
+- Live latency, model quality, quotas, provider cost, privacy and residency compliance are NOT RUN.
+- Production authorization integration, observability, load behavior and production readiness are not proved.
+- The Starlette/FastAPI TestClient warning remains visible; remediation is NOT RUN and the owner accepts the warning as recorded.
+
+DEPLOYMENT, ROLLBACK, TEARDOWN AND RESIDUE
+- Deployment: NOT RUN.
+- Automated fake-provider rollback contract: PASS.
+- Actual application/source rollback: NOT RUN.
+- Cloud rollback and teardown: NOT RUN.
+- Initial full-suite cleanliness: FAIL only because `.mypy_cache` existed.
+- Owner removal of exact `.mypy_cache`: PASS.
+- Final complete suite and cleanliness checks: PASS.
+- `pytest.txt`: removed by owner before final manifest verification.
+- Repository manifest: PASS — exactly 27 CREATE and 12 UPDATE implementation paths, no delete or unapproved path.
+- AWS/cloud resources and credentials: none.
+
+FINAL OWNER APPROVAL
+Prompt/task ID: W3-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval timestamp: 2026-08-26 11:11:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-001
+Code and documentation review: the owner reviewed the bounded cited-RAG implementation, supplied local test results and all six Column M documents; documentation closure is approved.
+Owner-executed tests: policy, pipeline, public result, authorization, citation traceability, safe abstention, usage retention, operational failures, security, rollback, teardown and complete ordinary regression passed locally after preserved historical remediation.
+Warnings, risks, evidence gaps and limitations: all items recorded in the approved W3-001 Column M manifest are accepted; no additional item is silently accepted. Threshold recalibration and live model quality, citation discipline, latency, quota, cost, privacy, residency, production authorization, observability and load evidence remain outstanding.
+NOT RUN: live Bedrock cited answers, live model quality/citation evaluation, deployment, actual application/source/cloud rollback, cloud teardown, W1-08 and every other recorded NOT RUN activity remain NOT RUN.
+INDETERMINATE: historical Ruff-version and MyPy internal-error results remain preserved; remaining open INDETERMINATE activities: none.
+Deployment: local, AWS, cloud and production deployment NOT RUN.
+Rollback: automated fake-provider rollback contract PASS; actual application/source, Bedrock and cloud rollback NOT RUN.
+Teardown: historical `.mypy_cache` cleanliness failure preserved; owner removal and final local teardown/cleanliness PASS; `pytest.txt` removed; cloud teardown NOT RUN because no cloud resource was created.
+Residual resources: external virtual environment retained; no runtime service, container, model, credential, AWS or cloud resource created; approved implementation working tree and final documents remain pending owner Git action.
+Deferred actions and owner: all recorded threshold, live Bedrock, privacy/residency, production and W1-08 actions remain open under Gyan Prakash Rai unless another owner is explicitly recorded.
+Conditions: preserve all recorded classifications and limitations; infer no live-model, deployment, production or cloud readiness; only the owner updates Excel or mutates Git.
+Next-task handover: local cited-RAG and safe-abstention contracts may be reused within the tested synthetic scope; live and production claims require separate approval and evidence.
+Tracker update responsibility: Owner
+Column N reconciliation: closed together with all six W3-001 manifest documents; no partial closure.

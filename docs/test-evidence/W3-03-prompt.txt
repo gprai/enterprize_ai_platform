@@ -1,0 +1,65 @@
+W3-03 — CITED-RAG PROMPT CONTRACT EVIDENCE
+
+DOCUMENT STATUS
+FINAL APPROVAL AFTER OWNER TEST — APPROVED. Column N documentation closure complete.
+
+BUSINESS PURPOSE
+Build a deterministic prompt that separates owner-authorized evidence from instructions, applies the approved context and output limits, and requires a structured answer whose citations can be validated without exposing private reasoning.
+
+OWNER-EXECUTED RESULTS
+- Prompt-template unit tests: PASS.
+- Approved prompt version `w3-001.v1`: PASS within configuration and prompt tests.
+- Untrusted-evidence delimiters: PASS.
+- Context-budget enforcement before provider invocation: PASS.
+- Evidence ordering and deterministic request construction: PASS within local RAG tests.
+- Prompt-injection defense: PASS; retrieved text remained delimited as untrusted evidence and triggered no tool execution.
+- Tool execution and agent loop: NOT RUN because neither exists in W3-001.
+- Chain-of-thought exposure: local schema and security tests passed with no reasoning field or output logging.
+- Final scoped suite: PASS — 118 passed, 1 AWS/paid test deselected and 1 warning.
+- Final complete ordinary suite: PASS — 344 passed, 7 skipped, 4 deselected and 1 warning.
+
+SECURITY AND PRIVACY BOUNDARIES
+- Authorization and evidence qualification occur before prompt generation.
+- Only qualifying evidence within the context budget enters the prompt.
+- Retrieved evidence is treated as untrusted data rather than executable instruction.
+- Generated output must be parseable structured JSON before citation validation.
+- No raw prompt, evidence, answer, invalid citation, provider response or reasoning is approved for logs or error results.
+- Tests used synthetic local evidence; no real enterprise or personal data was processed.
+
+WARNINGS, RISKS, EVIDENCE GAPS AND LIMITATIONS
+- Prompt behavior was tested with fake or injected local providers; live model instruction-following quality is NOT RUN.
+- Prompt-injection resistance is supported only for the tested local cases and is not a general security guarantee.
+- The fixed prompt version has not been evaluated for production answer quality, latency or token cost.
+- The Starlette/FastAPI TestClient warning remains visible; remediation is NOT RUN and the owner accepts the warning as recorded.
+- No live privacy, residency or provider-retention validation was performed.
+
+DEPLOYMENT, ROLLBACK, TEARDOWN AND RESIDUE
+- Deployment: NOT RUN.
+- Actual source or application rollback: NOT RUN.
+- Cloud rollback and teardown: NOT RUN.
+- Automated rollback and repository-cleanliness tests: PASS.
+- Prompts sent to live providers: none.
+- Runtime or cloud resources created: none.
+- Cost: USD 0.
+
+FINAL OWNER APPROVAL
+Prompt/task ID: W3-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval timestamp: 2026-08-26 11:11:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-001
+Code and documentation review: the owner reviewed the bounded prompt implementation, supplied local test results and all six Column M documents; documentation closure is approved.
+Owner-executed tests: deterministic prompt, prompt version, evidence delimiting, context budget, prompt-injection defense, no-tool and no-reasoning boundaries passed locally.
+Warnings, risks, evidence gaps and limitations: all items recorded in the approved W3-001 Column M manifest are accepted; no additional item is silently accepted. Live instruction-following, broader injection resistance, quality, latency, token cost, privacy and residency remain unverified.
+NOT RUN: live-model prompt execution, tool execution, agent loop, deployment, actual application/source/cloud rollback, cloud teardown, W1-08 and every other recorded NOT RUN activity remain NOT RUN.
+INDETERMINATE: every historical INDETERMINATE result remains preserved; remaining open INDETERMINATE activities: none.
+Deployment: local, AWS, cloud and production deployment NOT RUN.
+Rollback: automated rollback coverage PASS; actual application/source and cloud rollback NOT RUN.
+Teardown: local repository-cleanliness evidence PASS; cloud teardown NOT RUN because no cloud resource was created.
+Residual resources: external virtual environment retained; no live prompt, service, container, model, credential, AWS or cloud resource created; approved working tree and final documents remain pending owner Git action.
+Deferred actions and owner: all recorded live-model evaluation, privacy/residency, production and W1-08 actions remain open under Gyan Prakash Rai unless another owner is explicitly recorded.
+Conditions: preserve all recorded classifications and limitations; infer no live-model, deployment, production or cloud readiness; only the owner updates Excel or mutates Git.
+Next-task handover: the prompt contract may be reused within the tested synthetic local scope; live and production claims require separate approval and evidence.
+Tracker update responsibility: Owner
+Column N reconciliation: closed together with all six W3-001 manifest documents; no partial closure.

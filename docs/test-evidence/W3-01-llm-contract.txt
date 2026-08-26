@@ -1,0 +1,73 @@
+W3-01 — PROVIDER-NEUTRAL LLM CONTRACT EVIDENCE
+
+DOCUMENT STATUS
+FINAL APPROVAL AFTER OWNER TEST — APPROVED. Column N documentation closure complete.
+
+BUSINESS PURPOSE
+Provide one stable application-facing LLM contract so cited RAG behavior does not depend on a vendor response object. Ordinary local and automated testing uses the deterministic FakeLLMProvider; Bedrock is selected only explicitly.
+
+OWNER-EXECUTED RESULTS
+- Provider-neutral model and fake-provider tests: PASS within the final W3-001 scoped suite.
+- LLM contract tests: PASS.
+- Defensive-copy isolation for tool schemas, calls and results: PASS.
+- Strict closed schemas and absence of a reasoning field: PASS.
+- Deterministic fake-provider behavior: PASS.
+- Fake mode without Bedrock client, model ID or region: PASS.
+- Provider call-gate limit and cancelled-waiter behavior: PASS.
+- Scoped Ruff: PASS.
+- Strict MyPy: PASS — 17 source files.
+- Final W3-001 scoped suite: PASS — 118 passed, 1 AWS/paid test deselected and 1 warning.
+- Final complete ordinary repository suite: PASS — 344 passed, 7 skipped, 4 deselected and 1 warning.
+
+HISTORICAL RESULTS PRESERVED
+- Initial global-environment SDK prerequisite: FAIL because boto3 and botocore were 1.43.7, below the approved lower bound. The approved virtual environment later passed with both at 1.43.78.
+- Initial global Ruff availability checks: FAIL; Ruff was unavailable from the unqualified interpreter.
+- Ruff-version diagnostic in the virtual environment: INDETERMINATE because command quoting produced NameError.
+- Initial scoped Ruff: FAIL on one import-order finding; owner correction followed and final Ruff passed.
+- Initial MyPy invocation using Windows NUL as cache directory: INDETERMINATE due a MyPy internal error.
+- Initial provider-model import during pytest collection: FAIL with recursive Pydantic schema generation. The owner applied the bounded named-recursive JSON type remediation.
+- First post-remediation MyPy run: FAIL with two explicit-export findings. The owner made JSONValue an explicit local alias; final MyPy passed.
+
+CONTRACT AND SECURITY BOUNDARIES
+- No automatic provider, model, region or fake fallback.
+- Tool specifications, tool calls and tool results are typed; W3-001 executes no tool and contains no agent loop.
+- Provider responses expose normalized text, tool calls, usage and stop reason only.
+- No chain-of-thought or reasoning field is exposed.
+- JSON boundaries reject duplicate keys, non-string object keys, non-finite numbers and non-JSON values.
+- Raw provider objects and raw provider error text are not part of the public contract.
+
+WARNINGS, RISKS, EVIDENCE GAPS AND LIMITATIONS
+- The final pytest warning concerns Starlette/FastAPI TestClient and httpx; remediation is NOT RUN and the owner accepts the warning as recorded.
+- Live provider compatibility, quality, latency, quotas and cost are NOT RUN.
+- Local fake and model-contract evidence does not prove production readiness.
+- Dependency vulnerability scanning, a W3-specific lock file and an SBOM were not supplied.
+
+DEPLOYMENT, ROLLBACK, TEARDOWN AND RESIDUE
+- Deployment: NOT RUN.
+- Actual application/source rollback: NOT RUN.
+- Cloud rollback and teardown: NOT RUN.
+- Repository-local cache cleanup and final cleanliness suite: PASS.
+- Runtime resources, services, containers, models, credentials and AWS resources created: none.
+- Cost: USD 0.
+
+FINAL OWNER APPROVAL
+Prompt/task ID: W3-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval timestamp: 2026-08-26 11:11:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-001
+Code and documentation review: the owner reviewed the bounded provider-neutral LLM implementation, supplied test results and all six Column M documents; documentation closure is approved.
+Owner-executed tests: local contract, fake-provider, quality, scoped regression, complete ordinary regression, rollback and cleanliness evidence passed after the preserved historical failures and owner remediation.
+Warnings, risks, evidence gaps and limitations: all items recorded in the approved W3-001 Column M manifest are accepted; no additional item is silently accepted. Local fake and schema evidence does not prove live-provider or production behavior.
+NOT RUN: live provider compatibility, quality, latency, quotas, cost, deployment, actual application/source/cloud rollback, cloud teardown, W1-08 and every other recorded NOT RUN activity remain NOT RUN.
+INDETERMINATE: historical Ruff-version and MyPy internal-error results remain preserved; remaining open INDETERMINATE activities: none.
+Deployment: local, AWS, cloud and production deployment NOT RUN.
+Rollback: automated fake-provider rollback contract PASS; actual application/source and cloud rollback NOT RUN.
+Teardown: automated local cleanliness PASS after owner cache cleanup; cloud teardown NOT RUN because no cloud resource was created.
+Residual resources: external virtual environment retained; no runtime service, container, model, credential, AWS or cloud resource created; approved working tree and final documents remain pending owner Git action.
+Deferred actions and owner: all recorded deferrals remain open under Gyan Prakash Rai unless another owner is explicitly recorded.
+Conditions: preserve all recorded classifications and limitations; infer no live-provider, deployment, production or cloud readiness; only the owner updates Excel or mutates Git.
+Next-task handover: the local provider-neutral contract and deterministic fake may be reused within the tested scope; live-provider and production claims require separate approval and evidence.
+Tracker update responsibility: Owner
+Column N reconciliation: closed together with all six W3-001 manifest documents; no partial closure.

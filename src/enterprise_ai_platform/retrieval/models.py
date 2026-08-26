@@ -260,10 +260,11 @@ class RetrievedChunk(Chunk):
 class Citation(StrictModel):
     """A stable reference from an answer to one retrieved chunk."""
 
+    source_id: str = Field(min_length=1, max_length=256)
     document_id: str = Field(min_length=1, max_length=256)
     document_version: str = Field(min_length=1, max_length=128)
-    chunk_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
-    label: str = Field(min_length=1, max_length=500)
+    chunk_id: str = Field(pattern=r"^[0-9a-f]{64}$")
+    label: str | None = Field(default=None, min_length=1, max_length=500)
 
 
 class Query(StrictModel):

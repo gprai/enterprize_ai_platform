@@ -11,6 +11,7 @@ DEVELOPMENT_REQUIREMENTS = REPOSITORY_ROOT / "requirements-dev.txt"
 
 EXPECTED_RUNTIME_PACKAGES = {
     "boto3",
+    "botocore",
     "fastapi",
     "langchain",
     "langgraph",
@@ -82,3 +83,10 @@ def test_default_requirements_contain_no_gpu_only_package() -> None:
 
     forbidden_tokens = ("cuda", "nvidia", "-gpu", "fastembed-gpu", "onnx-gpu")
     assert not any(token in combined for token in forbidden_tokens)
+
+
+def test_bedrock_sdk_versions_are_exactly_bounded_and_compatible() -> None:
+    runtime_lines = requirement_lines(RUNTIME_REQUIREMENTS)
+
+    assert "boto3>=1.43.77,<1.44" in runtime_lines
+    assert "botocore>=1.43.77,<1.44" in runtime_lines
