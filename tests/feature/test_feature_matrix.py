@@ -8,6 +8,8 @@ from pathlib import Path
 
 from tools.platformctl.cli import validate_feature_matrix
 from tools.platformctl.validate import (
+    EXPECTED_EVAL_IMPLEMENTATION_PATHS,
+    EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
 )
@@ -42,6 +44,12 @@ EXPECTED_RAG_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
 }
+EXPECTED_EVAL_FEATURE = {
+    "id": "EVAL-001",
+    "implementation_paths": list(EXPECTED_EVAL_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": list(EXPECTED_EVAL_LINKED_TRACKER_STEPS),
+}
 
 
 def read_matrix() -> dict[str, object]:
@@ -55,7 +63,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(EXPECTED_PROJECT, matrix["project"])
         self.assertEqual(EXPECTED_STATUSES, matrix["permitted_statuses"])
         self.assertEqual(
-            [EXPECTED_MVP_FEATURE, EXPECTED_RAG_FEATURE],
+            [EXPECTED_MVP_FEATURE, EXPECTED_RAG_FEATURE, EXPECTED_EVAL_FEATURE],
             matrix["features"],
         )
 
@@ -63,7 +71,7 @@ class FeatureMatrixTests(unittest.TestCase):
         matrix = read_matrix()
         features = matrix["features"]
         self.assertEqual(
-            ["MVP-001", "RAG-001"],
+            ["MVP-001", "RAG-001", "EVAL-001"],
             [feature["id"] for feature in features],
         )
         self.assertEqual(
@@ -73,6 +81,10 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(
             list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
             features[1]["linked_tracker_steps"],
+        )
+        self.assertEqual(
+            list(EXPECTED_EVAL_LINKED_TRACKER_STEPS),
+            features[2]["linked_tracker_steps"],
         )
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
@@ -90,9 +102,12 @@ class FeatureMatrixTests(unittest.TestCase):
     def test_cumulative_rag_contract_is_owned_only_by_rag_001(self) -> None:
         matrix = read_matrix()
         features = matrix["features"]
-        mvp_feature, rag_feature = features
+        mvp_feature, rag_feature, eval_feature = features
 
-        self.assertEqual(["MVP-001", "RAG-001"], [item["id"] for item in features])
+        self.assertEqual(
+            ["MVP-001", "RAG-001", "EVAL-001"],
+            [item["id"] for item in features],
+        )
         for step in ("W2-05", "W2-06", "W2-07", "W2-09", "W2-10"):
             self.assertNotIn(step, mvp_feature["linked_tracker_steps"])
         self.assertEqual(
@@ -110,6 +125,30 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(
             "tests/teardown/test_w3_001_rag_cleanliness.py",
             rag_feature["implementation_paths"][-1],
+        )
+        self.assertNotIn("W3-06", rag_feature["linked_tracker_steps"])
+        self.assertEqual("EVAL-001", eval_feature["id"])
+
+    def test_eval_001_owns_the_exact_w3_002_manifest(self) -> None:
+        matrix = read_matrix()
+        eval_feature = matrix["features"][2]
+
+        self.assertEqual(
+            list(EXPECTED_EVAL_IMPLEMENTATION_PATHS),
+            eval_feature["implementation_paths"],
+        )
+        self.assertEqual(33, len(eval_feature["implementation_paths"]))
+        self.assertEqual(
+            33,
+            len(set(eval_feature["implementation_paths"])),
+        )
+        self.assertEqual(
+            "tools/evaluationctl.py",
+            eval_feature["implementation_paths"][25],
+        )
+        self.assertEqual(
+            ["W3-06", "W3-07", "W3-10"],
+            eval_feature["linked_tracker_steps"],
         )
 
     def test_missing_duplicate_reordered_or_misplaced_contract_is_rejected(

@@ -158,9 +158,52 @@ EXPECTED_RAG_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
 }
+EXPECTED_EVAL_IMPLEMENTATION_PATHS = (
+    ".gitignore",
+    "configs/eval/w3-002.yaml",
+    "configs/eval/golden.jsonl",
+    "src/enterprise_ai_platform/evaluation/__init__.py",
+    "src/enterprise_ai_platform/evaluation/errors.py",
+    "src/enterprise_ai_platform/evaluation/config.py",
+    "src/enterprise_ai_platform/evaluation/models.py",
+    "src/enterprise_ai_platform/evaluation/dataset.py",
+    "src/enterprise_ai_platform/evaluation/fixtures.py",
+    "src/enterprise_ai_platform/evaluation/evaluator.py",
+    "src/enterprise_ai_platform/evaluation/metrics.py",
+    "src/enterprise_ai_platform/evaluation/report.py",
+    "src/enterprise_ai_platform/evaluation/baseline.py",
+    "src/enterprise_ai_platform/evaluation/promotion.py",
+    "src/enterprise_ai_platform/evaluation/runner.py",
+    "tools/validate_eval_dataset.py",
+    "tests/unit/test_evaluation_dataset.py",
+    "tests/unit/test_evaluation_metrics.py",
+    "tests/unit/test_evaluation_runner.py",
+    "tests/contract/test_evaluation_schema.py",
+    "tests/contract/test_evaluation_report.py",
+    "tests/feature/test_w3_002_offline_evaluation.py",
+    "tests/security/test_w3_002_evaluation_security.py",
+    "tests/rollback/test_w3_002_evaluation_rollback.py",
+    "tests/teardown/test_w3_002_evaluation_cleanliness.py",
+    "tools/evaluationctl.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+)
+EXPECTED_EVAL_LINKED_TRACKER_STEPS = ("W3-06", "W3-07", "W3-10")
+EXPECTED_EVAL_FEATURE = {
+    "id": "EVAL-001",
+    "implementation_paths": list(EXPECTED_EVAL_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": list(EXPECTED_EVAL_LINKED_TRACKER_STEPS),
+}
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
+    EXPECTED_EVAL_FEATURE,
 )
 
 REQUIRED_DIRECTORIES = (
@@ -171,6 +214,7 @@ REQUIRED_DIRECTORIES = (
     "data/sample/restricted-fixtures",
     "docker",
     "src/enterprise_ai_platform/ingestion",
+    "src/enterprise_ai_platform/evaluation",
     "src/enterprise_ai_platform/llm",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/retrieval",
@@ -256,6 +300,7 @@ REQUIRED_FILES = (
     "tests/security/test_platformctl_approval_gates.py",
     "tests/security/test_tenant_isolation.py",
     *EXPECTED_RAG_IMPLEMENTATION_PATHS,
+    *EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -310,7 +355,7 @@ def validate_feature_matrix(data: object) -> list[str]:
     elif features != list(EXPECTED_FEATURES):
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
-            "MVP-001, RAG-001"
+            "MVP-001, RAG-001, EVAL-001"
         )
 
     return errors

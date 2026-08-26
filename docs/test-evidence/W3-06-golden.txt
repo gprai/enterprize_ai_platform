@@ -1,0 +1,87 @@
+W3-06 GOLDEN DATASET EVIDENCE — W3-002
+
+DOCUMENT CONTROL
+Prompt/task ID: W3-002
+Tracker step: W3-06
+Feature: EVAL-001
+Column M status: Owner reviewed
+Column N status: Complete
+
+BUSINESS PURPOSE
+The golden dataset gives the owner one checksum-bound, reviewable set of expected cited-RAG outcomes. It makes answer, abstention, error, authorization, citation and deterministic-order behavior measurable without using a live provider.
+
+OWNER-EXECUTED VALIDATION
+Classification: PASS
+Case count: 39
+Dataset version: w3-002.v1
+Dataset SHA-256: e3ff344d9904ea0e9cff722441bbe8237105e6131e1f57d0ca42d35ddad410f9
+Validator status: PASS
+
+APPROVED CASE DISTRIBUTION
+ANSWERED: 24
+ABSTAINED: 12
+EXPECTED ERROR: 3
+TOTAL: 39
+
+REPORT CONSISTENCY
+The owner-generated reports/eval.json was read without modification.
+Report file SHA-256: f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf
+Report dataset version: w3-002.v1
+Report dataset SHA-256: e3ff344d9904ea0e9cff722441bbe8237105e6131e1f57d0ca42d35ddad410f9
+Report case count and distribution: consistent with the approved 39-case inventory
+
+CONTROL COVERAGE
+Q24-Q26: no_authorized_evidence, zero provider calls and no denied evidence in the normalized result.
+Q28: conflicting_evidence, zero provider calls and controlled different-version evidence.
+Q30: invalid_generated_citation after one provider call, with valid usage retained and invalid generated content suppressed.
+Q31-Q35: malformed evidence and missing, fabricated, version-mismatched, unauthorized or unsupplied generated-citation handling.
+Q36-Q38: the approved normalized operational errors.
+Q39: deterministic tie-breaking for reverse-ordered equal-score evidence.
+
+WARNINGS, RISKS, EVIDENCE GAPS AND LIMITATIONS
+- Q1-Q39 use controlled evaluation snapshots and a fake provider.
+- The snapshots do not expand or change the ordinary Week 2 corpus.
+- The dataset proves deterministic contract behavior, not live-model quality or production representativeness.
+- No production, private or live enterprise dataset was evaluated.
+- External owner planning records are provenance inputs, not repository evidence artifacts.
+- Threshold recalibration, broader representativeness review and live-provider evaluation remain deferred.
+- All items recorded in the approved W3-002 Column M manifest are accepted; no additional item is silently accepted.
+
+NOT RUN AND INDETERMINATE
+- Live-provider or external-judge dataset evaluation: NOT RUN.
+- Production-corpus evaluation: NOT RUN.
+- Baseline promotion: NOT RUN.
+- Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+
+DEPLOYMENT, ROLLBACK, TEARDOWN AND RESIDUAL RESOURCES
+- Deployment: NOT RUN.
+- Actual source, application, deployment or cloud rollback: NOT RUN.
+- Automated rollback-contract checks: PASS within the owner-executed suites.
+- Automated teardown/cleanliness checks: PASS within the owner-executed suites.
+- Cloud teardown: NOT RUN; no cloud resource was reported created.
+- Dataset and implementation files remain as approved repository resources pending owner Git action.
+- No service, container, model download or paid resource was required for this validation.
+
+FINAL OWNER APPROVAL
+Prompt/task ID: W3-002
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-08-26 20:55:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-002
+Code review status: APPROVED for the bounded owner-tested W3-002 implementation scope; no production or cloud approval is implied.
+Documentation review status: APPROVED; all four Column M documents are closed together.
+Owner-executed test status: PASS within the recorded local fake-provider scope. Dataset validation passed for all 39 cases with the approved version and checksum; the owner-generated report confirms 24 answered, 12 abstained and 3 expected-error outcomes.
+Warnings, risks, evidence gaps and limitations: all items recorded in the approved W3-002 Column M manifest are accepted; no additional item is silently accepted. Controlled-snapshot, fake-provider, representativeness, threshold-recalibration and live-provider limitations remain open.
+NOT RUN and INDETERMINATE: every recorded NOT RUN activity remains NOT RUN and none is converted to PASS. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+Deployment: local application, cloud and production deployment remain NOT RUN. Baseline promotion remains NOT RUN, and the approved baseline file remains absent.
+Rollback: automated rollback-contract checks PASS. Actual source, application, baseline, deployment and cloud rollback remain NOT RUN.
+Teardown: automated teardown/cleanliness checks PASS. The owner inventory found zero cache/temp residue and zero unexpected reports. Cloud teardown remains NOT RUN because no cloud resource was reported created.
+Residual resources: the dataset and approved implementation/documentation changes remain pending owner Git action; reports/eval.json, reports/eval-repeat.json and the external Python virtual environment are retained. No service, container, model, paid resource or cloud resource was created. No separate removal action was reported; the final inventory recorded zero prohibited cache/temp residue.
+Deferred actions and responsible owner: every recorded deferred action remains open. Gyan Prakash Rai is responsible unless another owner is explicitly recorded for an individual action.
+Conditions: preserve all results, warnings, risks, limitations, deferrals and residual-resource facts; infer no production or cloud readiness from controlled local fake-provider evidence; only the owner updates Excel or mutates Git.
+Next-task handover: the checksum-bound 39-case inventory is approved for the local deterministic evaluation scope. Broader representativeness, threshold recalibration, baseline promotion and live-provider evaluation require separate approval and evidence.
+Tracker update responsibility: Owner
+
+COLUMN N CLOSURE REQUIREMENT
+Closed together with W3-002.md, W3-10-gate.txt and README.md. No partial closure occurred.

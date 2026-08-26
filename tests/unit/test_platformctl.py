@@ -20,6 +20,8 @@ from tools.platformctl.cli import (
     validate_repository,
 )
 from tools.platformctl.validate import (
+    EXPECTED_EVAL_IMPLEMENTATION_PATHS,
+    EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
 )
@@ -58,7 +60,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
     def test_approved_matrix_has_no_errors(self) -> None:
         self.assertIs(EXPECTED_FEATURE, EXPECTED_FEATURES[0])
         self.assertEqual(
-            ["MVP-001", "RAG-001"],
+            ["MVP-001", "RAG-001", "EVAL-001"],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
         self.assertEqual([], validate_feature_matrix(approved_matrix()))
@@ -195,3 +197,32 @@ class PlatformCtlUnitTests(unittest.TestCase):
         )
         self.assertIn("src/enterprise_ai_platform/llm", REQUIRED_DIRECTORIES)
         self.assertIn("src/enterprise_ai_platform/rag", REQUIRED_DIRECTORIES)
+
+    def test_w3_002_evaluation_contract_is_exactly_appended(self) -> None:
+        self.assertEqual(33, len(EXPECTED_EVAL_IMPLEMENTATION_PATHS))
+        self.assertEqual(
+            (
+                ".gitignore",
+                "configs/eval/w3-002.yaml",
+                "configs/eval/golden.jsonl",
+            ),
+            EXPECTED_EVAL_IMPLEMENTATION_PATHS[:3],
+        )
+        self.assertEqual(
+            "tools/evaluationctl.py",
+            EXPECTED_EVAL_IMPLEMENTATION_PATHS[25],
+        )
+        self.assertEqual(
+            (
+                "tests/feature/test_w2_002_embedder_contract.py",
+                "tests/feature/test_w2_003_ingestion_contract.py",
+            ),
+            EXPECTED_EVAL_IMPLEMENTATION_PATHS[-2:],
+        )
+        self.assertEqual(
+            ("W3-06", "W3-07", "W3-10"),
+            EXPECTED_EVAL_LINKED_TRACKER_STEPS,
+        )
+        self.assertIn("src/enterprise_ai_platform/evaluation", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_EVAL_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)

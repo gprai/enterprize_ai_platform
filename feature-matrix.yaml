@@ -153,6 +153,50 @@
         "W3-03",
         "W3-04"
       ]
+    },
+    {
+      "id": "EVAL-001",
+      "implementation_paths": [
+        ".gitignore",
+        "configs/eval/w3-002.yaml",
+        "configs/eval/golden.jsonl",
+        "src/enterprise_ai_platform/evaluation/__init__.py",
+        "src/enterprise_ai_platform/evaluation/errors.py",
+        "src/enterprise_ai_platform/evaluation/config.py",
+        "src/enterprise_ai_platform/evaluation/models.py",
+        "src/enterprise_ai_platform/evaluation/dataset.py",
+        "src/enterprise_ai_platform/evaluation/fixtures.py",
+        "src/enterprise_ai_platform/evaluation/evaluator.py",
+        "src/enterprise_ai_platform/evaluation/metrics.py",
+        "src/enterprise_ai_platform/evaluation/report.py",
+        "src/enterprise_ai_platform/evaluation/baseline.py",
+        "src/enterprise_ai_platform/evaluation/promotion.py",
+        "src/enterprise_ai_platform/evaluation/runner.py",
+        "tools/validate_eval_dataset.py",
+        "tests/unit/test_evaluation_dataset.py",
+        "tests/unit/test_evaluation_metrics.py",
+        "tests/unit/test_evaluation_runner.py",
+        "tests/contract/test_evaluation_schema.py",
+        "tests/contract/test_evaluation_report.py",
+        "tests/feature/test_w3_002_offline_evaluation.py",
+        "tests/security/test_w3_002_evaluation_security.py",
+        "tests/rollback/test_w3_002_evaluation_rollback.py",
+        "tests/teardown/test_w3_002_evaluation_cleanliness.py",
+        "tools/evaluationctl.py",
+        "Makefile",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/feature/test_w2_002_embedder_contract.py",
+        "tests/feature/test_w2_003_ingestion_contract.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W3-06",
+        "W3-07",
+        "W3-10"
+      ]
     }
   ]
 }

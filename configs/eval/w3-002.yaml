@@ -1,0 +1,35 @@
+{
+  "schema_version": "w3-002.v1",
+  "evaluator_version": "w3-002.v1",
+  "metric_version": "w3-002.metrics.v1",
+  "dataset_version": "w3-002.v1",
+  "retrieval_eligible_case_ids": [
+    "Q1", "Q2", "Q3", "Q4", "Q6", "Q7", "Q8", "Q9", "Q10", "Q11",
+    "Q12", "Q13", "Q14", "Q15", "Q16", "Q17", "Q18", "Q19", "Q20",
+    "Q21", "Q22", "Q23", "Q29", "Q39"
+  ],
+  "thresholds": {
+    "recall_at_5": 0.85,
+    "citation_precision": 1.0,
+    "answered_correctness": 0.95,
+    "abstention_correctness": 0.95,
+    "combined_correctness": 0.95,
+    "expected_error_correctness": 1.0,
+    "maximum_security_violations": 0,
+    "maximum_exposed_invalid_citations": 0
+  },
+  "regression_tolerances": {
+    "recall_at_5": 0.05,
+    "citation_precision": 0.0,
+    "answered_correctness": 0.0,
+    "abstention_correctness": 0.0,
+    "combined_correctness": 0.0,
+    "expected_error_correctness": 0.0,
+    "security_violations": 0,
+    "exposed_invalid_citations": 0
+  },
+  "informational_metrics": ["mrr", "runtime_duration_ms", "tokens", "cost"],
+  "report_paths": ["reports/eval.json", "reports/eval-repeat.json"],
+  "approved_baseline_path": "configs/eval/baselines/w3-002-v1.json",
+  "external_retention_days": 180
+}

@@ -6,7 +6,10 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
-from tools.platformctl.validate import validate_feature_matrix
+from tools.platformctl.validate import (
+    EXPECTED_EVAL_IMPLEMENTATION_PATHS,
+    validate_feature_matrix,
+)
 
 from enterprise_ai_platform.ingestion.models import (
     APPROVED_STARTER_ROWS,
@@ -51,9 +54,13 @@ W2_003_IMPLEMENTATION_PATHS = (
 
 def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> None:
     matrix = json.loads((ROOT / "feature-matrix.yaml").read_text(encoding="utf-8"))
-    mvp, rag = matrix["features"]
+    mvp, rag, eval_feature = matrix["features"]
 
-    assert [mvp["id"], rag["id"]] == ["MVP-001", "RAG-001"]
+    assert [mvp["id"], rag["id"], eval_feature["id"]] == [
+        "MVP-001",
+        "RAG-001",
+        "EVAL-001",
+    ]
     implementation_paths = rag["implementation_paths"]
     w2_003_start = implementation_paths.index(W2_003_IMPLEMENTATION_PATHS[0])
     w2_003_end = w2_003_start + len(W2_003_IMPLEMENTATION_PATHS)
@@ -81,6 +88,10 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
     assert "src/enterprise_ai_platform/embeddings/base.py" in rag[
         "implementation_paths"
     ]
+    eval_paths = eval_feature["implementation_paths"]
+    assert eval_paths == list(EXPECTED_EVAL_IMPLEMENTATION_PATHS)
+    assert len(eval_paths) == len(set(eval_paths)) == 33
+    assert eval_paths[25] == "tools/evaluationctl.py"
     assert validate_feature_matrix(matrix) == []
 
     modified = deepcopy(matrix)

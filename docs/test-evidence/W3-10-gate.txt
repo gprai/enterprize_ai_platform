@@ -1,0 +1,113 @@
+W3-10 QUALITY GATE EVIDENCE — W3-002
+
+DOCUMENT CONTROL
+Prompt/task ID: W3-002
+Tracker step: W3-10
+Feature: EVAL-001
+Column M status: Owner reviewed
+Column N status: Complete
+
+BUSINESS PURPOSE
+The W3-10 gate turns the controlled evaluation into an explicit decision record. It separates passing absolute quality and security controls from baseline comparison and release approval.
+
+OWNER-GENERATED REPORT
+Path: reports/eval.json
+Handling under Column M: VERIFIED UNCHANGED — read-only
+File SHA-256: f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf
+Schema: w3-002.report.v1
+Evaluator: w3-002.v1
+Metrics: w3-002.metrics.v1
+Generated at UTC: 2026-08-26T12:28:47.728362+00:00
+Fake provider only: true
+Network activity: false
+
+FINAL ABSOLUTE GATES
+Absolute gate status: PASS
+Answered correctness: PASS — 24/24, 1.000000
+Abstention correctness: PASS — 12/12, 1.000000
+Expected-error correctness: PASS — 3/3, 1.000000
+Combined correctness: PASS — 36/36, 1.000000
+Recall at 5: PASS — 24/24, 1.000000
+Citation precision: PASS — 28/28, 1.000000
+Release-blocking cases: PASS — 0 failures
+Security: PASS — 0 violations and 0 exposed invalid citations
+MRR: 24/24, 1.000000 — informational
+
+BASELINE AND RELEASE RESULT
+Approved baseline present: No
+Baseline comparison status: NO_APPROVED_BASELINE
+Overall status: NO_APPROVED_BASELINE
+Candidate-generation exit: 0
+Release eligible: false
+Baseline promotion: NOT RUN
+
+DETERMINISM
+Candidate deterministic payload SHA-256: 7e9368c3e29252f21af6398aa39873151536e42df53619f156cc6ce38450743e
+Repeat deterministic payload SHA-256: 7e9368c3e29252f21af6398aa39873151536e42df53619f156cc6ce38450743e
+Deterministic fields equal: True
+Candidate file SHA-256: f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf
+Repeat file SHA-256: d35c1ee13a54cda78e7514a84cd9af6e6086236a4095f7824f52cdbc46d2da1a
+Interpretation: run-specific fields make the complete file hashes different; the deterministic payload and compared deterministic fields match.
+
+USAGE, PRIVACY AND COST
+Provider calls: 32
+Cases with normalized usage: 29
+Input tokens: 290
+Output tokens: 145
+Total tokens: 435
+Estimated cost USD: 0.0
+Generated answer text, prompts, evidence text, vectors, provider responses and invalid citations are not present in the report.
+
+OWNER-EXECUTED QUALITY AND CLEANLINESS RESULTS
+- Ruff: PASS.
+- Strict MyPy: PASS across 15 source files.
+- Complete ordinary suite: PASS — 393 passed, 7 skipped, 4 deselected, 10 subtests passed and 1 warning.
+- Repository contract validation: PASS.
+- Candidate and repeat report generation: PASS for absolute gates.
+- Read-only inventory: candidate and repeat reports present; baseline absent; unexpected report count 0; cache or temporary residue count 0.
+
+WARNINGS, RISKS, EVIDENCE GAPS AND LIMITATIONS
+- Absolute PASS is not baseline comparison, release approval or production readiness.
+- There is no approved baseline, so regression tolerance was not exercised.
+- The result is fake-provider-only and network-free.
+- Runtime duration of 35 ms is LOCAL_INFORMATIONAL; real latency, throughput and concurrency targets are NOT RUN.
+- The Starlette/FastAPI TestClient deprecation warning remains unresolved.
+- Seven owner-controlled tests were skipped and four opt-in cases were deselected in the complete ordinary suite.
+- Live Bedrock, AWS, paid providers, external judges and production data were not used.
+- Optional Ragas or external/judge evaluation remains deferred.
+- All warnings, risks, evidence gaps, limitations and deferrals recorded in the approved W3-002 Column M manifest are accepted; no additional item is silently accepted.
+
+DEPLOYMENT, ROLLBACK, TEARDOWN AND RESIDUAL RESOURCES
+- Local application, cloud and production deployment: NOT RUN.
+- Automated rollback-contract tests: PASS.
+- Actual source, application, baseline, deployment or cloud rollback: NOT RUN.
+- Automated teardown and cleanliness tests: PASS.
+- Owner read-only residue inventory: PASS with zero cache/temp residue and zero unexpected reports.
+- Cloud teardown: NOT RUN; no cloud resource was reported created.
+- Retained reports: reports/eval.json and reports/eval-repeat.json.
+- Retained external virtual environment: Yes.
+- Approved baseline file: absent.
+
+FINAL OWNER APPROVAL
+Prompt/task ID: W3-002
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-08-26 20:55:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-002
+Code review status: APPROVED for the bounded owner-tested W3-002 implementation scope; no production or cloud approval is implied.
+Documentation review status: APPROVED; all four Column M documents are closed together.
+Owner-executed test status: PASS within the recorded local fake-provider scope. Every absolute quality and security gate passed, deterministic fields matched, and the overall result correctly remained NO_APPROVED_BASELINE with release eligibility false.
+Warnings, risks, evidence gaps and limitations: all items recorded in the approved W3-002 Column M manifest are accepted; no additional item is silently accepted. No-approved-baseline, fake-only, local-only, informational-latency, Starlette warning, skipped/deselected work and live-provider/production limitations remain visible.
+NOT RUN and INDETERMINATE: every recorded NOT RUN activity remains NOT RUN and none is converted to PASS. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+Deployment: local application, cloud and production deployment remain NOT RUN. Baseline promotion remains NOT RUN, and the approved baseline file remains absent.
+Rollback: automated rollback-contract tests PASS. Actual source, application, baseline, deployment and cloud rollback remain NOT RUN.
+Teardown: automated teardown and cleanliness tests PASS. The owner inventory found zero cache/temp residue and zero unexpected reports. Cloud teardown remains NOT RUN because no cloud resource was reported created.
+Residual resources: reports/eval.json and reports/eval-repeat.json are retained; the external Python virtual environment is retained; approved implementation and documentation changes remain pending owner Git action. No service, container or model was started, and no paid or cloud resource was created. No separate removal action was reported; the final inventory recorded zero prohibited cache/temp residue.
+Deferred actions and responsible owner: every recorded deferred action remains open. Gyan Prakash Rai is responsible unless another owner is explicitly recorded for an individual action.
+Conditions: preserve all results, warnings, risks, limitations, deferrals and residual-resource facts; infer no production or cloud readiness from local fake-provider evidence; only the owner updates Excel or mutates Git.
+Next-task handover: the absolute local deterministic evaluation gate is approved. Baseline promotion, regression against an approved baseline, release eligibility, live-provider evaluation and production readiness require separate approval and evidence.
+Tracker update responsibility: Owner
+
+COLUMN N CLOSURE REQUIREMENT
+Closed together with W3-002.md, W3-06-golden.txt and README.md. No partial closure occurred.

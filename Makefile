@@ -2,10 +2,10 @@ PYTHON ?= python
 W2_004_COMPOSE = docker compose -p enterprise-ai-w2-004a -f docker-compose.yml -f docker-compose.w2-004.yml --profile local-retrieval
 W2_004_RUNNER_IMAGE = enterprise-ai-w2-004a-local_retrieval_runner:latest
 
-.PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local
+.PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local
 
 help:
-	@echo "Available targets: validate, test, test-unit, test-integration, test-feature, test-smoke, test-security, test-teardown, local-retrieval-config, local-retrieval-build, local-retrieval-inspect, local-retrieval-up, local-retrieval-ingest, local-retrieval-query, local-retrieval-regression, rollback-local, local-retrieval-remove, stop-local, destroy-local, verify-clean-local"
+	@echo "Available targets: validate, test, test-unit, test-integration, test-feature, test-smoke, test-security, test-teardown, evaluate, local-retrieval-config, local-retrieval-build, local-retrieval-inspect, local-retrieval-up, local-retrieval-ingest, local-retrieval-query, local-retrieval-regression, rollback-local, local-retrieval-remove, stop-local, destroy-local, verify-clean-local"
 
 validate:
 	$(PYTHON) -m tools.platformctl validate
@@ -29,6 +29,9 @@ test-security:
 
 test-teardown:
 	$(PYTHON) -m unittest tests.teardown.test_repository_cleanliness
+
+evaluate:
+	$(PYTHON) -B tools/evaluationctl.py candidate --config configs/eval/w3-002.yaml --dataset configs/eval/golden.jsonl --baseline configs/eval/baselines/w3-002-v1.json --out reports/eval.json
 
 local-retrieval-config:
 	$(W2_004_COMPOSE) config --quiet

@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+reports/eval.json
+reports/eval-repeat.json
+reports/.eval.json.*.tmp
+reports/.eval-repeat.json.*.tmp
