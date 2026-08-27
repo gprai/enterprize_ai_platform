@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import subprocess  # noqa: S404 - isolated launcher subprocess is the contract under test
 import sys
@@ -168,6 +169,19 @@ def test_launcher_dispatches_both_commands_without_pythonpath_or_residue() -> No
         for key, value in os.environ.items()
         if key.casefold() != "pythonpath"
     }
+    candidate_report = ROOT / "reports" / "eval.json"
+    repeat_report = ROOT / "reports" / "eval-repeat.json"
+    baseline = ROOT / "configs" / "eval" / "baselines" / "w3-002-v1.json"
+
+    def report_hash(path: Path) -> str | None:
+        if not path.exists():
+            return None
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    report_hashes_before = {
+        candidate_report: report_hash(candidate_report),
+        repeat_report: report_hash(repeat_report),
+    }
     inventory_before = _repository_path_inventory()
 
     for subcommand, parser_description in (
@@ -195,9 +209,11 @@ def test_launcher_dispatches_both_commands_without_pythonpath_or_residue() -> No
         assert "ModuleNotFoundError" not in output
 
     assert _repository_path_inventory() == inventory_before
-    assert not (ROOT / "reports" / "eval.json").exists()
-    assert not (ROOT / "reports" / "eval-repeat.json").exists()
-    assert not (ROOT / "configs" / "eval" / "baselines" / "w3-002-v1.json").exists()
+    assert report_hashes_before == {
+        candidate_report: report_hash(candidate_report),
+        repeat_report: report_hash(repeat_report),
+    }
+    assert not baseline.exists()
 
 
 def test_release_enforcement_requires_an_approved_baseline() -> None:

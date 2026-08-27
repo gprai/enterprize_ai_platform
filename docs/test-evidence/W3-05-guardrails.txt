@@ -1,0 +1,69 @@
+W3-05 — DETERMINISTIC GUARDRAIL EVIDENCE
+
+Task: W3-003
+Feature: RAG-001
+Evidence owner and test executor: Gyan Prakash Rai
+Column N status: COMPLETE
+Final Owner Approval: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS PURPOSE
+
+The guardrail boundary prevents invalid user input from entering authorization-dependent retrieval or provider processing. It accepts only text/plain content containing 1 through 10,000 Unicode characters, converts valid raw strings into the existing strict Query contract, and raises the content-free guardrail_input_invalid exception for invalid input.
+
+IMPLEMENTED CONTROL BOUNDARY
+
+- Input validation is the first synchronous operation in RAGService.answer.
+- Invalid input produces zero retrieval calls and zero provider calls.
+- Existing Query callers remain compatible.
+- Authorization and citation controls remain authoritative trusted code.
+- The optional adapter is disabled, local and unwired.
+- No lexical prompt-injection blacklist, API route, transport schema, dependency or provider integration was introduced.
+
+OWNER-EXECUTED RESULTS
+
+- Ruff: PASS.
+- Strict MyPy: PASS — 7 source files.
+- Focused W3-003 suite, initial run: FAIL — 97 passed and 10 subtests passed; `.mypy_cache` residue was detected.
+- Focused W3-003 suite, rerun: PASS — 98 passed and 10 subtests passed.
+- Platform contract validation: PASS.
+- Complete ordinary suite: PASS — 439 passed, 7 skipped, 4 deselected, 10 subtests passed and 1 warning.
+- Final residue inventory: PASS — zero cache, bytecode or temporary residue.
+
+RISKS, GAPS AND LIMITATIONS
+
+The tests use deterministic local fakes and synthetic strings. They do not prove live-model quality, semantic resistance, production latency, capacity, privacy, residency or vendor-guardrail behavior. The disabled adapter and positive metadata telemetry remain deferred. The Starlette/FastAPI warning and Git line-ending warnings remain recorded and accepted within the approved local scope.
+
+LIFECYCLE FACTS
+
+Deployment: NOT RUN.
+Automated rollback contract: PASS.
+Actual application/source/cloud rollback: NOT RUN.
+Automated cleanliness verification: PASS.
+Operational/cloud teardown: NOT RUN; no service or cloud resource was created.
+Network, model, AWS, Bedrock or paid activity: None reported.
+Platform cost: USD 0.
+Residual resources: the unchanged W3-002 reports and external virtual environment remain; no prohibited repository residue remained.
+
+FINAL OWNER APPROVAL
+
+Prompt/task ID: W3-003
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-08-27 14:40:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-003
+Code review status: APPROVED for the bounded owner-tested W3-003 implementation and test-only remediation; no production or cloud approval is implied.
+Documentation review status: APPROVED; all five W3-003 Column M documents are closed together.
+Owner-executed testing: PASS within the recorded deterministic local scope, with the initial FAIL and successful rerun preserved.
+Warnings/risks/gaps/limitations: all items recorded in the approved W3-003 Column M manifest are accepted; no additional item is silently accepted.
+NOT RUN/INDETERMINATE: every recorded NOT RUN activity remains NOT RUN; historical INDETERMINATE evidence and limitations remain preserved; remaining open INDETERMINATE activities: None.
+Deployment: local, cloud and production deployment remain NOT RUN.
+Rollback: automated rollback contract PASS; actual application/source/deployment/cloud rollback remains NOT RUN.
+Teardown: automated cleanliness and final owner inventory PASS; operational/cloud teardown remains NOT RUN because no service or cloud resource was created.
+Residual resources: unchanged W3-002 candidate and repeat reports and the external virtual environment remain retained; final prohibited repository residue was zero; approved implementation and evidence changes remain pending owner Git action.
+Deferred actions and owner: all recorded deferrals remain open under Gyan Prakash Rai unless another owner is explicitly recorded.
+Conditions: preserve all results, warnings, risks, limitations, deferrals and residual-resource facts; infer no production/cloud readiness; only the owner updates Excel or mutates Git.
+Next-task handover: local deterministic input-guardrail behavior is approved; live models, vendor adapter wiring, telemetry, deployment and production/cloud validation require separate approval and evidence.
+Tracker update responsibility: Owner
+
+Column N closed this record together with all five W3-003 Column M documents; no partial closure occurred.

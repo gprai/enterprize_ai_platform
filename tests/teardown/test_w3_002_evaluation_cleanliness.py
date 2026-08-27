@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 from pathlib import Path
 
 from enterprise_ai_platform.evaluation.dataset import load_golden_dataset
@@ -15,7 +16,15 @@ REPORTS = (
 BASELINE = ROOT / "configs" / "eval" / "baselines" / "w3-002-v1.json"
 
 
-def _runtime_artifacts() -> set[Path]:
+def _report_hashes() -> dict[Path, str]:
+    return {
+        path: hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in REPORTS
+        if path.exists()
+    }
+
+
+def _unexpected_runtime_artifacts() -> set[Path]:
     report_root = ROOT / "reports"
     temporary = (
         set(report_root.glob(".eval.json.*.tmp"))
@@ -23,16 +32,24 @@ def _runtime_artifacts() -> set[Path]:
         if report_root.exists()
         else set()
     )
-    return {path for path in (*REPORTS, BASELINE) if path.exists()} | temporary
+    unexpected_reports = (
+        {path for path in report_root.iterdir() if path not in REPORTS}
+        if report_root.exists()
+        else set()
+    )
+    baseline = {BASELINE} if BASELINE.exists() else set()
+    return baseline | temporary | unexpected_reports
 
 
 def test_offline_evaluation_leaves_no_report_baseline_or_temporary_file() -> None:
-    assert _runtime_artifacts() == set()
+    report_hashes_before = _report_hashes()
+    assert _unexpected_runtime_artifacts() == set()
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
     policy = load_rag_policy(ROOT / "configs" / "rag.yaml")
     executions = asyncio.run(DeterministicRAGEvaluator().evaluate(dataset, policy))
     assert len(executions) == 39
-    assert _runtime_artifacts() == set()
+    assert _report_hashes() == report_hashes_before
+    assert _unexpected_runtime_artifacts() == set()
 
 
 def test_column_l_has_no_evaluation_cache_or_broad_report_ignore() -> None:

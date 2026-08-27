@@ -28,7 +28,7 @@ EXPECTED_FEATURE = {
     "status": "Not Started",
     "linked_tracker_steps": ["W1-03", "W1-04", "W1-07"],
 }
-EXPECTED_RAG_IMPLEMENTATION_PATHS = (
+EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS = (
     "docker-compose.yml",
     "docker/qdrant-test-runner.Dockerfile",
     "docker/qdrant-test-runner.Dockerfile.dockerignore",
@@ -136,6 +136,34 @@ EXPECTED_RAG_IMPLEMENTATION_PATHS = (
     "tests/rollback/test_w3_001_rag_rollback.py",
     "tests/teardown/test_w3_001_rag_cleanliness.py",
 )
+EXPECTED_W3_003_EDITABLE_PATHS = (
+    "src/enterprise_ai_platform/guardrails/__init__.py",
+    "src/enterprise_ai_platform/guardrails/adapter.py",
+    "src/enterprise_ai_platform/guardrails/errors.py",
+    "src/enterprise_ai_platform/guardrails/models.py",
+    "src/enterprise_ai_platform/guardrails/policy.py",
+    "tests/unit/test_guardrails.py",
+    "tests/contract/test_guardrail_contract.py",
+    "tests/integration/test_guardrail_composition.py",
+    "tests/feature/test_w3_003_guardrails.py",
+    "tests/security/test_w3_003_guardrails_security.py",
+    "tests/rollback/test_w3_003_guardrails_rollback.py",
+    "tests/teardown/test_w3_003_guardrails_cleanliness.py",
+    "src/enterprise_ai_platform/rag/service.py",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/unit/test_rag_pipeline.py",
+    "tests/security/test_w3_001_cited_rag_security.py",
+    "tests/teardown/test_w3_002_evaluation_cleanliness.py",
+)
+_W3_003_EDITABLE_PATH_SET = frozenset(EXPECTED_W3_003_EDITABLE_PATHS)
+EXPECTED_RAG_IMPLEMENTATION_PATHS = tuple(
+    path
+    for path in EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS
+    if path not in _W3_003_EDITABLE_PATH_SET
+) + EXPECTED_W3_003_EDITABLE_PATHS
 EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W2-03",
     "W2-01",
@@ -151,6 +179,8 @@ EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W3-02",
     "W3-03",
     "W3-04",
+    "W3-05",
+    "W3-08",
 )
 EXPECTED_RAG_FEATURE = {
     "id": "RAG-001",
@@ -215,6 +245,7 @@ REQUIRED_DIRECTORIES = (
     "docker",
     "src/enterprise_ai_platform/ingestion",
     "src/enterprise_ai_platform/evaluation",
+    "src/enterprise_ai_platform/guardrails",
     "src/enterprise_ai_platform/llm",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/retrieval",

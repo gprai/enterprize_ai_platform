@@ -9,6 +9,7 @@ from typing import cast
 
 import pytest
 
+from enterprise_ai_platform.guardrails import GuardrailInputError
 from enterprise_ai_platform.llm.errors import (
     LLMAuthenticationError,
     LLMAuthorizationError,
@@ -154,6 +155,66 @@ def test_valid_generated_citation_is_rebuilt_from_trusted_evidence() -> None:
     }
     assert result.usage is not None and result.usage.total_tokens == 15
     assert provider.requests[0].max_output_tokens == 512
+
+
+def test_valid_raw_string_uses_the_existing_policy_query_and_result_contract() -> None:
+    chunk = _chunk()
+    retrieval = StubRetrieval((chunk,))
+    provider = FakeLLMProvider([_response([_citation(chunk)])])
+    service = RAGService(
+        retrieval_service=cast(RetrievalService, retrieval),
+        llm_provider=provider,
+        policy=_policy(),
+    )
+
+    result = asyncio.run(service.answer(_auth(), "  governed question  "))
+
+    assert isinstance(result, CitedAnswerResult)
+    assert retrieval.calls == 1
+    assert provider.requests[0].messages[1].content.find("governed question") >= 0
+
+
+@pytest.mark.parametrize(
+    ("query", "content_type"),
+    [
+        ("", "text/plain"),
+        (" \t\n ", "text/plain"),
+        ("x" * 10_001, "text/plain"),
+        ("valid", "application/json"),
+        (object(), "text/plain"),
+    ],
+)
+def test_invalid_input_stops_before_authorization_retrieval_and_provider(
+    query: object,
+    content_type: str,
+) -> None:
+    expired_auth = AuthContext(
+        subject_id="reader-a",
+        tenant_id="tenant-a",
+        roles=frozenset({Role.READER}),
+        clearance=Classification.INTERNAL,
+        expires_at=datetime(2000, 1, 1, tzinfo=UTC),
+    )
+    retrieval = StubRetrieval((_chunk(),))
+    provider = FakeLLMProvider()
+    service = RAGService(
+        retrieval_service=cast(RetrievalService, retrieval),
+        llm_provider=provider,
+        policy=_policy(),
+    )
+
+    with pytest.raises(GuardrailInputError) as raised:
+        asyncio.run(
+            service.answer(  # type: ignore[arg-type]
+                expired_auth,
+                query,
+                content_type=content_type,
+            )
+        )
+
+    assert raised.value.code == "guardrail_input_invalid"
+    assert retrieval.calls == 0
+    assert provider.requests == []
 
 
 def _invalid_citations(chunk: RetrievedChunk) -> list[object]:

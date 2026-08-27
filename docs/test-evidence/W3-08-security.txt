@@ -1,0 +1,68 @@
+W3-08 — SECURITY REGRESSION EVIDENCE
+
+Task: W3-003
+Feature: RAG-001
+Evidence owner and test executor: Gyan Prakash Rai
+Column N status: COMPLETE
+Final Owner Approval: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS PURPOSE
+
+W3-08 verifies that deterministic trusted-code controls continue to protect authorization, evidence handling, tool prohibition, citations and sensitive content around cited RAG. Retrieved instructions remain data rather than authority, and invalid generated output is suppressed instead of exposed.
+
+SECURITY CONTRACT TESTED
+
+- Active authorization is required before retrieval and revalidated afterward.
+- Cross-tenant, role, group, clearance, empty-ACL and forged-tenant evidence is denied.
+- Unauthorized evidence enters neither provider input nor normalized output.
+- Direct and retrieved synthetic injection strings do not become executable instructions.
+- Model-generated or retrieved tool instructions are never executed.
+- Fabricated, missing, unauthorized, unsupplied and version-mismatched citations remain fail-closed.
+- Q30 preserves one provider call, safe invalid_generated_citation abstention and valid normalized usage without exposing generated content.
+- Malformed provider output and invalid usage remain normalized exceptions rather than abstentions.
+- Captured logs remain empty and synthetic sentinel, PII, secret, prompt, evidence, output, citation and raw-provider content are excluded.
+
+OWNER-EXECUTED RESULTS
+
+The approved focused scope passed on final rerun with 98 tests and 10 subtests. The W3-001/W3-002 consumer suite initially failed only because a stale evaluation-runner test required approved retained reports to be absent. After separately approved test-only remediation, the focused launcher check passed, the complete evaluation-runner file passed 4 tests, and the exact combined consumer suite passed 13 tests. The complete ordinary suite then passed 439 tests, with 7 owner-controlled skips, 4 opt-in deselections, 10 passing subtests and 1 warning.
+
+Historical failures remain visible and are not converted into uninterrupted PASS evidence.
+
+SECURITY, PRIVACY AND COST LIMITATIONS
+
+Only artificial W3-003 strings and local deterministic fakes were used. No real credential, PII, tenant data, production content or system prompt was introduced. No network, AWS, Bedrock, live model, vendor guardrail or paid-provider activity was reported; cost was USD 0.
+
+Live-model semantic behavior, production identity, compliance, privacy, residency, capacity and operational monitoring remain unproved. Positive metadata telemetry and live adapter wiring remain deferred. The Starlette/FastAPI warning and Git line-ending warnings remain recorded and accepted within the approved local scope.
+
+LIFECYCLE FACTS
+
+Deployment: NOT RUN.
+Automated rollback and teardown/security-cleanliness contracts: PASS.
+Actual application/source/cloud rollback: NOT RUN.
+Operational/cloud teardown: NOT RUN; no W3-003 runtime or cloud resource was created.
+Final residue check: PASS — zero unexpected reports, cache, bytecode or temporary evaluation files.
+Retained resources: unchanged W3-002 candidate and repeat reports plus the external virtual environment.
+
+FINAL OWNER APPROVAL
+
+Prompt/task ID: W3-003
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-08-27 14:40:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-003
+Code review status: APPROVED for the bounded owner-tested W3-003 implementation and test-only remediation; no production or cloud approval is implied.
+Documentation review status: APPROVED; all five W3-003 Column M documents are closed together.
+Owner-executed security testing: PASS within the recorded local synthetic scope, with historical failures and their bounded remediations preserved.
+Warnings/risks/gaps/limitations: all items recorded in the approved W3-003 Column M manifest are accepted; no additional item is silently accepted.
+NOT RUN/INDETERMINATE: every recorded NOT RUN activity remains NOT RUN; historical INDETERMINATE evidence and limitations remain preserved; remaining open INDETERMINATE activities: None.
+Deployment: local, cloud and production deployment remain NOT RUN.
+Rollback: automated rollback and security contracts PASS; actual application/source/deployment/cloud rollback remains NOT RUN.
+Teardown: automated cleanliness and final owner inventory PASS; operational/cloud teardown remains NOT RUN because no W3-003 runtime or cloud resource was created.
+Residual resources: unchanged W3-002 candidate and repeat reports and the external virtual environment remain retained; no service, container, model, credential or cloud resource was reported created; final prohibited repository residue was zero.
+Deferred actions and owner: all recorded deferrals remain open under Gyan Prakash Rai unless another owner is explicitly recorded.
+Conditions: preserve all results, warnings, risks, limitations, deferrals and residual-resource facts; infer no production/cloud readiness; only the owner updates Excel or mutates Git.
+Next-task handover: locally tested authorization, injection-as-data, tool prohibition, redaction and citation/output controls are approved; live-model, vendor, compliance, deployment and cloud behavior require separate approval and evidence.
+Tracker update responsibility: Owner
+
+Column N closed this record together with all five W3-003 Column M documents; no partial closure occurred.

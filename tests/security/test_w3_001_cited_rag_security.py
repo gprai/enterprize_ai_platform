@@ -172,6 +172,7 @@ def test_retrieved_prompt_injection_cannot_trigger_tool_execution() -> None:
 
 def test_llm_and_rag_sources_contain_no_output_logging_or_invoke_model() -> None:
     roots = (
+        REPOSITORY_ROOT / "src" / "enterprise_ai_platform" / "guardrails",
         REPOSITORY_ROOT / "src" / "enterprise_ai_platform" / "llm",
         REPOSITORY_ROOT / "src" / "enterprise_ai_platform" / "rag",
     )

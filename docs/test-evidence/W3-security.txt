@@ -1,0 +1,74 @@
+W3 SECURITY — CONSOLIDATED LOCAL CONTROL EVIDENCE
+
+Task: W3-003
+Feature: RAG-001
+Covered steps: W3-05 and W3-08
+Evidence owner and test executor: Gyan Prakash Rai
+Column N status: COMPLETE
+Final Owner Approval: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS SUMMARY
+
+The W3-003 implementation places deterministic controls around the existing W3-001 cited-RAG flow while preserving W3-002 evaluation artifacts and consumer contracts. The local evidence supports fail-fast input validation, trusted-code authorization, untrusted retrieved data, zero tool execution, fail-closed citation/output validation and content-free errors.
+
+FINAL LOCAL TEST POSITION
+
+- Runtime/dependency preflight: PASS.
+- Ruff: PASS.
+- Strict MyPy: PASS.
+- Focused W3-003 suite after preserved residue failure: PASS — 98 passed and 10 subtests passed.
+- Remediated evaluation-runner file: PASS — 4 passed.
+- Exact W3-001/W3-002 consumer regression: PASS — 13 passed.
+- Platform validator: PASS.
+- Complete ordinary suite: PASS — 439 passed, 7 skipped, 4 deselected, 10 subtests passed and 1 warning.
+- Report integrity, deterministic payload identity, baseline absence and zero-residue inventory: PASS.
+
+The initial `.mypy_cache` cleanliness failure and initial retained-report consumer failure remain recorded. Their later passing results do not erase the original failures.
+
+RETAINED REPORT AND RELEASE BOUNDARY
+
+`reports/eval.json` retained SHA-256: f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf
+`reports/eval-repeat.json` retained SHA-256: d35c1ee13a54cda78e7514a84cd9af6e6086236a4095f7824f52cdbc46d2da1a
+Deterministic payload identity for both: 7e9368c3e29252f21af6398aa39873151536e42df53619f156cc6ce38450743e
+Approved W3-002 baseline: ABSENT.
+Release eligibility based on an approved baseline: NOT ESTABLISHED.
+
+WARNINGS, LIMITATIONS AND DEFERRED WORK
+
+The Starlette/FastAPI deprecation warning and Git line-ending warnings remain recorded and accepted within the approved local scope. Local fake and synthetic evidence does not prove live-model robustness, vendor integration, production performance, compliance, privacy/residency approval, deployment or cloud cleanliness. Adapter wiring, positive telemetry, live-provider testing, approved-baseline promotion and production lifecycle work remain deferred.
+
+DEPLOYMENT, ROLLBACK, TEARDOWN AND RESIDUE
+
+Deployment: NOT RUN.
+Automated rollback tests: PASS; actual application/source/deployment/cloud rollback: NOT RUN.
+Automated teardown/cleanliness tests and final inventory: PASS; operational/cloud teardown: NOT RUN.
+Services, containers, models, credentials or cloud resources created: None reported.
+Network/provider activity: None reported.
+Platform cost: USD 0.
+Retained resources: two unchanged evaluation reports and the external virtual environment.
+Final prohibited repository residue: None.
+Open INDETERMINATE activities: None; the undocumented mechanism that removed the initial `.mypy_cache` is retained as a historical evidence limitation.
+
+FINAL OWNER APPROVAL
+
+Prompt/task ID: W3-003
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-08-27 14:40:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W3-003
+Code review status: APPROVED for the bounded owner-tested W3-003 implementation and test-only remediation; no production or cloud approval is implied.
+Documentation review status: APPROVED; all five W3-003 Column M documents are closed together.
+Owner-executed test status: PASS within the recorded deterministic local scope, with both historical FAIL results and their remediations preserved.
+Warnings/risks/gaps/limitations: all items recorded in the approved W3-003 Column M manifest are accepted; no additional item is silently accepted.
+NOT RUN/INDETERMINATE: every recorded NOT RUN activity remains NOT RUN; historical INDETERMINATE evidence and limitations remain preserved; remaining open INDETERMINATE activities: None.
+Deployment: local, cloud and production deployment remain NOT RUN.
+Rollback: automated rollback tests PASS; actual application/source/deployment/cloud rollback remains NOT RUN.
+Teardown: automated cleanliness tests and final owner inventory PASS; operational/cloud teardown remains NOT RUN because no runtime or cloud resource was created.
+Residual resources: two unchanged evaluation reports and the external virtual environment remain retained; no service, container, model, credential or cloud resource was reported created; final prohibited repository residue was zero.
+Deferred actions and responsible owner: all recorded deferrals remain open under Gyan Prakash Rai unless another owner is explicitly recorded.
+Conditions: preserve all results, warnings, risks, limitations, deferrals and residual-resource facts; infer no production/cloud readiness; only the owner updates Excel or mutates Git.
+Next-task handover: the local deterministic W3 security boundary is approved; approved-baseline regression, live providers, vendor guardrails, telemetry, production security/compliance, deployment and cloud lifecycle require separate approval and evidence.
+Tracker update responsibility: Owner
+
+Column N closed this record together with all five W3-003 Column M documents; no partial closure occurred.

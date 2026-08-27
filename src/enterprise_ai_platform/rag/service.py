@@ -6,6 +6,7 @@ from typing import cast
 
 from pydantic import ValidationError
 
+from enterprise_ai_platform.guardrails.policy import validate_rag_input
 from enterprise_ai_platform.json_contracts import (
     DuplicateJSONKeyError,
     JSONValue,
@@ -192,12 +193,19 @@ class RAGService:
         self._llm_provider = llm_provider
         self._policy = policy
 
-    async def answer(self, auth_context: AuthContext, query: Query) -> RAGResult:
+    async def answer(
+        self,
+        auth_context: AuthContext,
+        query: Query | str,
+        *,
+        content_type: str = "text/plain",
+    ) -> RAGResult:
         """Return a cited answer or a policy-classified safe abstention."""
 
+        validated_query = validate_rag_input(query, content_type=content_type)
         require_active_context(auth_context)
         policy_query = Query(
-            text=query.text,
+            text=validated_query.text,
             top_k=self._policy.top_k,
             min_score=self._policy.min_score,
         )
