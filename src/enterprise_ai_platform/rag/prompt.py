@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 
@@ -16,6 +17,12 @@ or private reasoning. Return exactly one JSON object with keys \"answer\" and \"
 The answer must be a non-empty string. Citations must be a non-empty array. Each citation
 must contain exactly source_id, document_id, document_version, and chunk_id copied from one
 supplied evidence header. Do not fabricate, infer, shorten, or modify an identifier."""
+
+
+def prompt_template_sha256() -> str:
+    """Return the semantic fingerprint of the immutable W3-001 system prompt."""
+
+    return hashlib.sha256(_SYSTEM_PROMPT.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)

@@ -12,22 +12,26 @@ REPORT_HASHES = {
     "eval-repeat.json": "d35c1ee13a54cda78e7514a84cd9af6e6086236a4095f7824f52cdbc46d2da1a",
 }
 BASELINE = ROOT / "configs" / "eval" / "baselines" / "w3-002-v1.json"
+BASELINE_SHA256 = "4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f"
+W3_004_RUNTIME_NAME = "w3-004"
 
 
-def test_retained_reports_are_absent_or_the_exact_owner_generated_pair() -> None:
+def test_retained_reports_and_promoted_baseline_are_exact() -> None:
     present = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
         for path in REPORT_ROOT.iterdir()
         if path.is_file() and path.name in REPORT_HASHES
     }
 
-    assert present in ({}, REPORT_HASHES)
-    assert not BASELINE.exists()
+    assert present == REPORT_HASHES
+    assert hashlib.sha256(BASELINE.read_bytes()).hexdigest() == BASELINE_SHA256
 
 
 def test_no_unexpected_report_cache_bytecode_or_temporary_residue() -> None:
     unexpected_reports = {
-        path.name for path in REPORT_ROOT.iterdir() if path.name not in REPORT_HASHES
+        path.name
+        for path in REPORT_ROOT.iterdir()
+        if path.name not in REPORT_HASHES and path.name != W3_004_RUNTIME_NAME
     }
     residue = {
         path

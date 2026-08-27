@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Protocol, cast, runtime_checkable
 
 from enterprise_ai_platform.llm.errors import LLMMalformedResponseError
@@ -14,7 +15,7 @@ from enterprise_ai_platform.retrieval.authorization import is_retrieval_authoriz
 from enterprise_ai_platform.retrieval.models import RetrievedChunk
 from enterprise_ai_platform.retrieval.service import RetrievalService
 
-from .fixtures import fixture_for, provider_protocol
+from .fixtures import CaseFixture, fixture_for, provider_protocol
 from .models import (
     ActualOutcome,
     CaseExecution,
@@ -24,6 +25,8 @@ from .models import (
     GoldenDataset,
     Provenance,
 )
+
+CaseFixtureFactory = Callable[[GoldenCase], CaseFixture]
 
 
 @runtime_checkable
@@ -40,6 +43,9 @@ class Evaluator(Protocol):
 class DeterministicRAGEvaluator:
     """Evaluate Q1-Q39 sequentially with no external clients or parallel scheduling."""
 
+    def __init__(self, *, fixture_factory: CaseFixtureFactory = fixture_for) -> None:
+        self._fixture_factory = fixture_factory
+
     async def evaluate(
         self,
         dataset: GoldenDataset,
@@ -51,7 +57,7 @@ class DeterministicRAGEvaluator:
         return tuple(results)
 
     async def _evaluate_case(self, case: GoldenCase, policy: RAGPolicy) -> CaseExecution:
-        fixture = fixture_for(case)
+        fixture = self._fixture_factory(case)
         service = RAGService(
             retrieval_service=cast(RetrievalService, fixture.retrieval),
             llm_provider=provider_protocol(fixture),

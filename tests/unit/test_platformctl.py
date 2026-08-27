@@ -25,7 +25,9 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
+    EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
+    EXPECTED_W3_004_EDITABLE_PATHS,
 )
 
 
@@ -196,7 +198,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
             self.assertEqual(1, EXPECTED_RAG_IMPLEMENTATION_PATHS.count(path))
         self.assertEqual(
             ("W3-01", "W3-02", "W3-03", "W3-04"),
-            EXPECTED_RAG_LINKED_TRACKER_STEPS[-6:-2],
+            EXPECTED_RAG_LINKED_TRACKER_STEPS[-7:-3],
         )
         self.assertIn("src/enterprise_ai_platform/llm", REQUIRED_DIRECTORIES)
         self.assertIn("src/enterprise_ai_platform/rag", REQUIRED_DIRECTORIES)
@@ -206,17 +208,33 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertEqual(20, len(set(EXPECTED_W3_003_EDITABLE_PATHS)))
         self.assertEqual(
             EXPECTED_W3_003_EDITABLE_PATHS,
-            EXPECTED_RAG_IMPLEMENTATION_PATHS[-20:],
+            EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS[-20:],
         )
         self.assertEqual(
             ("W3-05", "W3-08"),
-            EXPECTED_RAG_LINKED_TRACKER_STEPS[-2:],
+            EXPECTED_RAG_LINKED_TRACKER_STEPS[-3:-1],
         )
         self.assertIn("src/enterprise_ai_platform/guardrails", REQUIRED_DIRECTORIES)
         for path in EXPECTED_W3_003_EDITABLE_PATHS:
             self.assertIn(path, REQUIRED_FILES)
         for path in EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS:
             self.assertIn(path, EXPECTED_RAG_IMPLEMENTATION_PATHS)
+
+    def test_w3_004_rollback_contract_is_exactly_appended(self) -> None:
+        self.assertEqual(28, len(EXPECTED_W3_004_EDITABLE_PATHS))
+        self.assertEqual(28, len(set(EXPECTED_W3_004_EDITABLE_PATHS)))
+        self.assertEqual(
+            EXPECTED_W3_004_EDITABLE_PATHS,
+            EXPECTED_RAG_IMPLEMENTATION_PATHS[-28:],
+        )
+        self.assertEqual("W3-11", EXPECTED_RAG_LINKED_TRACKER_STEPS[-1])
+        self.assertIn("configs/rag/versions", REQUIRED_DIRECTORIES)
+        self.assertIn(
+            "src/enterprise_ai_platform/rag_rollback",
+            REQUIRED_DIRECTORIES,
+        )
+        for path in EXPECTED_W3_004_EDITABLE_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
 
     def test_w3_002_evaluation_contract_is_exactly_appended(self) -> None:
         self.assertEqual(33, len(EXPECTED_EVAL_IMPLEMENTATION_PATHS))

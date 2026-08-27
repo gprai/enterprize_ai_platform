@@ -213,7 +213,10 @@ def test_launcher_dispatches_both_commands_without_pythonpath_or_residue() -> No
         candidate_report: report_hash(candidate_report),
         repeat_report: report_hash(repeat_report),
     }
-    assert not baseline.exists()
+    assert baseline.exists()
+    assert hashlib.sha256(baseline.read_bytes()).hexdigest() == (
+        "4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f"
+    )
 
 
 def test_release_enforcement_requires_an_approved_baseline() -> None:

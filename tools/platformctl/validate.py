@@ -159,11 +159,47 @@ EXPECTED_W3_003_EDITABLE_PATHS = (
     "tests/teardown/test_w3_002_evaluation_cleanliness.py",
 )
 _W3_003_EDITABLE_PATH_SET = frozenset(EXPECTED_W3_003_EDITABLE_PATHS)
-EXPECTED_RAG_IMPLEMENTATION_PATHS = tuple(
+EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS = tuple(
     path
     for path in EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS
     if path not in _W3_003_EDITABLE_PATH_SET
 ) + EXPECTED_W3_003_EDITABLE_PATHS
+EXPECTED_W3_004_EDITABLE_PATHS = (
+    "configs/rag/versions/w3-002-v1.json",
+    "configs/rag/versions/w3-004-synthetic-regression-v1.json",
+    "src/enterprise_ai_platform/rag_rollback/__init__.py",
+    "src/enterprise_ai_platform/rag_rollback/errors.py",
+    "src/enterprise_ai_platform/rag_rollback/models.py",
+    "src/enterprise_ai_platform/rag_rollback/identity.py",
+    "src/enterprise_ai_platform/rag_rollback/state.py",
+    "src/enterprise_ai_platform/rag_rollback/service.py",
+    "tools/ragrollbackctl.py",
+    "tests/unit/test_rag_rollback_identity.py",
+    "tests/unit/test_rag_rollback_state.py",
+    "tests/contract/test_rag_rollback_contract.py",
+    "tests/integration/test_rag_rollback_composition.py",
+    "tests/feature/test_w3_004_rag_rollback.py",
+    "tests/security/test_w3_004_rag_rollback_security.py",
+    "tests/rollback/test_w3_004_rag_rollback.py",
+    "tests/teardown/test_w3_004_rag_rollback_cleanliness.py",
+    ".gitignore",
+    "src/enterprise_ai_platform/rag/prompt.py",
+    "src/enterprise_ai_platform/evaluation/evaluator.py",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/unit/test_prompt_template.py",
+    "tests/unit/test_evaluation_runner.py",
+    "tests/teardown/test_w3_002_evaluation_cleanliness.py",
+    "tests/teardown/test_w3_003_guardrails_cleanliness.py",
+)
+_W3_004_EDITABLE_PATH_SET = frozenset(EXPECTED_W3_004_EDITABLE_PATHS)
+EXPECTED_RAG_IMPLEMENTATION_PATHS = tuple(
+    path
+    for path in EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS
+    if path not in _W3_004_EDITABLE_PATH_SET
+) + EXPECTED_W3_004_EDITABLE_PATHS
 EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W2-03",
     "W2-01",
@@ -181,6 +217,7 @@ EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W3-04",
     "W3-05",
     "W3-08",
+    "W3-11",
 )
 EXPECTED_RAG_FEATURE = {
     "id": "RAG-001",
@@ -239,6 +276,8 @@ EXPECTED_FEATURES = (
 REQUIRED_DIRECTORIES = (
     "configs",
     "configs/eval",
+    "configs/rag",
+    "configs/rag/versions",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -248,6 +287,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/guardrails",
     "src/enterprise_ai_platform/llm",
     "src/enterprise_ai_platform/rag",
+    "src/enterprise_ai_platform/rag_rollback",
     "src/enterprise_ai_platform/retrieval",
     "src/enterprise_ai_platform/retrieval/adapters",
     "docs/architecture",

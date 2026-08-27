@@ -13,7 +13,9 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
+    EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
+    EXPECTED_W3_004_EDITABLE_PATHS,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -121,12 +123,24 @@ class FeatureMatrixTests(unittest.TestCase):
             rag_feature["implementation_paths"],
         )
         self.assertEqual(
-            ["W3-01", "W3-02", "W3-03", "W3-04", "W3-05", "W3-08"],
-            rag_feature["linked_tracker_steps"][-6:],
+            [
+                "W3-01",
+                "W3-02",
+                "W3-03",
+                "W3-04",
+                "W3-05",
+                "W3-08",
+                "W3-11",
+            ],
+            rag_feature["linked_tracker_steps"][-7:],
         )
         self.assertEqual(
             list(EXPECTED_W3_003_EDITABLE_PATHS),
-            rag_feature["implementation_paths"][-20:],
+            list(EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS[-20:]),
+        )
+        self.assertEqual(
+            list(EXPECTED_W3_004_EDITABLE_PATHS),
+            rag_feature["implementation_paths"][-28:],
         )
         self.assertEqual(
             len(rag_feature["implementation_paths"]),

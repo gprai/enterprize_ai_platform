@@ -58,6 +58,7 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W3-001](W3-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-26 at 11:11:21 SGT. Final local evidence: Ruff PASS, strict MyPy PASS, 118 scoped tests passed with 1 AWS/paid test deselected, and 344 complete ordinary tests passed with 7 owner-controlled skips and 4 opt-in deselections. Live Bedrock, deployment and cloud lifecycle work remain **NOT RUN**; all six Column M documents are closed together.
 - [W3-002](W3-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** for the original evaluation, with component evidence in [W3-06 golden dataset](W3-06-golden.txt) and [W3-10 quality gate](W3-10-gate.txt). Candidate/repeat and every absolute gate passed across 39 cases. The original reports remain **NO_APPROVED_BASELINE** and `release_eligible=false`; the first immutable baseline was later separately **PROMOTED** for future comparisons. Post-promotion comparison, live/judge/performance work and deployment remain **NOT RUN**. Baseline-promotion document approval is pending Column N.
 - [W3-003](W3-003.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 14:40:21 SGT. Deterministic local guardrail and security-regression evidence passed after two preserved historical failures and bounded remediation. Live-model, vendor, deployment and production behavior remain **NOT RUN**; all five Column M documents are closed together.
+- [W3-004](W3-004.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 17:31:21 SGT. Final local evidence records 465 passing ordinary tests, the exact controlled Q1/Q2 regression, atomic restoration to the known-good identity, restored absolute and baseline-comparison PASS, verified external archival and repository-local zero residue. All four W3-ROLLBACK-001 Column M documents are closed together.
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
 
@@ -66,6 +67,8 @@ W3-001 has bounded component evidence for its [provider-neutral LLM contract](W3
 W3-002 has bounded component evidence for its [39-case golden dataset](W3-06-golden.txt) and [absolute quality gate](W3-10-gate.txt). The owner-generated `reports/eval.json` remains read-only and is not duplicated here. These records establish deterministic local fake-provider behavior only; they do not establish an approved regression baseline, release eligibility, live-model quality, real performance or production readiness.
 
 W3-003 has bounded component evidence for its [deterministic input guardrails](W3-05-guardrails.txt), [security regression](W3-08-security.txt) and [consolidated W3 security position](W3-security.txt). These records establish local deterministic controls using fake, injected and synthetic evidence only. They do not establish live-model semantic resistance, vendor-guardrail integration, deployment, production readiness or cloud lifecycle behavior.
+
+W3-ROLLBACK-001 has bounded component evidence for its [W3-11 cited-RAG rollback drill](W3-11-rag-rollback.txt) and detailed [W3 cited-RAG rollback record](../rollback-records/W3-rag.md). These records establish deterministic local identity rollback, restored approved-baseline behavior, external evidence archival and repository-local zero residue. They do not establish deployment, live-provider recovery, production resilience or cloud rollback.
 
 W2-002 has bounded component evidence for its [W2-05 embedder](W2-05-embedder.txt). It records owner-executed fake-provider checks, immutable model download and integrity verification, offline real-model execution, repository cleanliness, and the intentionally retained external model cache. W2-002 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. The owner did not supply a reviewer name or approval date, so neither is recorded.
 
@@ -329,3 +332,38 @@ W3-ROLLBACK-001/W3-004 may verify and consume the baseline read-only under its o
 - Tracker update responsibility: Owner
 
 Column N must close this README addendum together with the addenda in `W3-002.md`, `W3-06-golden.txt` and `W3-10-gate.txt`; no partial promotion-document closure is permitted.
+
+## W3-ROLLBACK-001 final owner approval
+
+The owner-executed W3-004 evidence records passing final Ruff, strict MyPy, focused and complete test scopes, platform validation, controlled regression detection, atomic known-good restoration, restored absolute and approved-baseline evaluation, external archive verification, repository-local cleanup and independent zero-residue verification. The complete ordinary suite recorded 465 passed, 7 owner-controlled skips, 4 opt-in deselections, 10 passing subtests and one existing Starlette/FastAPI warning.
+
+Historical outcomes remain visible: one Ruff import-order failure, two MyPy findings and one security-test log-capture failure were corrected by the owner and passed on rerun. One initial absolute-gate display was INDETERMINATE because it read the wrong JSON level; the corrected read returned the expected controlled `FAIL`. One archive-list display failed because Windows PowerShell lacked `Join-String`; the compatible rerun passed without changing state. Remaining open INDETERMINATE activities: none.
+
+The controlled Q1/Q2 regression correctly produced safe `invalid_generated_citation` abstentions and made the regression identity ineligible for release. The owner restored the known-good identity at generation 3, after which absolute, baseline-comparison and overall status passed within the approved deterministic local scope. This is not production release approval.
+
+The four drill artifacts were copied byte-for-byte to the owner-controlled external archive at `E:\AI\Enterprise_AI_Doc_Retrieval\reports\w3-004` for 180-day retention. The repository-local drill runtime was then removed, zero residue was independently verified, and all protected W3-002 identities remained exact. No network, AWS, Bedrock, live-model, vendor, Docker, service, cloud or paid-provider activity occurred; recorded provider cost was USD 0.
+
+Deployment, application/source rollback, deployment rollback, live-provider rollback, cloud rollback and cloud teardown remain **NOT RUN**. Local deterministic identity rollback and repository-local drill teardown passed. Seven skipped and four deselected activities remain **NOT RUN**. Production performance, recovery objectives, security/privacy/residency/compliance and live integration remain unproven. The external archive, approved baseline and reports, and external Python virtual environment remain intentionally retained.
+
+### W3-ROLLBACK-001 Final Owner Approval
+
+- Prompt/task ID: `W3-ROLLBACK-001`
+- Reviewer: Gyan Prakash Rai
+- Reviewer role: Project Owner and Final Approval Reviewer
+- Owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+- Approval date and time/timezone: `2026-08-27 17:31:21 SGT`
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W3-ROLLBACK-001**
+- Code review status: **APPROVED** for the bounded, owner-tested W3-004 implementation; no production or cloud approval is implied.
+- Documentation review status: **APPROVED**; all four W3-ROLLBACK-001 Column M documents are closed together.
+- Owner-executed test status: **PASS within the recorded deterministic local scope**. Final Ruff, strict MyPy, focused and ordinary suites, platform validation, controlled regression, atomic restoration, archive verification and zero-residue checks passed. Historical FAIL and INDETERMINATE results remain recorded.
+- Accepted warnings, risks, evidence gaps and limitations: all items recorded in the approved W3-ROLLBACK-001 Column M manifest are accepted; no additional item is silently accepted. Local/synthetic scope, the Starlette/FastAPI warning, skipped and deselected work, unperformed scans and production/live-system limitations remain visible.
+- NOT RUN and INDETERMINATE: all recorded NOT RUN activities remain NOT RUN and none is converted to PASS. Every historical INDETERMINATE result remains preserved. Remaining open INDETERMINATE activities: None.
+- Deployment: local, cloud and production deployment remain **NOT RUN**.
+- Rollback: local deterministic identity rollback **PASS**; application/source, deployment, live-provider and cloud rollback remain **NOT RUN**.
+- Teardown: repository-local drill cleanup and independent zero-residue verification **PASS**. Docker, service and cloud teardown remain **NOT RUN** because no such resource was started or created.
+- Residual resources: repository-local `reports/w3-004` is removed. The four-file external archive remains retained for 180 days; the approved W3-002 baseline and reports and external Python virtual environment remain retained. No repository-local drill runtime, service, container, model, credential, cloud resource, cache, bytecode or temporary file remains.
+- Deferred actions and responsible owner: all recorded deferrals remain open under Gyan Prakash Rai unless another owner is explicitly recorded. Gyan Prakash Rai owns archive retention/deletion, future live and production validation, tracker reconciliation and Git mutation.
+- Conditions: preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferral and residual-resource fact; infer no production or cloud readiness from local, fake, mocked, injected or synthetic evidence; only the owner updates Excel or mutates Git.
+- Next-task handover: future work may rely on the approved deterministic local rollback contract and protected W3-002 identities. Deployment, live-provider recovery, production performance/security/privacy/residency and cloud lifecycle require separate approval and evidence.
+- Tracker update responsibility: Owner
+- Column N reconciliation: this README, `W3-004.md`, `W3-11-rag-rollback.txt` and `../rollback-records/W3-rag.md` closed together; no partial closure.

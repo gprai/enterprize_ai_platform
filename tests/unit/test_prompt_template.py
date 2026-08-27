@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from enterprise_ai_platform.rag.config import RAGPolicy
-from enterprise_ai_platform.rag.prompt import build_rag_request, select_complete_evidence_blocks
+from enterprise_ai_platform.rag.prompt import (
+    build_rag_request,
+    prompt_template_sha256,
+    select_complete_evidence_blocks,
+)
 from enterprise_ai_platform.retrieval.models import (
     Classification,
     IngestionStatus,
@@ -23,6 +27,12 @@ def _policy() -> RAGPolicy:
         max_context_characters=12000,
         max_output_tokens=512,
         prompt_version="w3-001.v1",
+    )
+
+
+def test_prompt_semantic_fingerprint_is_exact() -> None:
+    assert prompt_template_sha256() == (
+        "f1b9583bd8e8dd3abfa066c1e03e3979a118bad56565a99930e387ea2ccba927"
     )
 
 
