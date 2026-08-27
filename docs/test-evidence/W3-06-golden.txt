@@ -85,3 +85,61 @@ Tracker update responsibility: Owner
 
 COLUMN N CLOSURE REQUIREMENT
 Closed together with W3-002.md, W3-10-gate.txt and README.md. No partial closure occurred.
+
+W3-002 BASELINE PROMOTION ADDENDUM
+
+BUSINESS AND DATASET PURPOSE
+The owner separately promoted the existing passing W3-002 candidate and repeat evidence into the first immutable known-good baseline for future regression work. The golden dataset remained the checksum-bound source of expected answer, abstention, error, authorization, citation and ordering behavior. Promotion did not rerun validation or evaluation and did not change the original W3-002 approval above.
+
+DATASET IDENTITY AND CONTRACT
+Version: w3-002.v1
+Canonical SHA-256: e3ff344d9904ea0e9cff722441bbe8237105e6131e1f57d0ca42d35ddad410f9
+Ordered case IDs: Q1 through Q39, exactly once each
+Strict schema and ordered uniqueness: preserved
+Distribution: 24 ANSWERED, 12 ABSTAINED, 3 expected ERROR, 39 total
+Retrieval-metric-eligible cases: Q1-Q4, Q6-Q23, Q29 and Q39 — 24 cases
+
+Controlled denied, conflicting-version, malformed-evidence, invalid-generated-citation, operational-error and deterministic-order cases retain their original authorization and source/version semantics. Denied evidence remains excluded from provider input and normalized results. Synthetic and evaluation-only snapshots remain separate from the ordinary Week 2 corpus and do not establish production representativeness.
+
+PROMOTION INTEGRITY
+Repository SHA: b9f596118c2a75c75f20af1a2c9a19c2234b65ad
+Reviewer: Gyan Prakash Rai
+Decision: APPROVED
+Approved at: 2026-08-26T15:30:21+08:00
+Candidate report SHA-256: f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf
+Repeat report SHA-256: d35c1ee13a54cda78e7514a84cd9af6e6086236a4095f7824f52cdbc46d2da1a
+Deterministic payload SHA-256: 7e9368c3e29252f21af6398aa39873151536e42df53619f156cc6ce38450743e
+Baseline target: configs/eval/baselines/w3-002-v1.json
+Baseline file SHA-256: 4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f
+
+The dataset remained byte-for-byte and semantically unchanged during promotion. The immutable baseline records its canonical identity. The candidate and repeat reports remained unchanged and retain their historical NO_APPROVED_BASELINE and release_eligible=false fields.
+
+PRIVACY, LIMITATIONS AND NOT RUN WORK
+Only controlled synthetic/evaluation snapshots and a deterministic fake provider supported the promoted evidence. No private production corpus, live enterprise data, live model, external judge, Ragas, network, AWS, Bedrock or paid provider was used. Broader representativeness, threshold recalibration, privacy/residency validation and live-provider quality remain deferred.
+
+Dataset tests and evaluation for promotion: NOT RUN.
+Post-promotion candidate comparison: NOT RUN.
+Deployment: NOT RUN.
+Actual source/application/configuration/baseline/deployment/cloud rollback: NOT RUN.
+Automated rollback and cleanliness checks: historical PASS; not rerun for promotion.
+Operational/cloud teardown: NOT RUN; no runtime or cloud resource was created.
+Residual resources: unchanged golden dataset, evaluation configuration, candidate and repeat reports, immutable baseline and external virtual environment.
+Temporary/cache/bytecode residue: none found after promotion.
+Remaining open INDETERMINATE activities: None; historical evidence remains preserved.
+
+FINAL OWNER APPROVAL — BASELINE PROMOTION
+Prompt/task ID: W3-002
+Reviewer and role: Pending Column N
+Decision and date/timezone: Pending Column N
+Code/evaluation evidence status: original approved evidence preserved; no new test or evaluation run
+Baseline promotion: PROMOTED
+Baseline SHA-256: 4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f
+Documentation review status: Pending Column N
+PASS/FAIL, warnings, risks, gaps and limitations acceptance: Pending Column N
+NOT RUN/INDETERMINATE acceptance: Pending Column N; preserve all classifications
+Deployment/rollback/teardown/residual-resource acceptance: Pending Column N
+Deferred actions and owner: Pending Column N
+Conditions and W3-004 handover: Pending Column N
+Tracker update responsibility: Owner
+
+Column N must close this addendum together with W3-002.md, W3-10-gate.txt and README.md. The original Final Owner Approval remains unchanged.

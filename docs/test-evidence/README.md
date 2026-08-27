@@ -56,7 +56,7 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W2 Week 2 sign-off](../deployment-records/W2-signoff.md) — **W2-12 and W2-13 are approved within the recorded local-only scope. Historical warnings, gaps, NOT RUN work and retained-resource facts remain visible; Week 3 remains gated by the clean baseline and W1-08 prerequisite.**
 - [W2-13 Week 2 learning review](../learning/W2-learning-review.md) — **FINAL APPROVAL AFTER OWNER TEACH-BACK — APPROVED by Gyan Prakash Rai on 2026-08-25 at 23:59:08 SGT (UTC+08:00). The four-document Column N manifest is closed; this business/interview summary complements the unchanged detailed W2-11 local-retrieval architecture record.**
 - [W3-001](W3-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-26 at 11:11:21 SGT. Final local evidence: Ruff PASS, strict MyPy PASS, 118 scoped tests passed with 1 AWS/paid test deselected, and 344 complete ordinary tests passed with 7 owner-controlled skips and 4 opt-in deselections. Live Bedrock, deployment and cloud lifecycle work remain **NOT RUN**; all six Column M documents are closed together.
-- [W3-002](W3-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-26 at 20:55:21 SGT. The owner-executed fake-provider evaluation passed every absolute quality and security gate across 39 cases. No approved baseline exists, so the result remains **NO_APPROVED_BASELINE** and is not release-eligible; all four Column M documents are closed together.
+- [W3-002](W3-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** for the original evaluation, with component evidence in [W3-06 golden dataset](W3-06-golden.txt) and [W3-10 quality gate](W3-10-gate.txt). Candidate/repeat and every absolute gate passed across 39 cases. The original reports remain **NO_APPROVED_BASELINE** and `release_eligible=false`; the first immutable baseline was later separately **PROMOTED** for future comparisons. Post-promotion comparison, live/judge/performance work and deployment remain **NOT RUN**. Baseline-promotion document approval is pending Column N.
 - [W3-003](W3-003.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 14:40:21 SGT. Deterministic local guardrail and security-regression evidence passed after two preserved historical failures and bounded remediation. Live-model, vendor, deployment and production behavior remain **NOT RUN**; all five Column M documents are closed together.
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
@@ -298,3 +298,34 @@ Live model, AWS, Bedrock, vendor guardrails, positive telemetry, real performanc
 - Next-task handover: locally tested deterministic W3-003 guardrail and security contracts are approved. Live providers, vendor guardrails, telemetry, approved-baseline regression, production security/compliance, deployment and cloud lifecycle require separate approval and evidence.
 - Tracker update responsibility: Owner
 - Column N closure: `W3-003.md`, `W3-05-guardrails.txt`, `W3-08-security.txt`, `W3-security.txt` and this README closed together; no partial closure occurred.
+
+## W3-002 Baseline Promotion Addendum
+
+The owner separately approved and executed checksum-bound creation of the first immutable W3-002 baseline at `configs/eval/baselines/w3-002-v1.json`. The promoted baseline SHA-256 is `4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f`; it records repository SHA `b9f596118c2a75c75f20af1a2c9a19c2234b65ad`, canonical dataset SHA-256 `e3ff344d9904ea0e9cff722441bbe8237105e6131e1f57d0ca42d35ddad410f9`, configuration SHA-256 `4564b1935c1c072281f90a63c1ac80315709e35e6aab8e0803d0a9abf5c189df`, reviewer Gyan Prakash Rai, decision `APPROVED` and approval time `2026-08-26T15:30:21+08:00`.
+
+Candidate and repeat absolute gates remain PASS. Candidate SHA-256 remains `f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf`; repeat SHA-256 remains `d35c1ee13a54cda78e7514a84cd9af6e6086236a4095f7824f52cdbc46d2da1a`; their deterministic payload remains `7e9368c3e29252f21af6398aa39873151536e42df53619f156cc6ce38450743e`.
+
+The reports were not rewritten. Their historically correct baseline-comparison and overall status remains `NO_APPROVED_BASELINE`, and `release_eligible` remains `false`. Promotion reran no test or evaluation. Post-promotion candidate comparison, future release eligibility, Ragas/judge execution, live model evaluation, real latency/capacity validation, production privacy/security/residency validation, deployment, actual rollback and cloud teardown remain **NOT RUN**.
+
+The original W3-002 Final Owner Approval remains unchanged and retains all historical failures, remediations, warnings, limitations, skipped/deselected work and lifecycle facts. Network/provider activity for promotion was none and recorded platform/provider cost was USD 0. Historical automated rollback and teardown contracts remain PASS but were not rerun. No service, container, model or cloud resource was created. The immutable baseline, unchanged reports, dataset, configuration and external virtual environment remain retained; no temporary baseline sibling, unexpected report, repository cache or bytecode residue was found.
+
+W3-ROLLBACK-001/W3-004 may verify and consume the baseline read-only under its own Gate 1. Promotion removes the known-good-baseline prerequisite but does not complete W3-004 or prove production readiness.
+
+### Final Owner Approval — Baseline Promotion
+
+- Prompt/task ID: `W3-002`
+- Reviewer and role: Pending Column N
+- Exact owner decision and date/timezone: Pending Column N
+- Code/evaluation evidence status: original approved evidence preserved; no new test or evaluation run
+- Baseline promotion: `PROMOTED`
+- Baseline SHA-256: `4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f`
+- Documentation review status: Pending Column N
+- Accepted PASS and historical FAIL facts: Pending Column N
+- Warnings, risks, evidence gaps and limitations: Pending Column N
+- NOT RUN and INDETERMINATE treatment: Pending Column N; preserve all classifications
+- Deployment, rollback, teardown and residual-resource acceptance: Pending Column N
+- Deferred actions and responsible owner: Pending Column N
+- Conditions and W3-004 handover: Pending Column N
+- Tracker update responsibility: Owner
+
+Column N must close this README addendum together with the addenda in `W3-002.md`, `W3-06-golden.txt` and `W3-10-gate.txt`; no partial promotion-document closure is permitted.

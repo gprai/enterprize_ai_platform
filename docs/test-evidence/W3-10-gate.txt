@@ -111,3 +111,79 @@ Tracker update responsibility: Owner
 
 COLUMN N CLOSURE REQUIREMENT
 Closed together with W3-002.md, W3-06-golden.txt and README.md. No partial closure occurred.
+
+W3-002 BASELINE PROMOTION ADDENDUM
+
+BUSINESS DECISION
+The first immutable W3-002 baseline was promoted from the owner-approved candidate and repeat evidence for future read-only regression comparison. Promotion was a checksum-bound lifecycle action, not a new evaluation, test, release decision or production approval. The original W3-002 Final Owner Approval and its NO_APPROVED_BASELINE history remain unchanged above.
+
+ABSOLUTE THRESHOLDS, TOLERANCES AND HARD BLOCKERS
+Recall at 5 threshold: 0.85; future regression tolerance: 0.05.
+Citation precision threshold: 1.00; future regression tolerance: 0.
+Answered correctness threshold: 0.95; future regression tolerance: 0.
+Abstention correctness threshold: 0.95; future regression tolerance: 0.
+Combined correctness threshold: 0.95; future regression tolerance: 0.
+Expected-error correctness threshold: 1.00; future regression tolerance: 0.
+Maximum security violations: 0; future tolerance: 0.
+Maximum exposed invalid citations: 0; future tolerance: 0.
+Release-blocking failures, security violations and exposed invalid citations in the promoted reports: 0.
+
+Every absolute gate remained PASS: recall at 5, citation precision, answered correctness, abstention correctness, combined correctness, expected-error correctness, release-blocking cases and security. MRR, runtime, tokens and cost remain informational.
+
+PROMOTION IDENTITY
+Interface: tools/evaluationctl.py promotion with exact repository, canonical dataset, configuration, candidate, repeat, reviewer, decision, approval-time and target arguments.
+Repository SHA: b9f596118c2a75c75f20af1a2c9a19c2234b65ad
+Dataset canonical SHA-256: e3ff344d9904ea0e9cff722441bbe8237105e6131e1f57d0ca42d35ddad410f9
+Configuration SHA-256: 4564b1935c1c072281f90a63c1ac80315709e35e6aab8e0803d0a9abf5c189df
+Candidate SHA-256: f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf
+Repeat SHA-256: d35c1ee13a54cda78e7514a84cd9af6e6086236a4095f7824f52cdbc46d2da1a
+Deterministic payload SHA-256: 7e9368c3e29252f21af6398aa39873151536e42df53619f156cc6ce38450743e
+Reviewer: Gyan Prakash Rai
+Decision: APPROVED
+Approved at: 2026-08-26T15:30:21+08:00
+Target: configs/eval/baselines/w3-002-v1.json
+Baseline SHA-256: 4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f
+Promotion result: PROMOTED
+
+The target is immutable and no-overwrite. A failed, incompatible or later candidate cannot replace it at this path. Any replacement requires a separately approved versioned baseline path.
+
+HISTORICAL AND FUTURE STATUS
+Candidate and repeat absolute gates: PASS.
+Original report baseline-comparison status: NO_APPROVED_BASELINE.
+Original report overall status: NO_APPROVED_BASELINE.
+Original report release eligible: false.
+Reports regenerated or rewritten by promotion: No.
+Tests or evaluation rerun for promotion: NOT RUN.
+Post-promotion candidate evaluation or baseline comparison: NOT RUN.
+Future candidate release eligibility: NOT DETERMINED.
+
+SECURITY, NETWORK, COST AND LIFECYCLE
+The promoted evidence remains fake-provider-only, network-free and redacted as originally approved. No live model, Ragas/judge, production data, real performance, AWS, Bedrock or paid-provider activity occurred. Promotion cost: USD 0. Existing warnings, skipped/deselected work, historical failures, evidence gaps and production limitations remain visible.
+
+Deployment: NOT RUN.
+Historical automated rollback and teardown contracts: PASS; not rerun for promotion.
+Actual source/application/configuration/baseline/deployment/cloud rollback: NOT RUN.
+Operational/cloud teardown: NOT RUN; no runtime or cloud resource was created.
+Residual resources: unchanged reports, golden dataset, configuration, immutable baseline and external virtual environment.
+Unexpected reports, temporary baseline siblings, caches and bytecode residue: none found.
+Remaining open INDETERMINATE activities: None; historical evidence remains preserved.
+
+W3-004 may verify and consume the approved baseline only as a read-only known-good reference under its own Gate 1. Promotion does not complete W3-004, execute its rollback drill or prove production readiness.
+
+FINAL OWNER APPROVAL — BASELINE PROMOTION
+Prompt/task ID: W3-002
+Reviewer and role: Pending Column N
+Decision and date/timezone: Pending Column N
+Code/evaluation evidence status: original approved evidence preserved; no new test or evaluation run
+Baseline promotion: PROMOTED
+Baseline SHA-256: 4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f
+Documentation review status: Pending Column N
+Accepted PASS and historical FAIL facts: Pending Column N
+Warnings, risks, evidence gaps and limitations: Pending Column N
+NOT RUN/INDETERMINATE acceptance: Pending Column N; preserve all classifications
+Deployment/rollback/teardown/residual-resource acceptance: Pending Column N
+Deferred actions and owner: Pending Column N
+Conditions and W3-004 handover: Pending Column N
+Tracker update responsibility: Owner
+
+Column N must close this addendum together with W3-002.md, W3-06-golden.txt and README.md. The original Final Owner Approval remains unchanged.
