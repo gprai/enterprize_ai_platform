@@ -25,7 +25,7 @@ This document explains the four Week 3 tasks in business, technical, layman and 
 | W3-003 | Deterministic guardrails and security regression | Implemented, owner-tested and final-approved in the recorded local synthetic scope |
 | W3-004 | RAG configuration rollback drill | Implemented, owner-tested, rollback-drilled, documented and final-approved. The controlled N+1 regression was detected, known-good N was atomically restored, the restored evaluation passed its absolute and approved-baseline gates, four byte-identical evidence files were externally archived for 180 days, and repository-local cleanup and zero-residue verification passed. |
 
-This distinction matters. W3-001 through W3-003 have owner-executed test evidence. W3-004 describes the approved implementation boundary and expected behaviour, but this document does not claim that its code or drill has passed.
+This learning record includes the completed, owner-tested and final-approved W3-004 deterministic local implementation and rollback drill. It does not claim application-release rollback, deployment, live-provider recovery, production resilience or cloud rollback, which remain NOT RUN.
 
 ### Week 3 in one sentence
 
@@ -721,7 +721,7 @@ Enterprise AI trust comes from a control system, not one model call: constrain i
 
 ## 30-second answer
 
-In Week 3, I implemented the first three layers of a governed cited-RAG control chain and completed the approved design for the fourth. W3-001 produces answers only from authorized evidence with exact citations. W3-002 evaluates 39 answer, abstention and error cases and promotes a checksum-bound known-good baseline. W3-003 adds deterministic input validation, authorization revalidation, injection-as-data, zero tool execution and redaction. W3-004 is designed to add an atomic configuration rollback drill so a detected regression can return to the exact approved identity and be re-evaluated.
+All four Week 3 layers were implemented, owner-tested, documented and final-approved within the deterministic local scope. W3-001 provides cited RAG, W3-002 provides deterministic evaluation and the approved baseline, W3-003 provides input/output guardrails, and W3-004 provides tested RAG-configuration rollback. W3-004 detected the controlled N+1 regression, atomically restored known-good N and proved that the restored evaluation passed again.
 
 ## Two-minute answer
 
