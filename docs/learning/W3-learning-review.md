@@ -2,7 +2,7 @@
 
 ## Document control
 
-- Prompt/task: `W3-REVIEW-001` / W2-13
+- Prompt/task: `W3-REVIEW-001` / W3-13
 - Document classification: **Column N closed — final-approved W3-13 learning record**
 - Detailed W2-11 technical authority: `docs/architecture/local-retrieval.md`
 - Owner teach-back status: **PASS**
@@ -23,7 +23,7 @@ This document explains the four Week 3 tasks in business, technical, layman and 
 | W3-001 | Provider-neutral cited RAG | Implemented, owner-tested and final-approved in the recorded local scope |
 | W3-002 | Deterministic evaluation and release gate | Implemented, owner-tested and final-approved; first immutable baseline subsequently promoted |
 | W3-003 | Deterministic guardrails and security regression | Implemented, owner-tested and final-approved in the recorded local synthetic scope |
-| W3-004 | RAG configuration rollback drill | Design decisions approved and Gate 2 passed; final Column L approval prompt prepared, but implementation and owner testing are not yet evidenced in the supplied record |
+| W3-004 | RAG configuration rollback drill | Implemented, owner-tested, rollback-drilled, documented and final-approved. The controlled N+1 regression was detected, known-good N was atomically restored, the restored evaluation passed its absolute and approved-baseline gates, four byte-identical evidence files were externally archived for 180 days, and repository-local cleanup and zero-residue verification passed. |
 
 This distinction matters. W3-001 through W3-003 have owner-executed test evidence. W3-004 describes the approved implementation boundary and expected behaviour, but this document does not claim that its code or drill has passed.
 
@@ -631,9 +631,9 @@ The control room changes the settings card. It does not rebuild the library, rep
 
 # 11. Interview Q&A
 
-## Q1. What did you implement in Week 3?
+## Q1. What did you implement in Week 3? 
 
-I designed a governed cited-RAG lifecycle in four layers: W3-001 generates authorized evidence-bound answers, W3-002 evaluates quality and security deterministically, W3-003 enforces input/output guardrails, and W3-004 defines exact configuration rollback and revalidation. The first three are owner-tested; W3-004 currently has approved design decisions and Gate 2 but still requires implementation and owner testing.
+I implemented a governed cited-RAG lifecycle in four layers. W3-001 generates authorized, evidence-bound answers with exact citations or safe abstention. W3-002 evaluates retrieval quality, answer correctness, citations and security against a deterministic 39-case dataset and an immutable approved baseline. W3-003 validates input, treats prompt injection as untrusted data, prevents tool execution and suppresses unsafe or invalid generated output. W3-004 implements deterministic RAG-configuration rollback: it detects a controlled N+1 regression, atomically restores the exact known-good N configuration and evaluates the restored state again. All four implementations were owner-tested, documented and final-approved within the recorded deterministic local scope. The final W3-004 ordinary suite passed with 465 tests, 7 skips, 4 deselections, 10 passing subtests and one accepted TestClient warning. Live-model, deployment, production-performance and cloud-lifecycle validation remain NOT RUN.
 
 ## Q2. Why is cited RAG better than returning a normal LLM answer?
 
@@ -733,7 +733,7 @@ Second, W3-002 created a deterministic 39-case evaluation harness. It measures r
 
 Third, W3-003 added deterministic guardrails. It validates raw text and content type before retrieval, keeps authorization in trusted code, treats retrieved instructions as untrusted data, executes no tools and exposes no raw content through logs or errors.
 
-Finally, W3-004 designs the recovery path. A synthetic bad configuration creates a known invalid-citation regression. The gate detects it, the system atomically restores the exact approved configuration through lock and compare-and-swap controls, and the restored behaviour is evaluated again. The current evidence for W3-004 is approved design decisions, Gate 2 and a prepared Column L approval; code-writing and implementation test evidence are still pending.
+Finally, W3-004 implements and proves the recovery path. The owner initialized the known-good N identity at generation 1 and activated a controlled synthetic N+1 configuration at generation 2. N+1 produced the expected Q1/Q2 invalid-citation regression: the absolute, baseline-comparison and overall evaluation statuses were FAIL, with release eligibility disabled. The system then atomically restored known-good N at generation 3 using exclusive locking, compare-and-swap protection and same-directory atomic replacement. The restored evaluation passed its absolute and approved-baseline gates, with release eligibility true within the approved deterministic local scope. The redacted rollback record was finalized, exactly four byte-identical evidence files were externally archived for 180 days, repository-local drill artifacts were removed, and independent zero-residue verification passed. W3-004 implementation, owner testing, rollback evidence, documentation closure and final owner approval are complete. This proves deterministic local RAG-configuration recovery; application-release, deployment, live-provider and cloud rollback remain NOT RUN.
 
 The key trade-off was choosing deterministic local evidence and strict fail-closed contracts over live-model realism. This gives repeatability, privacy and zero provider cost, but live quality, performance and production operations still require separate validation.
 
