@@ -267,10 +267,43 @@ EXPECTED_EVAL_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_EVAL_LINKED_TRACKER_STEPS),
 }
+EXPECTED_API_IMPLEMENTATION_PATHS = (
+    "src/enterprise_ai_platform/api/__init__.py",
+    "src/enterprise_ai_platform/api/dependencies.py",
+    "src/enterprise_ai_platform/api/errors.py",
+    "src/enterprise_ai_platform/api/models.py",
+    "src/enterprise_ai_platform/api/runtime.py",
+    "src/enterprise_ai_platform/api/routes.py",
+    "tests/fakes/api.py",
+    "tests/unit/test_api.py",
+    "tests/contract/test_api_schema.py",
+    "tests/integration/test_api_dependency_composition.py",
+    "tests/security/test_api_authorization.py",
+    "tests/rollback/test_w4_001_api_rollback.py",
+    "tests/teardown/test_w4_001_api_cleanliness.py",
+    ".env.example",
+    "feature-matrix.yaml",
+    "src/enterprise_ai_platform/app.py",
+    "src/enterprise_ai_platform/config.py",
+    "tools/platformctl/validate.py",
+    "tests/conftest.py",
+    "tests/unit/test_config.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/security/test_configuration_security.py",
+)
+EXPECTED_API_LINKED_TRACKER_STEPS = ("W4-01", "W4-02", "W4-10")
+EXPECTED_API_FEATURE = {
+    "id": "API-001",
+    "implementation_paths": list(EXPECTED_API_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": list(EXPECTED_API_LINKED_TRACKER_STEPS),
+}
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
     EXPECTED_EVAL_FEATURE,
+    EXPECTED_API_FEATURE,
 )
 
 REQUIRED_DIRECTORIES = (
@@ -286,6 +319,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/evaluation",
     "src/enterprise_ai_platform/guardrails",
     "src/enterprise_ai_platform/llm",
+    "src/enterprise_ai_platform/api",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
     "src/enterprise_ai_platform/retrieval",
@@ -372,6 +406,7 @@ REQUIRED_FILES = (
     "tests/security/test_tenant_isolation.py",
     *EXPECTED_RAG_IMPLEMENTATION_PATHS,
     *EXPECTED_EVAL_IMPLEMENTATION_PATHS,
+    *EXPECTED_API_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -426,7 +461,7 @@ def validate_feature_matrix(data: object) -> list[str]:
     elif features != list(EXPECTED_FEATURES):
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
-            "MVP-001, RAG-001, EVAL-001"
+            "MVP-001, RAG-001, EVAL-001, API-001"
         )
 
     return errors

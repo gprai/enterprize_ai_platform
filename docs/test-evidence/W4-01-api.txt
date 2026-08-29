@@ -1,0 +1,169 @@
+W4-01 FASTAPI SERVICE-BOUNDARY EVIDENCE
+
+DOCUMENT CONTROL
+
+Prompt/task ID: W4-001
+Feature owner: API-001
+Tracker step: W4-01
+Result: TEST-001 — PASS WITH ACCEPTED WARNINGS
+Evidence owner and command executor: Gyan Prakash Rai
+Documentation stage: Column N — complete
+Final owner approval: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS PURPOSE
+
+W4-01 provides a bounded HTTP interface for health and governed query access.
+The boundary is disabled by default so the approved legacy health-only
+application remains the normal behavior. When explicitly enabled, it adds
+typed health and query routes without adding public ingress, CORS, proxy trust,
+live providers, service deployment or agent execution.
+
+IMPLEMENTED API CONTRACT
+
+Legacy health compatibility
+
+- GET /health retains its existing status and exact body fields: status,
+  service and environment.
+- The default api_routes_enabled=false behavior adds no W4 route state or
+  request-ID header and does not resolve injected dependencies.
+
+Enabled health routes
+
+- GET /health/live proves only that the application event loop can answer. It
+  makes no dependency, RAG, retrieval, provider, vector-store, network or cloud
+  call.
+- GET /health/ready calls exactly one injected local query-wiring probe under a
+  one-second timeout. A false result, exception or timeout returns 503
+  service_not_ready. It does not probe Qdrant, OpenSearch, Bedrock, a model,
+  AWS, cloud or any network service.
+
+Strict query transport and response
+
+- POST /v1/query accepts HTTP application/json only and rejects unsupported
+  media types or content encodings before authentication-dependent work.
+- The implementation streams and counts raw body bytes before full JSON or
+  Pydantic processing and rejects bodies larger than 131,072 bytes.
+- Strict JSON parsing rejects malformed data, duplicate keys, non-finite
+  numbers and invalid UTF-8.
+- The request schema permits only query: str. Unknown fields, wrong types and
+  missing query data are rejected. The raw query is passed to the existing RAG
+  boundary with logical content_type=text/plain.
+- The existing 10,000-character logical guardrail remains downstream and
+  returns the existing guardrail_input_invalid safe code.
+- Answered and abstained responses return only server request identity and
+  trusted normalized result fields. Existing Citation and Usage contracts are
+  reused; absent model or retriever versions are not invented.
+
+Request identity
+
+- Every W4-enabled response, including errors, receives a new server-generated
+  UUIDv4 in X-Request-ID and the response body.
+- Inbound X-Request-ID, X-Correlation-ID and X-Forwarded-* values are not
+  trusted as the server identifier. No proxy-trust boundary was added.
+
+Deadline, overload and cancellation
+
+- The query boundary admits at most four in-flight queries per application.
+- Capacity acquisition is atomic and non-waiting. There is no hidden queue and
+  no API-level retry.
+- Exhausted capacity returns 503 api_overloaded, retryable=true and
+  Retry-After: 1 without a RAG call.
+- Admitted RAG work uses the existing request deadline. Capacity is released in
+  finally for answer, abstention, domain error, timeout and cancellation.
+- Cancellation propagates and starts no replacement or background work.
+
+Safe errors and disabled agent
+
+- Approved transport, guardrail, vector-store, embedding, RAG, LLM, deadline,
+  readiness, overload, route and internal failures are normalized into the
+  safe request-ID error envelope. Raw exception content is not returned.
+- POST /v1/agent returns 501 agent_disabled and calls no authenticator, RAG,
+  retriever, provider, graph, approval store or tool.
+
+DEFAULT-OFF ROLLBACK BEHAVIOR
+
+Setting api_routes_enabled=false restores the exact legacy health-only
+business surface without changing protected RAG configurations. The automated
+rollback test passed. This is deterministic configuration rollback evidence;
+it is not an operational release, source, deployment, infrastructure or cloud
+rollback.
+
+OWNER-EXECUTED RESULTS
+
+- Final effective implementation manifest: 13 CREATE, 12 UPDATE, 0 DELETE and
+  25 edited implementation paths.
+- Post-remediation Ruff: PASS.
+- Strict MyPy: PASS — 84 source files.
+- Focused W4 suite: PASS — 108 tests.
+- Protected regressions: PASS — 69 tests.
+- Complete ordinary suite: PASS — 537 tests, 7 skipped, 4 deselected and 1
+  warning.
+- Platform validation: PASS.
+- Rollback and cleanliness: PASS — 3 tests.
+- Repository residue: ZERO.
+- Patch integrity: PASS WITH ACCEPTED WARNINGS; no whitespace error or conflict
+  marker was reported.
+
+The seven skipped and four deselected tests remain NOT RUN.
+
+HISTORICAL FAILURES AND REMEDIATION
+
+- Initial MyPy: 2 failures in safe domain-error field access — remediated;
+  final strict MyPy PASS.
+- Initial focused suite: 2 test-contract failures involving approved abstention
+  literals and Windows TestClient setup — remediated; final focused suite PASS.
+- Initial complete suite: 2 stale W2 feature-matrix consumer failures —
+  remediated; final complete suite PASS.
+
+The initial outcomes remain historical FAIL results and are not rewritten as
+first-run passes.
+
+WARNINGS, LIMITATIONS AND W4-10
+
+- One Starlette/FastAPI TestClient deprecation warning remains accepted.
+- Git LF-to-CRLF working-copy notices remain accepted; patch integrity
+  otherwise passed.
+- W4-10 is NOT RUN — deferred until W4-06. No W4-10 load-test code or
+  W4-10-load.json evidence exists.
+- The evidence uses in-process ASGI, deterministic fakes and synthetic local
+  data. It proves no live service, network, authentication provider, model,
+  latency, capacity, SLO, deployment or production behavior.
+- Network, live provider/model, Docker, AWS/cloud and deployment activity: none.
+- Estimated provider/cloud cost: USD 0.
+- Open INDETERMINATE results: none.
+
+ROLLBACK, TEARDOWN AND RESIDUAL RESOURCES
+
+- Deterministic configuration rollback and rollback-disable behavior: PASS.
+- Automated cleanliness and zero-residue checks: PASS.
+- Operational release, deployment, infrastructure and cloud rollback: NOT RUN.
+- Service startup and deployment validation: NOT RUN.
+- No service, container, network connection, model, cloud resource or
+  deployment was created.
+- Approved implementation files remain as intended repository resources;
+  unexpected repository residue was zero.
+
+FINAL OWNER APPROVAL
+
+Prompt/task ID: W4-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-08-28 23:56:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W4-001
+Code review status: Approved for the bounded W4-001 implementation and owner-directed test-only remediations exercised by the owner. This approval does not establish production or cloud readiness.
+Documentation review status: Approved. All four documents in the W4-001 Column M manifest are closed together.
+Owner-executed test status: PASS WITH ACCEPTED WARNINGS within the deterministic local, fake and in-process scope. Final results remain Ruff PASS; MyPy PASS for 84 source files; focused W4 tests 108 passed; protected regression tests 69 passed; full ordinary suite 537 passed, 7 skipped, 4 deselected and 1 warning; platform validation PASS; rollback and cleanliness tests 3 passed; zero unexpected residue; and patch integrity PASS WITH ACCEPTED WARNINGS. The initial MyPy two-error result, initial focused two-failure result and initial full-suite two-failure result remain preserved as historical failures that were remediated and retested.
+Accepted warnings, risks, evidence gaps and scope limitations: All items recorded in the approved W4-001 Column M manifest are accepted; no additional item is silently accepted. This includes the Starlette/FastAPI TestClient deprecation warning, Git LF-to-CRLF notices, deterministic fake and in-process boundaries, skipped and deselected tests, deferred live integrations, and the absence of production or cloud evidence.
+NOT RUN and INDETERMINATE activities: All NOT RUN activities recorded in the W4-001 manifest remain NOT RUN and none is converted to PASS. Preserve every historical INDETERMINATE result. Remaining open INDETERMINATE activities: None. NOT RUN scope includes the 7 skipped tests, 4 deselected tests, W4-10 load work, live authentication, live provider/model work, production performance and capacity validation, service startup and deployment, operational/release rollback, and cloud lifecycle activity.
+Deployment status: Local service startup, local deployment, cloud deployment and production deployment were NOT RUN.
+Rollback status: Deterministic configuration rollback and rollback-disable checks PASS. Operational release, deployment, infrastructure and cloud rollback were NOT RUN.
+Teardown and cleanliness status: Automated cleanliness and repository-residue checks PASS. Operational service, container and cloud teardown were NOT RUN because no such resources were created.
+Residual-resource status: Zero unexpected repository residue was found. The approved 25 implementation files remain as intended project resources. The external development environment and owner-managed Excel lock file are retained outside the W4-001 closure boundary. No service, container, application network connection, model, credential or identity resource, cloud resource or deployment was created.
+Deferred actions and responsible owner: All deferred actions recorded in the W4-001 manifest remain open. Responsible owner: Gyan Prakash Rai, unless another owner is explicitly recorded for an individual action. W4-10 remains deferred until W4-06 is implemented and approved and a separate execution approval is granted. Live authentication, live provider/model, production performance/capacity, deployment and cloud lifecycle work also remain deferred.
+Conditions attached to approval: Preserve all PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource facts; close every W4-001 Column M manifest document together; only the owner updates Excel and performs Git mutation; do not infer production or cloud readiness from local, fake, mocked or injected evidence.
+Next-task handover: The closed W4-01 API contract may be relied on only within its evidenced local boundary. W4-10 remains linked to API-001 and deferred until W4-06 and separate approval. Any live integration, production, deployment or cloud activity requires its own governed approval.
+Tracker update responsibility after complete closure: Owner
+
+Column N closed this record together with W4-001.md, W4-02-auth.txt and the
+W4-001 section of README.md. No partial closure occurred.

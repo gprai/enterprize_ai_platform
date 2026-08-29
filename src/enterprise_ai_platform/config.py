@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     host: IPvAnyAddress = IPv4Address("127.0.0.1")
     port: int = Field(default=8000, ge=1, le=65535)
     request_timeout_seconds: int = Field(default=30, ge=1, le=120)
+    api_routes_enabled: bool = False
+    api_max_request_body_bytes: int = Field(default=131_072, ge=1, le=131_072)
+    api_readiness_timeout_seconds: float = Field(default=1.0, gt=0, le=1.0)
+    api_max_inflight_queries: int = Field(default=4, ge=1, le=4)
+    api_query_queue_capacity: Literal[0] = 0
 
     llm_provider: Literal["fake", "bedrock"] = "fake"
     llm_model_id: str | None = Field(default=None, min_length=1, max_length=200)

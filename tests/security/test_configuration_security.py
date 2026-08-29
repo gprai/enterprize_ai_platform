@@ -39,6 +39,11 @@ def test_environment_example_contains_only_approved_values() -> None:
     assert values["ENTERPRISE_AI_QDRANT_URL"] == "http://127.0.0.1:6333"
     assert values["ENTERPRISE_AI_OPENSEARCH_URL"] == "TODO_USER"
     assert values["ENTERPRISE_AI_QDRANT_API_KEY"] == ""
+    assert values["ENTERPRISE_AI_API_ROUTES_ENABLED"] == "false"
+    assert values["ENTERPRISE_AI_API_MAX_REQUEST_BODY_BYTES"] == "131072"
+    assert values["ENTERPRISE_AI_API_READINESS_TIMEOUT_SECONDS"] == "1.0"
+    assert values["ENTERPRISE_AI_API_MAX_INFLIGHT_QUERIES"] == "4"
+    assert values["ENTERPRISE_AI_API_QUERY_QUEUE_CAPACITY"] == "0"
     assert "AWS_ACCESS_KEY_ID" not in values
     assert "AWS_SECRET_ACCESS_KEY" not in values
     assert "AWS_SESSION_TOKEN" not in values
@@ -84,3 +89,23 @@ def test_foundation_source_imports_no_rag_or_external_client_runtime() -> None:
                     findings.append(f"{path.name}: {node.module}")
 
     assert findings == []
+
+
+def test_api_defaults_add_no_proxy_identity_or_network_configuration() -> None:
+    values = example_values()
+    forbidden = (
+        "CORS",
+        "JWT",
+        "JWKS",
+        "PROXY",
+        "TRUSTED_HOST",
+        "API_KEY",
+        "PUBLIC_HOST",
+    )
+
+    assert not any(
+        token in key
+        for key in values
+        for token in forbidden
+        if key != "ENTERPRISE_AI_QDRANT_API_KEY"
+    )

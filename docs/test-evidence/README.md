@@ -59,6 +59,7 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W3-002](W3-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** for the original evaluation, with component evidence in [W3-06 golden dataset](W3-06-golden.txt) and [W3-10 quality gate](W3-10-gate.txt). Candidate/repeat and every absolute gate passed across 39 cases. The original reports remain **NO_APPROVED_BASELINE** and `release_eligible=false`; the first immutable baseline was later separately **PROMOTED** for future comparisons. Post-promotion comparison, live/judge/performance work and deployment remain **NOT RUN**. Baseline-promotion document approval is pending Column N.
 - [W3-003](W3-003.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 14:40:21 SGT. Deterministic local guardrail and security-regression evidence passed after two preserved historical failures and bounded remediation. Live-model, vendor, deployment and production behavior remain **NOT RUN**; all five Column M documents are closed together.
 - [W3-004](W3-004.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 17:31:21 SGT. Final local evidence records 465 passing ordinary tests, the exact controlled Q1/Q2 regression, atomic restoration to the known-good identity, restored absolute and baseline-comparison PASS, verified external archival and repository-local zero residue. All four W3-ROLLBACK-001 Column M documents are closed together.
+- [W4-001](W4-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-28 at 23:56:21 SGT. The deterministic local API boundary has focused [W4-01 API evidence](W4-01-api.txt) and [W4-02 authentication and authorization evidence](W4-02-auth.txt). The final ordinary suite recorded 537 passed, 7 skipped and 4 deselected. W4-10 is **NOT RUN — deferred until W4-06**; no `W4-10-load.json` evidence exists. All four W4-001 Column M documents are closed together.
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
 
@@ -367,3 +368,77 @@ Deployment, application/source rollback, deployment rollback, live-provider roll
 - Next-task handover: future work may rely on the approved deterministic local rollback contract and protected W3-002 identities. Deployment, live-provider recovery, production performance/security/privacy/residency and cloud lifecycle require separate approval and evidence.
 - Tracker update responsibility: Owner
 - Column N reconciliation: this README, `W3-004.md`, `W3-11-rag-rollback.txt` and `../rollback-records/W3-rag.md` closed together; no partial closure.
+
+## W4-001 Column M evidence
+
+W4-001 implements the default-off FastAPI service boundary for W4-01 and the
+injected fail-closed authentication and authorization boundary for W4-02. The
+legacy `/health` body remains unchanged by default. When explicitly enabled,
+the boundary adds typed live, ready and query routes, safe server-generated
+request IDs, strict transport validation, normalized errors, bounded
+non-queuing concurrency and an intentionally disabled agent route.
+
+The owner-executed result is **TEST-001 — PASS WITH ACCEPTED WARNINGS**. Final
+effective implementation scope was 13 CREATE, 12 UPDATE, 0 DELETE and 25 edited
+implementation paths. Verification recorded post-remediation Ruff PASS, strict
+MyPy PASS across 84 source files, 108 passing focused W4 tests, 69 passing
+protected regressions, 537 passing complete ordinary tests, platform validation
+PASS, 3 passing rollback and cleanliness tests, and zero unexpected repository
+residue. The seven skipped and four deselected tests remain **NOT RUN**.
+
+Historical failures remain visible. Initial MyPy reported two findings, the
+initial focused suite reported two test-contract failures and the initial
+complete suite reported two stale W2 consumer failures. Each received bounded
+owner remediation and a passing final rerun; the initial results are not
+rewritten as first-run passes. Open **INDETERMINATE** results: none.
+
+One Starlette/FastAPI TestClient deprecation warning and Git LF-to-CRLF
+working-copy notices remain accepted. Patch integrity otherwise passed with no
+whitespace error or conflict marker.
+
+W4-10 remains **NOT RUN — deferred until W4-06**. No
+`docs/test-evidence/W4-10-load.json` evidence exists. Production performance,
+capacity, latency, SLO and readiness remain unproven.
+
+The evidence used deterministic fakes, synthetic inputs and in-process ASGI
+only. Network, live authentication, live provider/model, Docker, AWS/cloud and
+deployment activity was none; estimated provider/cloud cost was USD 0. No live
+service, container, network connection, model, identity resource, cloud
+resource or deployment was created.
+
+Deterministic configuration rollback and rollback-disable behavior **PASS**.
+Automated cleanliness and zero-residue verification **PASS**. Operational
+release rollback, deployment rollback, infrastructure rollback and cloud
+rollback remain **NOT RUN**. The approved implementation files remain intended
+repository resources; unexpected repository residue was zero.
+
+Local fake and in-process evidence does not prove live identity integration,
+provider/model compatibility, production security, privacy/residency
+compliance, real network behavior, deployment, availability, performance or
+capacity. Those limitations and W4-10 remain open for separately approved
+future work.
+
+## Final Owner Approval — W4-001
+
+- Prompt/task ID: W4-001
+- Reviewer: Gyan Prakash Rai
+- Reviewer role: Project Owner and Final Approval Reviewer
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+- Approval date and time/timezone: 2026-08-28 23:56:21 SGT
+- Final status: APPROVED FOR USER TRACKER UPDATE — W4-001
+- Code review status: Approved for the bounded W4-001 implementation and owner-directed test-only remediations exercised by the owner. This approval does not establish production or cloud readiness.
+- Documentation review status: Approved. All four documents in the W4-001 Column M manifest are closed together.
+- Owner-executed test status: PASS WITH ACCEPTED WARNINGS within the deterministic local, fake and in-process scope. Final results remain Ruff PASS; MyPy PASS for 84 source files; focused W4 tests 108 passed; protected regression tests 69 passed; full ordinary suite 537 passed, 7 skipped, 4 deselected and 1 warning; platform validation PASS; rollback and cleanliness tests 3 passed; zero unexpected residue; and patch integrity PASS WITH ACCEPTED WARNINGS. The initial MyPy two-error result, initial focused two-failure result and initial full-suite two-failure result remain preserved as historical failures that were remediated and retested.
+- Accepted warnings, risks, evidence gaps and scope limitations: All items recorded in the approved W4-001 Column M manifest are accepted; no additional item is silently accepted. This includes the Starlette/FastAPI TestClient deprecation warning, Git LF-to-CRLF notices, deterministic fake and in-process boundaries, skipped and deselected tests, deferred live integrations, and the absence of production or cloud evidence.
+- NOT RUN and INDETERMINATE activities: All NOT RUN activities recorded in the W4-001 manifest remain NOT RUN and none is converted to PASS. Preserve every historical INDETERMINATE result. Remaining open INDETERMINATE activities: None. NOT RUN scope includes the 7 skipped tests, 4 deselected tests, W4-10 load work, live authentication, live provider/model work, production performance and capacity validation, service startup and deployment, operational/release rollback, and cloud lifecycle activity.
+- Deployment status: Local service startup, local deployment, cloud deployment and production deployment were NOT RUN.
+- Rollback status: Deterministic configuration rollback and rollback-disable checks PASS. Operational release, deployment, infrastructure and cloud rollback were NOT RUN.
+- Teardown and cleanliness status: Automated cleanliness and repository-residue checks PASS. Operational service, container and cloud teardown were NOT RUN because no such resources were created.
+- Residual-resource status: Zero unexpected repository residue was found. The approved 25 implementation files remain as intended project resources. The external development environment and owner-managed Excel lock file are retained outside the W4-001 closure boundary. No service, container, application network connection, model, credential or identity resource, cloud resource or deployment was created.
+- Deferred actions and responsible owner: All deferred actions recorded in the W4-001 manifest remain open. Responsible owner: Gyan Prakash Rai, unless another owner is explicitly recorded for an individual action. W4-10 remains deferred until W4-06 is implemented and approved and a separate execution approval is granted. Live authentication, live provider/model, production performance/capacity, deployment and cloud lifecycle work also remain deferred.
+- Conditions attached to approval: Preserve all PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource facts; close every W4-001 Column M manifest document together; only the owner updates Excel and performs Git mutation; do not infer production or cloud readiness from local, fake, mocked or injected evidence.
+- Next-task handover: The closed W4-01 and W4-02 local contracts may be relied on only within their evidenced boundary. W4-10 remains linked to API-001 and deferred until W4-06 and separate approval. Any live integration, production, deployment or cloud activity requires its own governed approval.
+- Tracker update responsibility after complete closure: Owner
+
+Column N closed this README section together with `W4-001.md`,
+`W4-01-api.txt` and `W4-02-auth.txt`; no partial closure occurred.

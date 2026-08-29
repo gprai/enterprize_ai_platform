@@ -47,3 +47,14 @@ def valid_settings_values() -> dict[str, object]:
 @pytest.fixture
 def valid_settings(valid_settings_values: dict[str, object]) -> Settings:
     return Settings(_env_file=None, **valid_settings_values)
+
+
+@pytest.fixture
+def api_settings(valid_settings_values: dict[str, object]) -> Settings:
+    """Return deterministic enabled settings with no external dependency wiring."""
+
+    return Settings(
+        _env_file=None,
+        api_routes_enabled=True,
+        **valid_settings_values,
+    )

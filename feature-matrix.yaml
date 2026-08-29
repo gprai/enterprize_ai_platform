@@ -237,6 +237,40 @@
         "W3-07",
         "W3-10"
       ]
+    },
+    {
+      "id": "API-001",
+      "implementation_paths": [
+        "src/enterprise_ai_platform/api/__init__.py",
+        "src/enterprise_ai_platform/api/dependencies.py",
+        "src/enterprise_ai_platform/api/errors.py",
+        "src/enterprise_ai_platform/api/models.py",
+        "src/enterprise_ai_platform/api/runtime.py",
+        "src/enterprise_ai_platform/api/routes.py",
+        "tests/fakes/api.py",
+        "tests/unit/test_api.py",
+        "tests/contract/test_api_schema.py",
+        "tests/integration/test_api_dependency_composition.py",
+        "tests/security/test_api_authorization.py",
+        "tests/rollback/test_w4_001_api_rollback.py",
+        "tests/teardown/test_w4_001_api_cleanliness.py",
+        ".env.example",
+        "feature-matrix.yaml",
+        "src/enterprise_ai_platform/app.py",
+        "src/enterprise_ai_platform/config.py",
+        "tools/platformctl/validate.py",
+        "tests/conftest.py",
+        "tests/unit/test_config.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/security/test_configuration_security.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W4-01",
+        "W4-02",
+        "W4-10"
+      ]
     }
   ]
 }

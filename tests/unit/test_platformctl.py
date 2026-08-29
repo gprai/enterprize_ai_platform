@@ -20,6 +20,8 @@ from tools.platformctl.cli import (
     validate_repository,
 )
 from tools.platformctl.validate import (
+    EXPECTED_API_IMPLEMENTATION_PATHS,
+    EXPECTED_API_LINKED_TRACKER_STEPS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
@@ -64,7 +66,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
     def test_approved_matrix_has_no_errors(self) -> None:
         self.assertIs(EXPECTED_FEATURE, EXPECTED_FEATURES[0])
         self.assertEqual(
-            ["MVP-001", "RAG-001", "EVAL-001"],
+            ["MVP-001", "RAG-001", "EVAL-001", "API-001"],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
         self.assertEqual([], validate_feature_matrix(approved_matrix()))
@@ -263,4 +265,30 @@ class PlatformCtlUnitTests(unittest.TestCase):
         )
         self.assertIn("src/enterprise_ai_platform/evaluation", REQUIRED_DIRECTORIES)
         for path in EXPECTED_EVAL_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w4_001_api_contract_is_exactly_appended(self) -> None:
+        self.assertEqual(23, len(EXPECTED_API_IMPLEMENTATION_PATHS))
+        self.assertEqual(23, len(set(EXPECTED_API_IMPLEMENTATION_PATHS)))
+        self.assertEqual(
+            (
+                "src/enterprise_ai_platform/api/__init__.py",
+                "src/enterprise_ai_platform/api/dependencies.py",
+                "src/enterprise_ai_platform/api/errors.py",
+                "src/enterprise_ai_platform/api/models.py",
+                "src/enterprise_ai_platform/api/runtime.py",
+                "src/enterprise_ai_platform/api/routes.py",
+            ),
+            EXPECTED_API_IMPLEMENTATION_PATHS[:6],
+        )
+        self.assertEqual(
+            ("W4-01", "W4-02", "W4-10"),
+            EXPECTED_API_LINKED_TRACKER_STEPS,
+        )
+        self.assertNotIn(
+            "tests/feature/test_api_load_smoke.py",
+            EXPECTED_API_IMPLEMENTATION_PATHS,
+        )
+        self.assertIn("src/enterprise_ai_platform/api", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_API_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)

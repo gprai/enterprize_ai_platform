@@ -25,6 +25,11 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.embedding_model_id == "sentence-transformers/all-MiniLM-L6-v2"
     assert settings.qdrant_url.host == "127.0.0.1"
     assert settings.opensearch_url.host == "opensearch.invalid"
+    assert settings.api_routes_enabled is False
+    assert settings.api_max_request_body_bytes == 131_072
+    assert settings.api_readiness_timeout_seconds == 1.0
+    assert settings.api_max_inflight_queries == 4
+    assert settings.api_query_queue_capacity == 0
 
 
 def test_missing_required_values_fail_fast(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -131,6 +136,30 @@ def test_timeout_must_remain_bounded(
 ) -> None:
     values = dict(valid_settings_values)
     values["request_timeout_seconds"] = timeout
+
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, **values)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("api_max_request_body_bytes", 0),
+        ("api_max_request_body_bytes", 131_073),
+        ("api_readiness_timeout_seconds", 0.0),
+        ("api_readiness_timeout_seconds", 1.01),
+        ("api_max_inflight_queries", 0),
+        ("api_max_inflight_queries", 5),
+        ("api_query_queue_capacity", 1),
+    ],
+)
+def test_api_limits_cannot_expand_beyond_owner_approved_bounds(
+    field: str,
+    value: int | float,
+    valid_settings_values: dict[str, object],
+) -> None:
+    values = dict(valid_settings_values)
+    values[field] = value
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None, **values)

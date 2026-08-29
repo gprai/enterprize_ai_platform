@@ -1,0 +1,150 @@
+W4-02 AUTHENTICATION AND AUTHORIZATION EVIDENCE
+
+DOCUMENT CONTROL
+
+Prompt/task ID: W4-001
+Feature owner: API-001
+Tracker step: W4-02
+Result: TEST-001 — PASS WITH ACCEPTED WARNINGS
+Evidence owner and command executor: Gyan Prakash Rai
+Documentation stage: Column N — complete
+Final owner approval: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS PURPOSE
+
+W4-02 separates trusted caller identity from untrusted query data. The API
+accepts an injected asynchronous authenticator, validates the returned existing
+AuthContext and denies access before protected AI work when authentication or
+authorization fails. W4-001 adds no live identity-provider integration.
+
+AUTHENTICATION CONTRACT
+
+- The injected interface is equivalent to async authenticate(request) ->
+  AuthContext.
+- Ordinary tests use deterministic fake authenticators and synthetic local
+  identities.
+- The default authenticator fails closed with 503
+  authentication_not_configured when no producer is configured.
+- Missing authentication returns 401 authentication_required.
+- Invalid authentication, an invalid AuthContext or an expired context returns
+  401 authentication_invalid.
+- Explicit operation denial returns 403 authorization_denied.
+- Authenticator exceptions are normalized without exposing raw exception text.
+
+AUTHORIZATION ORDERING AND DOWNSTREAM ENFORCEMENT
+
+- Media type, raw body, JSON and request-schema validation occurs before
+  authentication-dependent RAG work.
+- Authentication and explicit operation denial occur before RAG, retrieval,
+  provider, graph or tool invocation.
+- Existing downstream tenant, clearance, role, group and ACL enforcement
+  remains unchanged.
+- An authenticated caller with no authorized evidence receives HTTP 200 with
+  the existing no_authorized_evidence abstention.
+- An existing vector-store authorization denial remains HTTP 403 with its
+  existing safe code.
+
+UNTRUSTED INPUT AND REQUEST IDENTITY
+
+- Request JSON contains only query: str and cannot construct or override
+  subject, tenant, roles, groups, clearance, issuer, audience, expiry,
+  authorization policy or trusted request identity.
+- Inbound X-Request-ID, X-Correlation-ID and X-Forwarded-* values are not
+  trusted as the server-generated request ID.
+- Every W4-enabled response instead receives a new server-generated UUIDv4.
+- W4-001 adds no trusted-proxy, CORS, public-binding or proxy-identity policy.
+
+SECURITY AND PRIVACY RESULT
+
+- Denied callers made no RAG call in the deterministic authorization tests.
+- Prompt-injection text remained untrusted query data and was not exposed in
+  public responses or captured content logs.
+- Safe error responses contain no prompt, retrieved evidence, credential, PII,
+  tenant data, provider response, stack trace or raw exception.
+- No JWT, JWKS, live identity provider, API key, session store or network
+  authentication integration was added.
+- Live authentication and production authorization validation: NOT RUN.
+- Network activity: none.
+- Live provider/model activity: none.
+- Docker and AWS/cloud activity: none.
+- Estimated provider/cloud cost: USD 0.
+- Open INDETERMINATE results: none.
+
+OWNER-EXECUTED RESULTS
+
+- Final effective implementation manifest: 13 CREATE, 12 UPDATE, 0 DELETE and
+  25 edited implementation paths.
+- Post-remediation Ruff: PASS.
+- Strict MyPy: PASS — 84 source files.
+- Focused W4 suite: PASS — 108 tests.
+- Protected regressions: PASS — 69 tests.
+- Complete ordinary suite: PASS — 537 tests, 7 skipped, 4 deselected and 1
+  warning.
+- Platform validation: PASS.
+- Rollback and cleanliness: PASS — 3 tests.
+- Repository residue: ZERO.
+- Patch integrity: PASS WITH ACCEPTED WARNINGS.
+
+The seven skipped and four deselected tests remain NOT RUN.
+
+HISTORICAL FAILURES AND REMEDIATION
+
+- Initial MyPy reported 2 failures in the safe domain-error helper. The owner
+  applied the bounded fail-closed correction; final strict MyPy passed.
+- The initial focused scope reported 2 test-contract failures. The owner
+  corrected the schema assertion and Windows TestClient isolation; the final
+  focused scope passed 108 tests.
+- The initial complete suite reported 2 stale W2 feature-matrix consumer
+  failures. The owner reconciled those consumers to API-001; the final ordinary
+  suite passed 537 tests.
+
+These remain historical FAIL results. No current failure or open INDETERMINATE
+result remains.
+
+WARNINGS, GAPS AND LIMITATIONS
+
+- One Starlette/FastAPI TestClient deprecation warning remains accepted.
+- Git LF-to-CRLF working-copy notices remain accepted; no whitespace error or
+  conflict marker was reported.
+- Authentication evidence is fake-only and deterministic. It does not prove a
+  live IdP, JWT, JWKS, API-key, session, credential rotation, revocation,
+  federation, production tenant or proxy-trust integration.
+- Live provider/model, service startup, production performance, deployment,
+  operational rollback and cloud lifecycle validation remain NOT RUN.
+- W4-10 is NOT RUN — deferred until W4-06. Production performance and capacity
+  remain unproven, and no W4-10-load.json evidence exists.
+
+ROLLBACK, TEARDOWN AND RESIDUAL RESOURCES
+
+- Deterministic configuration rollback and rollback-disable behavior: PASS.
+- Automated cleanliness and zero-residue checks: PASS.
+- Operational release, deployment, infrastructure and cloud rollback: NOT RUN.
+- No service, container, network connection, model, identity resource, cloud
+  resource or deployment was created.
+- Approved implementation files remain as intended repository resources;
+  unexpected repository residue was zero.
+
+FINAL OWNER APPROVAL
+
+Prompt/task ID: W4-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-08-28 23:56:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W4-001
+Code review status: Approved for the bounded W4-001 implementation and owner-directed test-only remediations exercised by the owner. This approval does not establish production or cloud readiness.
+Documentation review status: Approved. All four documents in the W4-001 Column M manifest are closed together.
+Owner-executed test status: PASS WITH ACCEPTED WARNINGS within the deterministic local, fake and in-process scope. Final results remain Ruff PASS; MyPy PASS for 84 source files; focused W4 tests 108 passed; protected regression tests 69 passed; full ordinary suite 537 passed, 7 skipped, 4 deselected and 1 warning; platform validation PASS; rollback and cleanliness tests 3 passed; zero unexpected residue; and patch integrity PASS WITH ACCEPTED WARNINGS. The initial MyPy two-error result, initial focused two-failure result and initial full-suite two-failure result remain preserved as historical failures that were remediated and retested.
+Accepted warnings, risks, evidence gaps and scope limitations: All items recorded in the approved W4-001 Column M manifest are accepted; no additional item is silently accepted. This includes the Starlette/FastAPI TestClient deprecation warning, Git LF-to-CRLF notices, deterministic fake and in-process authentication boundaries, skipped and deselected tests, deferred live integrations, and the absence of production or cloud evidence.
+NOT RUN and INDETERMINATE activities: All NOT RUN activities recorded in the W4-001 manifest remain NOT RUN and none is converted to PASS. Preserve every historical INDETERMINATE result. Remaining open INDETERMINATE activities: None. NOT RUN scope includes the 7 skipped tests, 4 deselected tests, W4-10 load work, live authentication, live provider/model work, production performance and capacity validation, service startup and deployment, operational/release rollback, and cloud lifecycle activity.
+Deployment status: Local service startup, local deployment, cloud deployment and production deployment were NOT RUN.
+Rollback status: Deterministic configuration rollback and rollback-disable checks PASS. Operational release, deployment, infrastructure and cloud rollback were NOT RUN.
+Teardown and cleanliness status: Automated cleanliness and repository-residue checks PASS. Operational service, container and cloud teardown were NOT RUN because no such resources were created.
+Residual-resource status: Zero unexpected repository residue was found. The approved 25 implementation files remain as intended project resources. The external development environment and owner-managed Excel lock file are retained outside the W4-001 closure boundary. No service, container, application network connection, model, credential or identity resource, cloud resource or deployment was created.
+Deferred actions and responsible owner: All deferred actions recorded in the W4-001 manifest remain open. Responsible owner: Gyan Prakash Rai, unless another owner is explicitly recorded for an individual action. W4-10 remains deferred until W4-06 is implemented and approved and a separate execution approval is granted. Live authentication and identity-provider integration, live provider/model, production performance/capacity, deployment and cloud lifecycle work also remain deferred.
+Conditions attached to approval: Preserve all PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource facts; close every W4-001 Column M manifest document together; only the owner updates Excel and performs Git mutation; do not infer production or cloud readiness from local, fake, mocked or injected evidence.
+Next-task handover: The closed W4-02 authentication and authorization contract may be relied on only within its evidenced deterministic-injection boundary. Live identity integration and all production, deployment or cloud activity require their own governed approval. W4-10 remains deferred until W4-06 and separate approval.
+Tracker update responsibility after complete closure: Owner
+
+Column N closed this record together with W4-001.md, W4-01-api.txt and the
+W4-001 section of README.md. No partial closure occurred.
