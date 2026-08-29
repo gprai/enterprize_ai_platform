@@ -299,11 +299,68 @@ EXPECTED_API_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_API_LINKED_TRACKER_STEPS),
 }
+EXPECTED_AGENT_IMPLEMENTATION_PATHS = (
+    "src/enterprise_ai_platform/agent/__init__.py",
+    "src/enterprise_ai_platform/agent/authorization.py",
+    "src/enterprise_ai_platform/agent/contracts.py",
+    "src/enterprise_ai_platform/agent/controller.py",
+    "src/enterprise_ai_platform/agent/errors.py",
+    "src/enterprise_ai_platform/agent/graph.py",
+    "src/enterprise_ai_platform/agent/models.py",
+    "src/enterprise_ai_platform/agent/persistence.py",
+    "src/enterprise_ai_platform/agent/runtime.py",
+    "src/enterprise_ai_platform/agent/serialization.py",
+    "src/enterprise_ai_platform/agent/tools.py",
+    "tests/fakes/agent.py",
+    "tests/unit/test_agent_graph.py",
+    "tests/unit/test_agent_tools.py",
+    "tests/unit/test_agent_budgets.py",
+    "tests/unit/test_agent_persistence.py",
+    "tests/contract/test_agent_schema.py",
+    "tests/integration/test_agent_api_composition.py",
+    "tests/security/test_agent_approval.py",
+    "tests/security/test_agent_state_redaction.py",
+    "tests/rollback/test_w4_002_agent_rollback.py",
+    "tests/teardown/test_w4_002_agent_cleanliness.py",
+    ".env.example",
+    "feature-matrix.yaml",
+    "src/enterprise_ai_platform/app.py",
+    "src/enterprise_ai_platform/config.py",
+    "src/enterprise_ai_platform/api/dependencies.py",
+    "src/enterprise_ai_platform/api/errors.py",
+    "src/enterprise_ai_platform/api/models.py",
+    "src/enterprise_ai_platform/api/runtime.py",
+    "src/enterprise_ai_platform/api/routes.py",
+    "tools/platformctl/validate.py",
+    "tests/conftest.py",
+    "tests/unit/test_api.py",
+    "tests/contract/test_api_schema.py",
+    "tests/security/test_api_authorization.py",
+    "tests/unit/test_config.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/security/test_configuration_security.py",
+)
+EXPECTED_AGENT_LINKED_TRACKER_STEPS = (
+    "W4-03",
+    "W4-04",
+    "W4-05",
+    "W4-06",
+    "W4-07",
+    "W4-09",
+)
+EXPECTED_AGENT_FEATURE = {
+    "id": "AGENT-001",
+    "implementation_paths": list(EXPECTED_AGENT_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": list(EXPECTED_AGENT_LINKED_TRACKER_STEPS),
+}
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
     EXPECTED_EVAL_FEATURE,
     EXPECTED_API_FEATURE,
+    EXPECTED_AGENT_FEATURE,
 )
 
 REQUIRED_DIRECTORIES = (
@@ -320,6 +377,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/guardrails",
     "src/enterprise_ai_platform/llm",
     "src/enterprise_ai_platform/api",
+    "src/enterprise_ai_platform/agent",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
     "src/enterprise_ai_platform/retrieval",
@@ -407,6 +465,7 @@ REQUIRED_FILES = (
     *EXPECTED_RAG_IMPLEMENTATION_PATHS,
     *EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     *EXPECTED_API_IMPLEMENTATION_PATHS,
+    *EXPECTED_AGENT_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -461,7 +520,7 @@ def validate_feature_matrix(data: object) -> list[str]:
     elif features != list(EXPECTED_FEATURES):
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
-            "MVP-001, RAG-001, EVAL-001, API-001"
+            "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001"
         )
 
     return errors

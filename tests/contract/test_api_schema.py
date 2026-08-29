@@ -7,15 +7,20 @@ from uuid import UUID
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
+from enterprise_ai_platform.agent.models import MockSetServiceModeArguments
 from enterprise_ai_platform.api.models import (
     AbstainedQueryResponse,
+    AgentRequest,
+    AgentResponse,
     AnsweredQueryResponse,
     APIErrorDetail,
     APIErrorResponse,
+    DecideAgentRequest,
     LivenessResponse,
     QueryRequest,
     QueryResponse,
     ReadinessResponse,
+    StartAgentRequest,
 )
 from enterprise_ai_platform.llm.models import Usage
 from enterprise_ai_platform.retrieval.models import Citation
@@ -33,6 +38,9 @@ REQUEST_ID = UUID("12345678-1234-4678-9234-567812345678")
         AbstainedQueryResponse,
         APIErrorDetail,
         APIErrorResponse,
+        StartAgentRequest,
+        DecideAgentRequest,
+        AgentResponse,
     ],
 )
 def test_every_api_model_is_strict_and_extra_forbidden(model: type[object]) -> None:
@@ -56,6 +64,36 @@ def test_query_transport_contains_only_untrusted_query_text() -> None:
         )
     with pytest.raises(ValidationError):
         QueryRequest.model_validate({"query": 1}, strict=True)
+
+
+def test_agent_transport_is_an_exact_discriminated_union() -> None:
+    adapter = TypeAdapter(AgentRequest)
+    start = adapter.validate_json(
+        '{"action":"start","query":"exact text"}',
+        strict=True,
+    )
+    decision = adapter.validate_json(
+        '{"action":"decide",'
+        '"approval_id":"12345678-1234-4678-9234-567812345678",'
+        '"idempotency_key":"22345678-1234-4678-9234-567812345678",'
+        '"decision":"approved","tool_name":"mock_set_service_mode",'
+        '"tool_version":"1.0","arguments":{"mode":"maintenance"}}',
+        strict=True,
+    )
+
+    assert isinstance(start, StartAgentRequest)
+    assert isinstance(decision, DecideAgentRequest)
+    assert decision.arguments == MockSetServiceModeArguments(mode="maintenance")
+    with pytest.raises(ValidationError):
+        adapter.validate_json(
+            '{"action":"start","query":"text","tenant_id":"tenant-a"}',
+            strict=True,
+        )
+    with pytest.raises(ValidationError):
+        adapter.validate_json(
+            '{"action":"decide","approval_id":"not-a-uuid"}',
+            strict=True,
+        )
 
 
 def test_answer_schema_reuses_exact_citation_and_usage_contracts() -> None:
@@ -182,6 +220,9 @@ def test_error_schema_omits_retryable_when_policy_does_not_define_it() -> None:
 def test_public_schemas_expose_no_internal_or_reasoning_fields() -> None:
     models = (
         QueryRequest,
+        StartAgentRequest,
+        DecideAgentRequest,
+        AgentResponse,
         AnsweredQueryResponse,
         AbstainedQueryResponse,
         APIErrorResponse,

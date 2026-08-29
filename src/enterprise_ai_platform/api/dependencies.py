@@ -6,6 +6,9 @@ from typing import Protocol, cast, runtime_checkable
 
 from fastapi import Request
 
+from enterprise_ai_platform.agent.contracts import AgentController
+from enterprise_ai_platform.agent.errors import AgentNotConfiguredError
+from enterprise_ai_platform.agent.models import AgentCommand, AgentResult
 from enterprise_ai_platform.rag.errors import RAGConfigurationError
 from enterprise_ai_platform.rag.models import RAGResult
 from enterprise_ai_platform.retrieval.models import AuthContext
@@ -69,6 +72,19 @@ class UnconfiguredReadinessProbe:
         return False
 
 
+class UnconfiguredAgentController:
+    """Preserve a fail-closed enabled boundary until explicitly injected."""
+
+    async def handle(
+        self,
+        transport: AgentCommand,
+        auth_context: AuthContext,
+        request_id: str,
+    ) -> AgentResult:
+        del transport, auth_context, request_id
+        raise AgentNotConfiguredError
+
+
 def get_authenticator(request: Request) -> Authenticator:
     """Return the application-scoped authenticator without invoking it."""
 
@@ -85,3 +101,9 @@ def get_readiness_probe(request: Request) -> ReadinessProbe:
     """Return the application-scoped local readiness probe."""
 
     return cast(ReadinessProbe, request.app.state.api_readiness_probe)
+
+
+def get_agent_controller(request: Request) -> AgentController:
+    """Return the controller object without invoking agent work."""
+
+    return cast(AgentController, request.app.state.api_agent_controller)

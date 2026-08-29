@@ -13,6 +13,17 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import ClientDisconnect
 from starlette.responses import Response
 
+from enterprise_ai_platform.agent.authorization import (
+    require_decision_authorized,
+    require_start_authorized,
+)
+from enterprise_ai_platform.agent.contracts import AgentController
+from enterprise_ai_platform.agent.errors import AgentError
+from enterprise_ai_platform.agent.models import (
+    AgentOutcome,
+    DecideAgentCommand,
+    StartAgentCommand,
+)
 from enterprise_ai_platform.config import Settings
 from enterprise_ai_platform.embeddings.errors import EmbeddingError
 from enterprise_ai_platform.guardrails.errors import GuardrailInputError
@@ -26,9 +37,11 @@ from .dependencies import (
     Authenticator,
     RAGAnswerService,
     ReadinessProbe,
+    UnconfiguredAgentController,
     UnconfiguredAuthenticator,
     UnconfiguredRAGService,
     UnconfiguredReadinessProbe,
+    get_agent_controller,
     get_authenticator,
     get_rag_service,
     get_readiness_probe,
@@ -37,21 +50,26 @@ from .errors import (
     APIError,
     AuthenticationInvalidError,
     api_error,
+    normalize_agent_error,
     normalize_domain_error,
 )
 from .models import (
     AbstainedQueryResponse,
+    AgentResponse,
     AnsweredQueryResponse,
     APIErrorDetail,
     APIErrorResponse,
+    DecideAgentRequest,
     LivenessResponse,
     QueryResponse,
     ReadinessResponse,
+    StartAgentRequest,
 )
 from .runtime import (
     REQUEST_ID_HEADER,
     QueryCapacityLimiter,
     overload_error,
+    read_agent_request,
     read_query_request,
     request_id_for,
 )
@@ -87,6 +105,12 @@ async def _domain_error_handler(request: Request, error: Exception) -> Response:
     return _error_response(request, normalize_domain_error(error))
 
 
+async def _agent_error_handler(request: Request, error: Exception) -> Response:
+    if not isinstance(error, AgentError):
+        return _error_response(request, api_error(500, "internal_error"))
+    return _error_response(request, normalize_agent_error(error))
+
+
 async def _request_validation_handler(request: Request, error: Exception) -> Response:
     del error
     return _error_response(request, api_error(422, "api_request_invalid"))
@@ -114,6 +138,7 @@ def register_exception_handlers(application: FastAPI) -> None:
     """Normalize errors only on the explicitly enabled W4 surface."""
 
     application.add_exception_handler(APIError, _api_error_handler)
+    application.add_exception_handler(AgentError, _agent_error_handler)
     for error_type in (
         GuardrailInputError,
         VectorStoreError,
@@ -259,11 +284,67 @@ async def query(
         limiter.release()
 
 
-@router.post("/v1/agent", tags=["agent"])
-async def agent(request: Request) -> Response:
-    """Return the stable disabled boundary without resolving dependencies."""
+@router.post("/v1/agent", response_model=AgentResponse, tags=["agent"])
+async def agent(request: Request, response: Response) -> Response | AgentResponse:
+    """Preserve default-off behavior or invoke one authenticated controller."""
 
-    return _error_response(request, api_error(501, "agent_disabled"))
+    settings = cast(Settings, request.app.state.settings)
+    if not settings.agent_enabled:
+        return _error_response(request, api_error(501, "agent_disabled"))
+    transport = await read_agent_request(
+        request,
+        maximum_bytes=settings.api_max_request_body_bytes,
+    )
+    authenticator = get_authenticator(request)
+    auth_context = await _trusted_auth_context(request, authenticator)
+    command: StartAgentCommand | DecideAgentCommand
+    if isinstance(transport, StartAgentRequest):
+        require_start_authorized(auth_context)
+        command = StartAgentCommand(action="start", query=transport.query)
+    elif isinstance(transport, DecideAgentRequest):
+        require_decision_authorized(auth_context)
+        command = DecideAgentCommand(
+            action="decide",
+            approval_id=transport.approval_id,
+            idempotency_key=transport.idempotency_key,
+            decision=transport.decision,
+            tool_name=transport.tool_name,
+            tool_version=transport.tool_version,
+            arguments=transport.arguments,
+        )
+    else:
+        raise api_error(422, "api_request_invalid")
+    outer_limiter = cast(QueryCapacityLimiter, request.app.state.api_query_limiter)
+    if not outer_limiter.try_acquire():
+        raise api_error(
+            503,
+            "agent_overloaded",
+            retryable=True,
+            headers={"Retry-After": "1"},
+        )
+    try:
+        controller = get_agent_controller(request)
+        server_request_id = request_id_for(request)
+        result = await controller.handle(
+            command,
+            auth_context,
+            str(server_request_id),
+        )
+    finally:
+        outer_limiter.release()
+    if result.outcome is AgentOutcome.APPROVAL_REQUIRED:
+        response.status_code = 202
+    if result.request_id != server_request_id:
+        raise api_error(500, "internal_error")
+    return AgentResponse(
+        request_id=server_request_id,
+        run_id=result.run_id,
+        outcome=result.outcome,
+        terminal_reason=result.terminal_reason,
+        approval_id=result.approval_id,
+        result_reference_sha256=result.result_reference_sha256,
+        safe_error_code=result.safe_error_code,
+    )
 
 
 def register_api_boundary(
@@ -273,6 +354,7 @@ def register_api_boundary(
     authenticator: Authenticator | None = None,
     rag_service: RAGAnswerService | None = None,
     readiness_probe: ReadinessProbe | None = None,
+    agent_controller: AgentController | None = None,
 ) -> None:
     """Attach application-scoped dependencies and the enabled route surface."""
 
@@ -289,6 +371,12 @@ def register_api_boundary(
         if readiness_probe is not None
         else UnconfiguredReadinessProbe()
     )
+    if settings.agent_enabled:
+        application.state.api_agent_controller = (
+            agent_controller
+            if agent_controller is not None
+            else UnconfiguredAgentController()
+        )
     application.state.api_query_limiter = QueryCapacityLimiter(
         settings.api_max_inflight_queries
     )

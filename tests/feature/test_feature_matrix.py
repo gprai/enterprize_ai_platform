@@ -8,6 +8,8 @@ from pathlib import Path
 
 from tools.platformctl.cli import validate_feature_matrix
 from tools.platformctl.validate import (
+    EXPECTED_AGENT_IMPLEMENTATION_PATHS,
+    EXPECTED_AGENT_LINKED_TRACKER_STEPS,
     EXPECTED_API_IMPLEMENTATION_PATHS,
     EXPECTED_API_LINKED_TRACKER_STEPS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
@@ -62,6 +64,12 @@ EXPECTED_API_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_API_LINKED_TRACKER_STEPS),
 }
+EXPECTED_AGENT_FEATURE = {
+    "id": "AGENT-001",
+    "implementation_paths": list(EXPECTED_AGENT_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": list(EXPECTED_AGENT_LINKED_TRACKER_STEPS),
+}
 
 
 def read_matrix() -> dict[str, object]:
@@ -80,6 +88,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_RAG_FEATURE,
                 EXPECTED_EVAL_FEATURE,
                 EXPECTED_API_FEATURE,
+                EXPECTED_AGENT_FEATURE,
             ],
             matrix["features"],
         )
@@ -88,7 +97,7 @@ class FeatureMatrixTests(unittest.TestCase):
         matrix = read_matrix()
         features = matrix["features"]
         self.assertEqual(
-            ["MVP-001", "RAG-001", "EVAL-001", "API-001"],
+            ["MVP-001", "RAG-001", "EVAL-001", "API-001", "AGENT-001"],
             [feature["id"] for feature in features],
         )
         self.assertEqual(
@@ -107,6 +116,10 @@ class FeatureMatrixTests(unittest.TestCase):
             list(EXPECTED_API_LINKED_TRACKER_STEPS),
             features[3]["linked_tracker_steps"],
         )
+        self.assertEqual(
+            list(EXPECTED_AGENT_LINKED_TRACKER_STEPS),
+            features[4]["linked_tracker_steps"],
+        )
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -123,10 +136,10 @@ class FeatureMatrixTests(unittest.TestCase):
     def test_cumulative_rag_contract_is_owned_only_by_rag_001(self) -> None:
         matrix = read_matrix()
         features = matrix["features"]
-        mvp_feature, rag_feature, eval_feature, api_feature = features
+        mvp_feature, rag_feature, eval_feature, api_feature, agent_feature = features
 
         self.assertEqual(
-            ["MVP-001", "RAG-001", "EVAL-001", "API-001"],
+            ["MVP-001", "RAG-001", "EVAL-001", "API-001", "AGENT-001"],
             [item["id"] for item in features],
         )
         for step in ("W2-05", "W2-06", "W2-07", "W2-09", "W2-10"):
@@ -139,6 +152,7 @@ class FeatureMatrixTests(unittest.TestCase):
             list(EXPECTED_RAG_IMPLEMENTATION_PATHS),
             rag_feature["implementation_paths"],
         )
+        self.assertEqual("AGENT-001", agent_feature["id"])
         self.assertEqual(
             [
                 "W3-01",
@@ -259,6 +273,21 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertNotIn(
             "tests/feature/test_api_load_smoke.py",
             api_feature["implementation_paths"],
+        )
+
+    def test_agent_001_owns_exact_steps_and_current_column_l_paths(self) -> None:
+        agent_feature = read_matrix()["features"][4]
+
+        self.assertEqual(EXPECTED_AGENT_FEATURE, agent_feature)
+        self.assertEqual(
+            ["W4-03", "W4-04", "W4-05", "W4-06", "W4-07", "W4-09"],
+            agent_feature["linked_tracker_steps"],
+        )
+        self.assertEqual(40, len(agent_feature["implementation_paths"]))
+        self.assertEqual(40, len(set(agent_feature["implementation_paths"])))
+        self.assertNotIn(
+            "tests/feature/test_agent_failures.py",
+            agent_feature["implementation_paths"],
         )
 
     def test_trailing_content_is_rejected_as_malformed_json(self) -> None:

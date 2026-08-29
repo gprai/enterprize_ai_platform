@@ -20,6 +20,8 @@ from tools.platformctl.cli import (
     validate_repository,
 )
 from tools.platformctl.validate import (
+    EXPECTED_AGENT_IMPLEMENTATION_PATHS,
+    EXPECTED_AGENT_LINKED_TRACKER_STEPS,
     EXPECTED_API_IMPLEMENTATION_PATHS,
     EXPECTED_API_LINKED_TRACKER_STEPS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
@@ -66,7 +68,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
     def test_approved_matrix_has_no_errors(self) -> None:
         self.assertIs(EXPECTED_FEATURE, EXPECTED_FEATURES[0])
         self.assertEqual(
-            ["MVP-001", "RAG-001", "EVAL-001", "API-001"],
+            ["MVP-001", "RAG-001", "EVAL-001", "API-001", "AGENT-001"],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
         self.assertEqual([], validate_feature_matrix(approved_matrix()))
@@ -291,4 +293,31 @@ class PlatformCtlUnitTests(unittest.TestCase):
         )
         self.assertIn("src/enterprise_ai_platform/api", REQUIRED_DIRECTORIES)
         for path in EXPECTED_API_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w4_002_agent_contract_is_exactly_appended(self) -> None:
+        self.assertEqual(40, len(EXPECTED_AGENT_IMPLEMENTATION_PATHS))
+        self.assertEqual(40, len(set(EXPECTED_AGENT_IMPLEMENTATION_PATHS)))
+        self.assertEqual(
+            (
+                "src/enterprise_ai_platform/agent/__init__.py",
+                "src/enterprise_ai_platform/agent/authorization.py",
+                "src/enterprise_ai_platform/agent/contracts.py",
+            ),
+            EXPECTED_AGENT_IMPLEMENTATION_PATHS[:3],
+        )
+        self.assertEqual(
+            ("W4-03", "W4-04", "W4-05", "W4-06", "W4-07", "W4-09"),
+            EXPECTED_AGENT_LINKED_TRACKER_STEPS,
+        )
+        self.assertNotIn(
+            "tests/feature/test_agent_failures.py",
+            EXPECTED_AGENT_IMPLEMENTATION_PATHS,
+        )
+        self.assertNotIn(
+            "tests/feature/test_api_load_smoke.py",
+            EXPECTED_AGENT_IMPLEMENTATION_PATHS,
+        )
+        self.assertIn("src/enterprise_ai_platform/agent", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_AGENT_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)

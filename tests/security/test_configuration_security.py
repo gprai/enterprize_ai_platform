@@ -44,6 +44,29 @@ def test_environment_example_contains_only_approved_values() -> None:
     assert values["ENTERPRISE_AI_API_READINESS_TIMEOUT_SECONDS"] == "1.0"
     assert values["ENTERPRISE_AI_API_MAX_INFLIGHT_QUERIES"] == "4"
     assert values["ENTERPRISE_AI_API_QUERY_QUEUE_CAPACITY"] == "0"
+    assert values["ENTERPRISE_AI_AGENT_ENABLED"] == "false"
+    assert values["ENTERPRISE_AI_AGENT_MOCK_WRITE_ENABLED"] == "false"
+    assert values["ENTERPRISE_AI_AGENT_STATE_SCHEMA_VERSION"] == (
+        "w4-002.agent-state.v1"
+    )
+    assert values["ENTERPRISE_AI_AGENT_GRAPH_VERSION"] == "w4-002.graph.v1"
+    assert values["ENTERPRISE_AI_AGENT_STORE_SCHEMA_VERSION"] == (
+        "w4-002.agent-store.v1"
+    )
+    assert values["ENTERPRISE_AI_AGENT_STORE_PATH"] == (
+        r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3"
+    )
+    assert values["ENTERPRISE_AI_AGENT_APPROVAL_TTL_SECONDS"] == "600"
+    assert values["ENTERPRISE_AI_AGENT_TERMINAL_RETENTION_SECONDS"] == "86400"
+    assert values["ENTERPRISE_AI_AGENT_MAXIMUM_GRAPH_STEPS"] == "8"
+    assert values["ENTERPRISE_AI_AGENT_MAXIMUM_TOOL_CALLS"] == "1"
+    assert values["ENTERPRISE_AI_AGENT_MAXIMUM_PROVIDER_ATTEMPTS"] == "1"
+    assert values["ENTERPRISE_AI_AGENT_MAXIMUM_TOTAL_TOKENS"] == "4096"
+    assert values["ENTERPRISE_AI_AGENT_GRAPH_RETRIES"] == "0"
+    assert values["ENTERPRISE_AI_AGENT_DEADLINE_SECONDS"] == "25"
+    assert values["ENTERPRISE_AI_AGENT_MAXIMUM_SERIALIZED_STATE_BYTES"] == "16384"
+    assert values["ENTERPRISE_AI_AGENT_MAXIMUM_CONCURRENT_RUNS"] == "1"
+    assert values["ENTERPRISE_AI_AGENT_QUEUE_CAPACITY"] == "0"
     assert "AWS_ACCESS_KEY_ID" not in values
     assert "AWS_SECRET_ACCESS_KEY" not in values
     assert "AWS_SESSION_TOKEN" not in values

@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from . import __version__
+from .agent.contracts import AgentController
 from .api.dependencies import Authenticator, RAGAnswerService, ReadinessProbe
 from .api.routes import register_api_boundary
 from .api.runtime import RequestIdMiddleware
@@ -28,6 +29,7 @@ def create_app(
     authenticator: Authenticator | None = None,
     rag_service: RAGAnswerService | None = None,
     readiness_probe: ReadinessProbe | None = None,
+    agent_controller: AgentController | None = None,
 ) -> FastAPI:
     """Create the API after configuration validation, without external clients."""
     resolved_settings = settings if settings is not None else Settings()
@@ -57,6 +59,7 @@ def create_app(
             authenticator=authenticator,
             rag_service=rag_service,
             readiness_probe=readiness_probe,
+            agent_controller=agent_controller,
         )
 
     return application

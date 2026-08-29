@@ -30,6 +30,25 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.api_readiness_timeout_seconds == 1.0
     assert settings.api_max_inflight_queries == 4
     assert settings.api_query_queue_capacity == 0
+    assert settings.agent_enabled is False
+    assert settings.agent_mock_write_enabled is False
+    assert settings.agent_state_schema_version == "w4-002.agent-state.v1"
+    assert settings.agent_graph_version == "w4-002.graph.v1"
+    assert settings.agent_store_schema_version == "w4-002.agent-store.v1"
+    assert str(settings.agent_store_path) == (
+        r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3"
+    )
+    assert settings.agent_approval_ttl_seconds == 600
+    assert settings.agent_terminal_retention_seconds == 86_400
+    assert settings.agent_maximum_graph_steps == 8
+    assert settings.agent_maximum_tool_calls == 1
+    assert settings.agent_maximum_provider_attempts == 1
+    assert settings.agent_maximum_total_tokens == 4096
+    assert settings.agent_graph_retries == 0
+    assert settings.agent_deadline_seconds == 25
+    assert settings.agent_maximum_serialized_state_bytes == 16_384
+    assert settings.agent_maximum_concurrent_runs == 1
+    assert settings.agent_queue_capacity == 0
 
 
 def test_missing_required_values_fail_fast(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -151,6 +170,17 @@ def test_timeout_must_remain_bounded(
         ("api_max_inflight_queries", 0),
         ("api_max_inflight_queries", 5),
         ("api_query_queue_capacity", 1),
+        ("agent_approval_ttl_seconds", 601),
+        ("agent_terminal_retention_seconds", 86_401),
+        ("agent_maximum_graph_steps", 9),
+        ("agent_maximum_tool_calls", 2),
+        ("agent_maximum_provider_attempts", 2),
+        ("agent_maximum_total_tokens", 4097),
+        ("agent_graph_retries", 1),
+        ("agent_deadline_seconds", 26),
+        ("agent_maximum_serialized_state_bytes", 16_385),
+        ("agent_maximum_concurrent_runs", 2),
+        ("agent_queue_capacity", 1),
     ],
 )
 def test_api_limits_cannot_expand_beyond_owner_approved_bounds(
@@ -162,4 +192,27 @@ def test_api_limits_cannot_expand_beyond_owner_approved_bounds(
     values[field] = value
 
     with pytest.raises(ValidationError):
+        Settings(_env_file=None, **values)
+
+
+def test_agent_store_path_cannot_move_into_repository(
+    valid_settings_values: dict[str, object],
+) -> None:
+    values = dict(valid_settings_values)
+    values["agent_store_path"] = r"E:\AI\enterprise_ai_platform\agent.sqlite3"
+
+    with pytest.raises(ValidationError, match="approved runtime path"):
+        Settings(_env_file=None, **values)
+
+def test_enabled_agent_deadline_must_remain_inside_api_deadline(
+    valid_settings_values: dict[str, object],
+) -> None:
+    values = dict(valid_settings_values)
+    values.update(
+        api_routes_enabled=True,
+        agent_enabled=True,
+        request_timeout_seconds=25,
+    )
+
+    with pytest.raises(ValidationError, match="agent deadline"):
         Settings(_env_file=None, **values)

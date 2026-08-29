@@ -10,6 +10,11 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from enterprise_ai_platform.agent.models import (
+    AgentOutcome,
+    AgentResult,
+    TerminalReason,
+)
 from enterprise_ai_platform.api.dependencies import RAGAnswerService
 from enterprise_ai_platform.api.runtime import QueryCapacityLimiter
 from enterprise_ai_platform.app import create_app
@@ -43,6 +48,7 @@ from enterprise_ai_platform.retrieval.models import (
     Classification,
     Role,
 )
+from tests.fakes.agent import FakeAgentController
 from tests.fakes.api import FakeAuthenticator, FakeRAGService, FakeReadinessProbe
 
 
@@ -94,6 +100,7 @@ def _client(
     *,
     authenticator: FakeAuthenticator | None = None,
     readiness: FakeReadinessProbe | None = None,
+    agent_controller: FakeAgentController | None = None,
     raise_server_exceptions: bool = True,
 ) -> TestClient:
     application = create_app(
@@ -101,6 +108,7 @@ def _client(
         authenticator=authenticator or FakeAuthenticator(_auth()),
         rag_service=rag,
         readiness_probe=readiness or FakeReadinessProbe(),
+        agent_controller=agent_controller,
     )
     return TestClient(
         application,
@@ -477,11 +485,20 @@ def test_disabled_agent_resolves_no_dependency_and_unknown_routes_are_safe(
     authenticator = FakeAuthenticator(_auth())
     rag = FakeRAGService([_answered()])
     readiness = FakeReadinessProbe()
+    controller = FakeAgentController(
+        AgentResult(
+            request_id=UUID("12345678-1234-4678-9234-567812345678"),
+            run_id=UUID("22345678-1234-4678-9234-567812345678"),
+            outcome=AgentOutcome.SAFE_TERMINAL,
+            terminal_reason=TerminalReason.SAFE_FAILURE,
+        )
+    )
     client = _client(
         api_settings,
         rag,
         authenticator=authenticator,
         readiness=readiness,
+        agent_controller=controller,
     )
 
     disabled = client.post("/v1/agent", json={"query": "ignored"})
@@ -493,6 +510,7 @@ def test_disabled_agent_resolves_no_dependency_and_unknown_routes_are_safe(
     assert authenticator.calls == 0
     assert rag.calls == []
     assert readiness.calls == 0
+    assert controller.calls == []
     assert missing.status_code == 404
     assert missing.json()["error"]["code"] == "api_not_found"
     assert wrong_method.status_code == 405

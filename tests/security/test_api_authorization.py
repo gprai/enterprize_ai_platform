@@ -8,6 +8,11 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 
+from enterprise_ai_platform.agent.models import (
+    AgentOutcome,
+    AgentResult,
+    TerminalReason,
+)
 from enterprise_ai_platform.api.errors import (
     AuthenticationInvalidError,
     AuthenticationRequiredError,
@@ -22,6 +27,7 @@ from enterprise_ai_platform.retrieval.models import (
     Classification,
     Role,
 )
+from tests.fakes.agent import FakeAgentController
 from tests.fakes.api import FakeAuthenticator, FakeRAGService, FakeReadinessProbe
 
 INJECTION = (
@@ -44,6 +50,12 @@ def _auth(*, expired: bool = False) -> AuthContext:
 
 def _abstention() -> AbstentionResult:
     return AbstentionResult(reason="insufficient_evidence")
+
+
+def _agent_enabled(settings: Settings) -> Settings:
+    values = settings.model_dump(mode="python")
+    values["agent_enabled"] = True
+    return Settings(_env_file=None, **values)
 
 
 @pytest.mark.parametrize(
@@ -99,6 +111,68 @@ def test_unconfigured_authenticator_fails_closed_before_rag(
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "authentication_not_configured"
     assert rag.calls == []
+
+
+def test_agent_authentication_denial_invokes_no_controller_or_store(
+    api_settings: Settings,
+) -> None:
+    controller = FakeAgentController(
+        AgentResult(
+            request_id=UUID("12345678-1234-4678-9234-567812345678"),
+            run_id=UUID("22345678-1234-4678-9234-567812345678"),
+            outcome=AgentOutcome.SAFE_TERMINAL,
+            terminal_reason=TerminalReason.SAFE_FAILURE,
+        )
+    )
+    application = create_app(
+        _agent_enabled(api_settings),
+        authenticator=FakeAuthenticator(AuthenticationRequiredError()),
+        rag_service=FakeRAGService(()),
+        readiness_probe=FakeReadinessProbe(),
+        agent_controller=controller,
+    )
+    response = TestClient(application).post(
+        "/v1/agent",
+        json={"action": "start", "query": "must stop before controller"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "authentication_required"
+    assert controller.calls == []
+
+
+def test_agent_operation_authorization_denial_invokes_no_controller(
+    api_settings: Settings,
+) -> None:
+    reviewer = AuthContext(
+        subject_id="reviewer-a",
+        tenant_id="tenant-a",
+        roles=frozenset({Role.REVIEWER}),
+        clearance=Classification.INTERNAL,
+    )
+    controller = FakeAgentController(
+        AgentResult(
+            request_id=UUID("12345678-1234-4678-9234-567812345678"),
+            run_id=UUID("22345678-1234-4678-9234-567812345678"),
+            outcome=AgentOutcome.SAFE_TERMINAL,
+            terminal_reason=TerminalReason.SAFE_FAILURE,
+        )
+    )
+    application = create_app(
+        _agent_enabled(api_settings),
+        authenticator=FakeAuthenticator(reviewer),
+        rag_service=FakeRAGService(()),
+        readiness_probe=FakeReadinessProbe(),
+        agent_controller=controller,
+    )
+    response = TestClient(application).post(
+        "/v1/agent",
+        json={"action": "start", "query": "must stop before controller"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "authorization_denied"
+    assert controller.calls == []
 
 
 def test_body_supplied_authority_is_rejected_before_authentication(

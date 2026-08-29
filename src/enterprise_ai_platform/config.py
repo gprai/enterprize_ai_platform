@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ipaddress import IPv4Address
+from pathlib import Path
 from typing import Literal
 
 from pydantic import (
@@ -18,6 +19,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 TODO_MARKER = "TODO_USER"
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
+AGENT_STORE_PATH = Path(
+    r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3"
+)
 
 
 class Settings(BaseSettings):
@@ -43,6 +47,27 @@ class Settings(BaseSettings):
     api_readiness_timeout_seconds: float = Field(default=1.0, gt=0, le=1.0)
     api_max_inflight_queries: int = Field(default=4, ge=1, le=4)
     api_query_queue_capacity: Literal[0] = 0
+    agent_enabled: bool = False
+    agent_mock_write_enabled: bool = False
+    agent_state_schema_version: Literal["w4-002.agent-state.v1"] = (
+        "w4-002.agent-state.v1"
+    )
+    agent_graph_version: Literal["w4-002.graph.v1"] = "w4-002.graph.v1"
+    agent_store_schema_version: Literal["w4-002.agent-store.v1"] = (
+        "w4-002.agent-store.v1"
+    )
+    agent_store_path: Path = AGENT_STORE_PATH
+    agent_approval_ttl_seconds: Literal[600] = 600
+    agent_terminal_retention_seconds: Literal[86_400] = 86_400
+    agent_maximum_graph_steps: Literal[8] = 8
+    agent_maximum_tool_calls: Literal[1] = 1
+    agent_maximum_provider_attempts: Literal[1] = 1
+    agent_maximum_total_tokens: Literal[4096] = 4096
+    agent_graph_retries: Literal[0] = 0
+    agent_deadline_seconds: Literal[25] = 25
+    agent_maximum_serialized_state_bytes: Literal[16_384] = 16_384
+    agent_maximum_concurrent_runs: Literal[1] = 1
+    agent_queue_capacity: Literal[0] = 0
 
     llm_provider: Literal["fake", "bedrock"] = "fake"
     llm_model_id: str | None = Field(default=None, min_length=1, max_length=200)
@@ -99,6 +124,13 @@ class Settings(BaseSettings):
                 raise ValueError(f"{TODO_MARKER} is not a secret value")
         return value
 
+    @field_validator("agent_store_path")
+    @classmethod
+    def require_exact_agent_store_path(cls, value: Path) -> Path:
+        if value != AGENT_STORE_PATH:
+            raise ValueError("agent_store_path must match the approved runtime path")
+        return value
+
     @field_validator("qdrant_url", "opensearch_url")
     @classmethod
     def require_secure_external_urls(
@@ -119,4 +151,11 @@ class Settings(BaseSettings):
             self.llm_model_id is None or self.aws_region is None
         ):
             raise ValueError("Bedrock requires llm_model_id and aws_region")
+        if not self.agent_store_path.is_absolute():
+            raise ValueError("agent_store_path must be absolute")
+        if (
+            self.agent_enabled
+            and self.agent_deadline_seconds >= self.request_timeout_seconds
+        ):
+            raise ValueError("agent deadline must remain inside the API deadline")
         return self

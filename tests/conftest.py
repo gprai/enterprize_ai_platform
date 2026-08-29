@@ -58,3 +58,15 @@ def api_settings(valid_settings_values: dict[str, object]) -> Settings:
         api_routes_enabled=True,
         **valid_settings_values,
     )
+
+
+@pytest.fixture
+def agent_settings(valid_settings_values: dict[str, object]) -> Settings:
+    """Enable only the local agent route; collaborators remain explicitly injected."""
+
+    return Settings(
+        _env_file=None,
+        api_routes_enabled=True,
+        agent_enabled=True,
+        **valid_settings_values,
+    )

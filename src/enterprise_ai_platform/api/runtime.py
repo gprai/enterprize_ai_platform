@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import threading
-from typing import cast
+from typing import TypeVar, cast
 from uuid import UUID, uuid4
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -15,9 +15,10 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from enterprise_ai_platform.json_contracts import DuplicateJSONKeyError, strict_json_loads
 
 from .errors import APIError, api_error
-from .models import QueryRequest
+from .models import AgentRequest, QueryRequest
 
 REQUEST_ID_HEADER = "X-Request-ID"
+RequestT = TypeVar("RequestT")
 
 
 class RequestIdMiddleware:
@@ -101,8 +102,13 @@ def _validate_media_type(request: Request) -> None:
         raise api_error(415, "api_unsupported_media_type")
 
 
-async def read_query_request(request: Request, *, maximum_bytes: int) -> QueryRequest:
-    """Count streaming bytes, then decode and strictly validate one query object."""
+async def _read_json_request(
+    request: Request,
+    *,
+    maximum_bytes: int,
+    adapter: TypeAdapter[RequestT],
+) -> RequestT:
+    """Count raw bytes, reject unsafe JSON, then validate its JSON representation."""
 
     _validate_media_type(request)
     body = bytearray()
@@ -113,14 +119,30 @@ async def read_query_request(request: Request, *, maximum_bytes: int) -> QueryRe
 
     try:
         text = bytes(body).decode("utf-8")
-        raw = strict_json_loads(text)
+        strict_json_loads(text)
     except (UnicodeDecodeError, json.JSONDecodeError, DuplicateJSONKeyError, ValueError, TypeError):
         raise api_error(400, "api_request_malformed") from None
 
     try:
-        return QueryRequest.model_validate(raw, strict=True)
+        return adapter.validate_json(text, strict=True)
     except ValidationError:
         raise api_error(422, "api_request_invalid") from None
+
+
+async def read_query_request(request: Request, *, maximum_bytes: int) -> QueryRequest:
+    return await _read_json_request(
+        request,
+        maximum_bytes=maximum_bytes,
+        adapter=TypeAdapter(QueryRequest),
+    )
+
+
+async def read_agent_request(request: Request, *, maximum_bytes: int) -> AgentRequest:
+    return await _read_json_request(
+        request,
+        maximum_bytes=maximum_bytes,
+        adapter=TypeAdapter(AgentRequest),
+    )
 
 
 def overload_error() -> APIError:

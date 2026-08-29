@@ -5,6 +5,15 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Final
 
+from enterprise_ai_platform.agent.errors import (
+    AgentApprovalConflictError,
+    AgentAuthorizationError,
+    AgentDeadlineError,
+    AgentError,
+    AgentNotConfiguredError,
+    AgentOverloadedError,
+    AgentStateUnavailableError,
+)
 from enterprise_ai_platform.embeddings.errors import (
     EmbeddingBatchSizeError,
     EmbeddingError,
@@ -49,6 +58,11 @@ SAFE_MESSAGES: Final[dict[str, str]] = {
     "api_overloaded": "The query service is at capacity.",
     "service_not_ready": "The service is not ready.",
     "agent_disabled": "The agent endpoint is disabled.",
+    "agent_not_configured": "The agent controller is not configured.",
+    "agent_approval_conflict": "The approval conflicts with the current state.",
+    "agent_deadline_exceeded": "The agent deadline was exceeded.",
+    "agent_overloaded": "The agent service is at capacity.",
+    "agent_state_unavailable": "The agent state is unavailable.",
     "api_not_found": "The requested resource was not found.",
     "api_method_not_allowed": "The request method is not allowed.",
     "internal_error": "The request could not be completed.",
@@ -193,4 +207,27 @@ def normalize_domain_error(error: Exception) -> APIError:
         return _domain_error(503, error)
     if isinstance(error, LLMError):
         return _domain_error(503, error)
+    return api_error(500, "internal_error")
+
+
+def normalize_agent_error(error: AgentError) -> APIError:
+    """Map only the approved content-free W4-002 failures."""
+
+    if isinstance(error, AgentNotConfiguredError):
+        return api_error(503, "agent_not_configured")
+    if isinstance(error, AgentAuthorizationError):
+        return api_error(403, "authorization_denied")
+    if isinstance(error, AgentApprovalConflictError):
+        return api_error(409, "agent_approval_conflict")
+    if isinstance(error, AgentDeadlineError):
+        return api_error(504, "agent_deadline_exceeded")
+    if isinstance(error, AgentOverloadedError):
+        return api_error(
+            503,
+            "agent_overloaded",
+            retryable=True,
+            headers={"Retry-After": "1"},
+        )
+    if isinstance(error, AgentStateUnavailableError):
+        return api_error(503, "agent_state_unavailable")
     return api_error(500, "internal_error")
