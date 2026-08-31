@@ -54,9 +54,7 @@ def test_query_transport_contains_only_untrusted_query_text() -> None:
 
     assert set(schema["properties"]) == {"query"}
     assert schema["required"] == ["query"]
-    assert QueryRequest.model_validate({"query": "exact text"}, strict=True).query == (
-        "exact text"
-    )
+    assert QueryRequest.model_validate({"query": "exact text"}, strict=True).query == ("exact text")
     with pytest.raises(ValidationError):
         QueryRequest.model_validate(
             {"query": "text", "tenant_id": "tenant-a"},
@@ -227,10 +225,7 @@ def test_public_schemas_expose_no_internal_or_reasoning_fields() -> None:
         AbstainedQueryResponse,
         APIErrorResponse,
     )
-    schemas = " ".join(
-        str(model.model_json_schema()).casefold()
-        for model in models
-    )
+    schemas = " ".join(str(model.model_json_schema()).casefold() for model in models)
     forbidden = (
         "chain_of_thought",
         "internal_endpoint",
@@ -240,8 +235,5 @@ def test_public_schemas_expose_no_internal_or_reasoning_fields() -> None:
         "system_prompt",
     )
 
-    assert all(
-        "evidence" not in model.model_json_schema()["properties"]
-        for model in models
-    )
+    assert all("evidence" not in model.model_json_schema()["properties"] for model in models)
     assert not any(field in schemas for field in forbidden)

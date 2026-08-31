@@ -108,10 +108,7 @@ def promote(arguments: argparse.Namespace) -> ApprovedBaseline:
     if (
         not candidate_cases_match
         or not repeat_cases_match
-        or (
-            candidate.deterministic_payload_sha256
-            != repeat.deterministic_payload_sha256
-        )
+        or (candidate.deterministic_payload_sha256 != repeat.deterministic_payload_sha256)
         or candidate.dataset_checksum_sha256 != dataset.checksum_sha256
         or candidate.configuration_checksum_sha256 != configuration_checksum
         or candidate.gates.absolute_gate_status != "PASS"

@@ -71,9 +71,7 @@ class RepositorySecurityTests(unittest.TestCase):
         self.assertEqual([], findings)
 
     def test_feature_matrix_contains_no_secret_fields(self) -> None:
-        matrix = json.loads(
-            (REPOSITORY_ROOT / "feature-matrix.yaml").read_text(encoding="utf-8")
-        )
+        matrix = json.loads((REPOSITORY_ROOT / "feature-matrix.yaml").read_text(encoding="utf-8"))
         forbidden_keys = {
             "api_key",
             "credential",

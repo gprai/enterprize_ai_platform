@@ -20,9 +20,7 @@ from .errors import (
 from .models import ReleaseDescriptor, ReleaseVersion
 
 REPOSITORY_ROOT: Final[Path] = Path(__file__).resolve().parents[3]
-KNOWN_GOOD_DESCRIPTOR_PATH: Final[Path] = Path(
-    "configs/releases/versions/w4-known-good-v1.json"
-)
+KNOWN_GOOD_DESCRIPTOR_PATH: Final[Path] = Path("configs/releases/versions/w4-known-good-v1.json")
 REGRESSION_DESCRIPTOR_PATH: Final[Path] = Path(
     "configs/releases/versions/w4-synthetic-regression-v1.json"
 )
@@ -167,9 +165,7 @@ def hash_file(path: Path) -> str:
 
 
 def descriptor_sha256(descriptor: ReleaseDescriptor) -> str:
-    return sha256_bytes(
-        canonical_json_bytes(descriptor.model_dump(mode="json"))
-    )
+    return sha256_bytes(canonical_json_bytes(descriptor.model_dump(mode="json")))
 
 
 def artifact_composition_sha256(descriptor: ReleaseDescriptor) -> str:
@@ -208,9 +204,7 @@ def _exact_repository_file(value: str) -> Path:
     try:
         for part in relative.parts:
             names = tuple(item.name for item in current.iterdir())
-            case_matches = tuple(
-                name for name in names if name.casefold() == part.casefold()
-            )
+            case_matches = tuple(name for name in names if name.casefold() == part.casefold())
             if part not in names or case_matches != (part,):
                 raise ReleaseUnsafePathError
             current = current / part
@@ -238,9 +232,8 @@ def _load_descriptor_file(
         descriptor = ReleaseDescriptor.model_validate_json(text, strict=True)
     except (OSError, UnicodeError, TypeError, ValueError, ValidationError):
         raise ReleaseConfigurationError from None
-    if (
-        descriptor.release_version != expected_version
-        or payload != canonical_json_bytes(descriptor.model_dump(mode="json"))
+    if descriptor.release_version != expected_version or payload != canonical_json_bytes(
+        descriptor.model_dump(mode="json")
     ):
         raise ReleaseIdentityError
     return descriptor
@@ -254,8 +247,7 @@ def _validate_descriptor(descriptor: ReleaseDescriptor) -> None:
         or descriptor.artifact_count != APPROVED_ARTIFACT_COUNT
         or descriptor.composition_sha256 != APPROVED_COMPOSITION_SHA256
         or paths != APPROVED_ARTIFACT_PATHS
-        or artifact_composition_sha256(descriptor)
-        != APPROVED_COMPOSITION_SHA256
+        or artifact_composition_sha256(descriptor) != APPROVED_COMPOSITION_SHA256
     ):
         raise ReleaseIdentityError
     for artifact in descriptor.artifacts:

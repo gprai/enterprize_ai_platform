@@ -56,9 +56,7 @@ def test_rag_feature_matrix_preserves_structured_w2_002_ownership() -> None:
     assert "W2-05" not in features[0]["linked_tracker_steps"]
     rag_steps = features[1]["linked_tracker_steps"]
     rag_paths = features[1]["implementation_paths"]
-    assert rag_steps[: len(EXPECTED_RAG_TRACKER_STEPS)] == list(
-        EXPECTED_RAG_TRACKER_STEPS
-    )
+    assert rag_steps[: len(EXPECTED_RAG_TRACKER_STEPS)] == list(EXPECTED_RAG_TRACKER_STEPS)
     path_positions = [rag_paths.index(path) for path in EXPECTED_RAG_IMPLEMENTATION_PATHS]
     assert path_positions == sorted(path_positions)
     eval_paths = features[2]["implementation_paths"]

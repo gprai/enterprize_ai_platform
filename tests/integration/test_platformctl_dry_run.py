@@ -118,4 +118,3 @@ def test_approved_clean_fake_returns_zero(capsys: pytest.CaptureFixture[str]) ->
     )
     assert result == 0
     assert "CLEANLINESS PASS" in capsys.readouterr().out
-

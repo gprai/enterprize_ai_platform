@@ -166,10 +166,7 @@ def test_failed_compensation_is_reported_as_rollback_indeterminate(
     )
 
     assert outcome.exit_code == 5
-    assert (
-        outcome.manifest.records[0].status
-        is IngestionRecordStatus.ROLLBACK_INDETERMINATE
-    )
+    assert outcome.manifest.records[0].status is IngestionRecordStatus.ROLLBACK_INDETERMINATE
     assert outcome.manifest.records[0].error_code == "ingestion_rollback_indeterminate"
 
 

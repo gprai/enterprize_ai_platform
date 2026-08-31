@@ -28,9 +28,7 @@ def test_known_good_and_regression_descriptors_are_canonical_and_exact() -> None
     known_good, regression = validate_release_pair()
 
     assert known_good.artifact_count == APPROVED_ARTIFACT_COUNT == 99
-    assert tuple(item.path for item in known_good.artifacts) == (
-        APPROVED_ARTIFACT_PATHS
-    )
+    assert tuple(item.path for item in known_good.artifacts) == (APPROVED_ARTIFACT_PATHS)
     assert known_good.artifacts == regression.artifacts
     assert known_good.composition_sha256 == APPROVED_COMPOSITION_SHA256
     assert artifact_composition_sha256(known_good) == APPROVED_COMPOSITION_SHA256
@@ -70,9 +68,7 @@ def test_schema_rejects_extra_reordered_duplicate_and_unsafe_artifacts() -> None
         dict(values, artifacts=tuple(reversed(known_good.artifacts))),
         strict=True,
     )
-    assert artifact_composition_sha256(reordered) != (
-        APPROVED_COMPOSITION_SHA256
-    )
+    assert artifact_composition_sha256(reordered) != (APPROVED_COMPOSITION_SHA256)
 
     duplicated = dict(
         values,
@@ -98,8 +94,6 @@ def test_schema_rejects_extra_reordered_duplicate_and_unsafe_artifacts() -> None
 
 def test_release_control_package_is_not_an_application_payload_input() -> None:
     assert all(
-        not Path(path).is_relative_to(
-            "src/enterprise_ai_platform/release_rollback"
-        )
+        not Path(path).is_relative_to("src/enterprise_ai_platform/release_rollback")
         for path in APPROVED_ARTIFACT_PATHS
     )

@@ -120,9 +120,7 @@ class BoundedAgentController:
                 graph_version="w4-002.graph.v1",
             ) as agent_scope:
                 try:
-                    async with asyncio.timeout(
-                        self._budgets.agent_deadline_seconds
-                    ):
+                    async with asyncio.timeout(self._budgets.agent_deadline_seconds):
                         self._authorize_command(transport, auth_context)
                         if isinstance(transport, DecideAgentCommand):
                             result = self._decide(
@@ -185,9 +183,7 @@ class BoundedAgentController:
                         stage=TelemetryStage.AUTHORIZATION,
                         operation=TelemetryOperation.AUTHORIZE,
                         outcome=TelemetryOutcome.DENIED,
-                        terminal_reason=(
-                            TerminalReason.AUTHORIZATION_DENIED.value
-                        ),
+                        terminal_reason=(TerminalReason.AUTHORIZATION_DENIED.value),
                         safe_error_code="authorization_denied",
                     ),
                 )
@@ -355,8 +351,7 @@ class BoundedAgentController:
         if (
             current.tool_name != command.tool_name
             or current.tool_version != command.tool_version
-            or current.arguments_sha256
-            != self._registry.arguments_fingerprint(proposal)
+            or current.arguments_sha256 != self._registry.arguments_fingerprint(proposal)
         ):
             raise AgentApprovalConflictError
         now = datetime.now(UTC)

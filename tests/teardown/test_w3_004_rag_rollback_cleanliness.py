@@ -17,12 +17,8 @@ PROTECTED_HASHES = {
     "configs/eval/w3-002.yaml": (
         "4564b1935c1c072281f90a63c1ac80315709e35e6aab8e0803d0a9abf5c189df"
     ),
-    "configs/rag.yaml": (
-        "5cb62932bbc0a0c11e494912bdcc5b4b48bd4195e3ca58bda2df27227070b27e"
-    ),
-    "reports/eval.json": (
-        "f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf"
-    ),
+    "configs/rag.yaml": ("5cb62932bbc0a0c11e494912bdcc5b4b48bd4195e3ca58bda2df27227070b27e"),
+    "reports/eval.json": ("f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf"),
     "reports/eval-repeat.json": (
         "d35c1ee13a54cda78e7514a84cd9af6e6086236a4095f7824f52cdbc46d2da1a"
     ),
@@ -34,9 +30,7 @@ def _sha256(path: Path) -> str:
 
 
 def test_protected_authorities_and_retained_reports_are_byte_identical() -> None:
-    assert {
-        relative: _sha256(ROOT / relative) for relative in PROTECTED_HASHES
-    } == PROTECTED_HASHES
+    assert {relative: _sha256(ROOT / relative) for relative in PROTECTED_HASHES} == PROTECTED_HASHES
 
 
 def test_column_l_created_no_runtime_drill_or_temporary_residue() -> None:

@@ -47,9 +47,7 @@ class StrictEvaluationModel(BaseModel):
 
 
 class EvaluationAuthorizationContext(StrictEvaluationModel):
-    roles: tuple[Literal["reader", "reviewer", "ingestor", "admin"], ...] = Field(
-        min_length=1
-    )
+    roles: tuple[Literal["reader", "reviewer", "ingestor", "admin"], ...] = Field(min_length=1)
     clearance: Literal["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"]
     groups: tuple[str, ...]
 
@@ -222,9 +220,9 @@ class MetricValue(StrictEvaluationModel):
         expected_value = self.numerator / self.denominator
         if not math.isclose(self.value, expected_value, rel_tol=0.0, abs_tol=1e-15):
             raise ValueError("metric value differs from its exact ratio")
-        expected_display = (
-            Decimal(self.numerator) / Decimal(self.denominator)
-        ).quantize(Decimal("0.000001"), rounding=ROUND_HALF_UP)
+        expected_display = (Decimal(self.numerator) / Decimal(self.denominator)).quantize(
+            Decimal("0.000001"), rounding=ROUND_HALF_UP
+        )
         if self.display != f"{expected_display:.6f}":
             raise ValueError("metric display differs from decimal half-up")
         return self
@@ -269,9 +267,7 @@ class EvaluationUsageSummary(StrictEvaluationModel):
             raise ValueError("evaluation token totals are inconsistent")
         if self.cases_with_usage > self.provider_calls:
             raise ValueError("usage cannot exist without a provider call")
-        if self.estimated_cost_usd is not None and not math.isfinite(
-            self.estimated_cost_usd
-        ):
+        if self.estimated_cost_usd is not None and not math.isfinite(self.estimated_cost_usd):
             raise ValueError("evaluation cost must be finite")
         return self
 
@@ -402,8 +398,7 @@ class EvaluationReport(StrictEvaluationModel):
         if self.overall_status != expected_overall:
             raise ValueError("overall status differs from gate precedence")
         expected_release = (
-            self.candidate_status == "PASS"
-            and self.baseline_comparison_status == "PASS"
+            self.candidate_status == "PASS" and self.baseline_comparison_status == "PASS"
         )
         if self.release_eligible != expected_release:
             raise ValueError("release eligibility differs from gate results")
@@ -413,12 +408,8 @@ class EvaluationReport(StrictEvaluationModel):
         )
         if self.candidate_generation_exit != expected_exit:
             raise ValueError("candidate exit differs from gate results")
-        answered = tuple(
-            case for case in self.cases if case.expected_outcome == "ANSWERED"
-        )
-        abstained = tuple(
-            case for case in self.cases if case.expected_outcome == "ABSTAINED"
-        )
+        answered = tuple(case for case in self.cases if case.expected_outcome == "ANSWERED")
+        abstained = tuple(case for case in self.cases if case.expected_outcome == "ABSTAINED")
         errors = tuple(case for case in self.cases if case.expected_outcome == "ERROR")
         if (len(answered), len(abstained), len(errors)) != (24, 12, 3):
             raise ValueError("report outcome distribution differs from owner approval")
@@ -449,9 +440,7 @@ class EvaluationReport(StrictEvaluationModel):
             for metric, numerator, denominator in exact_counts
         ):
             raise ValueError("report correctness metrics differ from case results")
-        eligible = tuple(
-            case for case in self.cases if case.retrieval_recall_denominator > 0
-        )
+        eligible = tuple(case for case in self.cases if case.retrieval_recall_denominator > 0)
         if len(eligible) != 24:
             raise ValueError("report retrieval eligibility count differs from approval")
         recall = sum(
@@ -465,24 +454,23 @@ class EvaluationReport(StrictEvaluationModel):
             Fraction(),
         ) / len(eligible)
         mrr = sum(
-            (
-                Fraction(case.reciprocal_rank).limit_denominator(5)
-                for case in eligible
-            ),
+            (Fraction(case.reciprocal_rank).limit_denominator(5) for case in eligible),
             Fraction(),
         ) / len(eligible)
-        if (
-            self.metrics.recall_at_5.denominator == 0
-            or self.metrics.mrr.denominator == 0
-        ):
+        if self.metrics.recall_at_5.denominator == 0 or self.metrics.mrr.denominator == 0:
             raise ValueError("report retrieval metrics require denominators")
-        if Fraction(
-            self.metrics.recall_at_5.numerator,
-            self.metrics.recall_at_5.denominator,
-        ) != recall or Fraction(
-            self.metrics.mrr.numerator,
-            self.metrics.mrr.denominator,
-        ) != mrr:
+        if (
+            Fraction(
+                self.metrics.recall_at_5.numerator,
+                self.metrics.recall_at_5.denominator,
+            )
+            != recall
+            or Fraction(
+                self.metrics.mrr.numerator,
+                self.metrics.mrr.denominator,
+            )
+            != mrr
+        ):
             raise ValueError("report retrieval metrics differ from case results")
         returned = sum(case.returned_citation_count for case in answered)
         valid = sum(case.valid_citation_count for case in answered)

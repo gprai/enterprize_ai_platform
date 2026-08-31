@@ -84,9 +84,7 @@ def test_prompt_delimits_evidence_as_untrusted_data() -> None:
 
 def test_evidence_selection_uses_complete_blocks_and_deduplicates_provenance() -> None:
     chunk = _chunk()
-    one_block = select_complete_evidence_blocks(
-        (chunk, chunk), max_context_characters=12000
-    )
+    one_block = select_complete_evidence_blocks((chunk, chunk), max_context_characters=12000)
     too_small = select_complete_evidence_blocks(
         (chunk,), max_context_characters=len(one_block[0].rendered) - 1
     )

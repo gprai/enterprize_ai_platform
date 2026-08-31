@@ -114,9 +114,7 @@ def _runtime_file(relative: Path, *, require_exists: bool = False) -> Path:
 
 
 def _temporary_for(target: Path) -> Path:
-    return target.with_name(
-        f".{target.name}.{os.getpid()}.{threading.get_ident()}.tmp"
-    )
+    return target.with_name(f".{target.name}.{os.getpid()}.{threading.get_ident()}.tmp")
 
 
 @contextmanager
@@ -340,11 +338,7 @@ def verify_runtime_inventory(*, require_complete: bool) -> int:
     approved, unexpected = _inventory()
     if unexpected or ACTIVATION_LOCK_PATH in approved:
         raise RollbackCleanupError
-    temporary = {
-        path
-        for path in approved
-        if path not in _ARTIFACT_PATHS
-    }
+    temporary = {path for path in approved if path not in _ARTIFACT_PATHS}
     if temporary:
         raise RollbackCleanupError
     artifacts = approved.intersection(_ARTIFACT_PATHS)
@@ -362,11 +356,7 @@ def cleanup_complete_drill(*, external_archive_verified: bool) -> None:
     with _exclusive_writer_lock():
         approved, unexpected = _inventory()
         allowed = _ARTIFACT_PATHS | {ACTIVATION_LOCK_PATH}
-        if (
-            unexpected
-            or ACTIVATION_LOCK_PATH not in approved
-            or not approved.issubset(allowed)
-        ):
+        if unexpected or ACTIVATION_LOCK_PATH not in approved or not approved.issubset(allowed):
             raise RollbackCleanupError
         for relative in (
             REGRESSION_REPORT_PATH,

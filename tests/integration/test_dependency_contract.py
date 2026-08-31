@@ -31,13 +31,19 @@ EXPECTED_RUNTIME_PACKAGES = {
 }
 EXPECTED_DEVELOPMENT_PACKAGES = {
     "deepeval",
+    "detect-secrets",
     "httpx",
     "moto",
     "mypy",
+    "pre-commit",
     "pytest",
     "ragas",
     "ruff",
     "testcontainers",
+}
+EXACT_DEVELOPMENT_REQUIREMENTS = {
+    "detect-secrets==1.5.0",
+    "pre-commit==4.6.2",
 }
 
 
@@ -64,20 +70,26 @@ def test_runtime_and_development_packages_are_separated() -> None:
     assert EXPECTED_RUNTIME_PACKAGES.isdisjoint(EXPECTED_DEVELOPMENT_PACKAGES)
 
 
-def test_every_direct_package_has_lower_and_upper_bounds() -> None:
-    direct_specs = requirement_lines(RUNTIME_REQUIREMENTS) + [
-        line
-        for line in requirement_lines(DEVELOPMENT_REQUIREMENTS)
-        if not line.startswith("-r ")
+def test_every_direct_package_is_bounded_or_an_approved_exact_pin() -> None:
+    development_specs = [
+        line for line in requirement_lines(DEVELOPMENT_REQUIREMENTS) if not line.startswith("-r ")
+    ]
+    exact_development_specs = {
+        requirement for requirement in development_specs if "==" in requirement
+    }
+    bounded_specs = requirement_lines(RUNTIME_REQUIREMENTS) + [
+        requirement
+        for requirement in development_specs
+        if requirement not in EXACT_DEVELOPMENT_REQUIREMENTS
     ]
 
-    assert all(">=" in requirement and ",<" in requirement for requirement in direct_specs)
+    assert exact_development_specs == EXACT_DEVELOPMENT_REQUIREMENTS
+    assert all(">=" in requirement and ",<" in requirement for requirement in bounded_specs)
 
 
 def test_default_requirements_contain_no_gpu_only_package() -> None:
     combined = "\n".join(
-        requirement_lines(RUNTIME_REQUIREMENTS)
-        + requirement_lines(DEVELOPMENT_REQUIREMENTS)
+        requirement_lines(RUNTIME_REQUIREMENTS) + requirement_lines(DEVELOPMENT_REQUIREMENTS)
     ).casefold()
 
     forbidden_tokens = ("cuda", "nvidia", "-gpu", "fastembed-gpu", "onnx-gpu")
@@ -97,10 +109,8 @@ def test_opentelemetry_dependencies_are_minimal_and_exactly_bounded() -> None:
     assert "opentelemetry-api>=1.44,<1.45" in runtime_lines
     assert "opentelemetry-sdk>=1.44,<1.45" in runtime_lines
     assert not any(
-        package_name(line).startswith("opentelemetry-instrumentation")
-        for line in runtime_lines
+        package_name(line).startswith("opentelemetry-instrumentation") for line in runtime_lines
     )
     assert not any(
-        package_name(line).startswith("opentelemetry-exporter")
-        for line in runtime_lines
+        package_name(line).startswith("opentelemetry-exporter") for line in runtime_lines
     )

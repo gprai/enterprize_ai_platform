@@ -117,9 +117,7 @@ def test_self_cross_tenant_and_nonreviewer_approval_are_denied(
     )
     assert start.approval_id is not None
     with pytest.raises(AgentAuthorizationError):
-        asyncio.run(
-            controller.handle(_decision(start.approval_id), approver, str(uuid4()))
-        )
+        asyncio.run(controller.handle(_decision(start.approval_id), approver, str(uuid4())))
 
 
 def test_altered_tool_arguments_are_rejected_before_execution() -> None:
@@ -170,9 +168,7 @@ def test_missing_and_expired_approval_fail_closed() -> None:
             "expires_at": now - timedelta(minutes=10),
         }
     )
-    result = asyncio.run(
-        controller.handle(_decision(start.approval_id), reviewer, str(uuid4()))
-    )
+    result = asyncio.run(controller.handle(_decision(start.approval_id), reviewer, str(uuid4())))
     assert result.outcome is AgentOutcome.EXPIRED
     assert store.approvals[str(start.approval_id)].status is ApprovalStatus.EXPIRED
 

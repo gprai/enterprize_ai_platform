@@ -196,11 +196,7 @@ class OpenSearchVectorStore:
                         {
                             "bool": {
                                 "filter": [
-                                    {
-                                        "term": {
-                                            "pii_status": PiiStatus.APPROVED_EXCEPTION.value
-                                        }
-                                    },
+                                    {"term": {"pii_status": PiiStatus.APPROVED_EXCEPTION.value}},
                                     {
                                         "range": {
                                             "approved_exception.expires_at": {

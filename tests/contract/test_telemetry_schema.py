@@ -48,9 +48,7 @@ def test_schema_version_events_and_fields_are_exact() -> None:
         "telemetry.export_failure",
         "telemetry.record_dropped",
     }
-    assert TELEMETRY_ATTRIBUTE_ALLOWLIST == frozenset(
-        SafeTelemetryAttributes.model_fields
-    )
+    assert TELEMETRY_ATTRIBUTE_ALLOWLIST == frozenset(SafeTelemetryAttributes.model_fields)
     assert STRUCTURED_LOG_FIELD_ALLOWLIST == frozenset(SafeLogRecord.model_fields)
     assert {
         "request_id",
@@ -75,12 +73,14 @@ def test_span_names_cover_each_approved_stage_operation_pair() -> None:
     assert SPAN_NAMES[(TelemetryStage.RAG, TelemetryOperation.ANSWER)] == (
         "enterprise_ai.rag.answer"
     )
-    assert SPAN_NAMES[
-        (TelemetryStage.APPROVAL, TelemetryOperation.EVALUATE)
-    ] == "enterprise_ai.approval.evaluate"
-    assert SPAN_NAMES[
-        (TelemetryStage.GRAPH, TelemetryOperation.SAFE_TERMINAL)
-    ] == "enterprise_ai.agent.safe_terminal"
+    assert (
+        SPAN_NAMES[(TelemetryStage.APPROVAL, TelemetryOperation.EVALUATE)]
+        == "enterprise_ai.approval.evaluate"
+    )
+    assert (
+        SPAN_NAMES[(TelemetryStage.GRAPH, TelemetryOperation.SAFE_TERMINAL)]
+        == "enterprise_ai.agent.safe_terminal"
+    )
 
 
 def test_models_are_strict_immutable_and_reject_extra_fields() -> None:

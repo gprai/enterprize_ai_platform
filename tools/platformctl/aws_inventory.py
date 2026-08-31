@@ -61,9 +61,7 @@ class AwsInventoryProvider(Protocol):
         """Return Resource Groups Tagging API-equivalent results."""
         ...
 
-    def list_service_resources(
-        self, service: ServiceIdentifier
-    ) -> Sequence[InventoryResource]:
+    def list_service_resources(self, service: ServiceIdentifier) -> Sequence[InventoryResource]:
         """Return native service-equivalent results for one service."""
         ...
 
@@ -78,9 +76,7 @@ class UnavailableAwsInventoryProvider:
         del required_tags
         raise InventoryUnavailable("AWS inventory provider is unavailable")
 
-    def list_service_resources(
-        self, service: ServiceIdentifier
-    ) -> Sequence[InventoryResource]:
+    def list_service_resources(self, service: ServiceIdentifier) -> Sequence[InventoryResource]:
         """Fail because W1-004 has no approved native service adapter."""
         del service
         raise InventoryUnavailable("AWS inventory provider is unavailable")

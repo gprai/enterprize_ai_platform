@@ -49,12 +49,12 @@ def test_release_pair_has_identical_99_artifacts_and_only_approved_delta() -> No
     known_good = load_release_descriptor("w4-known-good-v1")
     candidate = load_release_descriptor("w4-synthetic-regression-v1")
 
-    assert known_good.artifact_count == candidate.artifact_count == (
-        APPROVED_ARTIFACT_COUNT
-    )
+    assert known_good.artifact_count == candidate.artifact_count == (APPROVED_ARTIFACT_COUNT)
     assert known_good.artifacts == candidate.artifacts
-    assert known_good.composition_sha256 == candidate.composition_sha256 == (
-        APPROVED_COMPOSITION_SHA256
+    assert (
+        known_good.composition_sha256
+        == candidate.composition_sha256
+        == (APPROVED_COMPOSITION_SHA256)
     )
     serialized = json.dumps(candidate.model_dump(mode="json"), sort_keys=True)
     assert "w4-011.agent-route-disabled.v1" in serialized

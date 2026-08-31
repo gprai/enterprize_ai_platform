@@ -20,9 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def _evaluate() -> tuple[object, ...]:
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
-    config, config_checksum = load_evaluation_config(
-        ROOT / "configs" / "eval" / "w3-002.yaml"
-    )
+    config, config_checksum = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
     policy = load_rag_policy(ROOT / "configs" / "rag.yaml")
     executions = asyncio.run(DeterministicRAGEvaluator().evaluate(dataset, policy))
     assessments = tuple(
@@ -37,9 +35,7 @@ def _evaluate() -> tuple[object, ...]:
 def test_all_39_controlled_cases_pass_the_absolute_contract() -> None:
     dataset, _, _, executions, assessments, metrics, gates = _evaluate()
 
-    assert [case.case_id for case in dataset.cases] == [
-        f"Q{index}" for index in range(1, 40)
-    ]
+    assert [case.case_id for case in dataset.cases] == [f"Q{index}" for index in range(1, 40)]
     assert all(assessment.passed for assessment in assessments)
     assert all(assessment.provider_calls_correct for assessment in assessments)
     assert all(assessment.usage_correct for assessment in assessments)

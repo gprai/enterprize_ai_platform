@@ -25,9 +25,7 @@ class InjectedConverseClient:
             "output": {
                 "message": {
                     "role": "assistant",
-                    "content": [
-                        {"text": '{"answer":"Synthetic answer","citations":[]}'}
-                    ]
+                    "content": [{"text": '{"answer":"Synthetic answer","citations":[]}'}],
                 }
             },
             "usage": {"inputTokens": 5, "outputTokens": 4, "totalTokens": 9},
@@ -53,11 +51,7 @@ def test_explicit_bedrock_selection_uses_only_injected_converse_client() -> None
     assert client.calls == []
     response = asyncio.run(
         provider.chat(
-            ChatRequest(
-                messages=(
-                    ChatMessage(role=ChatRole.USER, content="Synthetic question"),
-                )
-            )
+            ChatRequest(messages=(ChatMessage(role=ChatRole.USER, content="Synthetic question"),))
         )
     )
     assert response.usage is not None and response.usage.total_tokens == 9

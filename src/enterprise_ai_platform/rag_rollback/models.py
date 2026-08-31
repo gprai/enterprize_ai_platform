@@ -10,9 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 HexDigest: TypeAlias = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 GitSha: TypeAlias = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
 IdentityAlias: TypeAlias = Literal["known-good", "synthetic-regression"]
-ExpectedCurrent: TypeAlias = Literal[
-    "absent", "known-good", "synthetic-regression"
-]
+ExpectedCurrent: TypeAlias = Literal["absent", "known-good", "synthetic-regression"]
 DrillStatus: TypeAlias = Literal["PASS", "FAIL", "INDETERMINATE"]
 
 
@@ -65,9 +63,7 @@ class EvidenceReference(StrictRollbackModel):
     dataset_path: Literal["configs/eval/golden.jsonl"]
     dataset_raw_sha256: HexDigest
     dataset_canonical_sha256: HexDigest
-    fixture_source_path: Literal[
-        "src/enterprise_ai_platform/evaluation/fixtures.py"
-    ]
+    fixture_source_path: Literal["src/enterprise_ai_platform/evaluation/fixtures.py"]
     fixture_source_sha256: HexDigest
     ordinary_corpus_manifest: None = None
 
@@ -85,9 +81,7 @@ class EvaluationReference(StrictRollbackModel):
 
 
 class GuardrailReference(StrictRollbackModel):
-    source_path: Literal[
-        "src/enterprise_ai_platform/guardrails/policy.py"
-    ]
+    source_path: Literal["src/enterprise_ai_platform/guardrails/policy.py"]
     source_sha256: HexDigest
     semantic_sha256: HexDigest
     allowed_content_type: Literal["text/plain"]
@@ -191,9 +185,7 @@ class IdentityValidationResult(StrictRollbackModel):
 
 class EvaluationOutcome(StrictRollbackModel):
     status: Literal["EXPECTED_REGRESSION_DETECTED", "RESTORED_BASELINE_PASS"]
-    report_path: Literal[
-        "reports/w3-004/regression.json", "reports/w3-004/restored.json"
-    ]
+    report_path: Literal["reports/w3-004/regression.json", "reports/w3-004/restored.json"]
     report_sha256: HexDigest
     active_identity: IdentityAlias
     absolute_gate_status: Literal["PASS", "FAIL"]

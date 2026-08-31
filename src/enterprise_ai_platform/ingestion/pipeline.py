@@ -137,14 +137,9 @@ class IngestionPipeline:
             require_active_context(auth_context)
         except VectorStoreAuthorizationError:
             raise IngestionAuthorizationError from None
-        if (
-            auth_context.tenant_id != tenant_id
-            or Role.INGESTOR not in auth_context.roles
-        ):
+        if auth_context.tenant_id != tenant_id or Role.INGESTOR not in auth_context.roles:
             raise IngestionAuthorizationError
-        selected = tuple(
-            source for source in manifest.documents if source.tenant_id == tenant_id
-        )
+        selected = tuple(source for source in manifest.documents if source.tenant_id == tenant_id)
         if not selected:
             raise IngestionConfigurationError
 
@@ -218,9 +213,7 @@ class IngestionPipeline:
                     )
 
                 exception = (
-                    approved_exception
-                    if pii_status is PiiStatus.APPROVED_EXCEPTION
-                    else None
+                    approved_exception if pii_status is PiiStatus.APPROVED_EXCEPTION else None
                 )
                 document = Document(
                     tenant_id=source.tenant_id,
@@ -419,14 +412,8 @@ class IngestionPipeline:
         upsert_started: bool,
         cancelled: bool,
     ) -> tuple[IngestionManifestRecord, int]:
-        error: IngestionError = (
-            IngestionCancelledError() if cancelled else IngestionProviderError()
-        )
-        status = (
-            IngestionRecordStatus.CANCELLED
-            if cancelled
-            else IngestionRecordStatus.FAILED
-        )
+        error: IngestionError = IngestionCancelledError() if cancelled else IngestionProviderError()
+        status = IngestionRecordStatus.CANCELLED if cancelled else IngestionRecordStatus.FAILED
         if not upsert_started or document_version is None:
             return (
                 self._record(
@@ -459,9 +446,7 @@ class IngestionPipeline:
                 rollback_error.exit_code,
             )
         compensated_status = (
-            IngestionRecordStatus.CANCELLED
-            if cancelled
-            else IngestionRecordStatus.COMPENSATED
+            IngestionRecordStatus.CANCELLED if cancelled else IngestionRecordStatus.COMPENSATED
         )
         return (
             self._record(
@@ -542,9 +527,7 @@ class IngestionPipeline:
             tokenizer_id=self._tokenizer.tokenizer_id,
             tokenizer_revision=self._tokenizer.tokenizer_revision,
             selected_count=len(records),
-            indexed_count=sum(
-                record.status is IngestionRecordStatus.INDEXED for record in records
-            ),
+            indexed_count=sum(record.status is IngestionRecordStatus.INDEXED for record in records),
             quarantined_count=sum(
                 record.status
                 in {
@@ -563,8 +546,7 @@ class IngestionPipeline:
                 for record in records
             ),
             compensated_count=sum(
-                record.status is IngestionRecordStatus.COMPENSATED
-                for record in records
+                record.status is IngestionRecordStatus.COMPENSATED for record in records
             ),
             duration_ms=duration_ms,
             exit_code=exit_code,

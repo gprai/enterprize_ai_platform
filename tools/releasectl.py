@@ -70,9 +70,7 @@ def _dispatch(arguments: argparse.Namespace) -> dict[str, object]:
     if command == "verify-clean":
         return _payload(verify_clean())
     if command == "cleanup":
-        return _payload(
-            cleanup(owner_output_captured=arguments.owner_output_captured)
-        )
+        return _payload(cleanup(owner_output_captured=arguments.owner_output_captured))
     if command == "verify-zero-residue":
         return _payload(verify_zero_residue())
     raise TypeError

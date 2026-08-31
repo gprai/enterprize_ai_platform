@@ -57,23 +57,14 @@ def validate() -> ReleaseValidationResult:
     known_good, regression = validate_release_pair()
     state = read_active_state()
     artifact_count = verify_runtime_inventory(require_complete=False)
-    if (state is None and artifact_count != 0) or (
-        state is not None and artifact_count == 0
-    ):
+    if (state is None and artifact_count != 0) or (state is not None and artifact_count == 0):
         raise ReleaseStateError
     if state is not None:
-        expected = (
-            known_good
-            if state.active_release == "w4-known-good-v1"
-            else regression
-        )
+        expected = known_good if state.active_release == "w4-known-good-v1" else regression
         if (
             state.descriptor_sha256 != descriptor_sha256(expected)
             or state.composition_sha256 != APPROVED_COMPOSITION_SHA256
-            or (
-                state.agent_route_allowed
-                and state.active_release != "w4-known-good-v1"
-            )
+            or (state.agent_route_allowed and state.active_release != "w4-known-good-v1")
         ):
             raise ReleaseStateError
         if state.agent_route_allowed:
@@ -111,9 +102,7 @@ async def rollback_release(
     ):
         raise ReleaseStateConflictError
 
-    candidate_descriptor = load_release_descriptor(
-        "w4-synthetic-regression-v1"
-    )
+    candidate_descriptor = load_release_descriptor("w4-synthetic-regression-v1")
     activate_release(
         "w4-synthetic-regression-v1",
         expected_current="w4-known-good-v1",
@@ -149,8 +138,7 @@ async def rollback_release(
     duration_ms = (time.monotonic_ns() - rollback_started) // 1_000_000
     if (
         restored_descriptor != known_good_descriptor
-        or restored_state.descriptor_sha256
-        != descriptor_sha256(known_good_descriptor)
+        or restored_state.descriptor_sha256 != descriptor_sha256(known_good_descriptor)
         or restored_state.agent_route_allowed
         or duration_ms > ROLLBACK_DEADLINE_MILLISECONDS
     ):
@@ -233,9 +221,7 @@ async def smoke(probe: ReleaseProbe | None = None) -> SmokeReport:
     smoke_started = time.monotonic_ns()
     validate()
     state = require_active_state("w4-known-good-v1")
-    if state.agent_route_allowed or verify_runtime_inventory(
-        require_complete=False
-    ) != 3:
+    if state.agent_route_allowed or verify_runtime_inventory(require_complete=False) != 3:
         raise ReleaseStateConflictError
     rollback = _load_rollback_report()
     regression = _load_regression_report()
@@ -247,9 +233,7 @@ async def smoke(probe: ReleaseProbe | None = None) -> SmokeReport:
         or regression.generation + 1 != rollback.generation
     ):
         raise ReleaseStateError
-    restored_probe = await (
-        probe or LocalASGIReleaseProbe()
-    ).probe_restored(descriptor)
+    restored_probe = await (probe or LocalASGIReleaseProbe()).probe_restored(descriptor)
     duration_ms = (time.monotonic_ns() - smoke_started) // 1_000_000
     report = SmokeReport(
         schema_version="w4-011.smoke-report.v1",

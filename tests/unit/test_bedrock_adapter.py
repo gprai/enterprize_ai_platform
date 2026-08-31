@@ -26,12 +26,16 @@ from enterprise_ai_platform.llm.provider import (
 
 def _request(*, with_tool: bool = False) -> ChatRequest:
     tools = (
-        ToolSpec(
-            name="lookup",
-            description="Synthetic schema only",
-            input_schema={"type": "object", "additionalProperties": False},
-        ),
-    ) if with_tool else ()
+        (
+            ToolSpec(
+                name="lookup",
+                description="Synthetic schema only",
+                input_schema={"type": "object", "additionalProperties": False},
+            ),
+        )
+        if with_tool
+        else ()
+    )
     return ChatRequest(
         messages=(
             ChatMessage(role=ChatRole.SYSTEM, content="Synthetic system instruction"),
@@ -50,8 +54,7 @@ def _response(*, usage: object | None = None) -> dict[str, object]:
                 "content": [{"text": '{"answer":"ok"}'}],
             }
         },
-        "usage": usage
-        or {"inputTokens": 4, "outputTokens": 3, "totalTokens": 7},
+        "usage": usage or {"inputTokens": 4, "outputTokens": 3, "totalTokens": 7},
         "stopReason": "end_turn",
     }
 
@@ -309,9 +312,7 @@ def test_shared_gate_allows_four_calls_and_cancels_a_fifth_waiter() -> None:
             )
             for _ in range(5)
         ]
-        tasks = [
-            asyncio.create_task(provider.chat(_request())) for provider in providers
-        ]
+        tasks = [asyncio.create_task(provider.chat(_request())) for provider in providers]
         await _wait_until(client.started.is_set)
         assert client.calls == 4
         assert gate.active_calls == 4

@@ -16,17 +16,11 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 class RepositoryLayoutIntegrationTests(unittest.TestCase):
     def test_required_directories_exist(self) -> None:
-        missing = [
-            path
-            for path in REQUIRED_DIRECTORIES
-            if not (REPOSITORY_ROOT / path).is_dir()
-        ]
+        missing = [path for path in REQUIRED_DIRECTORIES if not (REPOSITORY_ROOT / path).is_dir()]
         self.assertEqual([], missing)
 
     def test_required_code_stage_files_exist(self) -> None:
-        missing = [
-            path for path in REQUIRED_FILES if not (REPOSITORY_ROOT / path).is_file()
-        ]
+        missing = [path for path in REQUIRED_FILES if not (REPOSITORY_ROOT / path).is_file()]
         self.assertEqual([], missing)
 
     def test_full_code_stage_contract_is_valid(self) -> None:

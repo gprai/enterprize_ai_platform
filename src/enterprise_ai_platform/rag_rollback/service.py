@@ -104,9 +104,7 @@ def validate() -> IdentityValidationResult:
     known_good, regression = validate_identity_pair()
     state = read_activation_state()
     artifact_count = verify_runtime_inventory(require_complete=False)
-    if (state is None and artifact_count != 0) or (
-        state is not None and artifact_count == 0
-    ):
+    if (state is None and artifact_count != 0) or (state is not None and artifact_count == 0):
         raise RollbackStateError
     if state is not None:
         expected = known_good if state.active_identity == "known-good" else regression
@@ -160,16 +158,13 @@ def _require_expected_report(
     failed_cases = tuple(item.case_id for item in report.cases if not item.passed)
     if (
         report.gates.absolute_gate_status != expectation.absolute_gate_status
-        or report.baseline_comparison_status
-        != expectation.baseline_comparison_status
+        or report.baseline_comparison_status != expectation.baseline_comparison_status
         or report.overall_status != expectation.overall_status
         or report.release_eligible != expectation.release_eligible
-        or report.metrics.answered_correctness.numerator
-        != expectation.answered_correct_numerator
+        or report.metrics.answered_correctness.numerator != expectation.answered_correct_numerator
         or report.metrics.answered_correctness.denominator
         != expectation.answered_correct_denominator
-        or report.metrics.combined_correctness.numerator
-        != expectation.combined_correct_numerator
+        or report.metrics.combined_correctness.numerator != expectation.combined_correct_numerator
         or report.metrics.combined_correctness.denominator
         != expectation.combined_correct_denominator
         or failed_cases != expectation.invalid_citation_cases
@@ -200,24 +195,18 @@ async def _evaluate_active_identity(
         config, config_checksum = load_evaluation_config(
             _repository_path(identity.evaluation.config_path)
         )
-        dataset = load_golden_dataset(
-            _repository_path(identity.evidence.dataset_path)
-        )
-        policy = load_rag_policy(
-            _repository_path(identity.rag_configuration.path)
-        )
-        baseline = load_approved_baseline(
-            _repository_path(identity.baseline.path)
-        )
+        dataset = load_golden_dataset(_repository_path(identity.evidence.dataset_path))
+        policy = load_rag_policy(_repository_path(identity.rag_configuration.path))
+        baseline = load_approved_baseline(_repository_path(identity.baseline.path))
         if baseline is None:
             raise RollbackEvaluationError
         fixture_factory: CaseFixtureFactory = (
             fixture_for if alias == "known-good" else _regression_fixture
         )
         started = time.perf_counter_ns()
-        executions = await DeterministicRAGEvaluator(
-            fixture_factory=fixture_factory
-        ).evaluate(dataset, policy)
+        executions = await DeterministicRAGEvaluator(fixture_factory=fixture_factory).evaluate(
+            dataset, policy
+        )
         assessments = tuple(
             assess_case(case, execution)
             for case, execution in zip(
@@ -253,16 +242,10 @@ async def _evaluate_active_identity(
         raise
     except Exception:
         raise RollbackEvaluationError from None
-    outcome_status: Literal[
-        "EXPECTED_REGRESSION_DETECTED", "RESTORED_BASELINE_PASS"
-    ] = (
-        "RESTORED_BASELINE_PASS"
-        if alias == "known-good"
-        else "EXPECTED_REGRESSION_DETECTED"
+    outcome_status: Literal["EXPECTED_REGRESSION_DETECTED", "RESTORED_BASELINE_PASS"] = (
+        "RESTORED_BASELINE_PASS" if alias == "known-good" else "EXPECTED_REGRESSION_DETECTED"
     )
-    report_path: Literal[
-        "reports/w3-004/regression.json", "reports/w3-004/restored.json"
-    ] = (
+    report_path: Literal["reports/w3-004/regression.json", "reports/w3-004/restored.json"] = (
         "reports/w3-004/restored.json"
         if alias == "known-good"
         else "reports/w3-004/regression.json"
@@ -273,9 +256,7 @@ async def _evaluate_active_identity(
         report_sha256=hashlib.sha256(payload).hexdigest(),
         active_identity=alias,
         absolute_gate_status=identity.expectation.absolute_gate_status,
-        baseline_comparison_status=(
-            identity.expectation.baseline_comparison_status
-        ),
+        baseline_comparison_status=(identity.expectation.baseline_comparison_status),
         overall_status=identity.expectation.overall_status,
         release_eligible=identity.expectation.release_eligible,
     )
@@ -298,9 +279,7 @@ async def evaluate_restored() -> EvaluationOutcome:
 def _load_drill_report(relative: Path) -> tuple[EvaluationReport, str]:
     payload = load_artifact_bytes(relative)
     try:
-        report = load_evaluation_report(
-            identity_module.REPOSITORY_ROOT / relative
-        )
+        report = load_evaluation_report(identity_module.REPOSITORY_ROOT / relative)
     except Exception:
         raise RollbackEvaluationError from None
     return report, hashlib.sha256(payload).hexdigest()
@@ -312,9 +291,7 @@ def finalize() -> RollbackRecord:
     verify_runtime_inventory(require_complete=False)
     state = require_activation_state("known-good")
     known_good, regression = validate_identity_pair()
-    regression_report, regression_hash = _load_drill_report(
-        REGRESSION_REPORT_PATH
-    )
+    regression_report, regression_hash = _load_drill_report(REGRESSION_REPORT_PATH)
     restored_report, restored_hash = _load_drill_report(RESTORED_REPORT_PATH)
     _require_expected_report(regression_report, regression)
     _require_expected_report(restored_report, known_good)
@@ -360,9 +337,7 @@ def verify_clean() -> CleanlinessResult:
 
 def cleanup(*, external_archive_verified: bool) -> CleanlinessResult:
     validate_identity_pair()
-    cleanup_complete_drill(
-        external_archive_verified=external_archive_verified
-    )
+    cleanup_complete_drill(external_archive_verified=external_archive_verified)
     verify_state_zero_residue()
     validate_identity_pair()
     return CleanlinessResult(

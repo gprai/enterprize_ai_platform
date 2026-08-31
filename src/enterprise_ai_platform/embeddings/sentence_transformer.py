@@ -40,9 +40,7 @@ MAX_BATCH_SIZE = 128
 MAX_ITEMS_PER_CALL = 1_024
 MAX_INPUT_WORDPIECES = 256
 APPROVED_SAFETENSORS_SIZE = 90_868_376
-APPROVED_SAFETENSORS_SHA256 = (
-    "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db"
-)
+APPROVED_SAFETENSORS_SHA256 = "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db"
 APPROVED_SNAPSHOT_FILES = frozenset(
     {
         "1_Pooling/config.json",
@@ -174,10 +172,7 @@ class SentenceTransformerEmbedder:
         return model
 
     def _verify_offline_runtime(self) -> None:
-        if (
-            os.environ.get("HF_HUB_OFFLINE") != "1"
-            or os.environ.get("TRANSFORMERS_OFFLINE") != "1"
-        ):
+        if os.environ.get("HF_HUB_OFFLINE") != "1" or os.environ.get("TRANSFORMERS_OFFLINE") != "1":
             raise EmbeddingModelLoadError
 
     def _verify_snapshot(self) -> None:

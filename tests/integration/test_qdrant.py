@@ -85,9 +85,7 @@ def approved_internal_qdrant_url() -> str:
 
     url = os.getenv(QDRANT_INTEGRATION_URL)
     if url != INTERNAL_QDRANT_URL:
-        pytest.fail(
-            f"{QDRANT_INTEGRATION_URL} must be the approved internal service URL"
-        )
+        pytest.fail(f"{QDRANT_INTEGRATION_URL} must be the approved internal service URL")
     return url
 
 

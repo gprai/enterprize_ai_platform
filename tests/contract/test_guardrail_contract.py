@@ -79,9 +79,7 @@ def test_disabled_adapter_satisfies_only_the_interface_contract() -> None:
     adapter = DisabledGuardrailAdapter()
 
     assert isinstance(adapter, GuardrailAdapter)
-    public_attributes = {
-        name for name in vars(type(adapter)) if not name.startswith("__")
-    }
+    public_attributes = {name for name in vars(type(adapter)) if not name.startswith("__")}
     assert public_attributes == {"assess"}
 
 

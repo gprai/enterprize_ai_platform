@@ -36,4 +36,3 @@ def validate_request(
         ExitCode.SUCCESS,
         "DRY_RUN: rollback intent validated; no release was restored",
     )
-

@@ -30,9 +30,7 @@ REPORTS = (
 
 def _hashes() -> dict[Path, str]:
     return {
-        path: hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in REPORTS
-        if path.exists()
+        path: hashlib.sha256(path.read_bytes()).hexdigest() for path in REPORTS if path.exists()
     }
 
 

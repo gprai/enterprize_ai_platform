@@ -15,8 +15,7 @@ RUNNER_IMAGE_LABEL = "label=com.enterprise-ai.w2-004.role=local-retrieval-test-r
 MODEL_CACHE = Path(r"E:\AI\.model-cache\enterprise_ai_platform\W2-002")
 EXTERNAL_VENV = Path(r"E:\AI\.venvs\enterprise_ai_platform")
 ALLOWED_EXCEL_LOCK = (
-    "docs/governance/"
-    "~$Enterprise_AI_Architecture_6_Week_Execution_Tracker_v1.3.4_repaired.xlsx"
+    "docs/governance/~$Enterprise_AI_Architecture_6_Week_Execution_Tracker_v1.3.4_repaired.xlsx"
 )
 APPROVED_CHANGED_PATHS = frozenset(
     {
@@ -289,11 +288,7 @@ def _ignored_files_check(runner: CommandRunner) -> CheckResult:
             {"exit_code": result.returncode},
         )
     ignored = tuple(
-        sorted(
-            _git_path(line)
-            for line in _status_lines(result.stdout)
-            if line.startswith("!! ")
-        )
+        sorted(_git_path(line) for line in _status_lines(result.stdout) if line.startswith("!! "))
     )
     return CheckResult(
         "unexpected_ignored_files",
@@ -321,9 +316,7 @@ def verify_cleanliness(
         _absence_check("local_runner_image", RUNNER_IMAGE_COMMAND, runner),
         CheckResult(
             "task_collection_storage",
-            State.REMOVED
-            if volumes.state is State.REMOVED
-            else State.INDETERMINATE,
+            State.REMOVED if volumes.state is State.REMOVED else State.INDETERMINATE,
             {"derived_from_absent_task_volume": volumes.state is State.REMOVED},
         ),
     ]
@@ -381,12 +374,7 @@ def verify_cleanliness(
 
 
 def exit_code(results: Sequence[CheckResult]) -> int:
-    return int(
-        any(
-            result.state in {State.PROHIBITED, State.INDETERMINATE}
-            for result in results
-        )
-    )
+    return int(any(result.state in {State.PROHIBITED, State.INDETERMINATE} for result in results))
 
 
 def main() -> int:

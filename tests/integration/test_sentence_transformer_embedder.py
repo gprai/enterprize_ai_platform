@@ -24,9 +24,7 @@ from enterprise_ai_platform.embeddings.sentence_transformer import (
 )
 
 pytestmark = pytest.mark.integration
-APPROVED_CACHE_ROOT = Path(
-    r"E:\AI\.model-cache\enterprise_ai_platform\W2-002"
-)
+APPROVED_CACHE_ROOT = Path(r"E:\AI\.model-cache\enterprise_ai_platform\W2-002")
 NORMALIZED_VECTOR = [1.0, *([0.0] * 383)]
 
 
@@ -110,9 +108,7 @@ def test_verified_sentence_transformer_snapshot_operates_offline_on_cpu() -> Non
     approved_root = APPROVED_CACHE_ROOT.resolve(strict=True)
     resolved_snapshot = snapshot_path.resolve(strict=True)
     assert resolved_snapshot.is_relative_to(approved_root)
-    assert resolved_snapshot.name == (
-        "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
-    )
+    assert resolved_snapshot.name == ("1110a243fdf4706b3f48f1d95db1a4f5529b4d41")
 
     snapshot_files = {
         path.relative_to(resolved_snapshot).as_posix()
@@ -123,10 +119,7 @@ def test_verified_sentence_transformer_snapshot_operates_offline_on_cpu() -> Non
     artifact = resolved_snapshot / "model.safetensors"
     assert artifact.stat().st_size == APPROVED_SAFETENSORS_SIZE
     with artifact.open("rb") as stream:
-        assert (
-            hashlib.file_digest(stream, "sha256").hexdigest()
-            == APPROVED_SAFETENSORS_SHA256
-        )
+        assert hashlib.file_digest(stream, "sha256").hexdigest() == APPROVED_SAFETENSORS_SHA256
 
     for invalid_batch_size in (False, True, "32", 32.0, -1, 0, 129):
         with pytest.raises(EmbeddingBatchSizeError):
@@ -144,9 +137,7 @@ def test_verified_sentence_transformer_snapshot_operates_offline_on_cpu() -> Non
         metric_recorder=recorder,
     )
     assert provider.model_id == "sentence-transformers/all-MiniLM-L6-v2"
-    assert provider.model_revision == (
-        "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
-    )
+    assert provider.model_revision == ("1110a243fdf4706b3f48f1d95db1a4f5529b4d41")
     assert provider.dimension == 384
     assert provider.normalized is True
 

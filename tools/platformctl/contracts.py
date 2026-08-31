@@ -128,9 +128,7 @@ def parse_utc_timestamp(value: str, field_name: str) -> datetime:
     try:
         parsed = datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as exc:
-        raise ContractError(
-            f"{field_name} must be ISO-8601 UTC with a Z suffix"
-        ) from exc
+        raise ContractError(f"{field_name} must be ISO-8601 UTC with a Z suffix") from exc
     if parsed.utcoffset() != timedelta(0):
         raise ContractError(f"{field_name} must be UTC")
     return parsed
@@ -138,11 +136,7 @@ def parse_utc_timestamp(value: str, field_name: str) -> datetime:
 
 def validate_runtime_token(value: str, field_name: str) -> str:
     """Reject blank, placeholder, or whitespace-delimited runtime tokens."""
-    if (
-        not value
-        or value in _PLACEHOLDERS
-        or any(char.isspace() for char in value)
-    ):
+    if not value or value in _PLACEHOLDERS or any(char.isspace() for char in value):
         raise ContractError(f"{field_name} must be an explicit non-placeholder token")
     return value
 
@@ -228,19 +222,11 @@ class ApprovalRecord:
             environment = validate_runtime_token(
                 _required_string(data, "environment"), "environment"
             )
-            account_id = validate_aws_account_id(
-                _required_string(data, "aws_account_id")
-            )
+            account_id = validate_aws_account_id(_required_string(data, "aws_account_id"))
             region = validate_aws_region(_required_string(data, "aws_region"))
-            target = validate_runtime_token(
-                _required_string(data, "target"), "target"
-            )
-            artifact_sha256 = validate_sha256(
-                _required_string(data, "artifact_sha256")
-            )
-            approver = validate_runtime_token(
-                _required_string(data, "approver"), "approver"
-            )
+            target = validate_runtime_token(_required_string(data, "target"), "target")
+            artifact_sha256 = validate_sha256(_required_string(data, "artifact_sha256"))
+            approver = validate_runtime_token(_required_string(data, "approver"), "approver")
             approved_at = _required_string(data, "approved_at")
             expires_at = _required_string(data, "expires_at")
             parse_utc_timestamp(approved_at, "approved_at")
@@ -374,9 +360,7 @@ def validate_mutation_request(
     validate_runtime_token(request.target, "target")
     validate_sha256(request.artifact_sha256)
     if request.executor != EXECUTOR:
-        raise ApprovalError(
-            "executor is not authorized for this learning sandbox"
-        )
+        raise ApprovalError("executor is not authorized for this learning sandbox")
 
     comparisons = {
         "action": request.action == approval.action,

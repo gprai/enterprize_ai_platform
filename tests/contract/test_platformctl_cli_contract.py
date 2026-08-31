@@ -17,9 +17,7 @@ from tools.platformctl.contracts import (
 def test_cli_exposes_exact_approved_commands() -> None:
     parser = build_parser()
     subparsers = next(
-        action
-        for action in parser._actions
-        if isinstance(action, argparse._SubParsersAction)
+        action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
     )
     assert set(subparsers.choices) == {
         "bootstrap",
@@ -92,7 +90,5 @@ def test_inventory_contract_covers_every_approved_service() -> None:
 
 def test_malformed_cli_input_uses_argparse_exit_two() -> None:
     with pytest.raises(SystemExit) as exc_info:
-        build_parser().parse_args(
-            ["plan", "--environment", "TODO_USER", "--target", "x"]
-        )
+        build_parser().parse_args(["plan", "--environment", "TODO_USER", "--target", "x"])
     assert exc_info.value.code == 2

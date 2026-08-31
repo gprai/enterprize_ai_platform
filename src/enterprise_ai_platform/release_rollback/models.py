@@ -79,9 +79,7 @@ class ReleaseDescriptor(StrictReleaseModel):
     artifact_count: Literal[99]
     artifacts: tuple[ArtifactFingerprint, ...]
     agent_enabled: bool
-    regression_profile: (
-        Literal["w4-011.agent-route-disabled.v1"] | None
-    ) = None
+    regression_profile: Literal["w4-011.agent-route-disabled.v1"] | None = None
     expected_gate: Literal["PASS", "FAIL"]
     expected_safe_error_code: Literal["agent_disabled"] | None = None
 
@@ -125,10 +123,7 @@ class ActiveReleaseState(StrictReleaseModel):
 
     @model_validator(mode="after")
     def require_candidate_latch_closed(self) -> ActiveReleaseState:
-        if (
-            self.active_release == "w4-synthetic-regression-v1"
-            and self.agent_route_allowed
-        ):
+        if self.active_release == "w4-synthetic-regression-v1" and self.agent_route_allowed:
             raise ValueError("candidate release cannot enable the agent route")
         return self
 

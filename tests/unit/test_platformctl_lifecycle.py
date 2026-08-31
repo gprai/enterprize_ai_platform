@@ -28,9 +28,7 @@ ARTIFACT_SHA256 = "a" * 64
 APPROVAL_ID = "approval-w1-004-001"
 
 
-def approval_mapping(
-    action: str = "DEPLOY", environment: str = "sandbox"
-) -> dict[str, str]:
+def approval_mapping(action: str = "DEPLOY", environment: str = "sandbox") -> dict[str, str]:
     return {
         "schema_version": "1.0",
         "approval_id": APPROVAL_ID,
@@ -46,9 +44,7 @@ def approval_mapping(
     }
 
 
-def request_for(
-    approval: ApprovalRecord, *, confirmation: str | None = None
-) -> MutationRequest:
+def request_for(approval: ApprovalRecord, *, confirmation: str | None = None) -> MutationRequest:
     return MutationRequest(
         action=approval.action,
         environment=approval.environment,
@@ -110,15 +106,11 @@ def test_reused_approval_fails_closed() -> None:
         ("artifact_sha256", "b" * 64),
     ],
 )
-def test_request_and_approval_mismatches_fail_closed(
-    field_name: str, different_value: str
-) -> None:
+def test_request_and_approval_mismatches_fail_closed(field_name: str, different_value: str) -> None:
     approval = ApprovalRecord.from_mapping(approval_mapping())
     request = replace(request_for(approval), **{field_name: different_value})
     with pytest.raises(ApprovalError, match=f"{field_name} does not match"):
-        deploy.validate_request(
-            request, approval, FakeApprovalUsageRegistry(), NOW
-        )
+        deploy.validate_request(request, approval, FakeApprovalUsageRegistry(), NOW)
 
 
 def test_one_action_cannot_authorize_another() -> None:
@@ -155,9 +147,7 @@ def test_wrong_executor_fails_closed() -> None:
     approval = ApprovalRecord.from_mapping(approval_mapping())
     request = replace(request_for(approval), executor="Different-Executor")
     with pytest.raises(ApprovalError, match="executor"):
-        deploy.validate_request(
-            request, approval, FakeApprovalUsageRegistry(), NOW
-        )
+        deploy.validate_request(request, approval, FakeApprovalUsageRegistry(), NOW)
 
 
 def test_unknown_approval_field_is_rejected() -> None:

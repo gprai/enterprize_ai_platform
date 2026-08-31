@@ -43,11 +43,8 @@ def document_version_for(document_id: str, content_hash: str) -> str:
     """Identify one exact original-byte version of a document."""
 
     if any(
-        len(value) != 64
-        or any(character not in "0123456789abcdef" for character in value)
+        len(value) != 64 or any(character not in "0123456789abcdef" for character in value)
         for value in (document_id, content_hash)
     ):
         raise IngestionSourceError
-    return hashlib.sha256(
-        _length_prefixed((document_id, content_hash))
-    ).hexdigest()
+    return hashlib.sha256(_length_prefixed((document_id, content_hash))).hexdigest()

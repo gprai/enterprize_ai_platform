@@ -19,10 +19,10 @@ def test_policy_uses_exact_quarantine_order_and_angle_bracket_placeholders() -> 
     policy = load_pii_policy(POLICY_PATH)
 
     assert policy.quarantine_entities == QUARANTINE_ENTITY_TYPES
-    assert tuple(
-        (redaction.entity_type, redaction.placeholder)
-        for redaction in policy.redactions
-    ) == REDACTION_PLACEHOLDERS
+    assert (
+        tuple((redaction.entity_type, redaction.placeholder) for redaction in policy.redactions)
+        == REDACTION_PLACEHOLDERS
+    )
     assert all(
         placeholder.startswith("<") and placeholder.endswith(">")
         for placeholder in policy.placeholder_by_entity.values()

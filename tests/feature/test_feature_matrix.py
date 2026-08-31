@@ -263,9 +263,7 @@ class FeatureMatrixTests(unittest.TestCase):
         variants.append(duplicate_step)
 
         misplaced_w2_004_step = deepcopy(read_matrix())
-        misplaced_w2_004_step["features"][0]["linked_tracker_steps"].append(
-            "W2-09"
-        )
+        misplaced_w2_004_step["features"][0]["linked_tracker_steps"].append("W2-09")
         variants.append(misplaced_w2_004_step)
 
         reordered_paths = deepcopy(read_matrix())

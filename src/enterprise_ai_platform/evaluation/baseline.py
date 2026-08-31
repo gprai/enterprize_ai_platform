@@ -67,20 +67,16 @@ def compare_with_baseline(
         return BaselineComparison(status="INCOMPATIBLE_BASELINE", baseline=baseline)
     tolerance = config.regression_tolerances
     checks = (
-        _fraction(candidate, "recall_at_5")
-        + Fraction(str(tolerance.recall_at_5))
+        _fraction(candidate, "recall_at_5") + Fraction(str(tolerance.recall_at_5))
         >= _fraction(baseline.metrics, "recall_at_5"),
-        _fraction(candidate, "citation_precision")
-        + Fraction(str(tolerance.citation_precision))
+        _fraction(candidate, "citation_precision") + Fraction(str(tolerance.citation_precision))
         >= _fraction(baseline.metrics, "citation_precision"),
-        _fraction(candidate, "answered_correctness")
-        + Fraction(str(tolerance.answered_correctness))
+        _fraction(candidate, "answered_correctness") + Fraction(str(tolerance.answered_correctness))
         >= _fraction(baseline.metrics, "answered_correctness"),
         _fraction(candidate, "abstention_correctness")
         + Fraction(str(tolerance.abstention_correctness))
         >= _fraction(baseline.metrics, "abstention_correctness"),
-        _fraction(candidate, "combined_correctness")
-        + Fraction(str(tolerance.combined_correctness))
+        _fraction(candidate, "combined_correctness") + Fraction(str(tolerance.combined_correctness))
         >= _fraction(baseline.metrics, "combined_correctness"),
         _fraction(candidate, "expected_error_correctness")
         + Fraction(str(tolerance.expected_error_correctness))

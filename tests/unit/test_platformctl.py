@@ -32,6 +32,7 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS,
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
+    EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
 )
@@ -99,9 +100,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
             }
         )
         errors = validate_feature_matrix(matrix)
-        self.assertTrue(
-            any("owner-approved ordered feature set" in error for error in errors)
-        )
+        self.assertTrue(any("owner-approved ordered feature set" in error for error in errors))
 
     def test_missing_duplicate_or_reordered_feature_is_rejected(self) -> None:
         features = approved_matrix()["features"]
@@ -205,9 +204,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
             "tests/teardown/test_w3_001_rag_cleanliness.py",
         )
 
-        self.assertTrue(
-            set(expected_w3_paths).issubset(EXPECTED_RAG_IMPLEMENTATION_PATHS)
-        )
+        self.assertTrue(set(expected_w3_paths).issubset(EXPECTED_RAG_IMPLEMENTATION_PATHS))
         for path in expected_w3_paths:
             self.assertEqual(1, EXPECTED_RAG_IMPLEMENTATION_PATHS.count(path))
         self.assertEqual(
@@ -387,4 +384,22 @@ class PlatformCtlUnitTests(unittest.TestCase):
             REQUIRED_DIRECTORIES,
         )
         for path in EXPECTED_RELEASE_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w1_08_security_controls_extend_the_repository_contract(self) -> None:
+        self.assertEqual(
+            (
+                ".pre-commit-config.yaml",
+                ".secrets.baseline",
+                "requirements-dev.txt",
+                "tests/integration/test_dependency_contract.py",
+                "tests/security/test_evidence_redaction.py",
+                "tests/security/test_precommit_controls.py",
+                "tests/teardown/test_w1_08_cleanliness.py",
+                "tools/platformctl/validate.py",
+                "tests/unit/test_platformctl.py",
+            ),
+            EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
+        )
+        for path in EXPECTED_W1_08_SECURITY_CONTROL_PATHS:
             self.assertIn(path, REQUIRED_FILES)

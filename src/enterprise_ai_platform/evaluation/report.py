@@ -47,9 +47,7 @@ def _atomic_write_no_overwrite(path: Path, payload: bytes) -> None:
         raise EvaluationReportExistsError
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = path.with_name(
-            f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp"
-        )
+        temporary = path.with_name(f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp")
         if temporary.exists():
             raise EvaluationReportWriteError
         try:
@@ -72,9 +70,7 @@ def _atomic_write_no_overwrite(path: Path, payload: bytes) -> None:
 def _summarize_usage(
     executions: tuple[CaseExecution, ...],
 ) -> EvaluationUsageSummary:
-    usages = tuple(
-        execution.usage for execution in executions if execution.usage is not None
-    )
+    usages = tuple(execution.usage for execution in executions if execution.usage is not None)
     costs = tuple(usage.estimated_cost_usd for usage in usages)
     estimated_cost = (
         sum(cost for cost in costs if cost is not None)
@@ -153,8 +149,7 @@ def build_report(
         "overall_status": overall,
         "release_eligible": absolute_status == "PASS" and baseline_status == "PASS",
         "candidate_generation_exit": int(
-            absolute_status != "PASS"
-            or baseline_status in {"FAIL", "INCOMPATIBLE_BASELINE"}
+            absolute_status != "PASS" or baseline_status in {"FAIL", "INCOMPATIBLE_BASELINE"}
         ),
         "metrics": metrics.model_dump(mode="json"),
         "usage_summary": _summarize_usage(executions).model_dump(mode="json"),

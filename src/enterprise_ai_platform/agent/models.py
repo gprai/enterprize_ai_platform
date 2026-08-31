@@ -9,15 +9,9 @@ from uuid import UUID
 
 from pydantic import UUID4, BaseModel, ConfigDict, Field, field_validator, model_validator
 
-AGENT_STATE_SCHEMA_VERSION: Final[
-    Literal["w4-002.agent-state.v1"]
-] = "w4-002.agent-state.v1"
-AGENT_GRAPH_VERSION: Final[
-    Literal["w4-002.graph.v1"]
-] = "w4-002.graph.v1"
-AGENT_STORE_SCHEMA_VERSION: Final[
-    Literal["w4-002.agent-store.v1"]
-] = "w4-002.agent-store.v1"
+AGENT_STATE_SCHEMA_VERSION: Final[Literal["w4-002.agent-state.v1"]] = "w4-002.agent-state.v1"
+AGENT_GRAPH_VERSION: Final[Literal["w4-002.graph.v1"]] = "w4-002.graph.v1"
+AGENT_STORE_SCHEMA_VERSION: Final[Literal["w4-002.agent-store.v1"]] = "w4-002.agent-store.v1"
 SHA256_PATTERN = r"^[0-9a-f]{64}$"
 
 
@@ -158,8 +152,7 @@ class EvidencePacket(AgentModel):
         if len(values) != len(set(values)):
             raise ValueError("evidence references must be unique")
         if any(
-            len(value) != 64
-            or any(character not in "0123456789abcdef" for character in value)
+            len(value) != 64 or any(character not in "0123456789abcdef" for character in value)
             for value in values
         ):
             raise ValueError("evidence references must be lowercase SHA-256 values")
@@ -250,13 +243,17 @@ class ApprovalRecord(AgentModel):
                 )
             ):
                 raise ValueError("executing approval is missing decision bindings")
-        if self.status in {
-            ApprovalStatus.REJECTED,
-            ApprovalStatus.EXPIRED,
-            ApprovalStatus.CANCELLED,
-            ApprovalStatus.CONSUMED,
-            ApprovalStatus.EXECUTION_UNKNOWN,
-        } and self.terminal_at is None:
+        if (
+            self.status
+            in {
+                ApprovalStatus.REJECTED,
+                ApprovalStatus.EXPIRED,
+                ApprovalStatus.CANCELLED,
+                ApprovalStatus.CONSUMED,
+                ApprovalStatus.EXECUTION_UNKNOWN,
+            }
+            and self.terminal_at is None
+        ):
             raise ValueError("terminal approval is missing its terminal timestamp")
         if self.status is ApprovalStatus.CONSUMED and self.result_reference_sha256 is None:
             raise ValueError("consumed approval is missing its result reference")
@@ -317,9 +314,7 @@ class AgentState(AgentModel):
             value is not None for value in (self.tool_version, self.arguments_sha256)
         ):
             raise ValueError("tool bindings require a tool name")
-        if len(self.evidence_reference_sha256) != len(
-            set(self.evidence_reference_sha256)
-        ):
+        if len(self.evidence_reference_sha256) != len(set(self.evidence_reference_sha256)):
             raise ValueError("evidence references must be unique")
         return self
 

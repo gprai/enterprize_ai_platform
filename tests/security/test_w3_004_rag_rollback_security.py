@@ -50,7 +50,7 @@ def test_regression_fixture_suppresses_content_citations_and_tools(
         for record in caplog.records
         if record.name == "enterprise_ai_platform"
         or record.name.startswith("enterprise_ai_platform.")
-]
+    ]
     assert application_records == []
 
 

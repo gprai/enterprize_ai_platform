@@ -61,11 +61,7 @@ def write_text_pdf(path: Path, text: str) -> None:
     )
     font_reference = writer._add_object(font)  # noqa: SLF001
     page[NameObject("/Resources")] = DictionaryObject(
-        {
-            NameObject("/Font"): DictionaryObject(
-                {NameObject("/F1"): font_reference}
-            )
-        }
+        {NameObject("/Font"): DictionaryObject({NameObject("/F1"): font_reference})}
     )
     stream = DecodedStreamObject()
     safe_text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")

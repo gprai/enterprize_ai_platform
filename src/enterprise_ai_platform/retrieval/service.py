@@ -70,9 +70,7 @@ class RetrievalService:
         """Return authorized ranked chunks without changing provider state."""
 
         timeout = (
-            self._timeout_seconds
-            if timeout_seconds is None
-            else validated_timeout(timeout_seconds)
+            self._timeout_seconds if timeout_seconds is None else validated_timeout(timeout_seconds)
         )
         with self._telemetry.start_scope(
             TelemetryStage.RETRIEVAL,

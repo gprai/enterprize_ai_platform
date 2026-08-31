@@ -46,10 +46,13 @@ def test_store_round_trips_only_canonical_redacted_records(tmp_path: Path) -> No
     approval = _approval()
     store.create_approval(approval, maximum_bytes=16_384)
 
-    assert store.get_approval(
-        str(approval.approval_id),
-        maximum_bytes=16_384,
-    ) == approval
+    assert (
+        store.get_approval(
+            str(approval.approval_id),
+            maximum_bytes=16_384,
+        )
+        == approval
+    )
     assert path.is_file()
 
 
@@ -142,9 +145,7 @@ def test_store_version_mismatch_and_corrupt_payload_fail_closed(
         store.get_approval(str(approval.approval_id), maximum_bytes=16_384)
 
     with closing(sqlite3.connect(path)) as connection:
-        connection.execute(
-            "UPDATE metadata SET value = 'unknown' WHERE key = 'schema_version'"
-        )
+        connection.execute("UPDATE metadata SET value = 'unknown' WHERE key = 'schema_version'")
         connection.commit()
     with pytest.raises(AgentStateUnavailableError):
         SQLiteAgentStateStore(path)
@@ -170,14 +171,20 @@ def test_terminal_record_purge_is_explicit_and_bounded(tmp_path: Path) -> None:
     )
     store.terminate_pending(terminal, expected_revision=1, maximum_bytes=16_384)
 
-    assert store.purge(
-        before_epoch=int(now.timestamp()) + 1,
-        maximum_records=1,
-    ) == 1
-    assert store.get_approval(
-        str(pending.approval_id),
-        maximum_bytes=16_384,
-    ) is None
+    assert (
+        store.purge(
+            before_epoch=int(now.timestamp()) + 1,
+            maximum_records=1,
+        )
+        == 1
+    )
+    assert (
+        store.get_approval(
+            str(pending.approval_id),
+            maximum_bytes=16_384,
+        )
+        is None
+    )
 
 
 def test_test_store_artifacts_are_bounded_to_temporary_directory(tmp_path: Path) -> None:

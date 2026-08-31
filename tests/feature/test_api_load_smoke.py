@@ -272,9 +272,7 @@ async def _run_level(
     assert rag.calls == expected_success
     assert rag.maximum_active == expected_maximum
     assert rag.active == 0
-    assert authenticator.calls - authentication_calls_before == (
-        MEASURED_REQUESTS_PER_LEVEL
-    )
+    assert authenticator.calls - authentication_calls_before == (MEASURED_REQUESTS_PER_LEVEL)
     assert warmup.request_ids.isdisjoint(measured.request_ids)
     limiter = cast(QueryCapacityLimiter, application.state.api_query_limiter)
     assert limiter.active == 0
@@ -317,9 +315,7 @@ async def _run_profile(settings: Settings, query: str) -> dict[str, object]:
         "warmup_requests_per_level": WARMUP_REQUESTS_PER_LEVEL,
         "measured_requests_per_level": MEASURED_REQUESTS_PER_LEVEL,
         "profile_maximum_seconds": PROFILE_MAXIMUM_SECONDS,
-        "total_measured_requests": (
-            MEASURED_REQUESTS_PER_LEVEL * len(CONCURRENCY_LEVELS)
-        ),
+        "total_measured_requests": (MEASURED_REQUESTS_PER_LEVEL * len(CONCURRENCY_LEVELS)),
         "profile_duration_milliseconds": round(profile_duration_ns / 1_000_000, 3),
         "levels": levels,
     }
@@ -331,9 +327,7 @@ def test_w4_10_profile_is_bounded_redacted_atomic_and_residue_free(
     tmp_path: Path,
 ) -> None:
     initial_threads = {thread.ident for thread in threading.enumerate()}
-    initial_children = sorted(
-        process.pid for process in multiprocessing.active_children()
-    )
+    initial_children = sorted(process.pid for process in multiprocessing.active_children())
     query = " ".join((INJECTION, SECRET, *SECURITY_SENTINELS))
 
     original_socket_type = socket.socket
@@ -345,9 +339,7 @@ def test_w4_10_profile_is_bounded_redacted_atomic_and_residue_free(
 
         def __call__(cls, *args: object, **kwargs: object) -> Never:
             del cls, args, kwargs
-            raise AssertionError(
-                "in-process ASGI load smoke must not create a socket"
-            )
+            raise AssertionError("in-process ASGI load smoke must not create a socket")
 
     class _ForbiddenSocket(metaclass=_ForbiddenSocketMeta):
         """Reject construction while preserving socket instance checks."""

@@ -159,11 +159,14 @@ EXPECTED_W3_003_EDITABLE_PATHS = (
     "tests/teardown/test_w3_002_evaluation_cleanliness.py",
 )
 _W3_003_EDITABLE_PATH_SET = frozenset(EXPECTED_W3_003_EDITABLE_PATHS)
-EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS = tuple(
-    path
-    for path in EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS
-    if path not in _W3_003_EDITABLE_PATH_SET
-) + EXPECTED_W3_003_EDITABLE_PATHS
+EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS = (
+    tuple(
+        path
+        for path in EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS
+        if path not in _W3_003_EDITABLE_PATH_SET
+    )
+    + EXPECTED_W3_003_EDITABLE_PATHS
+)
 EXPECTED_W3_004_EDITABLE_PATHS = (
     "configs/rag/versions/w3-002-v1.json",
     "configs/rag/versions/w3-004-synthetic-regression-v1.json",
@@ -195,11 +198,14 @@ EXPECTED_W3_004_EDITABLE_PATHS = (
     "tests/teardown/test_w3_003_guardrails_cleanliness.py",
 )
 _W3_004_EDITABLE_PATH_SET = frozenset(EXPECTED_W3_004_EDITABLE_PATHS)
-EXPECTED_RAG_IMPLEMENTATION_PATHS = tuple(
-    path
-    for path in EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS
-    if path not in _W3_004_EDITABLE_PATH_SET
-) + EXPECTED_W3_004_EDITABLE_PATHS
+EXPECTED_RAG_IMPLEMENTATION_PATHS = (
+    tuple(
+        path
+        for path in EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS
+        if path not in _W3_004_EDITABLE_PATH_SET
+    )
+    + EXPECTED_W3_004_EDITABLE_PATHS
+)
 EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W2-03",
     "W2-01",
@@ -443,6 +449,17 @@ EXPECTED_FEATURES = (
     EXPECTED_OBSERVABILITY_FEATURE,
     EXPECTED_RELEASE_FEATURE,
 )
+EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
+    ".pre-commit-config.yaml",
+    ".secrets.baseline",
+    "requirements-dev.txt",
+    "tests/integration/test_dependency_contract.py",
+    "tests/security/test_evidence_redaction.py",
+    "tests/security/test_precommit_controls.py",
+    "tests/teardown/test_w1_08_cleanliness.py",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+)
 
 REQUIRED_DIRECTORIES = (
     "configs",
@@ -554,6 +571,7 @@ REQUIRED_FILES = (
     *EXPECTED_AGENT_IMPLEMENTATION_PATHS,
     *EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     *EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
+    *EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -587,10 +605,7 @@ def validate_feature_matrix(data: object) -> list[str]:
     }
     actual_top_level = set(data)
     if actual_top_level != expected_top_level:
-        errors.append(
-            "top-level keys must be exactly: "
-            + ", ".join(sorted(expected_top_level))
-        )
+        errors.append("top-level keys must be exactly: " + ", ".join(sorted(expected_top_level)))
 
     if data.get("schema_version") != EXPECTED_SCHEMA_VERSION:
         errors.append(f"schema_version must be {EXPECTED_SCHEMA_VERSION!r}")

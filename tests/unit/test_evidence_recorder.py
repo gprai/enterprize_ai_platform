@@ -68,9 +68,7 @@ def test_unapproved_result_is_rejected() -> None:
 
 
 def test_non_utc_clock_is_rejected() -> None:
-    non_utc_clock = FixedClock(
-        datetime(2026, 1, 1, tzinfo=timezone(timedelta(hours=1)))
-    )
+    non_utc_clock = FixedClock(datetime(2026, 1, 1, tzinfo=timezone(timedelta(hours=1))))
     with pytest.raises(ValueError, match="UTC timestamp"):
         build_evidence_record(
             command="pytest",

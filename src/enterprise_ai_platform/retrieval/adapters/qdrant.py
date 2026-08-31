@@ -163,17 +163,13 @@ class QdrantVectorStore:
             should=[
                 qmodels.FieldCondition(
                     key="pii_status",
-                    match=qmodels.MatchAny(
-                        any=[PiiStatus.CLEAR.value, PiiStatus.REDACTED.value]
-                    ),
+                    match=qmodels.MatchAny(any=[PiiStatus.CLEAR.value, PiiStatus.REDACTED.value]),
                 ),
                 qmodels.Filter(
                     must=[
                         qmodels.FieldCondition(
                             key="pii_status",
-                            match=qmodels.MatchValue(
-                                value=PiiStatus.APPROVED_EXCEPTION.value
-                            ),
+                            match=qmodels.MatchValue(value=PiiStatus.APPROVED_EXCEPTION.value),
                         ),
                         qmodels.FieldCondition(
                             key="approved_exception.expires_at",

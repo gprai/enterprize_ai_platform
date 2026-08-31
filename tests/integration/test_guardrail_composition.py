@@ -125,9 +125,7 @@ def test_raw_string_is_normalized_before_existing_downstream_flow() -> None:
     result = asyncio.run(service.answer(_auth(), "  governed question  "))
 
     assert isinstance(result, CitedAnswerResult)
-    assert retrieval.queries == [
-        Query(text="governed question", top_k=5, min_score=0.5)
-    ]
+    assert retrieval.queries == [Query(text="governed question", top_k=5, min_score=0.5)]
     assert len(provider.requests) == 1
 
 

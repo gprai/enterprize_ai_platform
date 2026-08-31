@@ -16,13 +16,9 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_local_asgi_probe_observes_regression_and_restored_route_profile() -> None:
     probe = LocalASGIReleaseProbe()
     candidate = asyncio.run(
-        probe.probe_candidate(
-            load_release_descriptor("w4-synthetic-regression-v1")
-        )
+        probe.probe_candidate(load_release_descriptor("w4-synthetic-regression-v1"))
     )
-    restored = asyncio.run(
-        probe.probe_restored(load_release_descriptor("w4-known-good-v1"))
-    )
+    restored = asyncio.run(probe.probe_restored(load_release_descriptor("w4-known-good-v1")))
 
     assert candidate.http_status == 501
     assert candidate.safe_error_code == "agent_disabled"

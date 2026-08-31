@@ -69,9 +69,7 @@ APPROVED_STARTER_ROWS = (
         "Q2",
         "Can Codex automatically run `terraform apply` or `terraform destroy`?",
         ("DOC-SOT-V1.1",),
-        (
-            "No. Plans require review, and apply or destroy requires explicit owner approval.",
-        ),
+        ("No. Plans require review, and apply or destroy requires explicit owner approval.",),
         "ANSWER_WITH_CITATION",
         ("OWNER_APPROVAL", "NO_AUTOMATIC_MUTATION"),
     ),
@@ -194,8 +192,7 @@ class PiiPolicy(StrictModel):
         if self.quarantine_entities != QUARANTINE_ENTITY_TYPES:
             raise ValueError("quarantine entity order does not match the approved policy")
         actual_redactions = tuple(
-            (redaction.entity_type, redaction.placeholder)
-            for redaction in self.redactions
+            (redaction.entity_type, redaction.placeholder) for redaction in self.redactions
         )
         if actual_redactions != REDACTION_PLACEHOLDERS:
             raise ValueError("redaction policy does not match the approved placeholders")
@@ -203,10 +200,7 @@ class PiiPolicy(StrictModel):
 
     @property
     def placeholder_by_entity(self) -> dict[str, str]:
-        return {
-            redaction.entity_type: redaction.placeholder
-            for redaction in self.redactions
-        }
+        return {redaction.entity_type: redaction.placeholder for redaction in self.redactions}
 
 
 class PiiFinding(StrictModel):
@@ -309,7 +303,8 @@ class IngestionManifest(StrictModel):
         ):
             raise ValueError("indexed_count does not match records")
         if self.quarantined_count != sum(
-            record.status in {
+            record.status
+            in {
                 IngestionRecordStatus.QUARANTINED,
                 IngestionRecordStatus.REJECTED,
             }
@@ -317,8 +312,7 @@ class IngestionManifest(StrictModel):
         ):
             raise ValueError("quarantined_count does not match records")
         if self.compensated_count != sum(
-            record.status is IngestionRecordStatus.COMPENSATED
-            for record in self.records
+            record.status is IngestionRecordStatus.COMPENSATED for record in self.records
         ):
             raise ValueError("compensated_count does not match records")
         expected_failed = sum(
@@ -413,10 +407,7 @@ def load_starter_fixture(path: Path) -> tuple[StarterQuestion, ...]:
         "DOC-COACHING-BLUEPRINT",
         "DOC-RESTRICTED-TEST",
     }
-    if any(
-        not set(record.expected_source_ids).issubset(approved_sources)
-        for record in records
-    ):
+    if any(not set(record.expected_source_ids).issubset(approved_sources) for record in records):
         raise IngestionConfigurationError
     if records[-1].expected_source_ids or any(
         not record.expected_source_ids for record in records[:-1]

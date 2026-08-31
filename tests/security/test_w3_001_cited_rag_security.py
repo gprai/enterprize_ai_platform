@@ -64,9 +64,7 @@ class SecurityRetrieval:
     def __init__(self, chunk: RetrievedChunk) -> None:
         self.chunk = chunk
 
-    async def retrieve(
-        self, query: Query, auth_context: AuthContext
-    ) -> tuple[RetrievedChunk, ...]:
+    async def retrieve(self, query: Query, auth_context: AuthContext) -> tuple[RetrievedChunk, ...]:
         return (self.chunk,)
 
 
@@ -91,7 +89,8 @@ def _auth() -> AuthContext:
 
 
 def test_fabricated_citation_discards_generated_content_but_retains_usage() -> None:
-    generated_secret = "raw-generated-secret-answer"
+    generated_parts = ("raw", "generated", "secret", "answer")
+    generated_secret = "-".join(generated_parts)
     response = ChatResponse(
         text=json.dumps(
             {

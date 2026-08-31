@@ -71,10 +71,7 @@ def apply_budget_terminal(
         reason = TerminalReason.PROVIDER_BUDGET_EXCEEDED
     elif state.total_tokens > budgets.maximum_total_tokens:
         reason = TerminalReason.TOKEN_BUDGET_EXCEEDED
-    elif (
-        serialized_bytes is not None
-        and serialized_bytes > budgets.maximum_serialized_state_bytes
-    ):
+    elif serialized_bytes is not None and serialized_bytes > budgets.maximum_serialized_state_bytes:
         reason = TerminalReason.STATE_BUDGET_EXCEEDED
     if reason is None:
         return state

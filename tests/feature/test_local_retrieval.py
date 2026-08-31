@@ -48,9 +48,7 @@ APPROVED_SNAPSHOT = Path(
     "/opt/model-cache/models--sentence-transformers--all-MiniLM-L6-v2/"
     f"snapshots/{APPROVED_REVISION}"
 )
-APPROVED_BLOB_ROOT = Path(
-    "/opt/model-cache/models--sentence-transformers--all-MiniLM-L6-v2/blobs"
-)
+APPROVED_BLOB_ROOT = Path("/opt/model-cache/models--sentence-transformers--all-MiniLM-L6-v2/blobs")
 APPROVED_SOURCE_IDS = {
     "DOC-SOT-V1.1",
     "DOC-COACHING-BLUEPRINT",
@@ -90,9 +88,7 @@ def require_phase(*allowed: str) -> str:
         pytest.fail("the exact approved snapshot mount is required")
     return phase
     try:
-        resolved_weights = (
-            APPROVED_SNAPSHOT / "model.safetensors"
-        ).resolve(strict=True)
+        resolved_weights = (APPROVED_SNAPSHOT / "model.safetensors").resolve(strict=True)
     except OSError:
         pytest.fail("the approved model artifact is not reachable")
 
@@ -154,8 +150,7 @@ async def ingest_all(runtime: Runtime) -> tuple[tuple[str, str, int], ...]:
         )
         assert outcome.exit_code == 0
         assert all(
-            record.status is IngestionRecordStatus.INDEXED
-            for record in outcome.manifest.records
+            record.status is IngestionRecordStatus.INDEXED for record in outcome.manifest.records
         )
         summaries.extend(
             (record.source_id, record.document_version or "", record.chunk_count)
@@ -261,12 +256,9 @@ async def validate_isolation_and_quarantine(runtime: Runtime) -> None:
         if (record.payload or {}).get("enterprise_ai_record_type") == "chunk"
     ]
     assert chunk_payloads
-    assert {payload["source_id"] for payload in chunk_payloads}.issubset(
-        APPROVED_SOURCE_IDS
-    )
+    assert {payload["source_id"] for payload in chunk_payloads}.issubset(APPROVED_SOURCE_IDS)
     assert all(
-        payload.get("pii_status") != PiiStatus.QUARANTINED.value
-        for payload in chunk_payloads
+        payload.get("pii_status") != PiiStatus.QUARANTINED.value for payload in chunk_payloads
     )
 
 

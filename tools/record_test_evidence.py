@@ -17,9 +17,7 @@ ALLOWED_ENVIRONMENTS = frozenset({"sandbox"})
 ALLOWED_RESULTS = frozenset({"PASS", "FAIL", "NOT_RUN", "INDETERMINATE"})
 ALLOWED_GIT_STATES = frozenset({"DIRTY", "UNCOMMITTED"})
 
-_DOCUMENT_ARGUMENT = re.compile(
-    r"(?i)(?:^|\s)--?(?:content|document|prompt|text)(?:\s|=)"
-)
+_DOCUMENT_ARGUMENT = re.compile(r"(?i)(?:^|\s)--?(?:content|document|prompt|text)(?:\s|=)")
 _BEARER_TOKEN = re.compile(r"(?i)(authorization\s*:\s*bearer\s+)\S+")
 _SENSITIVE_ASSIGNMENT = re.compile(
     r"(?i)\b(?P<name>[a-z0-9_-]*(?:api[_-]?key|access[_-]?key|authorization|"
@@ -77,9 +75,7 @@ def redact_command(command: str) -> str:
 
     redacted = _BEARER_TOKEN.sub(r"\1[REDACTED]", normalized)
     redacted = _SENSITIVE_ASSIGNMENT.sub(
-        lambda match: (
-            f"{match.group('name')}{match.group('separator')}[REDACTED]"
-        ),
+        lambda match: f"{match.group('name')}{match.group('separator')}[REDACTED]",
         redacted,
     )
     return _AWS_ACCESS_KEY.sub("[REDACTED_AWS_ACCESS_KEY]", redacted)

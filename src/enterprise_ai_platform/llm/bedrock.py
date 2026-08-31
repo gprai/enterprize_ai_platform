@@ -63,9 +63,7 @@ _UNAVAILABLE_CODES = frozenset(
     }
 )
 _TIMEOUT_CODES = frozenset({"ModelTimeoutException"})
-_AUTHORIZATION_CODES = frozenset(
-    {"AccessDeniedException", "UnauthorizedException"}
-)
+_AUTHORIZATION_CODES = frozenset({"AccessDeniedException", "UnauthorizedException"})
 _AUTHENTICATION_CODES = frozenset(
     {"ExpiredTokenException", "InvalidSignatureException", "UnrecognizedClientException"}
 )
@@ -263,9 +261,7 @@ def _to_converse_request(request: ChatRequest, model_id: str) -> dict[str, objec
         if message.role is ChatRole.SYSTEM:
             system.append({"text": message.content})
         else:
-            messages.append(
-                {"role": message.role.value, "content": [{"text": message.content}]}
-            )
+            messages.append({"role": message.role.value, "content": [{"text": message.content}]})
     for result in request.tool_results:
         copied_content = defensive_json_copy(result.content)
         messages.append(

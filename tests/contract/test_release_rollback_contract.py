@@ -52,9 +52,7 @@ def test_strict_models_forbid_extra_fields_and_candidate_route_enablement() -> N
 
 
 def test_canonical_json_rejects_duplicate_and_non_finite_input() -> None:
-    assert canonical_json_bytes({"z": 1, "a": "é"}) == (
-        '{"a":"é","z":1}\n'.encode()
-    )
+    assert canonical_json_bytes({"z": 1, "a": "é"}) == ('{"a":"é","z":1}\n'.encode())
     with pytest.raises(DuplicateJSONKeyError):
         strict_json_loads('{"generation":1,"generation":2}')
     with pytest.raises(ValueError):

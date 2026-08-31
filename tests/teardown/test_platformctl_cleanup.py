@@ -42,9 +42,7 @@ def test_platformctl_contains_no_live_execution_import() -> None:
 
 def test_no_terraform_runtime_residue_is_required() -> None:
     assert not (REPOSITORY_ROOT / "infra" / "bootstrap" / ".terraform").exists()
-    assert not (
-        REPOSITORY_ROOT / "infra" / "environments" / "sandbox" / ".terraform"
-    ).exists()
+    assert not (REPOSITORY_ROOT / "infra" / "environments" / "sandbox" / ".terraform").exists()
 
 
 def test_unavailable_default_inventory_never_claims_cleanliness() -> None:
@@ -54,4 +52,3 @@ def test_unavailable_default_inventory_never_claims_cleanliness() -> None:
         datetime(2026, 1, 1, tzinfo=UTC),
     )
     assert result.exit_code is ExitCode.PROVIDER_UNAVAILABLE
-

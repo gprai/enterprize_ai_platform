@@ -14,11 +14,7 @@ def test_no_test_tool_cache_or_deepeval_residue_exists() -> None:
         REPOSITORY_ROOT / ".pytest_cache",
         REPOSITORY_ROOT / ".ruff_cache",
     )
-    findings = [
-        str(path.relative_to(REPOSITORY_ROOT))
-        for path in forbidden_paths
-        if path.exists()
-    ]
+    findings = [str(path.relative_to(REPOSITORY_ROOT)) for path in forbidden_paths if path.exists()]
     assert findings == []
 
 
@@ -32,9 +28,7 @@ def test_approved_w1_003_documents_exist_without_json_evidence() -> None:
         for path in approved_documents
         if not path.exists()
     ]
-    unapproved_json_evidence = (
-        REPOSITORY_ROOT / "docs" / "test-evidence" / "W1-003.json"
-    )
+    unapproved_json_evidence = REPOSITORY_ROOT / "docs" / "test-evidence" / "W1-003.json"
 
     assert missing_documents == []
     assert not unapproved_json_evidence.exists()

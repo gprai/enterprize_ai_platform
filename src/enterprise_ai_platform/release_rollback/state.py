@@ -51,12 +51,8 @@ LOCK_POLL_SECONDS: Final = 0.01
 _REPORT_PATHS: Final[frozenset[Path]] = frozenset(
     {REGRESSION_REPORT_PATH, ROLLBACK_REPORT_PATH, SMOKE_REPORT_PATH}
 )
-_ARTIFACT_PATHS: Final[frozenset[Path]] = _REPORT_PATHS | {
-    ACTIVE_STATE_PATH
-}
-_TEMPORARY_NAME = re.compile(
-    r"^\.(?:active|regression|rollback|smoke)\.json\.\d+\.\d+\.tmp$"
-)
+_ARTIFACT_PATHS: Final[frozenset[Path]] = _REPORT_PATHS | {ACTIVE_STATE_PATH}
+_TEMPORARY_NAME = re.compile(r"^\.(?:active|regression|rollback|smoke)\.json\.\d+\.\d+\.tmp$")
 
 
 def _repository_root() -> Path:
@@ -117,9 +113,7 @@ def _runtime_file(relative: Path, *, require_exists: bool = False) -> Path:
 
 
 def _temporary_for(target: Path) -> Path:
-    return target.with_name(
-        f".{target.name}.{os.getpid()}.{threading.get_ident()}.tmp"
-    )
+    return target.with_name(f".{target.name}.{os.getpid()}.{threading.get_ident()}.tmp")
 
 
 @contextmanager
@@ -427,11 +421,7 @@ def cleanup_complete_lifecycle(*, owner_output_captured: bool) -> None:
     with _exclusive_writer_lock():
         approved, unexpected = _inventory()
         allowed = _ARTIFACT_PATHS | {ACTIVATION_LOCK_PATH}
-        if (
-            unexpected
-            or ACTIVATION_LOCK_PATH not in approved
-            or not approved.issubset(allowed)
-        ):
+        if unexpected or ACTIVATION_LOCK_PATH not in approved or not approved.issubset(allowed):
             raise ReleaseCleanupError
         for relative in (
             SMOKE_REPORT_PATH,

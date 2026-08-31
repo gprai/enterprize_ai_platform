@@ -80,15 +80,9 @@ def _report() -> object:
                 actual_outcome=expected_outcome,
                 answer_text="internal only" if expected_outcome == "ANSWERED" else None,
                 abstention_reason=(
-                    "insufficient_evidence"
-                    if expected_outcome == "ABSTAINED"
-                    else None
+                    "insufficient_evidence" if expected_outcome == "ABSTAINED" else None
                 ),
-                error_code=(
-                    "rag_output_validation_error"
-                    if expected_outcome == "ERROR"
-                    else None
-                ),
+                error_code=("rag_output_validation_error" if expected_outcome == "ERROR" else None),
                 citations=(citation,) if expected_outcome == "ANSWERED" else (),
                 provider_calls=0,
             )
@@ -153,10 +147,14 @@ def _report() -> object:
 def test_runner_parser_supports_canonical_owner_interface() -> None:
     arguments = build_parser().parse_args(
         [
-            "--config", "configs/eval/w3-002.yaml",
-            "--dataset", "configs/eval/golden.jsonl",
-            "--baseline", "configs/eval/baselines/w3-002-v1.json",
-            "--out", "reports/eval.json",
+            "--config",
+            "configs/eval/w3-002.yaml",
+            "--dataset",
+            "configs/eval/golden.jsonl",
+            "--baseline",
+            "configs/eval/baselines/w3-002-v1.json",
+            "--out",
+            "reports/eval.json",
         ]
     )
     assert arguments.out == Path("reports/eval.json")
@@ -165,9 +163,7 @@ def test_runner_parser_supports_canonical_owner_interface() -> None:
 
 def test_launcher_dispatches_both_commands_without_pythonpath_or_residue() -> None:
     environment = {
-        key: value
-        for key, value in os.environ.items()
-        if key.casefold() != "pythonpath"
+        key: value for key, value in os.environ.items() if key.casefold() != "pythonpath"
     }
     candidate_report = ROOT / "reports" / "eval.json"
     repeat_report = ROOT / "reports" / "eval-repeat.json"

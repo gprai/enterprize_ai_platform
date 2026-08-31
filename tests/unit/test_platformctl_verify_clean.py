@@ -37,9 +37,7 @@ def test_unmanaged_residual_fails() -> None:
         tags={},
         state=ResourceState.ACTIVE,
     )
-    result = verify_clean(
-        FakeAwsInventoryProvider(tagged_resources=(residual,)), "sandbox", NOW
-    )
+    result = verify_clean(FakeAwsInventoryProvider(tagged_resources=(residual,)), "sandbox", NOW)
     assert result.exit_code is ExitCode.VALIDATION_FAILURE
     assert "1 unmanaged" in result.message
 
@@ -52,9 +50,7 @@ def test_managed_active_residual_fails() -> None:
         state=ResourceState.ACTIVE,
     )
     result = verify_clean(
-        FakeAwsInventoryProvider(
-            service_resources={ServiceIdentifier.EKS: (residual,)}
-        ),
+        FakeAwsInventoryProvider(service_resources={ServiceIdentifier.EKS: (residual,)}),
         "sandbox",
         NOW,
     )
@@ -71,9 +67,7 @@ def test_evidenced_kms_pending_deletion_is_the_only_expected_residual() -> None:
         scheduled_deletion_at="2026-01-08T00:00:00Z",
     )
     result = verify_clean(
-        FakeAwsInventoryProvider(
-            service_resources={ServiceIdentifier.KMS: (pending_key,)}
-        ),
+        FakeAwsInventoryProvider(service_resources={ServiceIdentifier.KMS: (pending_key,)}),
         "sandbox",
         NOW,
     )
@@ -88,9 +82,7 @@ def test_insufficient_kms_evidence_fails() -> None:
         tags=managed_tags(),
         state=ResourceState.PENDING_DELETION,
     )
-    result = verify_clean(
-        FakeAwsInventoryProvider(tagged_resources=(pending_key,)), "sandbox", NOW
-    )
+    result = verify_clean(FakeAwsInventoryProvider(tagged_resources=(pending_key,)), "sandbox", NOW)
     assert result.exit_code is ExitCode.VALIDATION_FAILURE
 
 
@@ -103,15 +95,11 @@ def test_active_or_unknown_kms_state_fails(state: ResourceState) -> None:
         state=state,
         scheduled_deletion_at="2026-01-08T00:00:00Z",
     )
-    result = verify_clean(
-        FakeAwsInventoryProvider(tagged_resources=(key,)), "sandbox", NOW
-    )
+    result = verify_clean(FakeAwsInventoryProvider(tagged_resources=(key,)), "sandbox", NOW)
     assert result.exit_code is ExitCode.VALIDATION_FAILURE
 
 
 def test_unavailable_inventory_is_indeterminate_exit_three() -> None:
-    result = verify_clean(
-        FakeAwsInventoryProvider(unavailable=True), "sandbox", NOW
-    )
+    result = verify_clean(FakeAwsInventoryProvider(unavailable=True), "sandbox", NOW)
     assert result.exit_code is ExitCode.PROVIDER_UNAVAILABLE
     assert result.message.startswith("INDETERMINATE:")

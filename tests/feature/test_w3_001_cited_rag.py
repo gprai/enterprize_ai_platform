@@ -57,9 +57,7 @@ class FeatureRetrieval:
     def __init__(self, chunk: RetrievedChunk) -> None:
         self.chunk = chunk
 
-    async def retrieve(
-        self, query: Query, auth_context: AuthContext
-    ) -> tuple[RetrievedChunk, ...]:
+    async def retrieve(self, query: Query, auth_context: AuthContext) -> tuple[RetrievedChunk, ...]:
         return (self.chunk,)
 
 
@@ -110,9 +108,7 @@ def test_w3_001_returns_traceable_answer_or_pre_provider_abstention() -> None:
         policy=_policy(),
     )
 
-    answer = asyncio.run(
-        service.answer(_auth(), Query(text="How is the provider selected?"))
-    )
+    answer = asyncio.run(service.answer(_auth(), Query(text="How is the provider selected?")))
 
     assert isinstance(answer, CitedAnswerResult)
     assert answer.prompt_version == "w3-001.v1"
@@ -124,9 +120,7 @@ def test_w3_001_returns_traceable_answer_or_pre_provider_abstention() -> None:
         llm_provider=weak_provider,
         policy=_policy(),
     )
-    abstention = asyncio.run(
-        weak_service.answer(_auth(), Query(text="Synthetic weak query"))
-    )
+    abstention = asyncio.run(weak_service.answer(_auth(), Query(text="Synthetic weak query")))
 
     assert abstention == AbstentionResult(
         reason="insufficient_evidence",

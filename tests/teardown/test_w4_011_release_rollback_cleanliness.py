@@ -53,12 +53,10 @@ def test_ignore_boundary_is_exact_and_not_a_broad_reports_ignore() -> None:
 
 def test_descriptor_hashes_still_match_every_immutable_payload_file() -> None:
     descriptor = load_release_descriptor("w4-known-good-v1")
-    assert tuple(item.path for item in descriptor.artifacts) == (
-        APPROVED_ARTIFACT_PATHS
-    )
-    assert {
-        item.path: hash_file(ROOT / item.path) for item in descriptor.artifacts
-    } == {item.path: item.sha256 for item in descriptor.artifacts}
+    assert tuple(item.path for item in descriptor.artifacts) == (APPROVED_ARTIFACT_PATHS)
+    assert {item.path: hash_file(ROOT / item.path) for item in descriptor.artifacts} == {
+        item.path: item.sha256 for item in descriptor.artifacts
+    }
 
 
 def test_owner_captured_cleanup_removes_only_isolated_runtime_state(

@@ -143,9 +143,7 @@ def test_valid_generated_citation_is_rebuilt_from_trusted_evidence() -> None:
     chunk = _chunk()
     service, provider = _service((chunk,), _response([_citation(chunk)]))
 
-    result = asyncio.run(
-        service.answer(_auth(), Query(text="What is governed?"))
-    )
+    result = asyncio.run(service.answer(_auth(), Query(text="What is governed?")))
 
     assert isinstance(result, CitedAnswerResult)
     assert result.answer.text == "Governed answer."
@@ -402,21 +400,13 @@ def test_inactive_authorization_stops_before_retrieval_and_generation() -> None:
 
 def test_unparseable_json_and_unexpected_tool_call_fail_closed() -> None:
     chunk = _chunk()
-    malformed_service, _provider = _service(
-        (chunk,), ChatResponse(text="not-json", usage=None)
-    )
+    malformed_service, _provider = _service((chunk,), ChatResponse(text="not-json", usage=None))
     tool_service, _provider = _service(
         (chunk,),
-        ChatResponse(
-            tool_calls=(
-                ToolCall(tool_call_id="call-1", name="lookup", arguments={}),
-            )
-        ),
+        ChatResponse(tool_calls=(ToolCall(tool_call_id="call-1", name="lookup", arguments={}),)),
     )
 
     with pytest.raises(RAGOutputValidationError):
-        asyncio.run(
-            malformed_service.answer(_auth(), Query(text="Synthetic query"))
-        )
+        asyncio.run(malformed_service.answer(_auth(), Query(text="Synthetic query")))
     with pytest.raises(RAGOutputValidationError):
         asyncio.run(tool_service.answer(_auth(), Query(text="Synthetic query")))

@@ -47,11 +47,8 @@ class FakeAwsInventoryProvider:
             raise InventoryUnavailable("synthetic inventory is unavailable")
         return self.tagged_resources
 
-    def list_service_resources(
-        self, service: ServiceIdentifier
-    ) -> Sequence[InventoryResource]:
+    def list_service_resources(self, service: ServiceIdentifier) -> Sequence[InventoryResource]:
         self.service_calls.append(service)
         if self.unavailable:
             raise InventoryUnavailable("synthetic inventory is unavailable")
         return self.service_resources.get(service, ())
-

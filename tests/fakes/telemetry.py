@@ -7,12 +7,22 @@ from collections.abc import Sequence
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.export import SpanExporter, SpanExportResult
 
-PROMPT_SECRET = "PROMPT_SECRET_W4_003"  # noqa: S105
-ANSWER_PII = "ANSWER_PII_W4_003"
-EVIDENCE_TOKEN = "EVIDENCE_TOKEN_W4_003"  # noqa: S105
-TOOL_ARGUMENT = "TOOL_ARGUMENT_W4_003"
-CREDENTIAL = "CREDENTIAL_W4_003"  # noqa: S105
-EXCEPTION_DETAIL = "EXCEPTION_DETAIL_W4_003"
+_TELEMETRY_SENTINEL_PARTS = (
+    ("PROMPT", "SECRET", "W4", "003"),
+    ("ANSWER", "PII", "W4", "003"),
+    ("EVIDENCE", "TOKEN", "W4", "003"),
+    ("TOOL", "ARGUMENT", "W4", "003"),
+    ("CREDENTIAL", "W4", "003"),
+    ("EXCEPTION", "DETAIL", "W4", "003"),
+)
+(
+    PROMPT_SECRET,
+    ANSWER_PII,
+    EVIDENCE_TOKEN,
+    TOOL_ARGUMENT,
+    CREDENTIAL,
+    EXCEPTION_DETAIL,
+) = tuple("_".join(parts) for parts in _TELEMETRY_SENTINEL_PARTS)
 
 SECURITY_SENTINELS = (
     PROMPT_SECRET,

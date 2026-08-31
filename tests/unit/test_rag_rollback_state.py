@@ -35,18 +35,12 @@ def test_activation_is_atomic_idempotent_and_generation_checked(
 ) -> None:
     _isolate_state(monkeypatch, tmp_path)
 
-    initial = state_module.activate_identity(
-        "known-good", expected_current="absent"
-    )
-    repeated = state_module.activate_identity(
-        "known-good", expected_current="absent"
-    )
+    initial = state_module.activate_identity("known-good", expected_current="absent")
+    repeated = state_module.activate_identity("known-good", expected_current="absent")
     regression = state_module.activate_identity(
         "synthetic-regression", expected_current="known-good"
     )
-    restored = state_module.activate_identity(
-        "known-good", expected_current="synthetic-regression"
-    )
+    restored = state_module.activate_identity("known-good", expected_current="synthetic-regression")
 
     assert initial.status == "ACTIVATED" and initial.generation == 1
     assert repeated.status == "ALREADY_ACTIVE" and repeated.generation == 1

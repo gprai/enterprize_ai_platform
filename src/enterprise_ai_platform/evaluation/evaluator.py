@@ -119,9 +119,7 @@ class DeterministicRAGEvaluator:
             violations.append("suppressed_content_exposed")
         exposed_invalid = int(
             outcome == "ANSWERED"
-            and any(
-                item.chunk_id not in case.expected_chunk_ids for item in citations
-            )
+            and any(item.chunk_id not in case.expected_chunk_ids for item in citations)
         )
         return CaseExecution(
             case_id=case.case_id,

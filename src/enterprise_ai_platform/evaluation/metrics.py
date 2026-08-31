@@ -93,8 +93,7 @@ def assess_case(case: GoldenCase, execution: CaseExecution) -> CaseAssessment:
         and execution.answer_text is not None
         and citations_valid
         and all(
-            contains_contiguous_tokens(execution.answer_text, fact)
-            for fact in case.expected_facts
+            contains_contiguous_tokens(execution.answer_text, fact) for fact in case.expected_facts
         )
     )
     abstention_correct = bool(
@@ -188,9 +187,9 @@ def aggregate_metrics(
     dataset: GoldenDataset,
     assessments: tuple[CaseAssessment, ...],
 ) -> EvaluationMetrics:
-    if len(assessments) != 39 or tuple(
-        item.case_id for item in assessments
-    ) != tuple(case.case_id for case in dataset.cases):
+    if len(assessments) != 39 or tuple(item.case_id for item in assessments) != tuple(
+        case.case_id for case in dataset.cases
+    ):
         raise EvaluationResultError
     pairs = tuple(zip(dataset.cases, assessments, strict=True))
     eligible = tuple(item for case, item in pairs if case.retrieval_metric_eligible)
@@ -201,9 +200,7 @@ def aggregate_metrics(
         )
         for item in eligible
     )
-    mrr_values = tuple(
-        Fraction(item.reciprocal_rank).limit_denominator(5) for item in eligible
-    )
+    mrr_values = tuple(Fraction(item.reciprocal_rank).limit_denominator(5) for item in eligible)
     answered = tuple(item for case, item in pairs if case.expected_outcome == "ANSWERED")
     abstained = tuple(item for case, item in pairs if case.expected_outcome == "ABSTAINED")
     errors = tuple(item for case, item in pairs if case.expected_outcome == "ERROR")
@@ -215,15 +212,11 @@ def aggregate_metrics(
         mrr=_macro_metric(mrr_values),
         citation_precision=_metric(valid, returned),
         answered_correctness=_metric(sum(item.passed for item in answered), len(answered)),
-        abstention_correctness=_metric(
-            sum(item.passed for item in abstained), len(abstained)
-        ),
+        abstention_correctness=_metric(sum(item.passed for item in abstained), len(abstained)),
         combined_correctness=_metric(
             sum(item.passed for item in result_bearing), len(result_bearing)
         ),
-        expected_error_correctness=_metric(
-            sum(item.passed for item in errors), len(errors)
-        ),
+        expected_error_correctness=_metric(sum(item.passed for item in errors), len(errors)),
         release_blocking_failures=sum(
             case.release_blocking and not item.passed for case, item in pairs
         ),
@@ -233,9 +226,9 @@ def aggregate_metrics(
 
 
 def _passes(metric: MetricValue, threshold: float) -> bool:
-    return metric.value is not None and Fraction(
-        metric.numerator, metric.denominator
-    ) >= Fraction(str(threshold))
+    return metric.value is not None and Fraction(metric.numerator, metric.denominator) >= Fraction(
+        str(threshold)
+    )
 
 
 def _gate_status(passed: bool) -> GateStatus:
@@ -270,9 +263,7 @@ def apply_absolute_gates(metrics: EvaluationMetrics, config: EvaluationConfig) -
         answered_correctness=_gate_status(statuses["answered_correctness"]),
         abstention_correctness=_gate_status(statuses["abstention_correctness"]),
         combined_correctness=_gate_status(statuses["combined_correctness"]),
-        expected_error_correctness=_gate_status(
-            statuses["expected_error_correctness"]
-        ),
+        expected_error_correctness=_gate_status(statuses["expected_error_correctness"]),
         release_blocking_cases=_gate_status(statuses["release_blocking_cases"]),
         security=_gate_status(statuses["security"]),
         absolute_gate_status=_gate_status(absolute),

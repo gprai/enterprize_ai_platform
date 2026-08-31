@@ -22,11 +22,7 @@ DEFAULT_MAX_ATTEMPTS = 2
 
 
 def validated_timeout(timeout_seconds: float | None) -> float:
-    timeout = (
-        DEFAULT_OPERATION_TIMEOUT_SECONDS
-        if timeout_seconds is None
-        else timeout_seconds
-    )
+    timeout = DEFAULT_OPERATION_TIMEOUT_SECONDS if timeout_seconds is None else timeout_seconds
     if not math.isfinite(timeout) or timeout <= 0 or timeout > MAX_OPERATION_TIMEOUT_SECONDS:
         raise VectorStoreValidationError
     return timeout

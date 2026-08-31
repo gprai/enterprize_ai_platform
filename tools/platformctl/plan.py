@@ -13,4 +13,3 @@ def validate_request(environment: str, target: str) -> OperationResult:
         ExitCode.SUCCESS,
         "DRY_RUN: plan intent validated; Terraform plan was NOT RUN",
     )
-

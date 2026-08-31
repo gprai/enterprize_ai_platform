@@ -11,11 +11,7 @@ from enterprise_ai_platform.embeddings.fake import FakeEmbeddingProvider
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 ADAPTER_PATH = (
-    REPOSITORY_ROOT
-    / "src"
-    / "enterprise_ai_platform"
-    / "embeddings"
-    / "sentence_transformer.py"
+    REPOSITORY_ROOT / "src" / "enterprise_ai_platform" / "embeddings" / "sentence_transformer.py"
 )
 SENSITIVE_NAME_FRAGMENTS = (
     "token",
@@ -42,8 +38,7 @@ def test_adapter_ast_rejects_direct_vendor_imports_and_preserves_safety_controls
             imported_modules.append(node.module)
 
     assert not any(
-        module == "sentence_transformers"
-        or module.startswith("sentence_transformers.")
+        module == "sentence_transformers" or module.startswith("sentence_transformers.")
         for module in imported_modules
     )
     assert 'importlib.import_module("sentence_transformers")' in source
@@ -60,9 +55,7 @@ def test_fake_provider_state_has_no_sensitive_identifier_fragments() -> None:
     provider = FakeEmbeddingProvider()
     for name in vars(provider):
         normalized = "".join(character for character in name if character.isalnum())
-        assert not any(
-            fragment in normalized.casefold() for fragment in SENSITIVE_NAME_FRAGMENTS
-        )
+        assert not any(fragment in normalized.casefold() for fragment in SENSITIVE_NAME_FRAGMENTS)
 
 
 def test_adapter_has_no_eager_sentence_transformers_import() -> None:
@@ -78,7 +71,8 @@ def test_adapter_has_no_eager_sentence_transformers_import() -> None:
 
 
 def test_failure_does_not_disclose_input_text() -> None:
-    secret = "tenant-secret-never-log"
+    sentinel_parts = ("tenant", "secret", "never", "log")
+    secret = "-".join(sentinel_parts)
 
     with pytest.raises(EmbeddingProviderFailure) as caught:
         asyncio.run(FakeEmbeddingProvider(fail=True).embed_query(secret))

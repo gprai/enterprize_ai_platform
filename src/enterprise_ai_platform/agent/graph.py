@@ -111,6 +111,7 @@ _GRAPH_OPERATIONS = {
     AgentNode.SAFE_TERMINAL: TelemetryOperation.SAFE_TERMINAL,
 }
 
+
 class _GraphNodeHandler(Protocol):
     def __call__(
         self,
@@ -321,10 +322,7 @@ async def answer(
     grade = state["grade"]
     if _terminal(control) or evidence is None or grade is None:
         return {"control": control}
-    if (
-        control.provider_attempt_count
-        >= runtime.context.budgets.maximum_provider_attempts
-    ):
+    if control.provider_attempt_count >= runtime.context.budgets.maximum_provider_attempts:
         return {
             "control": _updated(
                 control,

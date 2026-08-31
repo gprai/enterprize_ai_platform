@@ -14,9 +14,7 @@ APPROVED_EMBEDDING_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
 APPROVED_EMBEDDING_REVISION = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
 APPROVED_EMBEDDING_DIMENSION = 384
 APPROVED_EMBEDDING_LICENSE = "Apache-2.0"
-OBSOLETE_IDENTIFIERS = frozenset(
-    {"demo", "learning", "project_owner", "internal_learning"}
-)
+OBSOLETE_IDENTIFIERS = frozenset({"demo", "learning", "project_owner", "internal_learning"})
 
 
 class Classification(StrEnum):
@@ -208,8 +206,7 @@ def deterministic_chunk_id(
         str(chunk_index),
     )
     canonical = b"".join(
-        len(value.encode("utf-8")).to_bytes(4, "big") + value.encode("utf-8")
-        for value in values
+        len(value.encode("utf-8")).to_bytes(4, "big") + value.encode("utf-8") for value in values
     )
     return hashlib.sha256(canonical).hexdigest()
 

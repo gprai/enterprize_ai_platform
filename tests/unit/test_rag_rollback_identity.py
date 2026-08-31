@@ -22,9 +22,7 @@ def test_identity_pair_is_strict_transitive_and_changes_only_approved_fields() -
     assert known_good.identity_alias == "known-good"
     assert regression.identity_alias == "synthetic-regression"
     assert known_good.provider.profile == "w3-002.controlled-fake.v1"
-    assert regression.provider.profile == (
-        "w3-004.synthetic-invalid-citation-q1-q2.v1"
-    )
+    assert regression.provider.profile == ("w3-004.synthetic-invalid-citation-q1-q2.v1")
     assert known_good.baseline == regression.baseline
     assert known_good.repository == regression.repository
     assert known_good.prompt == regression.prompt
@@ -59,8 +57,7 @@ def test_descriptor_rejects_unknown_missing_and_duplicate_fields() -> None:
         RAGIdentityDescriptor.model_validate(missing, strict=True)
     with pytest.raises(ValueError):
         strict_json_loads(
-            '{"schema_version":"w3-004.rag-identity.v1",'
-            '"schema_version":"w3-004.rag-identity.v1"}'
+            '{"schema_version":"w3-004.rag-identity.v1","schema_version":"w3-004.rag-identity.v1"}'
         )
 
 

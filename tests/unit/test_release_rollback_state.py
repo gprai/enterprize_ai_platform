@@ -34,12 +34,8 @@ def test_activation_is_atomic_idempotent_and_generation_checked(
 ) -> None:
     isolate_release_runtime(monkeypatch, tmp_path)
 
-    initial = state_module.activate_release(
-        "w4-known-good-v1", expected_current="absent"
-    )
-    repeated = state_module.activate_release(
-        "w4-known-good-v1", expected_current="absent"
-    )
+    initial = state_module.activate_release("w4-known-good-v1", expected_current="absent")
+    repeated = state_module.activate_release("w4-known-good-v1", expected_current="absent")
     candidate = state_module.activate_release(
         "w4-synthetic-regression-v1",
         expected_current="w4-known-good-v1",

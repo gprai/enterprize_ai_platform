@@ -7,15 +7,9 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 COMPOSE_PATH = REPOSITORY_ROOT / "docker-compose.yml"
 QDRANT_TEST_PATH = REPOSITORY_ROOT / "tests/integration/test_qdrant.py"
-RUNNER_DOCKERFILE_PATH = (
-    REPOSITORY_ROOT / "docker/qdrant-test-runner.Dockerfile"
-)
-RUNNER_DOCKERIGNORE_PATH = (
-    REPOSITORY_ROOT / "docker/qdrant-test-runner.Dockerfile.dockerignore"
-)
-RUNNER_REQUIREMENTS_PATH = (
-    REPOSITORY_ROOT / "docker/qdrant-test-runner.requirements.txt"
-)
+RUNNER_DOCKERFILE_PATH = REPOSITORY_ROOT / "docker/qdrant-test-runner.Dockerfile"
+RUNNER_DOCKERIGNORE_PATH = REPOSITORY_ROOT / "docker/qdrant-test-runner.Dockerfile.dockerignore"
+RUNNER_REQUIREMENTS_PATH = REPOSITORY_ROOT / "docker/qdrant-test-runner.requirements.txt"
 INDEX_DIGEST = "sha256:a0e04fe623cb064502cd869cefc1dc7ce359d8edd481063b5bd351c0a0a2c91e"
 PYTHON_INDEX_DIGEST = "sha256:adafcc17694d715c905b4c7bebd96907a1fd5cf183395f0ebc4d3428bd22d92d"
 PYTHON_AMD64_MANIFEST_DIGEST = (
@@ -46,9 +40,7 @@ def test_qdrant_identity_platform_and_internal_only_are_exact() -> None:
     content = compose_text()
     qdrant = service_text("qdrant")
     assert "name: enterprise-ai-w2-004a" in content
-    assert (
-        "qdrant/qdrant:v1.19.0-unprivileged@" + INDEX_DIGEST
-    ) in content
+    assert ("qdrant/qdrant:v1.19.0-unprivileged@" + INDEX_DIGEST) in content
     assert "platform: linux/amd64" in qdrant
     assert "ports:" not in qdrant
     assert "host_ip:" not in qdrant
@@ -119,17 +111,13 @@ def test_runner_is_profile_controlled_internal_and_ephemeral() -> None:
 
 def test_runner_image_identity_and_non_root_execution_are_exact() -> None:
     content = RUNNER_DOCKERFILE_PATH.read_text(encoding="utf-8")
-    expected_from = (
-        "FROM --platform=linux/amd64 "
-        "python:3.13.7-slim-bookworm@"
-        + PYTHON_INDEX_DIGEST
-    )
+    expected_from = "FROM --platform=linux/amd64 python:3.13.7-slim-bookworm@" + PYTHON_INDEX_DIGEST
     assert expected_from in content
     assert PYTHON_AMD64_MANIFEST_DIGEST in content
     assert PYTHON_ATTESTATION_MANIFEST_DIGEST not in content
     assert "# syntax=" not in content
     assert "docker/dockerfile" not in content
-    assert 'VIRTUAL_ENV=/opt/qdrant-test-runner-venv' in content
+    assert "VIRTUAL_ENV=/opt/qdrant-test-runner-venv" in content
     assert 'PATH="${VIRTUAL_ENV}/bin:${PATH}"' in content
     assert 'python -m venv "${VIRTUAL_ENV}"' in content
     assert "--uid 10001" in content
@@ -141,9 +129,7 @@ def test_runner_image_identity_and_non_root_execution_are_exact() -> None:
 
 def test_runner_uses_only_approved_dependency_families() -> None:
     requirements = tuple(
-        line
-        for line in RUNNER_REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines()
-        if line
+        line for line in RUNNER_REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines() if line
     )
     assert requirements == (
         "pydantic>=2.10,<3",
@@ -153,9 +139,7 @@ def test_runner_uses_only_approved_dependency_families() -> None:
 
 
 def test_runner_build_context_allowlist_is_exact() -> None:
-    patterns = tuple(
-        RUNNER_DOCKERIGNORE_PATH.read_text(encoding="utf-8").splitlines()
-    )
+    patterns = tuple(RUNNER_DOCKERIGNORE_PATH.read_text(encoding="utf-8").splitlines())
     assert patterns == (
         "**",
         "!docker/",

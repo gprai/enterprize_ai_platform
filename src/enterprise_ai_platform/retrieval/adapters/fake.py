@@ -161,8 +161,7 @@ class InMemoryVectorStore:
             delete_ids = [
                 chunk_id
                 for chunk_id, chunk in collection.chunks.items()
-                if chunk.tenant_id == auth_context.tenant_id
-                and chunk.document_id == document_id
+                if chunk.tenant_id == auth_context.tenant_id and chunk.document_id == document_id
             ]
             for chunk_id in delete_ids:
                 del collection.chunks[chunk_id]

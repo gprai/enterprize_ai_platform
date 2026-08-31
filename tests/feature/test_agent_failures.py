@@ -493,9 +493,7 @@ def test_agent_telemetry_spans_metrics_and_logs_retain_no_approved_sentinel(
     span_text: list[str] = []
     for span in composition.span_exporter.get_finished_spans():
         span_text.extend((span.name, repr(span.attributes), repr(span.status)))
-        span_text.extend(
-            f"{event.name}:{event.attributes!r}" for event in span.events
-        )
+        span_text.extend(f"{event.name}:{event.attributes!r}" for event in span.events)
     captured = "\n".join(
         (
             result.model_dump_json(),

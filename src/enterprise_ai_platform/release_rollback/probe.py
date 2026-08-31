@@ -187,10 +187,7 @@ class LocalASGIReleaseProbe:
         self,
         descriptor: ReleaseDescriptor,
     ) -> RestoredProbeResult:
-        if (
-            descriptor.release_version != "w4-known-good-v1"
-            or not descriptor.agent_enabled
-        ):
+        if descriptor.release_version != "w4-known-good-v1" or not descriptor.agent_enabled:
             raise ReleaseProbeError
         counters = _ProbeCounters()
         application = create_app(

@@ -24,9 +24,7 @@ def _resource_key(resource: InventoryResource) -> tuple[ServiceIdentifier, str]:
     return resource.service, resource.resource_id
 
 
-def _has_managed_tags(
-    resource: InventoryResource, required_tags: dict[str, str]
-) -> bool:
+def _has_managed_tags(resource: InventoryResource, required_tags: dict[str, str]) -> bool:
     if not resource.resource_id:
         return False
     if any(resource.tags.get(key) != value for key, value in required_tags.items()):
@@ -49,9 +47,7 @@ def _is_expected_kms_residual(resource: InventoryResource, now: datetime) -> boo
     if resource.scheduled_deletion_at is None:
         return False
     try:
-        scheduled_at = parse_utc_timestamp(
-            resource.scheduled_deletion_at, "scheduled KMS deletion"
-        )
+        scheduled_at = parse_utc_timestamp(resource.scheduled_deletion_at, "scheduled KMS deletion")
     except ContractError:
         return False
     return scheduled_at > now
@@ -103,4 +99,3 @@ def verify_clean(
         "CLEANLINESS PASS: no active or unmanaged residuals; "
         f"{expected_kms_count} evidenced KMS PendingDeletion residual(s)",
     )
-

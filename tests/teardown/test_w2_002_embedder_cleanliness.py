@@ -4,9 +4,7 @@ import os
 from pathlib import Path, PureWindowsPath
 
 ROOT = Path(__file__).resolve().parents[2]
-APPROVED_EXTERNAL_CACHE_ROOT = PureWindowsPath(
-    r"E:\AI\.model-cache\enterprise_ai_platform\W2-002"
-)
+APPROVED_EXTERNAL_CACHE_ROOT = PureWindowsPath(r"E:\AI\.model-cache\enterprise_ai_platform\W2-002")
 REPOSITORY_CACHE_PATHS = (
     ROOT / ".cache" / "huggingface",
     ROOT / ".cache" / "torch",

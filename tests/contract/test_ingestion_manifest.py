@@ -95,19 +95,17 @@ def test_output_manifest_is_strict_redacted_json() -> None:
     decoded = json.loads(encoded)
     assert decoded["records"][0]["error_code"] == "pii_high_risk_quarantined"
     forbidden = (
-    '"raw_text":',
-    '"matched_text":',
-    '"embedding":',
-    '"exception_rationale":',
-    '"stack":',
+        '"raw_text":',
+        '"matched_text":',
+        '"embedding":',
+        '"exception_rationale":',
+        '"stack":',
     )
     assert not any(token in encoded.casefold() for token in forbidden)
 
     with pytest.raises(ValidationError):
         IngestionManifest.model_validate({**manifest.model_dump(), "unexpected": True})
     with pytest.raises(ValidationError):
-        IngestionManifest.model_validate(
-            {**manifest.model_dump(), "quarantined_count": 0}
-        )
+        IngestionManifest.model_validate({**manifest.model_dump(), "quarantined_count": 0})
     with pytest.raises(ValidationError):
         IngestionManifest.model_validate({**manifest.model_dump(), "exit_code": 1})

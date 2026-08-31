@@ -25,16 +25,15 @@ CONFIG = ROOT / "configs" / "eval" / "w3-002.yaml"
 
 def test_golden_dataset_has_exact_owner_inventory() -> None:
     dataset = load_golden_dataset(DATASET)
-    assert [case.case_id for case in dataset.cases] == [
-        f"Q{index}" for index in range(1, 40)
-    ]
+    assert [case.case_id for case in dataset.cases] == [f"Q{index}" for index in range(1, 40)]
     outcomes = [case.expected_outcome for case in dataset.cases]
     assert outcomes.count("ANSWERED") == 24
     assert outcomes.count("ABSTAINED") == 12
     assert outcomes.count("ERROR") == 3
-    assert tuple(
-        case.case_id for case in dataset.cases if case.retrieval_metric_eligible
-    ) == RETRIEVAL_ELIGIBLE_CASE_IDS
+    assert (
+        tuple(case.case_id for case in dataset.cases if case.retrieval_metric_eligible)
+        == RETRIEVAL_ELIGIBLE_CASE_IDS
+    )
 
 
 def test_canonical_checksum_ignores_object_key_order(tmp_path: Path) -> None:
@@ -42,8 +41,7 @@ def test_canonical_checksum_ignores_object_key_order(tmp_path: Path) -> None:
     objects = [json.loads(line) for line in DATASET.read_text(encoding="utf-8").splitlines()]
     reordered = tmp_path / "reordered.jsonl"
     reordered.write_text(
-        "\n".join(json.dumps(dict(reversed(tuple(item.items())))) for item in objects)
-        + "\n",
+        "\n".join(json.dumps(dict(reversed(tuple(item.items())))) for item in objects) + "\n",
         encoding="utf-8",
     )
     loaded = load_golden_dataset(reordered)
@@ -101,8 +99,7 @@ def test_missing_required_dataset_field_fails(tmp_path: Path) -> None:
     objects[0].pop("question")
     invalid = tmp_path / "missing.jsonl"
     invalid.write_text(
-        "\n".join(json.dumps(item, separators=(",", ":")) for item in objects)
-        + "\n",
+        "\n".join(json.dumps(item, separators=(",", ":")) for item in objects) + "\n",
         encoding="utf-8",
     )
     with pytest.raises(EvaluationDatasetError):

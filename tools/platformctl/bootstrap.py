@@ -36,4 +36,3 @@ def validate_request(
         ExitCode.SUCCESS,
         "DRY_RUN: bootstrap intent validated; no Terraform or AWS action executed",
     )
-

@@ -43,9 +43,7 @@ def _settings(provider: str) -> Settings:
 def test_provider_failure_never_falls_back_and_fake_rollback_is_local() -> None:
     client = DeniedBedrockClient()
     selected = create_llm_provider(_settings("bedrock"), bedrock_client=client)
-    request = ChatRequest(
-        messages=(ChatMessage(role=ChatRole.USER, content="Synthetic question"),)
-    )
+    request = ChatRequest(messages=(ChatMessage(role=ChatRole.USER, content="Synthetic question"),))
 
     assert isinstance(selected, BedrockLLMProvider)
     with pytest.raises(LLMAuthorizationError):

@@ -11,9 +11,7 @@ from typing import Any, Protocol, runtime_checkable
 from .errors import IngestionContractError
 from .models import APPROVED_TOKENIZER_ID, APPROVED_TOKENIZER_REVISION
 
-_APPROVED_MODEL_CACHE_DIRECTORY = (
-    "models--sentence-transformers--all-MiniLM-L6-v2"
-)
+_APPROVED_MODEL_CACHE_DIRECTORY = "models--sentence-transformers--all-MiniLM-L6-v2"
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -26,15 +24,12 @@ class TokenSpan:
 @runtime_checkable
 class IngestionTokenizer(Protocol):
     @property
-    def tokenizer_id(self) -> str:
-        ...
+    def tokenizer_id(self) -> str: ...
 
     @property
-    def tokenizer_revision(self) -> str:
-        ...
+    def tokenizer_revision(self) -> str: ...
 
-    def token_spans(self, text: str) -> tuple[TokenSpan, ...]:
-        ...
+    def token_spans(self, text: str) -> tuple[TokenSpan, ...]: ...
 
 
 class DeterministicTestTokenizer(IngestionTokenizer):
@@ -52,8 +47,7 @@ class DeterministicTestTokenizer(IngestionTokenizer):
 
     def token_spans(self, text: str) -> tuple[TokenSpan, ...]:
         return tuple(
-            TokenSpan(match.start(), match.end())
-            for match in self._pattern.finditer(text)
+            TokenSpan(match.start(), match.end()) for match in self._pattern.finditer(text)
         )
 
 

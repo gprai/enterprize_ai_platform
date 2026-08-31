@@ -26,10 +26,9 @@ def test_regression_override_changes_only_the_test_scoped_expectation() -> None:
     before = first.model_dump(mode="json")
 
     assert expected_source_ids(first, None) == first.expected_source_ids
-    assert expected_source_ids(first, "DOC-RESTRICTED-TEST") == (
-        "DOC-RESTRICTED-TEST",
-    )
+    assert expected_source_ids(first, "DOC-RESTRICTED-TEST") == ("DOC-RESTRICTED-TEST",)
     assert first.model_dump(mode="json") == before
+
 
 def test_real_rollback_revalidates_the_known_good_state() -> None:
     require_phase("rollback")

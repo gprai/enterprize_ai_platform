@@ -29,9 +29,7 @@ def test_fake_remains_a_zero_provider_rollback_target() -> None:
         unavailable = InMemoryVectorStore(available=False)
         assert not await unavailable.healthcheck()
         fallback = InMemoryVectorStore()
-        await fallback.create_or_validate_collection(
-            CollectionSpec(name="w2_001_rollback")
-        )
+        await fallback.create_or_validate_collection(CollectionSpec(name="w2_001_rollback"))
         assert await fallback.healthcheck()
 
     asyncio.run(scenario())

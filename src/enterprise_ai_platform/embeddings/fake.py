@@ -89,9 +89,7 @@ class FakeEmbeddingProvider:
         values: list[float] = []
         counter = 0
         while len(values) < self._dimension:
-            digest = hashlib.sha256(
-                text.encode("utf-8") + counter.to_bytes(4, "big")
-            ).digest()
+            digest = hashlib.sha256(text.encode("utf-8") + counter.to_bytes(4, "big")).digest()
             values.extend((byte - 127.5) / 127.5 for byte in digest)
             counter += 1
         selected = values[: self._dimension]

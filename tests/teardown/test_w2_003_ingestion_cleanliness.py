@@ -35,9 +35,7 @@ def test_ingestion_code_never_declares_repository_output_cache_directories() -> 
 
 
 def test_retained_w2_002_cache_is_outside_repository_when_present() -> None:
-    retained = Path(
-        r"E:\AI\.model-cache\enterprise_ai_platform\W2-002"
-    )
+    retained = Path(r"E:\AI\.model-cache\enterprise_ai_platform\W2-002")
     resolved_root = ROOT.resolve()
 
     if retained.exists():

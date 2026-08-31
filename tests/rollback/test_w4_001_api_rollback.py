@@ -20,11 +20,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 PROTECTED_RAG_IDENTITIES = (
     REPOSITORY_ROOT / "configs" / "rag.yaml",
     REPOSITORY_ROOT / "configs" / "rag" / "versions" / "w3-002-v1.json",
-    REPOSITORY_ROOT
-    / "configs"
-    / "rag"
-    / "versions"
-    / "w3-004-synthetic-regression-v1.json",
+    REPOSITORY_ROOT / "configs" / "rag" / "versions" / "w3-004-synthetic-regression-v1.json",
 )
 
 
@@ -62,9 +58,7 @@ def test_default_off_restores_exact_health_only_business_surface(
     }
     assert "X-Request-ID" not in response.headers
     assert "/health" in paths
-    assert not paths.intersection(
-        {"/health/live", "/health/ready", "/v1/query", "/v1/agent"}
-    )
+    assert not paths.intersection({"/health/live", "/health/ready", "/v1/query", "/v1/agent"})
     assert set(application.state._state) == {"settings"}
     assert authenticator.calls == 0
     assert rag.calls == []

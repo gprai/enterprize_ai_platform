@@ -134,17 +134,13 @@ class FakeOpenSearchClient:
         filters = body["query"]["bool"]["filter"]
         tenant_id = filters[0]["term"]["tenant_id"]
         document_id = filters[1]["term"]["document_id"]
-        document_version = (
-            filters[2]["term"]["document_version"] if len(filters) == 3 else None
-        )
+        document_version = filters[2]["term"]["document_version"] if len(filters) == 3 else None
         delete_ids = [
             key
             for key, value in self.documents.items()
-            if value["tenant_id"] == tenant_id and value["document_id"] == document_id
-            and (
-                document_version is None
-                or value["document_version"] == document_version
-            )
+            if value["tenant_id"] == tenant_id
+            and value["document_id"] == document_id
+            and (document_version is None or value["document_version"] == document_version)
         ]
         for key in delete_ids:
             del self.documents[key]
@@ -171,20 +167,15 @@ def test_injected_opensearch_boundary_carries_spec_filters_and_no_sdk_results() 
         assert client.last_search is not None
         filters = client.last_search["query"]["bool"]["filter"]
         assert {"term": {"tenant_id": "tenant-a"}} in filters
-        assert "source_id" in client.indices.created[specification.name]["mappings"][
-            "properties"
-        ]
-        assert "media_type" in client.indices.created[specification.name]["mappings"][
-            "properties"
-        ]
-        exception_properties = client.indices.created[specification.name]["mappings"][
-            "properties"
-        ]["approved_exception"]["properties"]
+        assert "source_id" in client.indices.created[specification.name]["mappings"]["properties"]
+        assert "media_type" in client.indices.created[specification.name]["mappings"]["properties"]
+        exception_properties = client.indices.created[specification.name]["mappings"]["properties"][
+            "approved_exception"
+        ]["properties"]
         assert exception_properties["document_id"] == {"type": "keyword"}
         assert exception_properties["entity_types"] == {"type": "keyword"}
         assert all(
-            result.__class__.__module__.startswith("enterprise_ai_platform")
-            for result in results
+            result.__class__.__module__.startswith("enterprise_ai_platform") for result in results
         )
         assert await store.healthcheck()
 

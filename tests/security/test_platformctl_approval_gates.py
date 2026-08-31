@@ -80,14 +80,10 @@ def test_confirmation_value_is_never_echoed(
     assert synthetic_confirmation not in output.err
 
 
-@pytest.mark.parametrize(
-    "placeholder", ["TODO", "TODO_USER", "CHANGEME", "PLACEHOLDER"]
-)
+@pytest.mark.parametrize("placeholder", ["TODO", "TODO_USER", "CHANGEME", "PLACEHOLDER"])
 def test_runtime_placeholders_are_cli_usage_errors(placeholder: str) -> None:
     with pytest.raises(SystemExit) as exc_info:
-        build_parser().parse_args(
-            ["plan", "--environment", "sandbox", "--target", placeholder]
-        )
+        build_parser().parse_args(["plan", "--environment", "sandbox", "--target", placeholder])
     assert exc_info.value.code == 2
 
 

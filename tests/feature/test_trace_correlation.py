@@ -77,9 +77,7 @@ _TRACE_SCENARIO_FIELDS = frozenset(
         "expected_span_names_present",
     }
 )
-_TRACE_EDGE_FIELDS = frozenset(
-    {"parent_span_name", "child_span_name", "count"}
-)
+_TRACE_EDGE_FIELDS = frozenset({"parent_span_name", "child_span_name", "count"})
 
 
 def _auth(subject: str, *roles: Role) -> AuthContext:
@@ -236,8 +234,7 @@ def _build_trace_observation(
         trace_spans = tuple(spans_by_trace[trace_id])
         assert trace_spans
         all_spans_same_trace = all(
-            span.context is not None and span.context.trace_id == trace_id
-            for span in trace_spans
+            span.context is not None and span.context.trace_id == trace_id for span in trace_spans
         )
         assert all_spans_same_trace
 
@@ -249,10 +246,7 @@ def _build_trace_observation(
 
         all_parents_resolved = all(
             span.parent is None
-            or (
-                span.parent.trace_id == trace_id
-                and span.parent.span_id in spans_by_id
-            )
+            or (span.parent.trace_id == trace_id and span.parent.span_id in spans_by_id)
             for span in trace_spans
         )
         assert all_parents_resolved
@@ -279,12 +273,8 @@ def _build_trace_observation(
             }
             for parent_name, child_name in sorted(edge_counts)
         ]
-        span_name_counts = {
-            name: name_counts[name] for name in sorted(name_counts)
-        }
-        maximum_depth = max(
-            _span_depth(span_id, spans_by_id, trace_id) for span_id in spans_by_id
-        )
+        span_name_counts = {name: name_counts[name] for name in sorted(name_counts)}
+        maximum_depth = max(_span_depth(span_id, spans_by_id, trace_id) for span_id in spans_by_id)
         summary = {
             "scenario": scenario,
             "trace_count": 1,
@@ -431,39 +421,39 @@ def test_query_agent_start_and_agent_decision_form_three_correlated_traces(
     )
     query_expected_names = frozenset(
         {
-        "enterprise_ai.api.request",
-        "enterprise_ai.auth.authenticate",
-        "enterprise_ai.auth.authorize",
-        "enterprise_ai.guardrail.validate",
-        "enterprise_ai.rag.answer",
-        "enterprise_ai.retrieval.retrieve",
-        "enterprise_ai.embedding.query",
-        "enterprise_ai.vector.search",
-        "enterprise_ai.llm.chat",
+            "enterprise_ai.api.request",
+            "enterprise_ai.auth.authenticate",
+            "enterprise_ai.auth.authorize",
+            "enterprise_ai.guardrail.validate",
+            "enterprise_ai.rag.answer",
+            "enterprise_ai.retrieval.retrieve",
+            "enterprise_ai.embedding.query",
+            "enterprise_ai.vector.search",
+            "enterprise_ai.llm.chat",
         }
     )
     start_expected_names = frozenset(
         {
-        "enterprise_ai.api.request",
-        "enterprise_ai.agent.handle",
-        "enterprise_ai.agent.validate_input",
-        "enterprise_ai.agent.authorize",
-        "enterprise_ai.agent.retrieve",
-        "enterprise_ai.agent.grade_evidence",
-        "enterprise_ai.agent.answer",
-        "enterprise_ai.agent.propose_tool",
-        "enterprise_ai.agent.await_human_approval",
-        "enterprise_ai.agent.safe_terminal",
-        "enterprise_ai.approval.persist",
+            "enterprise_ai.api.request",
+            "enterprise_ai.agent.handle",
+            "enterprise_ai.agent.validate_input",
+            "enterprise_ai.agent.authorize",
+            "enterprise_ai.agent.retrieve",
+            "enterprise_ai.agent.grade_evidence",
+            "enterprise_ai.agent.answer",
+            "enterprise_ai.agent.propose_tool",
+            "enterprise_ai.agent.await_human_approval",
+            "enterprise_ai.agent.safe_terminal",
+            "enterprise_ai.approval.persist",
         }
     )
     decision_expected_names = frozenset(
         {
-        "enterprise_ai.api.request",
-        "enterprise_ai.agent.handle",
-        "enterprise_ai.approval.evaluate",
-        "enterprise_ai.approval.persist",
-        "enterprise_ai.tool.execute",
+            "enterprise_ai.api.request",
+            "enterprise_ai.agent.handle",
+            "enterprise_ai.approval.evaluate",
+            "enterprise_ai.approval.persist",
+            "enterprise_ai.tool.execute",
         }
     )
     assert query_expected_names.issubset(query_trace)
@@ -506,11 +496,7 @@ def test_query_agent_start_and_agent_decision_form_three_correlated_traces(
 
     raw_identifiers = {
         *(f"{trace_id:032x}" for trace_id in traces),
-        *(
-            f"{span.context.span_id:016x}"
-            for span in immutable_spans
-            if span.context is not None
-        ),
+        *(f"{span.context.span_id:016x}" for span in immutable_spans if span.context is not None),
         *request_ids,
         "untrusted-request",
         "untrusted-correlation",

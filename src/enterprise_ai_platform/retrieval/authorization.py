@@ -48,8 +48,7 @@ def build_retrieval_policy(
     classifications = tuple(
         classification
         for classification in Classification
-        if CLASSIFICATION_RANK[classification]
-        <= CLASSIFICATION_RANK[auth_context.clearance]
+        if CLASSIFICATION_RANK[classification] <= CLASSIFICATION_RANK[auth_context.clearance]
     )
     return RetrievalPolicy(
         tenant_id=auth_context.tenant_id,

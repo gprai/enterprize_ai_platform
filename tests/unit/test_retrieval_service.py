@@ -126,9 +126,7 @@ def test_retrieve_embeds_then_searches_with_the_approved_timeout() -> None:
 
         results = await service.retrieve(query, auth(Role.READER))
 
-        assert [result.source_id for result in results] == [
-            "DOC-RETRIEVAL-SERVICE"
-        ]
+        assert [result.source_id for result in results] == ["DOC-RETRIEVAL-SERVICE"]
         assert embedder.queries == [query.text]
         assert store.search_calls == 1
         assert store.search_timeouts == [7.0]

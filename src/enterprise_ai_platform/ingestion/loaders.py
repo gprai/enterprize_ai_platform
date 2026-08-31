@@ -34,10 +34,7 @@ def resolve_contained_source(source_root: Path, relative_path: str) -> Path:
     if pure_path.is_absolute() or any(part in {"", ".", ".."} for part in pure_path.parts):
         raise IngestionSourceError
     absolute_root = source_root.absolute()
-    if any(
-        component.is_symlink()
-        for component in (absolute_root, *absolute_root.parents)
-    ):
+    if any(component.is_symlink() for component in (absolute_root, *absolute_root.parents)):
         raise IngestionSourceError
     try:
         root = source_root.resolve(strict=True)

@@ -1,0 +1,21 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-lint-check
+        name: Ruff lint check
+        entry: python -m ruff check --no-cache
+        language: system
+        types: [python]
+        files: ^(src|tools|tests)/.*\.py$
+      - id: ruff-format-check
+        name: Ruff format check
+        entry: python -m ruff format --check --no-cache
+        language: system
+        types: [python]
+        files: ^(src|tools|tests)/.*\.py$
+      - id: detect-secrets-check
+        name: Detect secrets check
+        entry: detect-secrets-hook --baseline .secrets.baseline
+        language: system
+        types: [text]
+        exclude: ^\.secrets\.baseline$

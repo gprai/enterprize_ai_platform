@@ -95,9 +95,7 @@ def _region(value: str) -> str:
 def _add_mutation_arguments(
     parser: argparse.ArgumentParser, *, require_resource_expiry: bool
 ) -> None:
-    parser.add_argument(
-        "--environment", required=True, type=_runtime_token("environment")
-    )
+    parser.add_argument("--environment", required=True, type=_runtime_token("environment"))
     parser.add_argument("--aws-account-id", required=True, type=_account_id)
     parser.add_argument("--aws-region", required=True, type=_region)
     parser.add_argument("--target", required=True, type=_runtime_token("target"))
@@ -130,9 +128,7 @@ def build_parser() -> argparse.ArgumentParser:
     plan_parser = subcommands.add_parser(
         "plan", help="validate planning intent without running Terraform"
     )
-    plan_parser.add_argument(
-        "--environment", required=True, type=_runtime_token("environment")
-    )
+    plan_parser.add_argument("--environment", required=True, type=_runtime_token("environment"))
     plan_parser.add_argument("--target", required=True, type=_runtime_token("target"))
 
     deploy_parser = subcommands.add_parser(
@@ -140,9 +136,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_mutation_arguments(deploy_parser, require_resource_expiry=True)
 
-    subcommands.add_parser(
-        "validate", help="validate the approved repository contract read-only"
-    )
+    subcommands.add_parser("validate", help="validate the approved repository contract read-only")
 
     rollback_parser = subcommands.add_parser(
         "rollback", help="validate an approved immutable rollback intent"
@@ -160,9 +154,7 @@ def build_parser() -> argparse.ArgumentParser:
     clean_parser = subcommands.add_parser(
         "verify-clean", help="classify injected tag and service inventory"
     )
-    clean_parser.add_argument(
-        "--environment", required=True, type=_runtime_token("environment")
-    )
+    clean_parser.add_argument("--environment", required=True, type=_runtime_token("environment"))
 
     return parser
 
@@ -177,9 +169,7 @@ def _mutation_request(arguments: argparse.Namespace, action: Action) -> Mutation
         artifact_sha256=cast(str, arguments.artifact_sha256),
         confirmation=cast(str, arguments.confirmation),
         executor=cast(str, arguments.executor),
-        resource_expires_at=cast(
-            str | None, getattr(arguments, "resource_expires_at", None)
-        ),
+        resource_expires_at=cast(str | None, getattr(arguments, "resource_expires_at", None)),
     )
 
 

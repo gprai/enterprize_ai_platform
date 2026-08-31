@@ -21,9 +21,7 @@ def test_no_runtime_or_model_storage_was_created() -> None:
     )
 
     assert [
-        str(path.relative_to(REPOSITORY_ROOT))
-        for path in forbidden_paths
-        if path.exists()
+        str(path.relative_to(REPOSITORY_ROOT)) for path in forbidden_paths if path.exists()
     ] == []
 
 

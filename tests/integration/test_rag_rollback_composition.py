@@ -71,14 +71,9 @@ def test_injected_factory_changes_only_controlled_q1_q2_provider_behavior() -> N
 
     assert tuple(item.case_id for item in executions[:2]) == ("Q1", "Q2")
     assert all(item.actual_outcome == "ABSTAINED" for item in executions[:2])
-    assert all(
-        item.abstention_reason == "invalid_generated_citation"
-        for item in executions[:2]
-    )
+    assert all(item.abstention_reason == "invalid_generated_citation" for item in executions[:2])
     assert all(item.provider_calls == 1 and item.usage is not None for item in executions[:2])
-    assert executions[2:] == asyncio.run(
-        DeterministicRAGEvaluator().evaluate(dataset, policy)
-    )[2:]
+    assert executions[2:] == asyncio.run(DeterministicRAGEvaluator().evaluate(dataset, policy))[2:]
 
 
 def test_injected_provider_cancellation_propagates_without_fallback() -> None:

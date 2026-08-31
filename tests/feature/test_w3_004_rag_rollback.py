@@ -60,9 +60,7 @@ def test_n_to_regression_to_restored_n_flow_is_exact_and_cleanable(
     tmp_path: Path,
 ) -> None:
     repository = _isolated_repository(monkeypatch, tmp_path)
-    protected = {
-        relative: _sha256(repository / relative) for relative in AUTHORITIES
-    }
+    protected = {relative: _sha256(repository / relative) for relative in AUTHORITIES}
 
     validated = validate()
     initialized = initialize()
@@ -87,9 +85,7 @@ def test_n_to_regression_to_restored_n_flow_is_exact_and_cleanable(
     assert restored.release_eligible
     assert record.final_status == "PASS"
     assert clean.status == "CLEAN" and clean.approved_artifact_count == 4
-    assert {
-        relative: _sha256(repository / relative) for relative in AUTHORITIES
-    } == protected
+    assert {relative: _sha256(repository / relative) for relative in AUTHORITIES} == protected
 
     cleanup_result = cleanup(external_archive_verified=True)
     zero = verify_zero_residue()

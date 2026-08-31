@@ -261,13 +261,11 @@ def test_exact_case_thresholds_and_mandatory_gates_do_not_compensate() -> None:
 
     one_abstention_failure = list(perfect)
     abstention_index = next(
-        index
-        for index, case in enumerate(dataset.cases)
-        if case.expected_outcome == "ABSTAINED"
+        index for index, case in enumerate(dataset.cases) if case.expected_outcome == "ABSTAINED"
     )
-    one_abstention_failure[abstention_index] = one_abstention_failure[
-        abstention_index
-    ].model_copy(update={"abstention_reason": "wrong_reason"})
+    one_abstention_failure[abstention_index] = one_abstention_failure[abstention_index].model_copy(
+        update={"abstention_reason": "wrong_reason"}
+    )
     assessments = tuple(
         assess_case(case, execution)
         for case, execution in zip(dataset.cases, one_abstention_failure, strict=True)
@@ -341,9 +339,7 @@ def test_release_blocking_answer_failure_cannot_use_the_one_case_tolerance() -> 
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
     config, _ = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
     executions = [_perfect_execution(case) for case in dataset.cases]
-    q39_index = next(
-        index for index, case in enumerate(dataset.cases) if case.case_id == "Q39"
-    )
+    q39_index = next(index for index, case in enumerate(dataset.cases) if case.case_id == "Q39")
     executions[q39_index] = executions[q39_index].model_copy(
         update={"answer_text": "wrong deterministic answer"}
     )

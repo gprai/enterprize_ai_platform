@@ -55,12 +55,7 @@ def render_evidence_block(chunk: RetrievedChunk) -> EvidenceBlock:
         separators=(",", ":"),
         sort_keys=True,
     )
-    rendered = (
-        "BEGIN_UNTRUSTED_EVIDENCE\n"
-        f"{header}\n"
-        f"{chunk.text}\n"
-        "END_UNTRUSTED_EVIDENCE"
-    )
+    rendered = f"BEGIN_UNTRUSTED_EVIDENCE\n{header}\n{chunk.text}\nEND_UNTRUSTED_EVIDENCE"
     return EvidenceBlock(chunk=chunk, rendered=rendered)
 
 

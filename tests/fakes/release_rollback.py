@@ -92,9 +92,5 @@ def isolate_release_runtime(
     monkeypatch.setattr(
         state_module,
         "load_release_descriptor",
-        lambda version: (
-            known_good
-            if version == "w4-known-good-v1"
-            else regression
-        ),
+        lambda version: known_good if version == "w4-known-good-v1" else regression,
     )

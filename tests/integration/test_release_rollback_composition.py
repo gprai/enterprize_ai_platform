@@ -45,9 +45,7 @@ def test_release_lifecycle_composes_identity_state_probe_smoke_and_cleanup(
 
     assert smoke_report.smoke_status == "PASS"
     assert probe.restored_calls == 1
-    assert state_module.require_active_state(
-        "w4-known-good-v1"
-    ).agent_route_allowed
+    assert state_module.require_active_state("w4-known-good-v1").agent_route_allowed
     assert clean.status == "CLEAN" and clean.approved_artifact_count == 4
 
     removed = cleanup(owner_output_captured=True)

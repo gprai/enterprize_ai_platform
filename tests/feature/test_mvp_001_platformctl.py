@@ -12,9 +12,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_w1_004_maps_to_mvp_001_without_changing_the_matrix() -> None:
-    matrix = json.loads(
-        (REPOSITORY_ROOT / "feature-matrix.yaml").read_text(encoding="utf-8")
-    )
+    matrix = json.loads((REPOSITORY_ROOT / "feature-matrix.yaml").read_text(encoding="utf-8"))
     feature_ids = [feature["id"] for feature in matrix["features"]]
     assert feature_ids[0] == "MVP-001"
     assert feature_ids.count("MVP-001") == 1

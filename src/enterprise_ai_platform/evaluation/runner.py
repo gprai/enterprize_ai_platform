@@ -28,9 +28,7 @@ from .report import build_report, write_candidate_report
 _APPROVED_CONFIG = Path("configs/eval/w3-002.yaml")
 _APPROVED_DATASET = Path("configs/eval/golden.jsonl")
 _APPROVED_BASELINE = Path("configs/eval/baselines/w3-002-v1.json")
-_APPROVED_REPORTS = frozenset(
-    {Path("reports/eval.json"), Path("reports/eval-repeat.json")}
-)
+_APPROVED_REPORTS = frozenset({Path("reports/eval.json"), Path("reports/eval-repeat.json")})
 
 
 def build_parser() -> argparse.ArgumentParser:

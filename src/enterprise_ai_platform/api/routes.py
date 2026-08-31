@@ -456,18 +456,12 @@ def register_api_boundary(
         rag_service if rag_service is not None else UnconfiguredRAGService()
     )
     application.state.api_readiness_probe = (
-        readiness_probe
-        if readiness_probe is not None
-        else UnconfiguredReadinessProbe()
+        readiness_probe if readiness_probe is not None else UnconfiguredReadinessProbe()
     )
     if settings.agent_enabled:
         application.state.api_agent_controller = (
-            agent_controller
-            if agent_controller is not None
-            else UnconfiguredAgentController()
+            agent_controller if agent_controller is not None else UnconfiguredAgentController()
         )
-    application.state.api_query_limiter = QueryCapacityLimiter(
-        settings.api_max_inflight_queries
-    )
+    application.state.api_query_limiter = QueryCapacityLimiter(settings.api_max_inflight_queries)
     register_exception_handlers(application)
     application.include_router(router)

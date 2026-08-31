@@ -59,9 +59,7 @@ from enterprise_ai_platform.telemetry.runtime import (
     TelemetryScope,
 )
 
-_REQUIRED_CITATION_KEYS = frozenset(
-    {"source_id", "document_id", "document_version", "chunk_id"}
-)
+_REQUIRED_CITATION_KEYS = frozenset({"source_id", "document_id", "document_version", "chunk_id"})
 _ALLOWED_CITATION_KEYS = _REQUIRED_CITATION_KEYS | {"label"}
 
 
@@ -92,9 +90,7 @@ def _validated_chunks(raw_chunks: object) -> tuple[RetrievedChunk, ...] | None:
 def _has_conflicting_versions(chunks: tuple[RetrievedChunk, ...]) -> bool:
     versions: dict[tuple[str, str], set[str]] = {}
     for chunk in chunks:
-        versions.setdefault((chunk.source_id, chunk.document_id), set()).add(
-            chunk.document_version
-        )
+        versions.setdefault((chunk.source_id, chunk.document_id), set()).add(chunk.document_version)
     return any(len(document_versions) > 1 for document_versions in versions.values())
 
 
@@ -315,9 +311,7 @@ class RAGService:
                     )
 
                 authorized = tuple(
-                    chunk
-                    for chunk in chunks
-                    if is_retrieval_authorized(chunk, auth_context)
+                    chunk for chunk in chunks if is_retrieval_authorized(chunk, auth_context)
                 )
                 if not authorized:
                     return self._observed_result(
@@ -326,11 +320,7 @@ class RAGService:
                     )
                 qualifying = tuple(
                     sorted(
-                        (
-                            chunk
-                            for chunk in authorized
-                            if chunk.score >= self._policy.min_score
-                        ),
+                        (chunk for chunk in authorized if chunk.score >= self._policy.min_score),
                         key=lambda chunk: (-chunk.score, chunk.chunk_id),
                     )
                 )
@@ -361,9 +351,7 @@ class RAGService:
                     TelemetryOperation.CHAT,
                     prompt_version=self._policy.prompt_version,
                 ) as llm_scope:
-                    response = _validated_provider_response(
-                        await self._llm_provider.chat(request)
-                    )
+                    response = _validated_provider_response(await self._llm_provider.chat(request))
                     llm_scope.finish(TelemetryOutcome.SUCCESS)
                     if response.usage is not None:
                         self._telemetry.record_tokens(

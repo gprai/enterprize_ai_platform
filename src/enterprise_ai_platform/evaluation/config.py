@@ -14,9 +14,30 @@ from .errors import EvaluationConfigurationError
 from .models import StrictEvaluationModel
 
 RETRIEVAL_ELIGIBLE_CASE_IDS = (
-    "Q1", "Q2", "Q3", "Q4", "Q6", "Q7", "Q8", "Q9", "Q10", "Q11",
-    "Q12", "Q13", "Q14", "Q15", "Q16", "Q17", "Q18", "Q19", "Q20",
-    "Q21", "Q22", "Q23", "Q29", "Q39",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Q6",
+    "Q7",
+    "Q8",
+    "Q9",
+    "Q10",
+    "Q11",
+    "Q12",
+    "Q13",
+    "Q14",
+    "Q15",
+    "Q16",
+    "Q17",
+    "Q18",
+    "Q19",
+    "Q20",
+    "Q21",
+    "Q22",
+    "Q23",
+    "Q29",
+    "Q39",
 )
 
 
@@ -50,9 +71,7 @@ class EvaluationConfig(StrictEvaluationModel):
     retrieval_eligible_case_ids: tuple[str, ...]
     thresholds: AbsoluteThresholds
     regression_tolerances: RegressionTolerances
-    informational_metrics: tuple[
-        Literal["mrr", "runtime_duration_ms", "tokens", "cost"], ...
-    ]
+    informational_metrics: tuple[Literal["mrr", "runtime_duration_ms", "tokens", "cost"], ...]
     report_paths: tuple[Literal["reports/eval.json", "reports/eval-repeat.json"], ...]
     approved_baseline_path: Literal["configs/eval/baselines/w3-002-v1.json"]
     external_retention_days: Literal[180]
@@ -66,14 +85,10 @@ class EvaluationConfig(StrictEvaluationModel):
         if actual_thresholds != expected_thresholds:
             raise ValueError("absolute thresholds differ from owner approval")
         expected_tolerances = (0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0)
-        actual_tolerances = tuple(
-            self.regression_tolerances.model_dump(mode="python").values()
-        )
+        actual_tolerances = tuple(self.regression_tolerances.model_dump(mode="python").values())
         if actual_tolerances != expected_tolerances:
             raise ValueError("regression tolerances differ from owner approval")
-        if self.informational_metrics != (
-            "mrr", "runtime_duration_ms", "tokens", "cost"
-        ):
+        if self.informational_metrics != ("mrr", "runtime_duration_ms", "tokens", "cost"):
             raise ValueError("informational metrics differ from owner approval")
         if self.report_paths != ("reports/eval.json", "reports/eval-repeat.json"):
             raise ValueError("report paths differ from owner approval")

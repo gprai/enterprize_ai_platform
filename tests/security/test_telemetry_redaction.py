@@ -65,9 +65,7 @@ def _captured_telemetry(composition) -> str:  # type: ignore[no-untyped-def]
     span_text: list[str] = []
     for span in composition.span_exporter.get_finished_spans():
         span_text.extend((span.name, repr(span.attributes), repr(span.status)))
-        span_text.extend(
-            f"{event.name}:{event.attributes!r}" for event in span.events
-        )
+        span_text.extend(f"{event.name}:{event.attributes!r}" for event in span.events)
     log_text = [record.model_dump_json() for record in composition.log_sink.records()]
     metric_text = repr(composition.metric_reader.get_metrics_data())
     return "\n".join((*span_text, *log_text, metric_text))

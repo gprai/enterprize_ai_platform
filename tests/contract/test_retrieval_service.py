@@ -21,9 +21,9 @@ def test_retrieval_service_is_exported_with_provider_neutral_types() -> None:
 
 def test_retrieval_service_source_contains_no_vendor_or_mutation_boundary() -> None:
     source = inspect.getsource(RetrievalService)
-    module = (
-        ROOT / "src" / "enterprise_ai_platform" / "retrieval" / "service.py"
-    ).read_text(encoding="utf-8")
+    module = (ROOT / "src" / "enterprise_ai_platform" / "retrieval" / "service.py").read_text(
+        encoding="utf-8"
+    )
     for forbidden in (
         "qdrant_client",
         "opensearchpy",

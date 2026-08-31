@@ -193,9 +193,7 @@ class SQLiteAgentStateStore:
         payload = canonical_bytes(record)
         if len(payload) > maximum_bytes:
             raise AgentStateUnavailableError
-        terminal_epoch = (
-            None if record.terminal_at is None else int(record.terminal_at.timestamp())
-        )
+        terminal_epoch = None if record.terminal_at is None else int(record.terminal_at.timestamp())
         try:
             with closing(self._connect()) as connection:
                 self._verify_version(connection)

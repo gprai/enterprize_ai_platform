@@ -24,9 +24,7 @@ from enterprise_ai_platform.llm.provider import LLMProvider, ProviderCallGate
 
 
 def _request() -> ChatRequest:
-    return ChatRequest(
-        messages=(ChatMessage(role=ChatRole.USER, content="synthetic question"),)
-    )
+    return ChatRequest(messages=(ChatMessage(role=ChatRole.USER, content="synthetic question"),))
 
 
 def test_tool_json_is_defensively_copied() -> None:

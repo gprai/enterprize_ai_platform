@@ -391,9 +391,7 @@ class _OpenTelemetryScope:
             if self._request_id is not None:
                 self._request_token = _request_id_context.set(self._request_id)
             context = Context() if self._root else None
-            span_name = SPAN_NAMES[
-                (self._attributes.stage, self._attributes.operation)
-            ]
+            span_name = SPAN_NAMES[(self._attributes.stage, self._attributes.operation)]
             manager = self._runtime.tracer.start_as_current_span(
                 span_name,
                 context=context,
@@ -615,9 +613,7 @@ class OpenTelemetryRuntime:
                 context = active_span.get_span_context()
                 trace_id = f"{context.trace_id:032x}"
                 span_id = f"{context.span_id:016x}"
-            event_attributes: dict[str, str | int | float] = {
-                **attributes.metric_attributes()
-            }
+            event_attributes: dict[str, str | int | float] = {**attributes.metric_attributes()}
             for key, value in (
                 ("duration_ms", duration_ms),
                 ("input_tokens", input_tokens),
@@ -909,9 +905,7 @@ class EmbeddingTelemetryRecorder:
             else TelemetryOperation.EMBED_DOCUMENTS
         )
         outcome = (
-            TelemetryOutcome.SUCCESS
-            if metric.outcome == "success"
-            else TelemetryOutcome.ERROR
+            TelemetryOutcome.SUCCESS if metric.outcome == "success" else TelemetryOutcome.ERROR
         )
         with self._telemetry.start_scope(TelemetryStage.EMBEDDING, operation) as scope:
             scope.finish(outcome)

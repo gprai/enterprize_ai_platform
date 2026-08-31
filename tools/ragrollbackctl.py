@@ -84,11 +84,7 @@ def _dispatch(arguments: argparse.Namespace) -> dict[str, object]:
     if command == "verify-clean":
         return _payload(verify_clean())
     if command == "cleanup":
-        return _payload(
-            cleanup(
-                external_archive_verified=arguments.external_archive_verified
-            )
-        )
+        return _payload(cleanup(external_archive_verified=arguments.external_archive_verified))
     if command == "verify-zero-residue":
         return _payload(verify_zero_residue())
     raise TypeError

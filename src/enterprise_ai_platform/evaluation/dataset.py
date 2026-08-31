@@ -70,16 +70,16 @@ def load_golden_dataset(path: Path) -> GoldenDataset:
         raise EvaluationDatasetError
     outcomes = tuple(case.expected_outcome for case in cases)
     if (outcomes.count("ANSWERED"), outcomes.count("ABSTAINED"), outcomes.count("ERROR")) != (
-        24, 12, 3
+        24,
+        12,
+        3,
     ):
         raise EvaluationDatasetError
     eligible = tuple(case.case_id for case in cases if case.retrieval_metric_eligible)
     if eligible != RETRIEVAL_ELIGIBLE_CASE_IDS:
         raise EvaluationDatasetError
     sensitive_values = tuple(
-        value
-        for case in cases
-        for value in (case.question, *case.expected_facts)
+        value for case in cases for value in (case.question, *case.expected_facts)
     )
     if _contains_prohibited_data(sensitive_values):
         raise EvaluationDatasetError

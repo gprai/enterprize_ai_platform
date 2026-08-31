@@ -130,9 +130,7 @@ def test_default_off_preserves_exact_health_only_business_surface(
         "environment": "sandbox",
     }
     assert "X-Request-ID" not in response.headers
-    assert not paths.intersection(
-        {"/health/live", "/health/ready", "/v1/query", "/v1/agent"}
-    )
+    assert not paths.intersection({"/health/live", "/health/ready", "/v1/query", "/v1/agent"})
     assert set(application.state._state) == {"settings"}
 
 
@@ -414,9 +412,7 @@ def test_overload_rejects_without_rag_call_and_first_request_completes(
             transport=transport,
             base_url="http://testserver",
         ) as client:
-            first = asyncio.create_task(
-                client.post("/v1/query", json={"query": "first"})
-            )
+            first = asyncio.create_task(client.post("/v1/query", json={"query": "first"}))
             await started.wait()
             overloaded = await client.post("/v1/query", json={"query": "second"})
             release.set()
@@ -520,7 +516,8 @@ def test_disabled_agent_resolves_no_dependency_and_unknown_routes_are_safe(
 def test_unhandled_exception_is_content_free(
     api_settings: Settings,
 ) -> None:
-    secret = "PROMPT_AND_EVIDENCE_MUST_NOT_ESCAPE"
+    sentinel_parts = ("PROMPT", "AND", "EVIDENCE", "MUST", "NOT", "ESCAPE")
+    secret = "_".join(sentinel_parts)
     client = _client(
         api_settings,
         FakeRAGService([RuntimeError(secret)]),

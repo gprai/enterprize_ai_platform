@@ -31,9 +31,7 @@ from .models import IdentityAlias, RAGIdentityDescriptor
 
 REPOSITORY_ROOT: Final[Path] = Path(__file__).resolve().parents[3]
 KNOWN_GOOD_PATH: Final[Path] = Path("configs/rag/versions/w3-002-v1.json")
-REGRESSION_PATH: Final[Path] = Path(
-    "configs/rag/versions/w3-004-synthetic-regression-v1.json"
-)
+REGRESSION_PATH: Final[Path] = Path("configs/rag/versions/w3-004-synthetic-regression-v1.json")
 
 _IDENTITY_PATHS: Final[dict[IdentityAlias, Path]] = {
     "known-good": KNOWN_GOOD_PATH,
@@ -43,32 +41,16 @@ _BASELINE_SHA256 = "4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9
 _BASELINE_REPOSITORY_SHA = "b9f596118c2a75c75f20af1a2c9a19c2234b65ad"
 _CANDIDATE_SHA256 = "f259784666c180145c4dbb0f4757fbac2505eba059c6ee06510c6906cb3546cf"
 _REPEAT_SHA256 = "d35c1ee13a54cda78e7514a84cd9af6e6086236a4095f7824f52cdbc46d2da1a"
-_DETERMINISTIC_PAYLOAD_SHA256 = (
-    "7e9368c3e29252f21af6398aa39873151536e42df53619f156cc6ce38450743e"
-)
+_DETERMINISTIC_PAYLOAD_SHA256 = "7e9368c3e29252f21af6398aa39873151536e42df53619f156cc6ce38450743e"
 _GOLDEN_RAW_SHA256 = "809aac88f84dd44aeb96c676f3bad229164a0767c6fc9d0ebeeb01b6823c06c2"
-_GOLDEN_CANONICAL_SHA256 = (
-    "e3ff344d9904ea0e9cff722441bbe8237105e6131e1f57d0ca42d35ddad410f9"
-)
-_EVALUATION_CONFIG_SHA256 = (
-    "4564b1935c1c072281f90a63c1ac80315709e35e6aab8e0803d0a9abf5c189df"
-)
+_GOLDEN_CANONICAL_SHA256 = "e3ff344d9904ea0e9cff722441bbe8237105e6131e1f57d0ca42d35ddad410f9"
+_EVALUATION_CONFIG_SHA256 = "4564b1935c1c072281f90a63c1ac80315709e35e6aab8e0803d0a9abf5c189df"
 _RAG_SOURCE_SHA256 = "5cb62932bbc0a0c11e494912bdcc5b4b48bd4195e3ca58bda2df27227070b27e"
-_RAG_SEMANTIC_SHA256 = (
-    "447bda9713f661db5e8e47f5991528fad0820544cc184da4a232b190408ec8d5"
-)
-_PROMPT_SEMANTIC_SHA256 = (
-    "f1b9583bd8e8dd3abfa066c1e03e3979a118bad56565a99930e387ea2ccba927"
-)
-_FIXTURE_SOURCE_SHA256 = (
-    "70238839fb62588efc28f8291aaa69c343ad6ec97aa51bf8e6f9cbc695402d95"
-)
-_GUARDRAIL_SOURCE_SHA256 = (
-    "4a3a93584569e90d31beda4280d242bee54e10f8f8b5c732152d7b3c1bb6e3c7"
-)
-_GUARDRAIL_SEMANTIC_SHA256 = (
-    "cad252519c820639fac4f1b4c796465122e914d87bb7168c1da713644558b74c"
-)
+_RAG_SEMANTIC_SHA256 = "447bda9713f661db5e8e47f5991528fad0820544cc184da4a232b190408ec8d5"
+_PROMPT_SEMANTIC_SHA256 = "f1b9583bd8e8dd3abfa066c1e03e3979a118bad56565a99930e387ea2ccba927"
+_FIXTURE_SOURCE_SHA256 = "70238839fb62588efc28f8291aaa69c343ad6ec97aa51bf8e6f9cbc695402d95"
+_GUARDRAIL_SOURCE_SHA256 = "4a3a93584569e90d31beda4280d242bee54e10f8f8b5c732152d7b3c1bb6e3c7"
+_GUARDRAIL_SEMANTIC_SHA256 = "cad252519c820639fac4f1b4c796465122e914d87bb7168c1da713644558b74c"
 
 
 def canonical_json_bytes(value: object) -> bytes:
@@ -218,12 +200,8 @@ def _validate_transitive_authorities(identity: RAGIdentityDescriptor) -> None:
     ):
         raise RollbackBaselineError
 
-    candidate_path = _require_hash(
-        Path(identity.evaluation.candidate_path), _CANDIDATE_SHA256
-    )
-    repeat_path = _require_hash(
-        Path(identity.evaluation.repeat_path), _REPEAT_SHA256
-    )
+    candidate_path = _require_hash(Path(identity.evaluation.candidate_path), _CANDIDATE_SHA256)
+    repeat_path = _require_hash(Path(identity.evaluation.repeat_path), _REPEAT_SHA256)
     try:
         candidate = load_evaluation_report(candidate_path)
         repeat = load_evaluation_report(repeat_path)
@@ -238,9 +216,7 @@ def _validate_transitive_authorities(identity: RAGIdentityDescriptor) -> None:
         ):
             raise RollbackBaselineError
 
-    dataset_path = _require_hash(
-        Path(identity.evidence.dataset_path), _GOLDEN_RAW_SHA256
-    )
+    dataset_path = _require_hash(Path(identity.evidence.dataset_path), _GOLDEN_RAW_SHA256)
     try:
         dataset = load_golden_dataset(dataset_path)
     except Exception:
@@ -248,9 +224,7 @@ def _validate_transitive_authorities(identity: RAGIdentityDescriptor) -> None:
     if dataset.checksum_sha256 != _GOLDEN_CANONICAL_SHA256:
         raise RollbackIdentityError
 
-    config_path = _require_hash(
-        Path(identity.evaluation.config_path), _EVALUATION_CONFIG_SHA256
-    )
+    config_path = _require_hash(Path(identity.evaluation.config_path), _EVALUATION_CONFIG_SHA256)
     try:
         config, config_hash = load_evaluation_config(config_path)
     except Exception:
@@ -321,9 +295,6 @@ def validate_identity_pair() -> tuple[RAGIdentityDescriptor, RAGIdentityDescript
         "evaluation",
         "guardrail",
     )
-    if any(
-        getattr(known_good, field) != getattr(regression, field)
-        for field in common_fields
-    ):
+    if any(getattr(known_good, field) != getattr(regression, field) for field in common_fields):
         raise RollbackIdentityError
     return known_good, regression

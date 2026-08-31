@@ -176,9 +176,7 @@ APPROVED_SAFE_ERROR_CODES: Final = frozenset(
 
 APPROVED_PROMPT_VERSIONS: Final = frozenset({"w3-001.v1"})
 APPROVED_GRAPH_VERSIONS: Final = frozenset({"w4-002.graph.v1"})
-APPROVED_TOOL_NAMES: Final = frozenset(
-    {"get_service_status", "mock_set_service_mode"}
-)
+APPROVED_TOOL_NAMES: Final = frozenset({"get_service_status", "mock_set_service_mode"})
 APPROVED_TOOL_VERSIONS: Final = frozenset({"1.0"})
 
 
@@ -333,11 +331,7 @@ class SafeLogRecord(TelemetryModel):
         token_values = (self.input_tokens, self.output_tokens, self.total_tokens)
         if any(value is not None for value in token_values):
             input_tokens, output_tokens, total_tokens = token_values
-            if (
-                input_tokens is None
-                or output_tokens is None
-                or total_tokens is None
-            ):
+            if input_tokens is None or output_tokens is None or total_tokens is None:
                 raise ValueError("token counts must be supplied together")
             if total_tokens != input_tokens + output_tokens:
                 raise ValueError("token counts are inconsistent")
@@ -431,11 +425,7 @@ for _operation in (
     TelemetryOperation.EXECUTE_TOOL,
     TelemetryOperation.SAFE_TERMINAL,
 ):
-    SPAN_NAMES[(TelemetryStage.GRAPH, _operation)] = (
-        f"enterprise_ai.agent.{_operation.value}"
-    )
+    SPAN_NAMES[(TelemetryStage.GRAPH, _operation)] = f"enterprise_ai.agent.{_operation.value}"
 
-TELEMETRY_ATTRIBUTE_ALLOWLIST: Final = frozenset(
-    SafeTelemetryAttributes.model_fields
-)
+TELEMETRY_ATTRIBUTE_ALLOWLIST: Final = frozenset(SafeTelemetryAttributes.model_fields)
 STRUCTURED_LOG_FIELD_ALLOWLIST: Final = frozenset(SafeLogRecord.model_fields)

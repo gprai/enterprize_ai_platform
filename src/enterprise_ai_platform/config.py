@@ -19,9 +19,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 TODO_MARKER = "TODO_USER"
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
-AGENT_STORE_PATH = Path(
-    r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3"
-)
+AGENT_STORE_PATH = Path(r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3")
 
 
 class Settings(BaseSettings):
@@ -69,13 +67,9 @@ class Settings(BaseSettings):
     )
     agent_enabled: bool = False
     agent_mock_write_enabled: bool = False
-    agent_state_schema_version: Literal["w4-002.agent-state.v1"] = (
-        "w4-002.agent-state.v1"
-    )
+    agent_state_schema_version: Literal["w4-002.agent-state.v1"] = "w4-002.agent-state.v1"
     agent_graph_version: Literal["w4-002.graph.v1"] = "w4-002.graph.v1"
-    agent_store_schema_version: Literal["w4-002.agent-store.v1"] = (
-        "w4-002.agent-store.v1"
-    )
+    agent_store_schema_version: Literal["w4-002.agent-store.v1"] = "w4-002.agent-store.v1"
     agent_store_path: Path = AGENT_STORE_PATH
     agent_approval_ttl_seconds: Literal[600] = 600
     agent_terminal_retention_seconds: Literal[86_400] = 86_400
@@ -182,10 +176,7 @@ class Settings(BaseSettings):
             raise ValueError("Bedrock requires llm_model_id and aws_region")
         if not self.agent_store_path.is_absolute():
             raise ValueError("agent_store_path must be absolute")
-        if (
-            self.agent_enabled
-            and self.agent_deadline_seconds >= self.request_timeout_seconds
-        ):
+        if self.agent_enabled and self.agent_deadline_seconds >= self.request_timeout_seconds:
             raise ValueError("agent deadline must remain inside the API deadline")
         if self.telemetry_enabled and not self.api_routes_enabled:
             raise ValueError("enabled telemetry requires the W4 API boundary")

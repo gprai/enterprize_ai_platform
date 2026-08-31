@@ -88,9 +88,7 @@ class Usage(LLMModel):
     def validate_totals(self) -> Usage:
         if self.total_tokens != self.input_tokens + self.output_tokens:
             raise ValueError("total_tokens must equal input_tokens plus output_tokens")
-        if self.estimated_cost_usd is not None and not math.isfinite(
-            self.estimated_cost_usd
-        ):
+        if self.estimated_cost_usd is not None and not math.isfinite(self.estimated_cost_usd):
             raise ValueError("estimated_cost_usd must be finite")
         return self
 

@@ -84,14 +84,9 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
     implementation_paths = rag["implementation_paths"]
     w2_003_start = implementation_paths.index(W2_003_IMPLEMENTATION_PATHS[0])
     w2_003_end = w2_003_start + len(W2_003_IMPLEMENTATION_PATHS)
-    assert implementation_paths[w2_003_start:w2_003_end] == list(
-        W2_003_IMPLEMENTATION_PATHS
-    )
+    assert implementation_paths[w2_003_start:w2_003_end] == list(W2_003_IMPLEMENTATION_PATHS)
     assert implementation_paths[w2_003_end] == "docker-compose.w2-004.yml"
-    assert all(
-        implementation_paths.count(path) == 1
-        for path in W2_003_IMPLEMENTATION_PATHS
-    )
+    assert all(implementation_paths.count(path) == 1 for path in W2_003_IMPLEMENTATION_PATHS)
 
     linked_steps = rag["linked_tracker_steps"]
     w2_003_step_start = linked_steps.index("W2-06")
@@ -102,12 +97,8 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
     assert linked_steps[w2_003_step_start + 2] == "W2-09"
     assert "W2-06" not in mvp["linked_tracker_steps"]
     assert "W2-07" not in mvp["linked_tracker_steps"]
-    assert "src/enterprise_ai_platform/retrieval/models.py" in rag[
-        "implementation_paths"
-    ]
-    assert "src/enterprise_ai_platform/embeddings/base.py" in rag[
-        "implementation_paths"
-    ]
+    assert "src/enterprise_ai_platform/retrieval/models.py" in rag["implementation_paths"]
+    assert "src/enterprise_ai_platform/embeddings/base.py" in rag["implementation_paths"]
     eval_paths = eval_feature["implementation_paths"]
     assert eval_paths == list(EXPECTED_EVAL_IMPLEMENTATION_PATHS)
     assert len(eval_paths) == len(set(eval_paths)) == 33
@@ -130,16 +121,19 @@ def test_approved_corpus_and_five_question_fixture_remain_exact() -> None:
         "DOC-COACHING-BLUEPRINT",
         "DOC-RESTRICTED-TEST",
     ]
-    assert tuple(
-        (
-            question.id,
-            question.question,
-            question.expected_source_ids,
-            question.expected_facts,
-            question.expected_outcome.value,
-            question.safety_tags,
+    assert (
+        tuple(
+            (
+                question.id,
+                question.question,
+                question.expected_source_ids,
+                question.expected_facts,
+                question.expected_outcome.value,
+                question.safety_tags,
+            )
+            for question in questions
         )
-        for question in questions
-    ) == APPROVED_STARTER_ROWS
+        == APPROVED_STARTER_ROWS
+    )
     assert all(question.tenant_id == "tenant-a" for question in questions)
     assert questions[-1].expected_source_ids == ()

@@ -122,9 +122,7 @@ def test_failing_exporter_preserves_business_flow_and_redacts_exception(
             clearance=Classification.INTERNAL,
         )
     )
-    rag = FakeRAGService(
-        [AbstentionResult(reason="insufficient_evidence", usage=None)]
-    )
+    rag = FakeRAGService([AbstentionResult(reason="insufficient_evidence", usage=None)])
     application = create_app(
         settings,
         authenticator=authenticator,
@@ -144,9 +142,7 @@ def test_failing_exporter_preserves_business_flow_and_redacts_exception(
     assert denied.json()["error"]["code"] == "authentication_invalid"
     assert len(rag.calls) == 1
     assert failing.export_calls == 4
-    captured = "\n".join(
-        record.model_dump_json() for record in composition.log_sink.records()
-    )
+    captured = "\n".join(record.model_dump_json() for record in composition.log_sink.records())
     assert "telemetry_export_failed" in captured
     assert EXCEPTION_DETAIL not in captured
     composition.runtime.shutdown()

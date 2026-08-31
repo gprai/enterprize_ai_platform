@@ -43,10 +43,7 @@ def _snapshot() -> set[str]:
     paths: set[str] = set()
     for root in RESIDUE_ROOTS:
         if root.exists():
-            paths.update(
-                str(path.relative_to(REPOSITORY_ROOT))
-                for path in root.rglob("*")
-            )
+            paths.update(str(path.relative_to(REPOSITORY_ROOT)) for path in root.rglob("*"))
     return paths
 
 
@@ -98,9 +95,7 @@ def test_in_process_requests_leave_no_file_socket_or_process_residue(
         application = create_app(
             api_settings,
             authenticator=FakeAuthenticator(_auth()),
-            rag_service=FakeRAGService(
-                [AbstentionResult(reason="insufficient_evidence")]
-            ),
+            rag_service=FakeRAGService([AbstentionResult(reason="insufficient_evidence")]),
             readiness_probe=FakeReadinessProbe(),
         )
 
@@ -110,10 +105,13 @@ def test_in_process_requests_leave_no_file_socket_or_process_residue(
             request_guard.setattr(subprocess, "Popen", reject_process)
             assert client.get("/health/live").status_code == 200
             assert client.get("/health/ready").status_code == 200
-            assert client.post(
-                "/v1/query",
-                json={"query": "clean local request"},
-            ).status_code == 200
+            assert (
+                client.post(
+                    "/v1/query",
+                    json={"query": "clean local request"},
+                ).status_code
+                == 200
+            )
             assert client.post("/v1/agent").status_code == 501
 
     assert _snapshot() == before

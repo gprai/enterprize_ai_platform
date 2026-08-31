@@ -18,20 +18,17 @@ OVERRIDE_COMPOSE_PATH = ROOT / "docker-compose.w2-004.yml"
 DOCKERFILE_PATH = ROOT / "docker/local-retrieval-runner.Dockerfile"
 DOCKERIGNORE_PATH = ROOT / "docker/local-retrieval-runner.Dockerfile.dockerignore"
 REQUIREMENTS_PATH = ROOT / "docker/local-retrieval-runner.requirements.txt"
-PYTHON_INDEX_DIGEST = (
-    "sha256:adafcc17694d715c905b4c7bebd96907a1fd5cf183395f0ebc4d3428bd22d92d"
-)
+PYTHON_INDEX_DIGEST = "sha256:adafcc17694d715c905b4c7bebd96907a1fd5cf183395f0ebc4d3428bd22d92d"
 PYTHON_AMD64_MANIFEST_DIGEST = (
     "sha256:781449467ffb6f04218f09b1ecdcdc7d22b289ee5da9ec498b024e24ad7a6db7"
 )
 PYTHON_ATTESTATION_DIGEST = (
     "sha256:b8aaccd8c14d29d4af8961f1d1151d7db432ff131d0d5c61138f681578e8afb2"
 )
-QDRANT_INDEX_DIGEST = (
-    "sha256:a0e04fe623cb064502cd869cefc1dc7ce359d8edd481063b5bd351c0a0a2c91e"
-)
+QDRANT_INDEX_DIGEST = "sha256:a0e04fe623cb064502cd869cefc1dc7ce359d8edd481063b5bd351c0a0a2c91e"
 MODEL_REVISION = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
 APPROVED_TMPFS = "/tmp:size=64m,mode=1777"  # noqa: S108 - exact secured tmpfs contract
+
 
 def load_yaml(path: Path) -> dict[str, object]:
     content = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -57,9 +54,7 @@ def test_qdrant_and_runner_share_only_the_internal_logical_network() -> None:
     qdrant = base_services["qdrant"]
     runner = override["services"]["local_retrieval_runner"]
     assert qdrant["networks"] == ["qdrant_internal"]
-    assert runner["networks"] == [
-        "qdrant_internal"
-    ]
+    assert runner["networks"] == ["qdrant_internal"]
     assert qdrant["image"].endswith(f"@{QDRANT_INDEX_DIGEST}")
     assert "ports" not in qdrant
     assert "ports" not in runner
@@ -113,9 +108,7 @@ def test_runtime_inputs_are_the_exact_read_only_allowlist() -> None:
         "/workspace/data/sample/approved/coaching-blueprint.md",
         "/workspace/data/sample/restricted-fixtures/restricted-test.txt",
     ]
-    assert "W2_002_MODEL_BLOBS_HOST" in OVERRIDE_COMPOSE_PATH.read_text(
-    encoding="utf-8"
-    )
+    assert "W2_002_MODEL_BLOBS_HOST" in OVERRIDE_COMPOSE_PATH.read_text(encoding="utf-8")
 
 
 def test_runner_identity_offline_controls_and_provenance_are_exact() -> None:
@@ -174,6 +167,7 @@ def test_direct_dependency_pins_and_build_context_are_exact() -> None:
     assert all("data/sample" not in pattern for pattern in patterns)
     assert "!tests/rollback/__init__.py" not in patterns
 
+
 def test_every_runner_copy_source_exists_in_repository() -> None:
     dockerfile = DOCKERFILE_PATH.read_text(encoding="utf-8")
     copy_sources: list[str] = []
@@ -188,9 +182,8 @@ def test_every_runner_copy_source_exists_in_repository() -> None:
         copy_sources.append(operands[0])
 
     assert copy_sources
-    assert [
-        source for source in copy_sources if not (ROOT / source).exists()
-    ] == []
+    assert [source for source in copy_sources if not (ROOT / source).exists()] == []
+
 
 def test_cleanliness_commands_are_fixed_read_only_inventory_operations() -> None:
     forbidden_tokens = {
@@ -209,9 +202,7 @@ def test_cleanliness_commands_are_fixed_read_only_inventory_operations() -> None
         "up",
     }
     assert READ_ONLY_COMMANDS
-    assert all(
-        not forbidden_tokens.intersection(command) for command in READ_ONLY_COMMANDS
-    )
+    assert all(not forbidden_tokens.intersection(command) for command in READ_ONLY_COMMANDS)
     assert exit_code(()) == 0
     assert exit_code((CheckResult("x", State.PROHIBITED, {}),)) == 1
     assert exit_code((CheckResult("x", State.INDETERMINATE, {}),)) == 1

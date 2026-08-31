@@ -40,15 +40,10 @@ def test_no_unexpected_report_cache_bytecode_or_temporary_residue() -> None:
         and (
             (
                 path.is_dir()
-                and path.name
-                in {"__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"}
+                and path.name in {"__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"}
             )
             or (path.is_file() and path.suffix in {".pyc", ".pyo"})
-            or (
-                path.is_file()
-                and path.name.startswith(".eval")
-                and path.name.endswith(".tmp")
-            )
+            or (path.is_file() and path.name.startswith(".eval") and path.name.endswith(".tmp"))
         )
     }
 

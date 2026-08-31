@@ -52,9 +52,7 @@ def test_disabled_telemetry_preserves_query_abstention_and_security_contract(
     valid_settings: Settings,
 ) -> None:
     settings = _api_enabled(valid_settings)
-    rag = FakeRAGService(
-        [AbstentionResult(reason="insufficient_evidence", usage=None)]
-    )
+    rag = FakeRAGService([AbstentionResult(reason="insufficient_evidence", usage=None)])
     authenticator = FakeAuthenticator(_auth())
     application = create_app(
         settings,
