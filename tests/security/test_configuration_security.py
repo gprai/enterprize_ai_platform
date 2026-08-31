@@ -44,6 +44,17 @@ def test_environment_example_contains_only_approved_values() -> None:
     assert values["ENTERPRISE_AI_API_READINESS_TIMEOUT_SECONDS"] == "1.0"
     assert values["ENTERPRISE_AI_API_MAX_INFLIGHT_QUERIES"] == "4"
     assert values["ENTERPRISE_AI_API_QUERY_QUEUE_CAPACITY"] == "0"
+    assert values["ENTERPRISE_AI_TELEMETRY_ENABLED"] == "false"
+    assert values["ENTERPRISE_AI_TELEMETRY_SERVICE_NAME"] == "enterprise-ai-api"
+    assert values["ENTERPRISE_AI_TELEMETRY_EXPORTER"] == "none"
+    assert values["ENTERPRISE_AI_TELEMETRY_OTLP_ENDPOINT"] == ""
+    assert values["ENTERPRISE_AI_TELEMETRY_SPAN_CAPACITY"] == "512"
+    assert values["ENTERPRISE_AI_TELEMETRY_LOG_CAPACITY"] == "512"
+    assert values["ENTERPRISE_AI_TELEMETRY_QUEUE_CAPACITY"] == "0"
+    assert values["ENTERPRISE_AI_TELEMETRY_RETRY_COUNT"] == "0"
+    assert values["ENTERPRISE_AI_TELEMETRY_BACKGROUND_WORKERS"] == "0"
+    assert values["ENTERPRISE_AI_TELEMETRY_FLUSH_TIMEOUT_SECONDS"] == "1.0"
+    assert values["ENTERPRISE_AI_TELEMETRY_SHUTDOWN_TIMEOUT_SECONDS"] == "1.0"
     assert values["ENTERPRISE_AI_AGENT_ENABLED"] == "false"
     assert values["ENTERPRISE_AI_AGENT_MOCK_WRITE_ENABLED"] == "false"
     assert values["ENTERPRISE_AI_AGENT_STATE_SCHEMA_VERSION"] == (
@@ -70,6 +81,7 @@ def test_environment_example_contains_only_approved_values() -> None:
     assert "AWS_ACCESS_KEY_ID" not in values
     assert "AWS_SECRET_ACCESS_KEY" not in values
     assert "AWS_SESSION_TOKEN" not in values
+    assert not any("OTLP" in key and values[key] for key in values)
 
 
 def test_secret_is_masked_and_absent_from_health_output(

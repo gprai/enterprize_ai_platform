@@ -33,7 +33,7 @@ SECURITY, PRIVACY, COST AND LIMITATIONS
 Authorization occurs before graph work. Persisted state contains bounded hashed references and safe codes, not raw prompt, evidence, answer, credential, PII, exception or chain-of-thought. No network, Qdrant, tokenizer, live provider/model, cloud or deployment activity occurred. Provider/cloud cost was USD 0; local owner and workstation costs were not monetized. Python 3.11 execution and production performance/capacity/readiness remain NOT RUN.
 
 LIFECYCLE CLASSIFICATION
-Configuration rollback and automated rollback tests: PASS. Operational release/deployment rollback: NOT RUN. Automated cleanliness and zero residue: PASS. Operational deployment and teardown: NOT RUN because no service, container or cloud resource was created. Intended source/test files are retained. W4-09 and W4-10 remain NOT RUN and no evidence file exists for either task.
+Configuration rollback and automated rollback tests: PASS. Operational release/deployment rollback: NOT RUN. Automated cleanliness and zero residue: PASS. Operational deployment and teardown: NOT RUN because no service, container or cloud resource was created. Intended source/test files are retained. W4-09 and W4-10 were NOT RUN and had no evidence files when W4-002 closed; their later separately approved evidence is recorded in W4-09-failures.txt and W4-10-load.json without changing feature ownership.
 
 FINAL OWNER APPROVAL — W4-002
 - Prompt/task ID: W4-002

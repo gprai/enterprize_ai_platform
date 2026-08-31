@@ -28,7 +28,7 @@ SECURITY, PRIVACY, COST AND LIMITATIONS
 No raw prompt, evidence, answer, credential, PII, exception or internal object is returned or persisted by this tool. No live service-status probe, RAG/vector/model integration, network, cloud or deployment activity occurred. Provider/cloud cost was USD 0; local costs were not monetized. Production status accuracy, availability, latency and capacity are not proven.
 
 LIFECYCLE CLASSIFICATION
-Configuration rollback disables the agent and mock-write flags and passed automated testing. Operational rollback, deployment and teardown remain NOT RUN. Temporary artifacts reached zero residue; intended project files remain retained. W4-09 and W4-10 remain NOT RUN.
+Configuration rollback disables the agent and mock-write flags and passed automated testing. Operational rollback, deployment and teardown remain NOT RUN. Temporary artifacts reached zero residue; intended project files remain retained. W4-09 and W4-10 were NOT RUN at W4-002 closure; their later separately approved closures are recorded in W4-09-failures.txt and W4-10-load.json.
 
 FINAL OWNER APPROVAL — W4-002
 - Prompt/task ID: W4-002

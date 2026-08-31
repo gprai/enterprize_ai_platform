@@ -1,0 +1,327 @@
+{
+  "document_schema_version": "w4-08.trace-evidence.v1",
+  "evidence_identity": {
+    "feature_owner": "OBS-001",
+    "owner_and_command_executor": "Gyan Prakash Rai",
+    "prompt_id": "W4-003",
+    "tracker_step": "W4-08"
+  },
+  "owner_test": {
+    "accepted_warning": "One repeated Starlette/httpx TestClient deprecation warning",
+    "classification": "PASS",
+    "command": "& 'E:\\AI\\.venvs\\enterprise_ai_platform\\Scripts\\python.exe' -B -m pytest -q -s -p no:cacheprovider .\\tests\\feature\\test_trace_correlation.py .\\tests\\integration\\test_telemetry_composition.py",
+    "composition": {
+      "feature_trace_tests": 1,
+      "integration_telemetry_tests": 5,
+      "total_tests": 6
+    },
+    "result": "6 passed, 1 warning in 1.23s",
+    "trace_observation_line_count": 1
+  },
+  "trace_observation": {
+    "redaction_verified": true,
+    "scenario_count": 3,
+    "scenarios": [
+      {
+        "all_parents_resolved": true,
+        "all_spans_same_trace": true,
+        "expected_span_names_present": true,
+        "maximum_depth": 3,
+        "parent_child_edges": [
+          {
+            "child_span_name": "enterprise_ai.auth.authenticate",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.api.request"
+          },
+          {
+            "child_span_name": "enterprise_ai.rag.answer",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.api.request"
+          },
+          {
+            "child_span_name": "enterprise_ai.auth.authorize",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.rag.answer"
+          },
+          {
+            "child_span_name": "enterprise_ai.guardrail.validate",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.rag.answer"
+          },
+          {
+            "child_span_name": "enterprise_ai.llm.chat",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.rag.answer"
+          },
+          {
+            "child_span_name": "enterprise_ai.retrieval.retrieve",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.rag.answer"
+          },
+          {
+            "child_span_name": "enterprise_ai.auth.authorize",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.retrieval.retrieve"
+          },
+          {
+            "child_span_name": "enterprise_ai.embedding.query",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.retrieval.retrieve"
+          },
+          {
+            "child_span_name": "enterprise_ai.vector.search",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.retrieval.retrieve"
+          }
+        ],
+        "root_span_count": 1,
+        "root_span_names": [
+          "enterprise_ai.api.request"
+        ],
+        "scenario": "query",
+        "span_count": 10,
+        "span_name_counts": {
+          "enterprise_ai.api.request": 1,
+          "enterprise_ai.auth.authenticate": 1,
+          "enterprise_ai.auth.authorize": 2,
+          "enterprise_ai.embedding.query": 1,
+          "enterprise_ai.guardrail.validate": 1,
+          "enterprise_ai.llm.chat": 1,
+          "enterprise_ai.rag.answer": 1,
+          "enterprise_ai.retrieval.retrieve": 1,
+          "enterprise_ai.vector.search": 1
+        },
+        "trace_count": 1
+      },
+      {
+        "all_parents_resolved": true,
+        "all_spans_same_trace": true,
+        "expected_span_names_present": true,
+        "maximum_depth": 3,
+        "parent_child_edges": [
+          {
+            "child_span_name": "enterprise_ai.approval.persist",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.await_human_approval"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.answer",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.authorize",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.await_human_approval",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.execute_tool",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.grade_evidence",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.propose_tool",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.retrieve",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.safe_terminal",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.validate_input",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.auth.authorize",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.handle",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.api.request"
+          },
+          {
+            "child_span_name": "enterprise_ai.auth.authenticate",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.api.request"
+          },
+          {
+            "child_span_name": "enterprise_ai.auth.authorize",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.api.request"
+          }
+        ],
+        "root_span_count": 1,
+        "root_span_names": [
+          "enterprise_ai.api.request"
+        ],
+        "scenario": "agent_start",
+        "span_count": 15,
+        "span_name_counts": {
+          "enterprise_ai.agent.answer": 1,
+          "enterprise_ai.agent.authorize": 1,
+          "enterprise_ai.agent.await_human_approval": 1,
+          "enterprise_ai.agent.execute_tool": 1,
+          "enterprise_ai.agent.grade_evidence": 1,
+          "enterprise_ai.agent.handle": 1,
+          "enterprise_ai.agent.propose_tool": 1,
+          "enterprise_ai.agent.retrieve": 1,
+          "enterprise_ai.agent.safe_terminal": 1,
+          "enterprise_ai.agent.validate_input": 1,
+          "enterprise_ai.api.request": 1,
+          "enterprise_ai.approval.persist": 1,
+          "enterprise_ai.auth.authenticate": 1,
+          "enterprise_ai.auth.authorize": 2
+        },
+        "trace_count": 1
+      },
+      {
+        "all_parents_resolved": true,
+        "all_spans_same_trace": true,
+        "expected_span_names_present": true,
+        "maximum_depth": 3,
+        "parent_child_edges": [
+          {
+            "child_span_name": "enterprise_ai.approval.evaluate",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.auth.authorize",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.agent.handle"
+          },
+          {
+            "child_span_name": "enterprise_ai.agent.handle",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.api.request"
+          },
+          {
+            "child_span_name": "enterprise_ai.auth.authenticate",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.api.request"
+          },
+          {
+            "child_span_name": "enterprise_ai.auth.authorize",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.api.request"
+          },
+          {
+            "child_span_name": "enterprise_ai.approval.persist",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.approval.evaluate"
+          },
+          {
+            "child_span_name": "enterprise_ai.tool.execute",
+            "count": 1,
+            "parent_span_name": "enterprise_ai.approval.evaluate"
+          }
+        ],
+        "root_span_count": 1,
+        "root_span_names": [
+          "enterprise_ai.api.request"
+        ],
+        "scenario": "agent_decision",
+        "span_count": 8,
+        "span_name_counts": {
+          "enterprise_ai.agent.handle": 1,
+          "enterprise_ai.api.request": 1,
+          "enterprise_ai.approval.evaluate": 1,
+          "enterprise_ai.approval.persist": 1,
+          "enterprise_ai.auth.authenticate": 1,
+          "enterprise_ai.auth.authorize": 2,
+          "enterprise_ai.tool.execute": 1
+        },
+        "trace_count": 1
+      }
+    ],
+    "schema_version": "w4-008.trace-observation.v1",
+    "scope": "local_deterministic_in_process",
+    "total_trace_count": 3
+  },
+  "correlation_and_schema_assertions": {
+    "each_request_has_one_local_root_trace": true,
+    "inbound_trace_and_correlation_headers_ignored": true,
+    "metric_labels_exclude_request_trace_and_span_ids": true,
+    "no_fabricated_cross_request_trace": true,
+    "no_live_agent_evidence_gateway_rag_adapter": true,
+    "safe_logs_correlate_each_server_generated_request_id": true,
+    "scenario_order": [
+      "query",
+      "agent_start",
+      "agent_decision"
+    ]
+  },
+  "redaction": {
+    "raw_attributes_or_events_recorded_in_evidence": false,
+    "raw_identifiers_recorded_in_evidence": false,
+    "sentinel_absence": "PASS",
+    "status": "PASS"
+  },
+  "supporting_failure_and_cancellation_checks": {
+    "cancellation_propagates_without_replacement_work": "PASS in the separately owner-executed W4-09 scope",
+    "exporter_failure_preserves_business_and_security_outcomes": "PASS in the combined telemetry composition scope and later W4-09 scope"
+  },
+  "classifications": {
+    "current_fail": "none",
+    "current_indeterminate": "none",
+    "ordinary_suite_deselected": 4,
+    "ordinary_suite_skipped": 7,
+    "required_trace_scope": "PASS"
+  },
+  "historical_trace_observation_remediation": {
+    "blocker": "The original six-pass transcript did not expose exact span counts or hierarchy",
+    "code_scope": "tests/feature/test_trace_correlation.py only",
+    "outcome": "PASS",
+    "production_instrumentation_changed": false
+  },
+  "lifecycle_and_limitations": {
+    "collector_runtime": "NOT RUN",
+    "deployment": "NOT RUN",
+    "external_exporter_or_network": "none",
+    "live_provider_model_or_vector_store": "NOT RUN",
+    "local_cost": "Local CPU, memory, disk, electricity and owner time are real and were not monetized as zero",
+    "operational_deployment_rollback": "NOT RUN",
+    "operational_or_cloud_teardown": "NOT RUN because no such resource was created",
+    "production_distributed_tracing_or_slo_proof": false,
+    "provider_cloud_cost_usd": 0,
+    "rollback_and_automated_cleanliness": "PASS",
+    "zero_unexpected_residue": true
+  },
+  "final_owner_approval": {
+    "prompt_task_id": "W4-003 / W4-08, owned by OBS-001",
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner and Final Approval Reviewer",
+    "decision": "FINAL APPROVAL AFTER OWNER TEST — APPROVED",
+    "timestamp_timezone": "2026-08-30 16:20:21 SGT",
+    "final_status": "APPROVED — W4-08 DOCUMENTATION CLOSED UNDER W4-003 COLUMN N",
+    "code_review_status": "Approved within the recorded manual, default-off, three-request-trace boundary; no production or cloud readiness is established",
+    "documentation_review_status": "Approved as one of all nine W4-003 Column M documents closed together",
+    "owner_executed_test_status": "PASS as recorded: six tests with one accepted warning; query, agent-start and agent-decision trace observations validated; historical observation blocker and bounded passing remediation preserved; open FAIL none",
+    "accepted_warnings_risks_gaps_and_limitations": "All manifest items accepted with no additional silent acceptance, including the Starlette/httpx and CRLF warnings, three separate local traces, no live AgentEvidenceGateway/RAG adapter, and no collector, production distributed-tracing, capacity, SLO, deployment or cloud proof",
+    "not_run_and_indeterminate_reconciliation": "All recorded NOT RUN work remains NOT RUN, including 7 skips, 4 deselections, Python 3.11, live integrations, collector/external export, deployment and operational/cloud lifecycle work. The historical access-denied Gate 1 listener inspection remains a non-test INDETERMINATE result. Remaining open INDETERMINATE: none",
+    "deployment_rollback_teardown_and_residual_resources": "Local service, production and cloud deployment NOT RUN; configuration/test and automated rollback PASS; operational deployment/cloud rollback NOT RUN; automated cleanliness and zero residue PASS; operational/cloud teardown NOT RUN because no such resource was created; intended repository code, tests and documents retained",
+    "deferred_actions_and_responsible_owner": "All recorded deferrals remain open; responsible owner Gyan Prakash Rai unless another owner is explicitly recorded",
+    "conditions_and_next_task_handover": "Preserve every classification, warning, limitation, deferral and residual-resource fact; all nine documents close together; only the owner changes Excel or Git; do not infer production/cloud readiness; owner may reconcile W4-08 while W6-06 and live work require separate approval",
+    "tracker_update_responsibility": "Owner"
+  }
+}

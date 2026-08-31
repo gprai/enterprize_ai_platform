@@ -17,7 +17,6 @@ EXPECTED_RUNTIME_PACKAGES = {
     "langgraph",
     "opensearch-py",
     "opentelemetry-api",
-    "opentelemetry-instrumentation-fastapi",
     "opentelemetry-sdk",
     "presidio-analyzer",
     "presidio-anonymizer",
@@ -90,3 +89,18 @@ def test_bedrock_sdk_versions_are_exactly_bounded_and_compatible() -> None:
 
     assert "boto3>=1.43.77,<1.44" in runtime_lines
     assert "botocore>=1.43.77,<1.44" in runtime_lines
+
+
+def test_opentelemetry_dependencies_are_minimal_and_exactly_bounded() -> None:
+    runtime_lines = requirement_lines(RUNTIME_REQUIREMENTS)
+
+    assert "opentelemetry-api>=1.44,<1.45" in runtime_lines
+    assert "opentelemetry-sdk>=1.44,<1.45" in runtime_lines
+    assert not any(
+        package_name(line).startswith("opentelemetry-instrumentation")
+        for line in runtime_lines
+    )
+    assert not any(
+        package_name(line).startswith("opentelemetry-exporter")
+        for line in runtime_lines
+    )

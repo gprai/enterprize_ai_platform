@@ -31,7 +31,7 @@ SECURITY, PRIVACY, COST AND LIMITATIONS
 Hashes are pseudonymous, not anonymous. No production backup/restore, migration, purge scheduler, data-governance review, live service, network, provider/model, cloud or deployment activity occurred. Provider/cloud cost was USD 0; local costs were not monetized. Long-lived database behavior, production retention, Python 3.11 execution and cloud readiness are unproven.
 
 LIFECYCLE CLASSIFICATION
-Configuration rollback disables agent flags but does not purge records. Purge is cleanup, not rollback or teardown. Operational rollback, deployment and teardown remain NOT RUN. Automated cleanup and zero residue passed. Intended source/test artifacts remain retained. W4-09 and W4-10 remain NOT RUN.
+Configuration rollback disables agent flags but does not purge records. Purge is cleanup, not rollback or teardown. Operational rollback, deployment and teardown remain NOT RUN. Automated cleanup and zero residue passed. Intended source/test artifacts remain retained. W4-09 and W4-10 were NOT RUN at W4-002 closure; their later separately approved closures are recorded in W4-09-failures.txt and W4-10-load.json.
 
 FINAL OWNER APPROVAL — W4-002
 - Prompt/task ID: W4-002

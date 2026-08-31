@@ -125,4 +125,5 @@ def test_in_process_requests_leave_no_file_socket_or_process_residue(
         "api_rag_service",
         "api_readiness_probe",
         "api_query_limiter",
+        "telemetry_runtime",
     }

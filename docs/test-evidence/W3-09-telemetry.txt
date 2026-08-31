@@ -1,0 +1,188 @@
+# W3-09 — Content-free application telemetry evidence
+
+Evidence identity: W3-09 under OBS-001 / W4-003
+Evidence owner and command executor: Gyan Prakash Rai
+Column M / Column N status: Column M owner review complete; Column N final approval complete under W4-003
+
+## Business acceptance
+
+The application records bounded stage, outcome, duration, usage, retrieval,
+agent and telemetry-health observations without exporting prompt, answer,
+retrieved content, evidence, identity, credential, PII, tool data, raw
+exception or reasoning content. The runtime is default-off and local. Ordinary
+tests use deterministic in-memory readers/exporters; no network exporter or
+collector was executed.
+
+## Exact owner command and result
+
+```powershell
+& 'E:\AI\.venvs\enterprise_ai_platform\Scripts\python.exe' -B -m pytest -q .\tests\unit\test_telemetry.py .\tests\contract\test_telemetry_schema.py .\tests\security\test_telemetry_redaction.py
+```
+
+Result: **PASS — 37 passed, 1 accepted Starlette/httpx warning in 1.15s**.
+
+Later confirmation:
+
+- Original W4-08 integration/feature scope: 6 passed.
+- W4-003 complete ordinary suite: 679 passed, 7 skipped, 4 deselected and 10
+  subtests passed.
+- Final downstream closure suite: 690 passed, 7 skipped, 4 deselected and 10
+  subtests passed.
+
+## Approved metric contract
+
+| Instrument | Type | Unit |
+|---|---|---|
+| `enterprise_ai.stage.executions` | Counter | `{execution}` |
+| `enterprise_ai.stage.duration` | Histogram | `s` |
+| `enterprise_ai.usage.tokens` | Counter | `{token}` |
+| `enterprise_ai.retrieval.results` | Histogram | `{item}` |
+| `enterprise_ai.agent.steps` | Histogram | `{step}` |
+| `enterprise_ai.agent.tool.calls` | Counter | `{call}` |
+| `enterprise_ai.telemetry.export.failures` | Counter | `{failure}` |
+| `enterprise_ai.telemetry.dropped` | Counter | `{item}` |
+
+Allowed metric attributes are limited to validated stage, operation, outcome,
+terminal reason, safe error code, prompt version, graph version, tool
+name/version, token type, signal and drop reason. Their values come from finite
+enums or explicit allowlists. The test-derived finite series bound is positive
+and below `2**63`. Request, trace, span, tenant, subject, approval, run, query,
+source, document and chunk identifiers and arbitrary free text are prohibited
+as labels.
+
+## Span, event and log contract
+
+Approved span names include:
+
+```text
+enterprise_ai.api.request
+enterprise_ai.auth.authenticate
+enterprise_ai.auth.authorize
+enterprise_ai.guardrail.validate
+enterprise_ai.rag.answer
+enterprise_ai.retrieval.retrieve
+enterprise_ai.embedding.query
+enterprise_ai.embedding.documents
+enterprise_ai.vector.search
+enterprise_ai.llm.chat
+enterprise_ai.agent.handle
+enterprise_ai.agent.validate_input
+enterprise_ai.agent.authorize
+enterprise_ai.agent.retrieve
+enterprise_ai.agent.grade_evidence
+enterprise_ai.agent.answer
+enterprise_ai.agent.propose_tool
+enterprise_ai.agent.await_human_approval
+enterprise_ai.agent.execute_tool
+enterprise_ai.agent.safe_terminal
+enterprise_ai.approval.evaluate
+enterprise_ai.approval.persist
+enterprise_ai.tool.execute
+enterprise_ai.telemetry.export
+```
+
+Approved event names are exactly:
+
+```text
+stage.completed
+security.decision
+approval.decision
+telemetry.export_failure
+telemetry.record_dropped
+```
+
+Safe logs use schema `w4-003.telemetry.v1`. Their only fields are schema
+version, Unix-nanosecond timestamp, event/service identity, optional
+server-generated request ID and trace/span correlation, finite
+stage/operation/outcome, optional approved terminal/error values, finite
+duration and count fields, and approved prompt/graph/tool version identifiers.
+Trace and span identifiers must be supplied together. Token counts must be
+complete and arithmetically consistent.
+
+## Validation, cardinality and redaction evidence
+
+- Schemas are strict, immutable and `extra="forbid"`.
+- Missing paired values, extra fields, unknown values, unapproved versions,
+  negative counts, non-finite duration and inconsistent token totals fail.
+- Span and log buffers accept only capacity 512 and drop the oldest item on
+  overflow; safe drop signaling was verified.
+- Null runtime selection and lifecycle are side-effect free.
+- Enabled telemetry requires explicit injected composition.
+- Exporter failure is normalized to safe `telemetry_export_failed`, leaves the
+  business/security result unchanged and exposes no exception detail.
+- Synthetic sentinels for prompt, answer/PII, evidence, tool argument,
+  credential and exception detail were absent from spans, events, metrics,
+  logs, test buffers and captured logging.
+- Authorization denial occurred before graph, gateway, planner, status, store
+  or tool work.
+
+## Result classification
+
+- **PASS:** 37-test W3-09 scope, later regressions, strict schemas, metric
+  names/units, finite cardinality, redaction, exporter isolation, bounded
+  buffers and lifecycle behavior.
+- **FAIL:** the historical W4-003 Ruff, MyPy, circular-import, stale-consumer
+  and cleanliness failures remain recorded in `W4-003.md`; all received
+  bounded remediation and passing reruns. No current failure remains open.
+- **NOT RUN:** 7 skipped and 4 deselected ordinary-suite activities; external
+  export; collector runtime/schema compatibility; live identity, vector store,
+  provider/model, network/cloud, deployment and operational lifecycle work.
+- **INDETERMINATE:** none open.
+
+## Security, privacy, cost and lifecycle
+
+Deterministic local fakes and synthetic data were used. No production data,
+real credential or real PII was used. Network, collector, provider/model,
+Docker, AWS/cloud and deployment activity: none. Provider/cloud cost: USD 0;
+local CPU, memory, disk, electricity and owner time are real and not monetized
+as zero.
+
+Configuration/test rollback and automated cleanliness passed. Operational
+deployment rollback was NOT RUN. Operational/cloud teardown was NOT RUN
+because no service, container, external exporter or cloud resource was
+created. Zero unexpected cache, bytecode, SQLite or telemetry residue was
+verified. Intended repository code, tests and documents remain retained.
+
+Accepted warnings are the repeated Starlette/httpx deprecation warning and
+Git LF-to-CRLF notices. Production monitoring, performance, capacity, SLO,
+retention, external collector compatibility and deployment readiness remain
+unproven.
+
+## FINAL OWNER APPROVAL — W3-09/W4-003 CLOSURE
+
+- Prompt/task ID: `W4-003` / tracker step `W3-09`, owned by `OBS-001`
+- Reviewer and role: Gyan Prakash Rai, Project Owner and Final Approval Reviewer
+- Owner decision and date/timezone: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**;
+  `2026-08-30 16:20:21 SGT`
+- Final status: **APPROVED — W3-09 DOCUMENTATION CLOSED UNDER W4-003 COLUMN N**
+- Code and documentation review status: Approved within the recorded bounded,
+  default-off observability contract; this document is one of nine closed
+  together under the approved Column M manifest.
+- Owner-executed test status: The 37-test W3-09 telemetry scope passed and
+  later telemetry/trace, protected-regression, complete-suite, rollback,
+  teardown and residue checks passed as recorded. Historical W4-003 failures
+  and passing bounded reruns remain preserved. Open FAIL results: none.
+- Warnings, risks, gaps and limitations: Every item recorded in the approved
+  manifest is accepted and no additional item is silently accepted, including
+  the Starlette/httpx and CRLF warnings, local deterministic evidence, bounded
+  drop-oldest behavior, and unproven external export, collector compatibility,
+  production monitoring, capacity, SLO, retention and cloud readiness.
+- NOT RUN/INDETERMINATE reconciliation: All recorded NOT RUN work remains NOT
+  RUN, including 7 skips, 4 deselections, Python 3.11, live integrations,
+  collector/external export, deployment and operational/cloud lifecycle work.
+  The historical access-denied Gate 1 listener inspection remains preserved
+  as a non-test INDETERMINATE result. Remaining open INDETERMINATE: None.
+- Deployment facts: Local service, production and cloud deployment were NOT
+  RUN; no service, collector, container or cloud resource was created.
+- Rollback facts: Configuration/test and automated rollback checks passed;
+  operational release/deployment/cloud rollback was NOT RUN.
+- Teardown and residual-resource facts: Automated cleanliness and zero residue
+  passed; operational/cloud teardown was NOT RUN because no such resource was
+  created. Intended repository code, tests and documents remain retained.
+- Deferred actions and owner: All recorded deferrals remain open; responsible
+  owner is Gyan Prakash Rai unless another owner is explicitly recorded.
+- Conditions and handover: Preserve all classifications and limitations; close
+  all nine documents together; only the owner changes Excel or Git; do not
+  infer production/cloud readiness. The owner may reconcile W3-09 in the
+  tracker; live/exporter/W6-06 work requires separate approval.
+- Tracker update responsibility: Owner

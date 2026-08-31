@@ -1,0 +1,156 @@
+# W4-09 — Safe agent-failure evidence
+
+Evidence identity: W4-09 under AGENT-001 / W4-002
+Evidence owner and command executor: Gyan Prakash Rai
+Column M / Column N status: Column M owner review complete; Column N final approval complete under W4-003; ownership remains AGENT-001 / W4-002
+
+## Business purpose
+
+W4-09 proves that authorization denial, malformed input, prompt injection,
+timeout, cancellation, overload, budget exhaustion, human rejection and
+telemetry failure stop safely without an unauthorized write or protected-data
+leak. The production graph remains intentionally acyclic; step-budget
+exhaustion is the honest loop-safety proof.
+
+## Exact owner command and final result
+
+```powershell
+& 'E:\AI\.venvs\enterprise_ai_platform\Scripts\python.exe' -B -m pytest -q .\tests\feature\test_agent_failures.py
+```
+
+Final rerun: **PASS — 10 passed, 1 accepted Starlette/httpx warning in
+1.16s**.
+
+## Scenario reconciliation
+
+1. **Authorization denial:** a caller without read authority raised safe code
+   `authorization_denied`. Gateway calls, planner calls, status calls, stored
+   states, approvals and active runs remained zero.
+2. **Malformed tool arguments:** the API returned HTTP 422 with
+   `api_request_invalid`; the synthetic sentinel was absent from the response,
+   and authenticator/controller calls remained zero.
+3. **Prompt injection as untrusted data:** result was `COMPLETED` with
+   `ANSWER_REFERENCE_READY`. Only the approved retrieve, grade-evidence and
+   answer gateway calls occurred; planner called once; status/tool work was
+   zero; the injected text was absent from result and captured logs.
+4. **Deterministic expired deadline:** result was `TIMED_OUT` with
+   `DEADLINE_EXCEEDED` and safe code `agent_deadline_exceeded`. Gateway,
+   planner and status calls remained zero; one safe state record was retained
+   by the test-local store.
+5. **Cancellation and capacity release:** a concurrent replacement request was
+   rejected by the zero-queue capacity boundary; cancellation propagated as
+   `CancelledError`; active runs returned to zero; replacement work and all
+   gateway/planner/status/store activity remained zero.
+6. **Step-budget exhaustion:** with the maximum graph-step budget set to one,
+   result was `BUDGET_EXCEEDED` with `STEP_BUDGET_EXCEEDED` and safe code
+   `agent_budget_exceeded`. Gateway, planner, status and tool work remained
+   zero; one safe state record was written.
+7. **Atomic human rejection and replay:** both first decision and replay
+   returned `REJECTED` with `APPROVAL_REJECTED`, no result reference and no
+   additional gateway, planner or state activity. Approval stayed terminal
+   `REJECTED`; status/tool calls and active runs were zero.
+8. **Telemetry exporter failure:** the synchronous exporter was invoked and
+   failed safely; the business result remained `COMPLETED` with
+   `ANSWER_REFERENCE_READY`; safe `telemetry_export_failed` was captured; no
+   approved sentinel or raw exception detail appeared.
+9. **Agent telemetry redaction:** spans, events, metrics, safe logs, result and
+   captured logging retained none of the W4-001/W4-003 synthetic sentinels;
+   the business result remained completed and no status tool ran.
+10. **Cleanliness:** the deterministic failure scenario left active runs,
+    pending tasks, test-local states/approvals, temporary files and additional
+    threads at zero.
+
+No production graph loop, reject endpoint, error taxonomy, graph node, state
+transition, tool, retry, live integration or real write was added to obtain
+these results.
+
+## Historical failure and remediation
+
+The first focused execution finished **1 failed, 9 passed, 1 warning**. The
+export-failure test expected `force_flush()` to return false, but the approved
+`SimpleSpanProcessor` exports synchronously; the exporter failure had already
+been safely captured when the span ended, and the later no-queue flush
+correctly returned true.
+
+The owner approved a one-line test-only correction from an expected false
+flush result to true. Production telemetry and business behavior did not
+change. Scoped Ruff passed and the complete focused rerun passed 10 tests. The
+first execution remains a historical **FAIL**.
+
+## Classification
+
+- **PASS:** final ten-scenario focused rerun, authorization-before-work,
+  malformed-input isolation, injection handling, timeout, cancellation and
+  capacity release, budget termination, rejection/replay, exporter isolation,
+  redaction and cleanliness.
+- **FAIL:** historical flush-assertion failure above; remediated and rerun.
+  Current open FAIL: none.
+- **NOT RUN:** 7 skipped and 4 deselected ordinary-suite activities; live
+  identity, live AgentEvidenceGateway/RAG/model/vector/provider integration,
+  real approval service, real write, network/cloud, service/deployment and
+  operational lifecycle work.
+- **INDETERMINATE:** none open.
+
+## W4-002 chronology and ownership
+
+W4-09 was historically and correctly **NOT RUN** when W4-002 received final
+approval because W4-08 was not complete. After W4-08 passed, W4-09 was
+implemented and tested under a separate bounded approval. It remains owned by
+`AGENT-001`; ownership was not transferred to `OBS-001` or `API-001`.
+
+## Security, privacy, cost and lifecycle
+
+Only deterministic local fakes and synthetic values were used. No production
+data, real credential, PII, raw prompt/evidence, identity value, approval ID or
+tool argument/result is recorded here. Network, provider/model, vector store,
+external approval service, Docker, AWS/cloud and deployment activity: none.
+Provider/cloud cost: USD 0; local CPU, memory, disk, electricity and owner time
+are real and not monetized as zero.
+
+Configuration/test rollback and automated rollback checks passed in the
+protected W4 scopes. Operational release/deployment/cloud rollback was NOT
+RUN. Automated cleanliness and zero-residue checks passed. Operational
+service/container/cloud teardown was NOT RUN because no such resource was
+created. Retained resources are intended repository tests and Column M
+documents only.
+
+The repeated Starlette/httpx warning remains accepted. Local fake-only results
+do not prove production identity, provider/model behavior, performance,
+capacity, SLO, deployment or cloud readiness.
+
+## FINAL OWNER APPROVAL — W4-09 CLOSURE
+
+- Prompt/task ID: W4-003 Column N / tracker step `W4-09`, retained by
+  `AGENT-001` / W4-002
+- Reviewer and role: Gyan Prakash Rai, Project Owner and Final Approval Reviewer
+- Owner decision and date/timezone: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**;
+  `2026-08-30 16:20:21 SGT`
+- Final status: **APPROVED — W4-09 DOCUMENTATION CLOSED UNDER W4-003 COLUMN N**
+- Code and documentation review status: Approved within the separately bounded
+  two-CREATE/four-UPDATE W4-09/W4-10 test boundary; this document is one of
+  all nine Column M documents closed together.
+- Owner-executed test status: Final W4-09 scope passed 10 tests with one
+  accepted warning. The initial 1-failed/9-passed flush assertion and its
+  one-line test-only remediation remain historical. Open FAIL results: none.
+- Warnings, risks, gaps and limitations: All manifest items are accepted and no
+  additional item is silently accepted, including Starlette/httpx and CRLF
+  warnings, deterministic fake-only behavior, no production graph loop, no
+  real write/live adapter and no production performance or cloud proof.
+- NOT RUN/INDETERMINATE reconciliation: The 7 skips, 4 deselections, Python
+  3.11, live identity/provider/vector/approval integrations, real writes,
+  deployment and operational/cloud lifecycle work remain NOT RUN. The
+  historical access-denied Gate 1 listener inspection remains a non-test
+  INDETERMINATE result. Remaining open INDETERMINATE: None.
+- Deployment facts: Local service, production and cloud deployment were NOT
+  RUN; no service, container or cloud resource was created.
+- Rollback facts: Configuration/test and automated rollback passed;
+  operational deployment/cloud rollback was NOT RUN.
+- Teardown and residual-resource facts: Automated cleanliness and zero residue
+  passed; operational/cloud teardown was NOT RUN because no such resource was
+  created. Intended repository tests and documents remain retained.
+- Deferred actions and owner: All recorded deferrals remain open; responsible
+  owner is Gyan Prakash Rai unless another owner is explicitly recorded.
+- Conditions and handover: Preserve every result and limitation; close all nine
+  documents together; only the owner changes Excel/Git; retain `AGENT-001`
+  ownership when reconciling W4-09; live/production work needs separate approval.
+- Tracker update responsibility: Owner

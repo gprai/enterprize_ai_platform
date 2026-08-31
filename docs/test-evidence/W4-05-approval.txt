@@ -34,7 +34,7 @@ SECURITY, PRIVACY, COST AND LIMITATIONS
 Trusted identity never comes from request JSON. Denial precedes graph, gateway, store and tool activity. Persisted identity references are hashed and pseudonymous, not anonymous. Raw prompt, evidence, answer, credential, PII, tool output, exception and chain-of-thought are excluded. No network, model/provider, cloud or deployment activity occurred. Provider/cloud cost was USD 0; local costs were not monetized. Live identity, external approval, real write safety and production readiness remain unproven.
 
 LIFECYCLE CLASSIFICATION
-Configuration rollback disables both flags and passed automated testing. Approval purge is cleanup, not rollback. Operational release/deployment rollback, deployment and operational teardown remain NOT RUN. Temporary stores reached zero residue; intended files remain retained. W4-09 and W4-10 remain NOT RUN. This file is the canonical W4-05 evidence; no W4-approval.txt artifact is approved.
+Configuration rollback disables both flags and passed automated testing. Approval purge is cleanup, not rollback. Operational release/deployment rollback, deployment and operational teardown remain NOT RUN. Temporary stores reached zero residue; intended files remain retained. W4-09 and W4-10 were NOT RUN at W4-002 closure; their later separately approved closures are recorded in W4-09-failures.txt and W4-10-load.json. This file is the canonical W4-05 evidence; no W4-approval.txt artifact is approved.
 
 FINAL OWNER APPROVAL — W4-002
 - Prompt/task ID: W4-002

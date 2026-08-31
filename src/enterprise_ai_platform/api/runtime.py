@@ -12,7 +12,19 @@ from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from enterprise_ai_platform.json_contracts import DuplicateJSONKeyError, strict_json_loads
+from enterprise_ai_platform.json_contracts import (
+    DuplicateJSONKeyError,
+    strict_json_loads,
+)
+from enterprise_ai_platform.telemetry.models import (
+    TelemetryOperation,
+    TelemetryOutcome,
+    TelemetryStage,
+)
+from enterprise_ai_platform.telemetry.runtime import (
+    NullTelemetryRuntime,
+    TelemetryRuntime,
+)
 
 from .errors import APIError, api_error
 from .models import AgentRequest, QueryRequest
@@ -24,8 +36,13 @@ RequestT = TypeVar("RequestT")
 class RequestIdMiddleware:
     """Generate one untrusted-input-independent UUIDv4 for each HTTP request."""
 
-    def __init__(self, app: ASGIApp) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        telemetry: TelemetryRuntime | None = None,
+    ) -> None:
         self._app = app
+        self._telemetry = telemetry or NullTelemetryRuntime()
 
     async def __call__(
         self,
@@ -37,17 +54,37 @@ class RequestIdMiddleware:
             await self._app(scope, receive, send)
             return
 
-        request_id = str(uuid4())
+        request_uuid = uuid4()
+        request_id = str(request_uuid)
         state = scope.setdefault("state", {})
         state["request_id"] = request_id
+        response_status: int | None = None
 
         async def send_with_request_id(message: Message) -> None:
+            nonlocal response_status
             if message["type"] == "http.response.start":
+                response_status = int(message["status"])
                 headers = MutableHeaders(scope=message)
                 headers[REQUEST_ID_HEADER] = request_id
             await send(message)
 
-        await self._app(scope, receive, send_with_request_id)
+        with self._telemetry.start_scope(
+            TelemetryStage.API,
+            TelemetryOperation.REQUEST,
+            request_id=request_uuid,
+            root=True,
+        ) as telemetry_scope:
+            await self._app(scope, receive, send_with_request_id)
+            if response_status == 504:
+                telemetry_scope.finish(TelemetryOutcome.TIMEOUT)
+            elif response_status is None or response_status >= 500:
+                telemetry_scope.finish(TelemetryOutcome.ERROR)
+            elif response_status in {401, 403}:
+                telemetry_scope.finish(TelemetryOutcome.DENIED)
+            elif response_status >= 400:
+                telemetry_scope.finish(TelemetryOutcome.REJECTED)
+            else:
+                telemetry_scope.finish(TelemetryOutcome.SUCCESS)
 
 
 def request_id_for(request: Request) -> UUID:

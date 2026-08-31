@@ -6,17 +6,18 @@ from typing import cast
 
 from pydantic import ValidationError
 
+from enterprise_ai_platform.guardrails.errors import GuardrailInputError
 from enterprise_ai_platform.guardrails.policy import validate_rag_input
 from enterprise_ai_platform.json_contracts import (
     DuplicateJSONKeyError,
     JSONValue,
     strict_json_loads,
 )
-from enterprise_ai_platform.llm.errors import LLMMalformedResponseError
+from enterprise_ai_platform.llm.errors import LLMError, LLMMalformedResponseError
 from enterprise_ai_platform.llm.models import ChatResponse, Usage
 from enterprise_ai_platform.llm.provider import LLMProvider
 from enterprise_ai_platform.rag.config import RAGPolicy
-from enterprise_ai_platform.rag.errors import RAGOutputValidationError
+from enterprise_ai_platform.rag.errors import RAGError, RAGOutputValidationError
 from enterprise_ai_platform.rag.models import (
     AbstentionReason,
     AbstentionResult,
@@ -32,6 +33,11 @@ from enterprise_ai_platform.retrieval.authorization import (
     is_retrieval_authorized,
     require_active_context,
 )
+from enterprise_ai_platform.retrieval.errors import (
+    VectorStoreAuthorizationError,
+    VectorStoreError,
+    VectorStoreTimeoutError,
+)
 from enterprise_ai_platform.retrieval.models import (
     Answer,
     AuthContext,
@@ -40,6 +46,18 @@ from enterprise_ai_platform.retrieval.models import (
     RetrievedChunk,
 )
 from enterprise_ai_platform.retrieval.service import RetrievalService
+from enterprise_ai_platform.telemetry.models import (
+    SafeTelemetryAttributes,
+    TelemetryEventName,
+    TelemetryOperation,
+    TelemetryOutcome,
+    TelemetryStage,
+)
+from enterprise_ai_platform.telemetry.runtime import (
+    NullTelemetryRuntime,
+    TelemetryRuntime,
+    TelemetryScope,
+)
 
 _REQUIRED_CITATION_KEYS = frozenset(
     {"source_id", "document_id", "document_version", "chunk_id"}
@@ -188,10 +206,26 @@ class RAGService:
         retrieval_service: RetrievalService,
         llm_provider: LLMProvider,
         policy: RAGPolicy,
+        telemetry: TelemetryRuntime | None = None,
     ) -> None:
         self._retrieval_service = retrieval_service
         self._llm_provider = llm_provider
         self._policy = policy
+        self._telemetry = telemetry or NullTelemetryRuntime()
+
+    def _observed_result(
+        self,
+        scope: TelemetryScope,
+        result: RAGResult,
+    ) -> RAGResult:
+        if isinstance(result, AbstentionResult):
+            scope.finish(
+                TelemetryOutcome.ABSTAINED,
+                terminal_reason=result.reason,
+            )
+        else:
+            scope.finish(TelemetryOutcome.SUCCESS)
+        return result
 
     async def answer(
         self,
@@ -202,43 +236,170 @@ class RAGService:
     ) -> RAGResult:
         """Return a cited answer or a policy-classified safe abstention."""
 
-        validated_query = validate_rag_input(query, content_type=content_type)
-        require_active_context(auth_context)
-        policy_query = Query(
-            text=validated_query.text,
-            top_k=self._policy.top_k,
-            min_score=self._policy.min_score,
-        )
-        raw_chunks = await self._retrieval_service.retrieve(policy_query, auth_context)
-        chunks = _validated_chunks(raw_chunks)
-        if chunks is None:
-            return _abstain("malformed_evidence", self._policy)
-        if not chunks:
-            return _abstain("insufficient_evidence", self._policy)
+        with self._telemetry.start_scope(
+            TelemetryStage.RAG,
+            TelemetryOperation.ANSWER,
+            prompt_version=self._policy.prompt_version,
+        ) as rag_scope:
+            try:
+                with self._telemetry.start_scope(
+                    TelemetryStage.GUARDRAIL,
+                    TelemetryOperation.VALIDATE,
+                    prompt_version=self._policy.prompt_version,
+                ) as guardrail_scope:
+                    try:
+                        validated_query = validate_rag_input(
+                            query,
+                            content_type=content_type,
+                        )
+                    except GuardrailInputError:
+                        guardrail_scope.finish(
+                            TelemetryOutcome.REJECTED,
+                            safe_error_code="guardrail_input_invalid",
+                        )
+                        raise
+                    guardrail_scope.finish(TelemetryOutcome.SUCCESS)
 
-        authorized = tuple(
-            chunk for chunk in chunks if is_retrieval_authorized(chunk, auth_context)
-        )
-        if not authorized:
-            return _abstain("no_authorized_evidence", self._policy)
-        qualifying = tuple(
-            sorted(
-                (chunk for chunk in authorized if chunk.score >= self._policy.min_score),
-                key=lambda chunk: (-chunk.score, chunk.chunk_id),
-            )
-        )
-        if len(qualifying) < self._policy.minimum_qualifying_chunks:
-            return _abstain("insufficient_evidence", self._policy)
-        if _has_conflicting_versions(qualifying):
-            return _abstain("conflicting_evidence", self._policy)
+                with self._telemetry.start_scope(
+                    TelemetryStage.AUTHORIZATION,
+                    TelemetryOperation.AUTHORIZE,
+                ) as authorization_scope:
+                    try:
+                        require_active_context(auth_context)
+                    except VectorStoreAuthorizationError:
+                        authorization_scope.finish(
+                            TelemetryOutcome.DENIED,
+                            terminal_reason="authorization_denied",
+                            safe_error_code="vector_store_authorization_denied",
+                        )
+                        self._telemetry.emit_event(
+                            TelemetryEventName.SECURITY_DECISION,
+                            SafeTelemetryAttributes(
+                                stage=TelemetryStage.AUTHORIZATION,
+                                operation=TelemetryOperation.AUTHORIZE,
+                                outcome=TelemetryOutcome.DENIED,
+                                terminal_reason="authorization_denied",
+                                safe_error_code="vector_store_authorization_denied",
+                            ),
+                        )
+                        raise
+                    authorization_scope.finish(TelemetryOutcome.SUCCESS)
+                    self._telemetry.emit_event(
+                        TelemetryEventName.SECURITY_DECISION,
+                        SafeTelemetryAttributes(
+                            stage=TelemetryStage.AUTHORIZATION,
+                            operation=TelemetryOperation.AUTHORIZE,
+                            outcome=TelemetryOutcome.SUCCESS,
+                        ),
+                    )
 
-        evidence_blocks = select_complete_evidence_blocks(
-            qualifying,
-            max_context_characters=self._policy.max_context_characters,
-        )
-        if len(evidence_blocks) < self._policy.minimum_qualifying_chunks:
-            return _abstain("insufficient_evidence", self._policy)
+                policy_query = Query(
+                    text=validated_query.text,
+                    top_k=self._policy.top_k,
+                    min_score=self._policy.min_score,
+                )
+                raw_chunks = await self._retrieval_service.retrieve(
+                    policy_query,
+                    auth_context,
+                )
+                chunks = _validated_chunks(raw_chunks)
+                if chunks is None:
+                    return self._observed_result(
+                        rag_scope,
+                        _abstain("malformed_evidence", self._policy),
+                    )
+                if not chunks:
+                    return self._observed_result(
+                        rag_scope,
+                        _abstain("insufficient_evidence", self._policy),
+                    )
 
-        request = build_rag_request(policy_query, evidence_blocks, self._policy)
-        response = _validated_provider_response(await self._llm_provider.chat(request))
-        return _parse_generated_answer(response, evidence_blocks, self._policy)
+                authorized = tuple(
+                    chunk
+                    for chunk in chunks
+                    if is_retrieval_authorized(chunk, auth_context)
+                )
+                if not authorized:
+                    return self._observed_result(
+                        rag_scope,
+                        _abstain("no_authorized_evidence", self._policy),
+                    )
+                qualifying = tuple(
+                    sorted(
+                        (
+                            chunk
+                            for chunk in authorized
+                            if chunk.score >= self._policy.min_score
+                        ),
+                        key=lambda chunk: (-chunk.score, chunk.chunk_id),
+                    )
+                )
+                if len(qualifying) < self._policy.minimum_qualifying_chunks:
+                    return self._observed_result(
+                        rag_scope,
+                        _abstain("insufficient_evidence", self._policy),
+                    )
+                if _has_conflicting_versions(qualifying):
+                    return self._observed_result(
+                        rag_scope,
+                        _abstain("conflicting_evidence", self._policy),
+                    )
+
+                evidence_blocks = select_complete_evidence_blocks(
+                    qualifying,
+                    max_context_characters=self._policy.max_context_characters,
+                )
+                if len(evidence_blocks) < self._policy.minimum_qualifying_chunks:
+                    return self._observed_result(
+                        rag_scope,
+                        _abstain("insufficient_evidence", self._policy),
+                    )
+
+                request = build_rag_request(policy_query, evidence_blocks, self._policy)
+                with self._telemetry.start_scope(
+                    TelemetryStage.LLM,
+                    TelemetryOperation.CHAT,
+                    prompt_version=self._policy.prompt_version,
+                ) as llm_scope:
+                    response = _validated_provider_response(
+                        await self._llm_provider.chat(request)
+                    )
+                    llm_scope.finish(TelemetryOutcome.SUCCESS)
+                    if response.usage is not None:
+                        self._telemetry.record_tokens(
+                            stage=TelemetryStage.LLM,
+                            operation=TelemetryOperation.CHAT,
+                            input_tokens=response.usage.input_tokens,
+                            output_tokens=response.usage.output_tokens,
+                            total_tokens=response.usage.total_tokens,
+                            prompt_version=self._policy.prompt_version,
+                        )
+                return self._observed_result(
+                    rag_scope,
+                    _parse_generated_answer(response, evidence_blocks, self._policy),
+                )
+            except VectorStoreAuthorizationError:
+                rag_scope.finish(
+                    TelemetryOutcome.DENIED,
+                    terminal_reason="authorization_denied",
+                    safe_error_code="vector_store_authorization_denied",
+                )
+                raise
+            except VectorStoreTimeoutError:
+                rag_scope.finish(
+                    TelemetryOutcome.TIMEOUT,
+                    safe_error_code="vector_store_timeout",
+                )
+                raise
+            except GuardrailInputError:
+                rag_scope.finish(
+                    TelemetryOutcome.REJECTED,
+                    safe_error_code="guardrail_input_invalid",
+                )
+                raise
+            except (VectorStoreError, LLMError, RAGError) as error:
+                rag_scope.finish(
+                    TelemetryOutcome.ERROR,
+                    safe_error_code=str(error.code),
+                )
+                raise

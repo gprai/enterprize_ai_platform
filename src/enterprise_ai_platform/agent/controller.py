@@ -7,6 +7,17 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from enterprise_ai_platform.retrieval.models import AuthContext
+from enterprise_ai_platform.telemetry.models import (
+    SafeTelemetryAttributes,
+    TelemetryEventName,
+    TelemetryOperation,
+    TelemetryOutcome,
+    TelemetryStage,
+)
+from enterprise_ai_platform.telemetry.runtime import (
+    NullTelemetryRuntime,
+    TelemetryRuntime,
+)
 
 from .authorization import (
     authorization_reference,
@@ -26,7 +37,12 @@ from .errors import (
     AgentDeadlineError,
     AgentOverloadedError,
 )
-from .graph import AgentRunContext, CompiledAgentGraph, build_agent_graph, initial_graph_state
+from .graph import (
+    AgentRunContext,
+    CompiledAgentGraph,
+    build_agent_graph,
+    initial_graph_state,
+)
 from .models import (
     AgentBudgets,
     AgentCommand,
@@ -66,6 +82,7 @@ class BoundedAgentController:
         mock_write_enabled: bool,
         approval_ttl_seconds: int = 600,
         graph: CompiledAgentGraph | None = None,
+        telemetry: TelemetryRuntime | None = None,
     ) -> None:
         if approval_ttl_seconds != 600:
             raise ValueError("W4-002 approval TTL must be ten minutes")
@@ -82,6 +99,7 @@ class BoundedAgentController:
             mock_write_enabled=mock_write_enabled,
         )
         self._limiter = AgentCapacityLimiter(budgets.maximum_concurrent_agent_runs)
+        self._telemetry = telemetry or NullTelemetryRuntime()
 
     @property
     def active_runs(self) -> int:
@@ -96,17 +114,93 @@ class BoundedAgentController:
         if not self._limiter.try_acquire():
             raise AgentOverloadedError
         try:
-            try:
-                async with asyncio.timeout(self._budgets.agent_deadline_seconds):
-                    if isinstance(transport, DecideAgentCommand):
-                        require_decision_authorized(auth_context)
-                        return self._decide(transport, auth_context, UUID(request_id))
-                    require_start_authorized(auth_context)
-                    return await self._start(transport.query, auth_context, UUID(request_id))
-            except TimeoutError:
-                raise AgentDeadlineError from None
+            with self._telemetry.start_scope(
+                TelemetryStage.AGENT,
+                TelemetryOperation.HANDLE,
+                graph_version="w4-002.graph.v1",
+            ) as agent_scope:
+                try:
+                    async with asyncio.timeout(
+                        self._budgets.agent_deadline_seconds
+                    ):
+                        self._authorize_command(transport, auth_context)
+                        if isinstance(transport, DecideAgentCommand):
+                            result = self._decide(
+                                transport,
+                                auth_context,
+                                UUID(request_id),
+                            )
+                        else:
+                            result = await self._start(
+                                transport.query,
+                                auth_context,
+                                UUID(request_id),
+                            )
+                        agent_scope.finish(
+                            _telemetry_outcome(result.outcome),
+                            terminal_reason=result.terminal_reason.value,
+                            safe_error_code=result.safe_error_code,
+                        )
+                        return result
+                except AgentAuthorizationError:
+                    agent_scope.finish(
+                        TelemetryOutcome.DENIED,
+                        terminal_reason=TerminalReason.AUTHORIZATION_DENIED.value,
+                        safe_error_code="authorization_denied",
+                    )
+                    raise
+                except (TimeoutError, AgentDeadlineError):
+                    agent_scope.finish(
+                        TelemetryOutcome.TIMEOUT,
+                        terminal_reason=TerminalReason.DEADLINE_EXCEEDED.value,
+                        safe_error_code="agent_deadline_exceeded",
+                    )
+                    raise AgentDeadlineError from None
         finally:
             self._limiter.release()
+
+    def _authorize_command(
+        self,
+        transport: AgentCommand,
+        auth_context: AuthContext,
+    ) -> None:
+        with self._telemetry.start_scope(
+            TelemetryStage.AUTHORIZATION,
+            TelemetryOperation.AUTHORIZE,
+        ) as authorization_scope:
+            try:
+                if isinstance(transport, DecideAgentCommand):
+                    require_decision_authorized(auth_context)
+                else:
+                    require_start_authorized(auth_context)
+            except AgentAuthorizationError:
+                authorization_scope.finish(
+                    TelemetryOutcome.DENIED,
+                    terminal_reason=TerminalReason.AUTHORIZATION_DENIED.value,
+                    safe_error_code="authorization_denied",
+                )
+                self._telemetry.emit_event(
+                    TelemetryEventName.SECURITY_DECISION,
+                    SafeTelemetryAttributes(
+                        stage=TelemetryStage.AUTHORIZATION,
+                        operation=TelemetryOperation.AUTHORIZE,
+                        outcome=TelemetryOutcome.DENIED,
+                        terminal_reason=(
+                            TerminalReason.AUTHORIZATION_DENIED.value
+                        ),
+                        safe_error_code="authorization_denied",
+                    ),
+                )
+                raise
+            authorization_scope.finish(TelemetryOutcome.SUCCESS)
+            self._telemetry.emit_event(
+                TelemetryEventName.SECURITY_DECISION,
+                SafeTelemetryAttributes(
+                    stage=TelemetryStage.AUTHORIZATION,
+                    operation=TelemetryOperation.AUTHORIZE,
+                    outcome=TelemetryOutcome.SUCCESS,
+                ),
+            )
 
     async def _start(
         self,
@@ -128,6 +222,7 @@ class BoundedAgentController:
             budgets=self._budgets,
             clock=clock,
             approval_ttl_seconds=self._approval_ttl_seconds,
+            telemetry=self._telemetry,
         )
         final = await self._graph.ainvoke(
             initial_graph_state(
@@ -158,6 +253,34 @@ class BoundedAgentController:
         )
 
     def _decide(
+        self,
+        command: DecideAgentCommand,
+        auth_context: AuthContext,
+        request_id: UUID,
+    ) -> AgentResult:
+        with self._telemetry.start_scope(
+            TelemetryStage.APPROVAL,
+            TelemetryOperation.EVALUATE,
+        ) as approval_scope:
+            result = self._decide_unobserved(command, auth_context, request_id)
+            approval_scope.finish(
+                _telemetry_outcome(result.outcome),
+                terminal_reason=result.terminal_reason.value,
+                safe_error_code=result.safe_error_code,
+            )
+            self._telemetry.emit_event(
+                TelemetryEventName.APPROVAL_DECISION,
+                SafeTelemetryAttributes(
+                    stage=TelemetryStage.APPROVAL,
+                    operation=TelemetryOperation.EVALUATE,
+                    outcome=_telemetry_outcome(result.outcome),
+                    terminal_reason=result.terminal_reason.value,
+                    safe_error_code=result.safe_error_code,
+                ),
+            )
+            return result
+
+    def _decide_unobserved(
         self,
         command: DecideAgentCommand,
         auth_context: AuthContext,
@@ -247,18 +370,35 @@ class BoundedAgentController:
             decision=command.decision,
             decided_at=now,
         )
-        approved = self._store.approve(
-            approved,
-            expected_revision=current.revision,
-            maximum_bytes=maximum_bytes,
-        )
-        executing = self._store.claim(
-            str(approved.approval_id),
-            expected_revision=approved.revision,
-            maximum_bytes=maximum_bytes,
-        )
+        with self._telemetry.start_scope(
+            TelemetryStage.APPROVAL,
+            TelemetryOperation.PERSIST,
+        ) as persist_scope:
+            approved = self._store.approve(
+                approved,
+                expected_revision=current.revision,
+                maximum_bytes=maximum_bytes,
+            )
+            executing = self._store.claim(
+                str(approved.approval_id),
+                expected_revision=approved.revision,
+                maximum_bytes=maximum_bytes,
+            )
+            persist_scope.finish(TelemetryOutcome.SUCCESS)
         try:
-            result_reference = self._registry.execute_mock_write(proposal)
+            with self._telemetry.start_scope(
+                TelemetryStage.TOOL,
+                TelemetryOperation.EXECUTE_TOOL,
+                tool_name=proposal.name,
+                tool_version=proposal.version,
+            ) as tool_scope:
+                result_reference = self._registry.execute_mock_write(proposal)
+                tool_scope.finish(TelemetryOutcome.SUCCESS)
+                self._telemetry.record_tool_call(
+                    tool_name=proposal.name,
+                    tool_version=proposal.version,
+                    outcome=TelemetryOutcome.SUCCESS,
+                )
         except BaseException:
             unknown = _updated_approval(
                 executing,
@@ -314,3 +454,17 @@ class BoundedAgentController:
             terminal_reason=TerminalReason.WRITE_TOOL_COMPLETED,
             result_reference_sha256=result_reference,
         )
+
+
+def _telemetry_outcome(outcome: AgentOutcome) -> TelemetryOutcome:
+    return {
+        AgentOutcome.COMPLETED: TelemetryOutcome.SUCCESS,
+        AgentOutcome.APPROVAL_REQUIRED: TelemetryOutcome.SUCCESS,
+        AgentOutcome.DENIED: TelemetryOutcome.DENIED,
+        AgentOutcome.REJECTED: TelemetryOutcome.REJECTED,
+        AgentOutcome.EXPIRED: TelemetryOutcome.REJECTED,
+        AgentOutcome.CANCELLED: TelemetryOutcome.CANCELLED,
+        AgentOutcome.BUDGET_EXCEEDED: TelemetryOutcome.BUDGET_EXCEEDED,
+        AgentOutcome.TIMED_OUT: TelemetryOutcome.TIMEOUT,
+        AgentOutcome.SAFE_TERMINAL: TelemetryOutcome.ABSTAINED,
+    }[outcome]

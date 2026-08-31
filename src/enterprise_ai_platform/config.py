@@ -47,6 +47,26 @@ class Settings(BaseSettings):
     api_readiness_timeout_seconds: float = Field(default=1.0, gt=0, le=1.0)
     api_max_inflight_queries: int = Field(default=4, ge=1, le=4)
     api_query_queue_capacity: Literal[0] = 0
+    telemetry_enabled: bool = False
+    telemetry_service_name: str = Field(
+        default="enterprise-ai-api",
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]*$",
+    )
+    telemetry_exporter: Literal["none"] = "none"
+    telemetry_otlp_endpoint: None = None
+    telemetry_span_capacity: Literal[512] = 512
+    telemetry_log_capacity: Literal[512] = 512
+    telemetry_queue_capacity: Literal[0] = 0
+    telemetry_retry_count: Literal[0] = 0
+    telemetry_background_workers: Literal[0] = 0
+    telemetry_flush_timeout_seconds: float = Field(default=1.0, ge=1.0, le=1.0)
+    telemetry_shutdown_timeout_seconds: float = Field(
+        default=1.0,
+        ge=1.0,
+        le=1.0,
+    )
     agent_enabled: bool = False
     agent_mock_write_enabled: bool = False
     agent_state_schema_version: Literal["w4-002.agent-state.v1"] = (
@@ -110,6 +130,15 @@ class Settings(BaseSettings):
             return normalized
         return value
 
+    @field_validator("telemetry_otlp_endpoint", mode="before")
+    @classmethod
+    def normalize_disabled_telemetry_endpoint(cls, value: object) -> object:
+        """Allow only an absent or blank endpoint in the default-off boundary."""
+
+        if value is None or (isinstance(value, str) and not value.strip()):
+            return None
+        return value
+
     @field_validator("qdrant_api_key", mode="before")
     @classmethod
     def normalize_optional_secret(cls, value: object) -> object:
@@ -158,4 +187,6 @@ class Settings(BaseSettings):
             and self.agent_deadline_seconds >= self.request_timeout_seconds
         ):
             raise ValueError("agent deadline must remain inside the API deadline")
+        if self.telemetry_enabled and not self.api_routes_enabled:
+            raise ValueError("enabled telemetry requires the W4 API boundary")
         return self

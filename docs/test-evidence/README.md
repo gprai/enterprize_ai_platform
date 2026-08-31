@@ -60,7 +60,7 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W3-003](W3-003.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 14:40:21 SGT. Deterministic local guardrail and security-regression evidence passed after two preserved historical failures and bounded remediation. Live-model, vendor, deployment and production behavior remain **NOT RUN**; all five Column M documents are closed together.
 - [W3-004](W3-004.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 17:31:21 SGT. Final local evidence records 465 passing ordinary tests, the exact controlled Q1/Q2 regression, atomic restoration to the known-good identity, restored absolute and baseline-comparison PASS, verified external archival and repository-local zero residue. All four W3-ROLLBACK-001 Column M documents are closed together.
 - [W4-001](W4-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-28 at 23:56:21 SGT. The deterministic local API boundary has focused [W4-01 API evidence](W4-01-api.txt) and [W4-02 authentication and authorization evidence](W4-02-auth.txt). The final ordinary suite recorded 537 passed, 7 skipped and 4 deselected. W4-10 is **NOT RUN — deferred until W4-06**; no `W4-10-load.json` evidence exists. All four W4-001 Column M documents are closed together.
-- [W4-002](W4-002.md) — bounded LangGraph controller, durable local approval, strict budgets and redacted SQLite state. Owner TEST-001 passed after preserved historical failures and bounded remediation: 613 passed, 7 skipped and 4 deselected in the final ordinary suite. Final owner approval remains pending Column N; W4-09 and W4-10 remain **NOT RUN**.
+- [W4-002](W4-002.md) — bounded LangGraph controller, durable local approval, strict budgets and redacted SQLite state. Owner TEST-001 passed after preserved historical failures and bounded remediation: 613 passed, 7 skipped and 4 deselected in the final ordinary suite. At this original summary point, final owner approval was pending Column N and W4-09/W4-10 were **NOT RUN**; W4-002 was subsequently final-approved, and the separately governed W4-09/W4-10 closures are recorded later in this index.
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
 
@@ -471,7 +471,7 @@ The evidence covers the nine-node LangGraph workflow, injected fake-only evidenc
 
 Configuration rollback and automated rollback tests PASS. Cleanliness and zero unexpected runtime residue PASS. Operational deployment, release/deployment/cloud rollback and operational teardown remain NOT RUN. The approved long-lived SQLite path was not created; temporary database and sidecar artifacts reached zero residue. Intended implementation, test and Column M documents remain retained project artifacts.
 
-W4-09 remains owned by `AGENT-001` but its dedicated test, execution and evidence are **NOT RUN**, deferred until W4-08. W4-10 remains owned by `API-001`, remains **NOT RUN**, and has no evidence file. Python 3.11 execution, production identity/provider behavior, performance, capacity, SLOs, deployment readiness and cloud readiness remain unproven.
+At W4-002 closure, W4-09 remained owned by `AGENT-001` and its dedicated test, execution and evidence were **NOT RUN**, deferred until W4-08. W4-10 remained owned by `API-001`, was **NOT RUN**, and had no evidence file. Their later separately approved closures are recorded in the W4-003 section below. Python 3.11 execution, production identity/provider behavior, performance, capacity, SLOs, deployment readiness and cloud readiness remain unproven.
 
 ### Final Owner Approval — W4-002
 
@@ -496,3 +496,111 @@ W4-09 remains owned by `AGENT-001` but its dedicated test, execution and evidenc
 - Tracker update responsibility: Owner
 
 Column N closed this README section together with all ten linked W4-002 documents; no partial closure occurred.
+
+## W4-003 observability and downstream deferred-test closure
+
+This append-only index entry preserves the earlier W4-001 and W4-002 final
+approvals. Their W4-10 and W4-09 NOT RUN statements were correct at their
+respective closure times. The tests were completed later under separate
+bounded approvals after their prerequisites were satisfied.
+
+Canonical evidence and decision records:
+
+1. [W4-003 aggregate implementation and evidence](W4-003.md) — `OBS-001` / W4-003.
+2. [W3-09 telemetry metrics, schema and redaction evidence](W3-09-telemetry.txt) — `OBS-001` / W4-003.
+3. [W4-08 correlated trace evidence](W4-08-trace.json) — `OBS-001` / W4-003.
+4. [ADR-008: OpenTelemetry as observability contract](../adr/ADR-008-otel.md) — W4-003 decision record.
+5. [W4-09 safe agent-failure evidence](W4-09-failures.txt) — `AGENT-001` / W4-002.
+6. [W4-10 deterministic local API load evidence](W4-10-load.json) — `API-001` / W4-001.
+7. [W4-001 aggregate record and later W4-10 addendum](W4-001.md) — `API-001` / W4-001.
+8. [W4-002 aggregate record and later W4-09 addendum](W4-002.md) — `AGENT-001` / W4-002.
+
+W4-003 created a default-off, vendor-neutral and bounded telemetry boundary.
+The owner verified W3-09 with 37 passing tests and W4-08 with 6 passing tests.
+W4-08 uses three honest request traces—query, agent start and agent decision—
+whose set covers the approved stages; no fabricated cross-request trace or
+live AgentEvidenceGateway/RAG adapter was introduced. The W4-003 ordinary
+suite passed with 679 tests, 7 skips, 4 deselections and 10 subtests. After
+the separately approved W4-09 and W4-10 tests were added, the final complete
+suite passed with 690 tests, 7 skips, 4 deselections and 10 subtests. The
+seven skips and four deselections remain NOT RUN.
+
+W4-09 later passed 10 deterministic focused tests under `AGENT-001`. W4-10
+later passed its one deterministic in-process ASGI load-smoke test under
+`API-001`, measuring 600 requests across concurrency levels 1, 4 and 8. The
+load values are informational local evidence, not a production latency,
+capacity or SLO claim.
+
+Historical failures remain preserved: W4-003 initially had 12 Ruff
+diagnostics, 22 MyPy errors across 7 files, a circular import, one stale
+protected consumer and six first-suite cleanliness failures. The downstream
+sequence also had an invalid Ruff YAML scope, one W4-09 flush assertion and
+one W4-10 Windows socket-guard failure. Every item received separately
+approved bounded remediation and a passing rerun. Open FAIL and
+INDETERMINATE results: none. The repeated Starlette/httpx deprecation warning
+and Git LF-to-CRLF notices remain accepted.
+
+All evidence is deterministic, local, fake-backed and synthetic. No
+production data, real credential or real PII was used. No server socket,
+external exporter, collector runtime, Qdrant, OpenSearch, Bedrock/model,
+identity provider, approval service, AWS/cloud or deployment activity
+occurred. Provider/cloud cost was USD 0; local CPU, memory, disk, electricity
+and owner time are real and were not monetized as zero. Collector runtime
+compatibility, production monitoring, live integrations, retention,
+residency, deployment and cloud readiness remain unproven.
+
+Configuration/test rollback and automated cleanliness/zero-residue checks
+passed. Operational release/deployment/cloud rollback was NOT RUN.
+Operational service/container/cloud teardown was NOT RUN because no such
+resource was created. Intended repository source, configuration, automated
+tests and these documents remain retained.
+
+### Final Owner Approval — W4-003/W4-09/W4-10 Closure
+
+- Prompt/task IDs and ownership: `W4-003` (`OBS-001`), `W4-09` (`AGENT-001`), `W4-10` (`API-001`)
+- Reviewer and role: Gyan Prakash Rai, Project Owner and Final Approval Reviewer
+- Owner decision and date/timezone: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**;
+  `2026-08-30 16:20:21 SGT`
+- Final status and code/document review: **APPROVED — COMPLETE W4-003 COLUMN N
+  DOCUMENTATION CLOSURE**. The bounded W4-003 and downstream W4-09/W4-10
+  implementation/test records and all nine manifest documents are approved
+  together without changing feature ownership.
+- Owner-executed test status: Approved as indexed. W4-003 completed at 679
+  passing tests and the later complete suite passed 690 tests, with 7 skipped,
+  4 deselected and 10 subtests. W4-09 passed 10 focused tests and W4-10 passed
+  its one local load-smoke test. Every historical failure and passing bounded
+  remediation remains preserved. Open FAIL results: none.
+- Accepted warnings, risks, gaps and limitations: All items recorded in the
+  approved manifest are accepted; no additional item is silently accepted.
+  This includes Starlette/httpx and CRLF warnings, deterministic local/fake/
+  in-process evidence, bounded telemetry trade-offs and no collector-runtime,
+  production monitoring, performance, capacity, SLO, deployment, residency,
+  retention or cloud-readiness proof.
+- NOT RUN/INDETERMINATE reconciliation: Every recorded NOT RUN activity
+  remains NOT RUN, including the 7 skips, 4 deselections, Python 3.11, live
+  integrations, collector/external export, production load, deployment and
+  operational/cloud lifecycle work. The historical access-denied Gate 1
+  listener inspection remains a non-test INDETERMINATE result; remaining open
+  INDETERMINATE: None.
+- Deployment facts: Local service startup/deployment, production deployment
+  and cloud deployment were NOT RUN; no service, collector, container or cloud
+  resource was created.
+- Rollback facts: Configuration/test and automated rollback passed;
+  operational release/deployment/cloud rollback was NOT RUN.
+- Teardown and residual-resource facts: Automated cleanliness and zero
+  unexpected residue passed; operational/cloud teardown was NOT RUN because
+  no such resource existed. Intended repository source, configuration, tests
+  and all nine documents remain retained; owner environment and Excel remain
+  outside the closure boundary.
+- Deferred actions and owner: Every recorded deferral remains open; responsible
+  owner is Gyan Prakash Rai unless another owner is explicitly recorded.
+- Conditions and handover: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE,
+  warning, risk, limitation, deferral and residual-resource fact; all nine
+  documents close together; only the owner changes Excel/Git; the owner may
+  reconcile W3-09/W4-08/W4-09/W4-10 without changing feature ownership; W6-06
+  and all live, collector, production, deployment or cloud work need separate
+  approval and evidence.
+- Tracker update responsibility: Owner
+
+Column N closed this index entry together with the other eight documents in
+the W4-003 Column M manifest; no partial closure occurred.

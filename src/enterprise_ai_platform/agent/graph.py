@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Awaitable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Protocol, TypedDict, cast
 from uuid import UUID, uuid4
@@ -11,6 +12,17 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.runtime import Runtime
 
 from enterprise_ai_platform.retrieval.models import AuthContext
+from enterprise_ai_platform.telemetry.models import (
+    SafeTelemetryAttributes,
+    TelemetryEventName,
+    TelemetryOperation,
+    TelemetryOutcome,
+    TelemetryStage,
+)
+from enterprise_ai_platform.telemetry.runtime import (
+    NullTelemetryRuntime,
+    TelemetryRuntime,
+)
 
 from .authorization import authorization_reference, require_tool_authorized
 from .contracts import AgentEvidenceGateway, AgentPlanner, AgentStateStore
@@ -54,6 +66,7 @@ class AgentRunContext:
     budgets: AgentBudgets
     clock: DeadlineClock
     approval_ttl_seconds: int
+    telemetry: TelemetryRuntime = field(default_factory=NullTelemetryRuntime)
 
 
 class DrawableGraph(Protocol):
@@ -85,6 +98,84 @@ GRAPH_EDGES = (
     (AgentNode.EXECUTE_TOOL.value, AgentNode.SAFE_TERMINAL.value),
     (AgentNode.SAFE_TERMINAL.value, END),
 )
+
+_GRAPH_OPERATIONS = {
+    AgentNode.VALIDATE_INPUT: TelemetryOperation.VALIDATE_INPUT,
+    AgentNode.AUTHORIZE: TelemetryOperation.AUTHORIZE,
+    AgentNode.RETRIEVE: TelemetryOperation.RETRIEVE,
+    AgentNode.GRADE_EVIDENCE: TelemetryOperation.GRADE_EVIDENCE,
+    AgentNode.ANSWER: TelemetryOperation.ANSWER,
+    AgentNode.PROPOSE_TOOL: TelemetryOperation.PROPOSE_TOOL,
+    AgentNode.AWAIT_HUMAN_APPROVAL: TelemetryOperation.AWAIT_HUMAN_APPROVAL,
+    AgentNode.EXECUTE_TOOL: TelemetryOperation.EXECUTE_TOOL,
+    AgentNode.SAFE_TERMINAL: TelemetryOperation.SAFE_TERMINAL,
+}
+
+class _GraphNodeHandler(Protocol):
+    def __call__(
+        self,
+        state: AgentGraphState,
+        *,
+        runtime: Runtime[AgentRunContext],
+    ) -> Awaitable[dict[str, object]]: ...
+
+
+def _telemetry_outcome(outcome: AgentOutcome | None) -> TelemetryOutcome:
+    if outcome is None:
+        return TelemetryOutcome.SUCCESS
+    return {
+        AgentOutcome.COMPLETED: TelemetryOutcome.SUCCESS,
+        AgentOutcome.APPROVAL_REQUIRED: TelemetryOutcome.SUCCESS,
+        AgentOutcome.DENIED: TelemetryOutcome.DENIED,
+        AgentOutcome.REJECTED: TelemetryOutcome.REJECTED,
+        AgentOutcome.EXPIRED: TelemetryOutcome.REJECTED,
+        AgentOutcome.CANCELLED: TelemetryOutcome.CANCELLED,
+        AgentOutcome.BUDGET_EXCEEDED: TelemetryOutcome.BUDGET_EXCEEDED,
+        AgentOutcome.TIMED_OUT: TelemetryOutcome.TIMEOUT,
+        AgentOutcome.SAFE_TERMINAL: TelemetryOutcome.ABSTAINED,
+    }.get(outcome, TelemetryOutcome.SUCCESS)
+
+
+def _instrumented_node(
+    node: AgentNode,
+    handler: _GraphNodeHandler,
+) -> _GraphNodeHandler:
+    async def observed(
+        state: AgentGraphState,
+        *,
+        runtime: Runtime[AgentRunContext],
+    ) -> dict[str, object]:
+        with runtime.context.telemetry.start_scope(
+            TelemetryStage.GRAPH,
+            _GRAPH_OPERATIONS[node],
+            graph_version="w4-002.graph.v1",
+        ) as scope:
+            updates = await handler(state, runtime=runtime)
+            updated_control = updates.get("control")
+            if isinstance(updated_control, AgentState):
+                outcome = _telemetry_outcome(updated_control.outcome)
+                scope.finish(
+                    outcome,
+                    terminal_reason=(
+                        updated_control.terminal_reason.value
+                        if updated_control.terminal_reason is not None
+                        else None
+                    ),
+                    safe_error_code=updated_control.safe_error_code,
+                )
+                if node is AgentNode.SAFE_TERMINAL:
+                    runtime.context.telemetry.record_agent_steps(
+                        updated_control.step_count,
+                        outcome=outcome,
+                        terminal_reason=(
+                            updated_control.terminal_reason.value
+                            if updated_control.terminal_reason is not None
+                            else None
+                        ),
+                    )
+            return updates
+
+    return observed
 
 
 def _updated(control: AgentState, **updates: object) -> AgentState:
@@ -316,10 +407,27 @@ async def await_human_approval(
         created_at=now,
         expires_at=now + timedelta(seconds=runtime.context.approval_ttl_seconds),
     )
-    runtime.context.store.create_approval(
-        approval,
-        maximum_bytes=runtime.context.budgets.maximum_serialized_state_bytes,
-    )
+    with runtime.context.telemetry.start_scope(
+        TelemetryStage.APPROVAL,
+        TelemetryOperation.PERSIST,
+    ) as approval_scope:
+        runtime.context.store.create_approval(
+            approval,
+            maximum_bytes=runtime.context.budgets.maximum_serialized_state_bytes,
+        )
+        approval_scope.finish(
+            TelemetryOutcome.SUCCESS,
+            terminal_reason=TerminalReason.APPROVAL_REQUIRED.value,
+        )
+        runtime.context.telemetry.emit_event(
+            TelemetryEventName.APPROVAL_DECISION,
+            SafeTelemetryAttributes(
+                stage=TelemetryStage.APPROVAL,
+                operation=TelemetryOperation.PERSIST,
+                outcome=TelemetryOutcome.SUCCESS,
+                terminal_reason=TerminalReason.APPROVAL_REQUIRED.value,
+            ),
+        )
     return {
         "control": _updated(
             control,
@@ -351,7 +459,19 @@ async def execute_tool(
                 safe_error_code="agent_budget_exceeded",
             )
         }
-    result_reference = await runtime.context.registry.execute_read(proposal)
+    with runtime.context.telemetry.start_scope(
+        TelemetryStage.TOOL,
+        TelemetryOperation.EXECUTE_TOOL,
+        tool_name=proposal.name,
+        tool_version=proposal.version,
+    ) as tool_scope:
+        result_reference = await runtime.context.registry.execute_read(proposal)
+        tool_scope.finish(TelemetryOutcome.SUCCESS)
+        runtime.context.telemetry.record_tool_call(
+            tool_name=proposal.name,
+            tool_version=proposal.version,
+            outcome=TelemetryOutcome.SUCCESS,
+        )
     return {
         "control": _updated(
             control,
@@ -400,15 +520,45 @@ def build_agent_graph() -> CompiledAgentGraph:
     """Compile the exact nine-node graph without retry policy or checkpointer."""
 
     graph = StateGraph(AgentGraphState, context_schema=AgentRunContext)
-    graph.add_node(AgentNode.VALIDATE_INPUT.value, validate_input)
-    graph.add_node(AgentNode.AUTHORIZE.value, authorize)
-    graph.add_node(AgentNode.RETRIEVE.value, retrieve)
-    graph.add_node(AgentNode.GRADE_EVIDENCE.value, grade_evidence)
-    graph.add_node(AgentNode.ANSWER.value, answer)
-    graph.add_node(AgentNode.PROPOSE_TOOL.value, propose_tool)
-    graph.add_node(AgentNode.AWAIT_HUMAN_APPROVAL.value, await_human_approval)
-    graph.add_node(AgentNode.EXECUTE_TOOL.value, execute_tool)
-    graph.add_node(AgentNode.SAFE_TERMINAL.value, safe_terminal)
+    graph.add_node(
+        AgentNode.VALIDATE_INPUT.value,
+        _instrumented_node(AgentNode.VALIDATE_INPUT, validate_input),
+    )
+    graph.add_node(
+        AgentNode.AUTHORIZE.value,
+        _instrumented_node(AgentNode.AUTHORIZE, authorize),
+    )
+    graph.add_node(
+        AgentNode.RETRIEVE.value,
+        _instrumented_node(AgentNode.RETRIEVE, retrieve),
+    )
+    graph.add_node(
+        AgentNode.GRADE_EVIDENCE.value,
+        _instrumented_node(AgentNode.GRADE_EVIDENCE, grade_evidence),
+    )
+    graph.add_node(
+        AgentNode.ANSWER.value,
+        _instrumented_node(AgentNode.ANSWER, answer),
+    )
+    graph.add_node(
+        AgentNode.PROPOSE_TOOL.value,
+        _instrumented_node(AgentNode.PROPOSE_TOOL, propose_tool),
+    )
+    graph.add_node(
+        AgentNode.AWAIT_HUMAN_APPROVAL.value,
+        _instrumented_node(
+            AgentNode.AWAIT_HUMAN_APPROVAL,
+            await_human_approval,
+        ),
+    )
+    graph.add_node(
+        AgentNode.EXECUTE_TOOL.value,
+        _instrumented_node(AgentNode.EXECUTE_TOOL, execute_tool),
+    )
+    graph.add_node(
+        AgentNode.SAFE_TERMINAL.value,
+        _instrumented_node(AgentNode.SAFE_TERMINAL, safe_terminal),
+    )
     for source, destination in GRAPH_EDGES:
         graph.add_edge(source, destination)
     return cast(CompiledAgentGraph, graph.compile())

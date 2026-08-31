@@ -2,7 +2,9 @@
 
 ## Status
 
-Records an already approved W4-002 decision. Implementation and local owner testing are complete; final documentation approval remains pending Column N. This ADR does not newly approve deployment, production use, live providers or cloud activity.
+Records an approved W4-002 decision. Implementation, local owner testing and
+W4-002 Column N documentation approval are complete. This ADR does not newly
+approve deployment, production use, live providers or cloud activity.
 
 ## Business context
 
@@ -63,7 +65,7 @@ Owner TEST-001 finished PASS: Ruff PASS; MyPy PASS across 95 files; focused func
 
 Historical failures remain visible: one initial Ruff diagnostic, four MyPy errors across two files, two failed tests across separate focused runs, and two stale-consumer failures in the initial ordinary suite. Separately approved remediations and every required rerun passed. Open INDETERMINATE results: none.
 
-No network, live identity, Qdrant, tokenizer, provider/model, deployment or cloud activity occurred. Provider/cloud cost was USD 0; local workstation and owner costs were not monetized. Python 3.11 execution, production performance, capacity, security/compliance, deployment and cloud readiness remain unproven. W4-09 and W4-10 remain NOT RUN.
+No network, live identity, Qdrant, tokenizer, provider/model, deployment or cloud activity occurred. Provider/cloud cost was USD 0; local workstation and owner costs were not monetized. Python 3.11 execution, production performance, capacity, security/compliance, deployment and cloud readiness remain unproven. At W4-002 closure, W4-09 and W4-10 were NOT RUN; they were later completed under separate approvals and their original `AGENT-001` and `API-001` ownership, as recorded in [W4-09 evidence](../test-evidence/W4-09-failures.txt) and [W4-10 evidence](../test-evidence/W4-10-load.json).
 
 ### Final Owner Approval — W4-002
 

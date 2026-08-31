@@ -1,0 +1,146 @@
+{
+  "document_schema_version": "w4-10.evidence.v1",
+  "evidence_identity": {
+    "tracker_step": "W4-10",
+    "feature_owner": "API-001",
+    "original_prompt_owner": "W4-001",
+    "title": "Deterministic local API load-smoke evidence",
+    "status": "PASS after bounded remediation"
+  },
+  "owner_test": {
+    "command": "& 'E:\\AI\\.venvs\\enterprise_ai_platform\\Scripts\\python.exe' -B -m pytest -q -s .\\tests\\feature\\test_api_load_smoke.py",
+    "result": "1 passed, 1 warning in 1.76s",
+    "warning": "StarletteDeprecationWarning: the installed FastAPI TestClient uses the deprecated httpx integration",
+    "required_not_run_checks_in_this_sequence": 0,
+    "open_fail_results": 0,
+    "open_indeterminate_results": 0
+  },
+  "observed_profile": {
+    "levels": [
+      {
+        "concurrency": 1,
+        "downstream_calls": 200,
+        "duration_sample_count": 200,
+        "maximum_inflight_downstream": 1,
+        "measured_duration_milliseconds": 308.828,
+        "overload_responses": 0,
+        "p50_milliseconds": 1.5465,
+        "p95_milliseconds": 1.9021,
+        "p99_milliseconds": 1.9813,
+        "safe_error_responses": 0,
+        "successful_responses": 200,
+        "total_requests": 200
+      },
+      {
+        "concurrency": 4,
+        "downstream_calls": 200,
+        "duration_sample_count": 200,
+        "maximum_inflight_downstream": 4,
+        "measured_duration_milliseconds": 541.559,
+        "overload_responses": 0,
+        "p50_milliseconds": 5.4603,
+        "p95_milliseconds": 26.6258,
+        "p99_milliseconds": 31.5353,
+        "safe_error_responses": 0,
+        "successful_responses": 200,
+        "total_requests": 200
+      },
+      {
+        "concurrency": 8,
+        "downstream_calls": 100,
+        "duration_sample_count": 200,
+        "maximum_inflight_downstream": 4,
+        "measured_duration_milliseconds": 290.365,
+        "overload_responses": 100,
+        "p50_milliseconds": 6.8823,
+        "p95_milliseconds": 25.0595,
+        "p99_milliseconds": 27.577,
+        "safe_error_responses": 100,
+        "successful_responses": 100,
+        "total_requests": 200
+      }
+    ],
+    "measured_requests_per_level": 200,
+    "profile_duration_milliseconds": 1299.106,
+    "profile_maximum_seconds": 30,
+    "schema_version": "w4-10.api-load-smoke.v1",
+    "scope": "local_in_process_asgi_informational",
+    "total_measured_requests": 600,
+    "warmup_requests_per_level": 20
+  },
+  "percentile_calculation": "nearest_rank",
+  "verified_assertions": {
+    "asgi_transport": "httpx.ASGITransport in-process only",
+    "atomic_capacity_limit": 4,
+    "queue_capacity": 0,
+    "request_ids": "Every response used a unique server-generated UUIDv4 and body/header values matched",
+    "redaction": "PASS; the emitted aggregate contained no protected-content sentinel",
+    "report_write": "Atomic temporary JSON creation used no-overwrite semantics and the report was removed",
+    "cleanup": "No unexpected task, thread, process, limiter, socket, file or report residue remained",
+    "network_socket_creation": "prohibited during the complete in-process profile"
+  },
+  "historical_failure_and_remediation": {
+    "first_result": "FAIL: 1 failed and 1 warning before load-profile acceptance assertions completed",
+    "failed_test": "tests/feature/test_api_load_smoke.py::test_w4_10_profile_is_bounded_redacted_atomic_and_residue_free",
+    "cause": "A function-valued socket.socket test guard broke the Windows Proactor event loop isinstance check during the first warm-up wave",
+    "approved_change": "A type-compatible non-instantiable guard preserved the complete no-new-socket contract while allowing type inspection of the event loop's already-created internal sockets",
+    "rerun": "PASS: scoped Ruff passed, strict cache-disabled MyPy passed across 98 source files, and the complete load smoke passed 1 test with 1 accepted warning",
+    "production_code_changed": false
+  },
+  "classification": {
+    "pass": [
+      "final deterministic local in-process ASGI profile",
+      "bounded concurrency and immediate overload behavior",
+      "nearest-rank percentile reporting",
+      "request-ID, redaction, atomic-output and cleanup assertions"
+    ],
+    "historical_fail": [
+      "Windows Proactor socket-guard failure, later remediated and passed"
+    ],
+    "not_run": [
+      "production load or capacity test",
+      "network or deployed service test",
+      "provider/model/vector-store integration",
+      "cloud deployment and operational lifecycle"
+    ],
+    "indeterminate": []
+  },
+  "security_privacy_cost_and_lifecycle": {
+    "data": "Deterministic local fakes and synthetic data only; no production data, real credential or real PII",
+    "network_provider_collector_cloud": "No server socket, external exporter, collector runtime, Qdrant, OpenSearch, Bedrock/model, identity provider, approval service, AWS/cloud or deployment activity",
+    "provider_cloud_cost_usd": 0,
+    "local_cost": "Local CPU, memory, disk, electricity and owner time are real and were not monetized as zero",
+    "deployment": "NOT RUN",
+    "configuration_and_automated_rollback": "PASS in the separately owner-executed combined rollback scope",
+    "operational_deployment_rollback": "NOT RUN",
+    "automated_cleanliness_and_zero_residue": "PASS",
+    "operational_or_cloud_teardown": "NOT RUN because no such resource was created",
+    "retained_resources": "Approved repository source, automated tests and Column M documents only"
+  },
+  "limitations": {
+    "informational_local_evidence_only": true,
+    "production_latency_claim": false,
+    "production_capacity_claim": false,
+    "production_slo_claim": false,
+    "collector_runtime_compatibility_proven": false,
+    "deployment_or_cloud_readiness_proven": false,
+    "ordinary_suite_skips_remain_not_run": 7,
+    "ordinary_suite_deselections_remain_not_run": 4
+  },
+  "final_owner_approval": {
+    "prompt_task_id": "W4-003 Column N / W4-10, retained by API-001 / W4-001",
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner and Final Approval Reviewer",
+    "decision": "FINAL APPROVAL AFTER OWNER TEST — APPROVED",
+    "timestamp_timezone": "2026-08-30 16:20:21 SGT",
+    "final_status": "APPROVED — W4-10 DOCUMENTATION CLOSED UNDER W4-003 COLUMN N",
+    "code_review_status": "Approved within the separately bounded W4-09/W4-10 test boundary; no production API, RAG, telemetry or capacity-limiter change was made for the Windows guard remediation",
+    "documentation_review_status": "Approved as one of all nine W4-003 Column M documents closed together",
+    "owner_executed_test_status": "PASS as recorded: one deterministic local in-process ASGI load-smoke test with one accepted warning in 1.76s; exact 600-request aggregate retained; historical first socket-guard FAIL and passing bounded remediation preserved; open FAIL none",
+    "accepted_warnings_risks_gaps_and_limitations": "All manifest items accepted with no additional silent acceptance, including Starlette/httpx and CRLF warnings, local informational timings and no production latency, capacity, SLO, deployed-service or cloud-readiness claim",
+    "not_run_and_indeterminate_reconciliation": "All recorded NOT RUN work remains NOT RUN, including 7 skips, 4 deselections, Python 3.11, live integrations, production load, network/deployment and operational/cloud lifecycle work. The historical access-denied Gate 1 listener inspection remains a non-test INDETERMINATE result. Remaining open INDETERMINATE: none",
+    "deployment_rollback_teardown_and_residual_resources": "Local service, production and cloud deployment NOT RUN; configuration/test and automated rollback PASS; operational deployment/cloud rollback NOT RUN; automated cleanliness and zero residue PASS; operational/cloud teardown NOT RUN because no such resource was created; temporary report removed and intended repository tests/documents retained",
+    "deferred_actions_owner_conditions_and_handover": "All recorded deferrals remain open under Gyan Prakash Rai unless another owner is explicitly recorded; preserve every classification and limitation; close all nine documents together; only owner changes Excel/Git; retain API-001 ownership when reconciling W4-10; production work requires separate approval",
+    "tracker_update_responsibility": "Owner"
+  }
+}

@@ -291,6 +291,7 @@ EXPECTED_API_IMPLEMENTATION_PATHS = (
     "tests/unit/test_platformctl.py",
     "tests/feature/test_feature_matrix.py",
     "tests/security/test_configuration_security.py",
+    "tests/feature/test_api_load_smoke.py",
 )
 EXPECTED_API_LINKED_TRACKER_STEPS = ("W4-01", "W4-02", "W4-10")
 EXPECTED_API_FEATURE = {
@@ -340,6 +341,7 @@ EXPECTED_AGENT_IMPLEMENTATION_PATHS = (
     "tests/unit/test_platformctl.py",
     "tests/feature/test_feature_matrix.py",
     "tests/security/test_configuration_security.py",
+    "tests/feature/test_agent_failures.py",
 )
 EXPECTED_AGENT_LINKED_TRACKER_STEPS = (
     "W4-03",
@@ -355,12 +357,53 @@ EXPECTED_AGENT_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_AGENT_LINKED_TRACKER_STEPS),
 }
+EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS = (
+    "configs/observability/otel-collector.local.yaml",
+    "src/enterprise_ai_platform/telemetry/__init__.py",
+    "src/enterprise_ai_platform/telemetry/models.py",
+    "src/enterprise_ai_platform/telemetry/runtime.py",
+    "tests/fakes/telemetry.py",
+    "tests/unit/test_telemetry.py",
+    "tests/contract/test_telemetry_schema.py",
+    "tests/integration/test_telemetry_composition.py",
+    "tests/feature/test_trace_correlation.py",
+    "tests/security/test_telemetry_redaction.py",
+    "tests/rollback/test_w4_003_telemetry_rollback.py",
+    "tests/teardown/test_w4_003_telemetry_cleanliness.py",
+    ".env.example",
+    "feature-matrix.yaml",
+    "requirements.txt",
+    "src/enterprise_ai_platform/config.py",
+    "src/enterprise_ai_platform/app.py",
+    "src/enterprise_ai_platform/api/runtime.py",
+    "src/enterprise_ai_platform/api/routes.py",
+    "src/enterprise_ai_platform/rag/service.py",
+    "src/enterprise_ai_platform/retrieval/service.py",
+    "src/enterprise_ai_platform/agent/graph.py",
+    "src/enterprise_ai_platform/agent/controller.py",
+    "tools/platformctl/validate.py",
+    "tests/conftest.py",
+    "tests/unit/test_config.py",
+    "tests/security/test_configuration_security.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+    "tests/integration/test_dependency_contract.py",
+)
+EXPECTED_OBSERVABILITY_FEATURE = {
+    "id": "OBS-001",
+    "implementation_paths": list(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W3-09", "W4-08"],
+}
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
     EXPECTED_EVAL_FEATURE,
     EXPECTED_API_FEATURE,
     EXPECTED_AGENT_FEATURE,
+    EXPECTED_OBSERVABILITY_FEATURE,
 )
 
 REQUIRED_DIRECTORIES = (
@@ -368,6 +411,7 @@ REQUIRED_DIRECTORIES = (
     "configs/eval",
     "configs/rag",
     "configs/rag/versions",
+    "configs/observability",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -378,6 +422,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/llm",
     "src/enterprise_ai_platform/api",
     "src/enterprise_ai_platform/agent",
+    "src/enterprise_ai_platform/telemetry",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
     "src/enterprise_ai_platform/retrieval",
@@ -466,6 +511,7 @@ REQUIRED_FILES = (
     *EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     *EXPECTED_API_IMPLEMENTATION_PATHS,
     *EXPECTED_AGENT_IMPLEMENTATION_PATHS,
+    *EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -520,7 +566,7 @@ def validate_feature_matrix(data: object) -> list[str]:
     elif features != list(EXPECTED_FEATURES):
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
-            "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001"
+            "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001"
         )
 
     return errors

@@ -263,7 +263,8 @@
         "tests/unit/test_config.py",
         "tests/unit/test_platformctl.py",
         "tests/feature/test_feature_matrix.py",
-        "tests/security/test_configuration_security.py"
+        "tests/security/test_configuration_security.py",
+        "tests/feature/test_api_load_smoke.py"
       ],
       "status": "In Progress",
       "linked_tracker_steps": [
@@ -314,7 +315,8 @@
         "tests/unit/test_config.py",
         "tests/unit/test_platformctl.py",
         "tests/feature/test_feature_matrix.py",
-        "tests/security/test_configuration_security.py"
+        "tests/security/test_configuration_security.py",
+        "tests/feature/test_agent_failures.py"
       ],
       "status": "In Progress",
       "linked_tracker_steps": [
@@ -324,6 +326,48 @@
         "W4-06",
         "W4-07",
         "W4-09"
+      ]
+    },
+    {
+      "id": "OBS-001",
+      "implementation_paths": [
+        "configs/observability/otel-collector.local.yaml",
+        "src/enterprise_ai_platform/telemetry/__init__.py",
+        "src/enterprise_ai_platform/telemetry/models.py",
+        "src/enterprise_ai_platform/telemetry/runtime.py",
+        "tests/fakes/telemetry.py",
+        "tests/unit/test_telemetry.py",
+        "tests/contract/test_telemetry_schema.py",
+        "tests/integration/test_telemetry_composition.py",
+        "tests/feature/test_trace_correlation.py",
+        "tests/security/test_telemetry_redaction.py",
+        "tests/rollback/test_w4_003_telemetry_rollback.py",
+        "tests/teardown/test_w4_003_telemetry_cleanliness.py",
+        ".env.example",
+        "feature-matrix.yaml",
+        "requirements.txt",
+        "src/enterprise_ai_platform/config.py",
+        "src/enterprise_ai_platform/app.py",
+        "src/enterprise_ai_platform/api/runtime.py",
+        "src/enterprise_ai_platform/api/routes.py",
+        "src/enterprise_ai_platform/rag/service.py",
+        "src/enterprise_ai_platform/retrieval/service.py",
+        "src/enterprise_ai_platform/agent/graph.py",
+        "src/enterprise_ai_platform/agent/controller.py",
+        "tools/platformctl/validate.py",
+        "tests/conftest.py",
+        "tests/unit/test_config.py",
+        "tests/security/test_configuration_security.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/feature/test_w2_002_embedder_contract.py",
+        "tests/feature/test_w2_003_ingestion_contract.py",
+        "tests/integration/test_dependency_contract.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W3-09",
+        "W4-08"
       ]
     }
   ]

@@ -30,6 +30,17 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.api_readiness_timeout_seconds == 1.0
     assert settings.api_max_inflight_queries == 4
     assert settings.api_query_queue_capacity == 0
+    assert settings.telemetry_enabled is False
+    assert settings.telemetry_service_name == "enterprise-ai-api"
+    assert settings.telemetry_exporter == "none"
+    assert settings.telemetry_otlp_endpoint is None
+    assert settings.telemetry_span_capacity == 512
+    assert settings.telemetry_log_capacity == 512
+    assert settings.telemetry_queue_capacity == 0
+    assert settings.telemetry_retry_count == 0
+    assert settings.telemetry_background_workers == 0
+    assert settings.telemetry_flush_timeout_seconds == 1.0
+    assert settings.telemetry_shutdown_timeout_seconds == 1.0
     assert settings.agent_enabled is False
     assert settings.agent_mock_write_enabled is False
     assert settings.agent_state_schema_version == "w4-002.agent-state.v1"
@@ -170,6 +181,13 @@ def test_timeout_must_remain_bounded(
         ("api_max_inflight_queries", 0),
         ("api_max_inflight_queries", 5),
         ("api_query_queue_capacity", 1),
+        ("telemetry_span_capacity", 511),
+        ("telemetry_log_capacity", 513),
+        ("telemetry_queue_capacity", 1),
+        ("telemetry_retry_count", 1),
+        ("telemetry_background_workers", 1),
+        ("telemetry_flush_timeout_seconds", 1.01),
+        ("telemetry_shutdown_timeout_seconds", 0.99),
         ("agent_approval_ttl_seconds", 601),
         ("agent_terminal_retention_seconds", 86_401),
         ("agent_maximum_graph_steps", 9),
@@ -204,6 +222,7 @@ def test_agent_store_path_cannot_move_into_repository(
     with pytest.raises(ValidationError, match="approved runtime path"):
         Settings(_env_file=None, **values)
 
+
 def test_enabled_agent_deadline_must_remain_inside_api_deadline(
     valid_settings_values: dict[str, object],
 ) -> None:
@@ -215,4 +234,36 @@ def test_enabled_agent_deadline_must_remain_inside_api_deadline(
     )
 
     with pytest.raises(ValidationError, match="agent deadline"):
+        Settings(_env_file=None, **values)
+
+
+def test_telemetry_requires_enabled_api_boundary(
+    valid_settings_values: dict[str, object],
+) -> None:
+    values = dict(valid_settings_values)
+    values["telemetry_enabled"] = True
+
+    with pytest.raises(ValidationError, match="W4 API boundary"):
+        Settings(_env_file=None, **values)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("telemetry_service_name", ""),
+        ("telemetry_service_name", "INVALID SERVICE"),
+        ("telemetry_service_name", "a" * 65),
+        ("telemetry_exporter", "otlp"),
+        ("telemetry_otlp_endpoint", "http://127.0.0.1:4317"),
+    ],
+)
+def test_telemetry_rejects_unsafe_or_unapproved_configuration(
+    field: str,
+    value: object,
+    valid_settings_values: dict[str, object],
+) -> None:
+    values = dict(valid_settings_values)
+    values[field] = value
+
+    with pytest.raises(ValidationError):
         Settings(_env_file=None, **values)

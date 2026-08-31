@@ -32,6 +32,14 @@ from enterprise_ai_platform.rag.errors import RAGError, RAGOutputValidationError
 from enterprise_ai_platform.rag.models import AbstentionResult, CitedAnswerResult
 from enterprise_ai_platform.retrieval.errors import VectorStoreError
 from enterprise_ai_platform.retrieval.models import AuthContext, utc_now
+from enterprise_ai_platform.telemetry.models import (
+    SafeTelemetryAttributes,
+    TelemetryEventName,
+    TelemetryOperation,
+    TelemetryOutcome,
+    TelemetryStage,
+)
+from enterprise_ai_platform.telemetry.runtime import TelemetryRuntime
 
 from .dependencies import (
     Authenticator,
@@ -75,6 +83,10 @@ from .runtime import (
 )
 
 router = APIRouter()
+
+
+def _telemetry_for(request: Request) -> TelemetryRuntime:
+    return cast(TelemetryRuntime, request.app.state.telemetry_runtime)
 
 
 def _error_response(request: Request, error: APIError) -> JSONResponse:
@@ -166,27 +178,72 @@ async def _trusted_auth_context(
     request: Request,
     authenticator: Authenticator,
 ) -> AuthContext:
-    try:
-        raw_context = await authenticator.authenticate(request)
-    except APIError:
-        raise
-    except asyncio.CancelledError:
-        raise
-    except Exception:
-        raise AuthenticationInvalidError from None
+    telemetry = _telemetry_for(request)
+    with telemetry.start_scope(
+        TelemetryStage.AUTHENTICATION,
+        TelemetryOperation.AUTHENTICATE,
+    ) as telemetry_scope:
+        try:
+            raw_context: object = await authenticator.authenticate(request)
+        except APIError as error:
+            outcome = (
+                TelemetryOutcome.DENIED
+                if error.status_code in {401, 403}
+                else TelemetryOutcome.ERROR
+            )
+            telemetry_scope.finish(outcome, safe_error_code=error.code)
+            telemetry.emit_event(
+                TelemetryEventName.SECURITY_DECISION,
+                SafeTelemetryAttributes(
+                    stage=TelemetryStage.AUTHENTICATION,
+                    operation=TelemetryOperation.AUTHENTICATE,
+                    outcome=outcome,
+                    safe_error_code=error.code,
+                ),
+            )
+            raise
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            telemetry_scope.finish(
+                TelemetryOutcome.DENIED,
+                safe_error_code="authentication_invalid",
+            )
+            raise AuthenticationInvalidError from None
 
-    if not isinstance(raw_context, AuthContext):
-        raise AuthenticationInvalidError
-    try:
-        trusted = AuthContext.model_validate(
-            raw_context.model_dump(mode="python"),
-            strict=True,
+        if not isinstance(raw_context, AuthContext):
+            telemetry_scope.finish(
+                TelemetryOutcome.DENIED,
+                safe_error_code="authentication_invalid",
+            )
+            raise AuthenticationInvalidError
+        try:
+            trusted = AuthContext.model_validate(
+                raw_context.model_dump(mode="python"),
+                strict=True,
+            )
+        except ValidationError:
+            telemetry_scope.finish(
+                TelemetryOutcome.DENIED,
+                safe_error_code="authentication_invalid",
+            )
+            raise AuthenticationInvalidError from None
+        if not trusted.is_active(utc_now()):
+            telemetry_scope.finish(
+                TelemetryOutcome.DENIED,
+                safe_error_code="authentication_invalid",
+            )
+            raise AuthenticationInvalidError
+        telemetry_scope.finish(TelemetryOutcome.SUCCESS)
+        telemetry.emit_event(
+            TelemetryEventName.SECURITY_DECISION,
+            SafeTelemetryAttributes(
+                stage=TelemetryStage.AUTHENTICATION,
+                operation=TelemetryOperation.AUTHENTICATE,
+                outcome=TelemetryOutcome.SUCCESS,
+            ),
         )
-    except ValidationError:
-        raise AuthenticationInvalidError from None
-    if not trusted.is_active(utc_now()):
-        raise AuthenticationInvalidError
-    return trusted
+        return trusted
 
 
 def _normalized_result(
@@ -298,22 +355,54 @@ async def agent(request: Request, response: Response) -> Response | AgentRespons
     authenticator = get_authenticator(request)
     auth_context = await _trusted_auth_context(request, authenticator)
     command: StartAgentCommand | DecideAgentCommand
-    if isinstance(transport, StartAgentRequest):
-        require_start_authorized(auth_context)
-        command = StartAgentCommand(action="start", query=transport.query)
-    elif isinstance(transport, DecideAgentRequest):
-        require_decision_authorized(auth_context)
-        command = DecideAgentCommand(
-            action="decide",
-            approval_id=transport.approval_id,
-            idempotency_key=transport.idempotency_key,
-            decision=transport.decision,
-            tool_name=transport.tool_name,
-            tool_version=transport.tool_version,
-            arguments=transport.arguments,
+    telemetry = _telemetry_for(request)
+    with telemetry.start_scope(
+        TelemetryStage.AUTHORIZATION,
+        TelemetryOperation.AUTHORIZE,
+    ) as authorization_scope:
+        try:
+            if isinstance(transport, StartAgentRequest):
+                require_start_authorized(auth_context)
+                command = StartAgentCommand(action="start", query=transport.query)
+            elif isinstance(transport, DecideAgentRequest):
+                require_decision_authorized(auth_context)
+                command = DecideAgentCommand(
+                    action="decide",
+                    approval_id=transport.approval_id,
+                    idempotency_key=transport.idempotency_key,
+                    decision=transport.decision,
+                    tool_name=transport.tool_name,
+                    tool_version=transport.tool_version,
+                    arguments=transport.arguments,
+                )
+            else:
+                raise api_error(422, "api_request_invalid")
+        except Exception:
+            authorization_scope.finish(
+                TelemetryOutcome.DENIED,
+                terminal_reason="authorization_denied",
+                safe_error_code="authorization_denied",
+            )
+            telemetry.emit_event(
+                TelemetryEventName.SECURITY_DECISION,
+                SafeTelemetryAttributes(
+                    stage=TelemetryStage.AUTHORIZATION,
+                    operation=TelemetryOperation.AUTHORIZE,
+                    outcome=TelemetryOutcome.DENIED,
+                    terminal_reason="authorization_denied",
+                    safe_error_code="authorization_denied",
+                ),
+            )
+            raise
+        authorization_scope.finish(TelemetryOutcome.SUCCESS)
+        telemetry.emit_event(
+            TelemetryEventName.SECURITY_DECISION,
+            SafeTelemetryAttributes(
+                stage=TelemetryStage.AUTHORIZATION,
+                operation=TelemetryOperation.AUTHORIZE,
+                outcome=TelemetryOutcome.SUCCESS,
+            ),
         )
-    else:
-        raise api_error(422, "api_request_invalid")
     outer_limiter = cast(QueryCapacityLimiter, request.app.state.api_query_limiter)
     if not outer_limiter.try_acquire():
         raise api_error(

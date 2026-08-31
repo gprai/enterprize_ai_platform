@@ -26,6 +26,7 @@ from tools.platformctl.validate import (
     EXPECTED_API_LINKED_TRACKER_STEPS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
+    EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
@@ -68,7 +69,14 @@ class PlatformCtlUnitTests(unittest.TestCase):
     def test_approved_matrix_has_no_errors(self) -> None:
         self.assertIs(EXPECTED_FEATURE, EXPECTED_FEATURES[0])
         self.assertEqual(
-            ["MVP-001", "RAG-001", "EVAL-001", "API-001", "AGENT-001"],
+            [
+                "MVP-001",
+                "RAG-001",
+                "EVAL-001",
+                "API-001",
+                "AGENT-001",
+                "OBS-001",
+            ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
         self.assertEqual([], validate_feature_matrix(approved_matrix()))
@@ -270,8 +278,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
             self.assertIn(path, REQUIRED_FILES)
 
     def test_w4_001_api_contract_is_exactly_appended(self) -> None:
-        self.assertEqual(23, len(EXPECTED_API_IMPLEMENTATION_PATHS))
-        self.assertEqual(23, len(set(EXPECTED_API_IMPLEMENTATION_PATHS)))
+        self.assertEqual(24, len(EXPECTED_API_IMPLEMENTATION_PATHS))
+        self.assertEqual(24, len(set(EXPECTED_API_IMPLEMENTATION_PATHS)))
         self.assertEqual(
             (
                 "src/enterprise_ai_platform/api/__init__.py",
@@ -287,8 +295,12 @@ class PlatformCtlUnitTests(unittest.TestCase):
             ("W4-01", "W4-02", "W4-10"),
             EXPECTED_API_LINKED_TRACKER_STEPS,
         )
-        self.assertNotIn(
+        self.assertIn(
             "tests/feature/test_api_load_smoke.py",
+            EXPECTED_API_IMPLEMENTATION_PATHS,
+        )
+        self.assertNotIn(
+            "tests/feature/test_agent_failures.py",
             EXPECTED_API_IMPLEMENTATION_PATHS,
         )
         self.assertIn("src/enterprise_ai_platform/api", REQUIRED_DIRECTORIES)
@@ -296,8 +308,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
             self.assertIn(path, REQUIRED_FILES)
 
     def test_w4_002_agent_contract_is_exactly_appended(self) -> None:
-        self.assertEqual(40, len(EXPECTED_AGENT_IMPLEMENTATION_PATHS))
-        self.assertEqual(40, len(set(EXPECTED_AGENT_IMPLEMENTATION_PATHS)))
+        self.assertEqual(41, len(EXPECTED_AGENT_IMPLEMENTATION_PATHS))
+        self.assertEqual(41, len(set(EXPECTED_AGENT_IMPLEMENTATION_PATHS)))
         self.assertEqual(
             (
                 "src/enterprise_ai_platform/agent/__init__.py",
@@ -310,7 +322,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
             ("W4-03", "W4-04", "W4-05", "W4-06", "W4-07", "W4-09"),
             EXPECTED_AGENT_LINKED_TRACKER_STEPS,
         )
-        self.assertNotIn(
+        self.assertIn(
             "tests/feature/test_agent_failures.py",
             EXPECTED_AGENT_IMPLEMENTATION_PATHS,
         )
@@ -320,4 +332,31 @@ class PlatformCtlUnitTests(unittest.TestCase):
         )
         self.assertIn("src/enterprise_ai_platform/agent", REQUIRED_DIRECTORIES)
         for path in EXPECTED_AGENT_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w4_003_observability_contract_is_exactly_appended(self) -> None:
+        self.assertEqual(32, len(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS))
+        self.assertEqual(
+            32,
+            len(set(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS)),
+        )
+        self.assertEqual(
+            (
+                "configs/observability/otel-collector.local.yaml",
+                "src/enterprise_ai_platform/telemetry/__init__.py",
+                "src/enterprise_ai_platform/telemetry/models.py",
+                "src/enterprise_ai_platform/telemetry/runtime.py",
+            ),
+            EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS[:4],
+        )
+        self.assertEqual(
+            ["W3-09", "W4-08"],
+            EXPECTED_FEATURES[-1]["linked_tracker_steps"],
+        )
+        self.assertIn("configs/observability", REQUIRED_DIRECTORIES)
+        self.assertIn(
+            "src/enterprise_ai_platform/telemetry",
+            REQUIRED_DIRECTORIES,
+        )
+        for path in EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)

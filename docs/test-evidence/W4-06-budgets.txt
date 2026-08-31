@@ -33,7 +33,7 @@ SECURITY, COST AND LIMITATIONS
 The paid-provider and paid-evaluation ceiling is USD 0; provider/cloud cost was USD 0. Local CPU, memory, disk, owner time and workstation cost were not monetized. Fake/local timing and concurrency evidence does not establish production latency, throughput, capacity, SLOs or provider behavior. No network, provider/model, cloud or deployment activity occurred. Python 3.11 execution remains NOT RUN.
 
 LIFECYCLE CLASSIFICATION
-Configuration rollback passed. Operational release/deployment rollback remains NOT RUN. Cleanliness and zero residue passed; operational deployment and teardown remain NOT RUN. Intended files remain retained. W4-09 and W4-10 remain NOT RUN.
+Configuration rollback passed. Operational release/deployment rollback remains NOT RUN. Cleanliness and zero residue passed; operational deployment and teardown remain NOT RUN. Intended files remain retained. W4-09 and W4-10 were NOT RUN at W4-002 closure; their later separately approved closures are recorded in W4-09-failures.txt and W4-10-load.json.
 
 FINAL OWNER APPROVAL — W4-002
 - Prompt/task ID: W4-002

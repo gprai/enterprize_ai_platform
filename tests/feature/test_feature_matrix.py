@@ -14,6 +14,7 @@ from tools.platformctl.validate import (
     EXPECTED_API_LINKED_TRACKER_STEPS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
+    EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
@@ -70,6 +71,12 @@ EXPECTED_AGENT_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_AGENT_LINKED_TRACKER_STEPS),
 }
+EXPECTED_OBSERVABILITY_FEATURE = {
+    "id": "OBS-001",
+    "implementation_paths": list(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W3-09", "W4-08"],
+}
 
 
 def read_matrix() -> dict[str, object]:
@@ -89,6 +96,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_EVAL_FEATURE,
                 EXPECTED_API_FEATURE,
                 EXPECTED_AGENT_FEATURE,
+                EXPECTED_OBSERVABILITY_FEATURE,
             ],
             matrix["features"],
         )
@@ -97,7 +105,14 @@ class FeatureMatrixTests(unittest.TestCase):
         matrix = read_matrix()
         features = matrix["features"]
         self.assertEqual(
-            ["MVP-001", "RAG-001", "EVAL-001", "API-001", "AGENT-001"],
+            [
+                "MVP-001",
+                "RAG-001",
+                "EVAL-001",
+                "API-001",
+                "AGENT-001",
+                "OBS-001",
+            ],
             [feature["id"] for feature in features],
         )
         self.assertEqual(
@@ -120,6 +135,7 @@ class FeatureMatrixTests(unittest.TestCase):
             list(EXPECTED_AGENT_LINKED_TRACKER_STEPS),
             features[4]["linked_tracker_steps"],
         )
+        self.assertEqual(["W3-09", "W4-08"], features[5]["linked_tracker_steps"])
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -136,10 +152,24 @@ class FeatureMatrixTests(unittest.TestCase):
     def test_cumulative_rag_contract_is_owned_only_by_rag_001(self) -> None:
         matrix = read_matrix()
         features = matrix["features"]
-        mvp_feature, rag_feature, eval_feature, api_feature, agent_feature = features
+        (
+            mvp_feature,
+            rag_feature,
+            eval_feature,
+            api_feature,
+            agent_feature,
+            observability_feature,
+        ) = features
 
         self.assertEqual(
-            ["MVP-001", "RAG-001", "EVAL-001", "API-001", "AGENT-001"],
+            [
+                "MVP-001",
+                "RAG-001",
+                "EVAL-001",
+                "API-001",
+                "AGENT-001",
+                "OBS-001",
+            ],
             [item["id"] for item in features],
         )
         for step in ("W2-05", "W2-06", "W2-07", "W2-09", "W2-10"):
@@ -182,6 +212,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertNotIn("W3-06", rag_feature["linked_tracker_steps"])
         self.assertEqual("EVAL-001", eval_feature["id"])
         self.assertEqual("API-001", api_feature["id"])
+        self.assertEqual("OBS-001", observability_feature["id"])
 
     def test_eval_001_owns_the_exact_w3_002_manifest(self) -> None:
         matrix = read_matrix()
@@ -270,8 +301,13 @@ class FeatureMatrixTests(unittest.TestCase):
             len(api_feature["implementation_paths"]),
             len(set(api_feature["implementation_paths"])),
         )
-        self.assertNotIn(
+        self.assertEqual(24, len(api_feature["implementation_paths"]))
+        self.assertIn(
             "tests/feature/test_api_load_smoke.py",
+            api_feature["implementation_paths"],
+        )
+        self.assertNotIn(
+            "tests/feature/test_agent_failures.py",
             api_feature["implementation_paths"],
         )
 
@@ -283,11 +319,33 @@ class FeatureMatrixTests(unittest.TestCase):
             ["W4-03", "W4-04", "W4-05", "W4-06", "W4-07", "W4-09"],
             agent_feature["linked_tracker_steps"],
         )
-        self.assertEqual(40, len(agent_feature["implementation_paths"]))
-        self.assertEqual(40, len(set(agent_feature["implementation_paths"])))
-        self.assertNotIn(
+        self.assertEqual(41, len(agent_feature["implementation_paths"]))
+        self.assertEqual(41, len(set(agent_feature["implementation_paths"])))
+        self.assertIn(
             "tests/feature/test_agent_failures.py",
             agent_feature["implementation_paths"],
+        )
+        self.assertNotIn(
+            "tests/feature/test_api_load_smoke.py",
+            agent_feature["implementation_paths"],
+        )
+
+    def test_obs_001_owns_only_w3_09_and_w4_08(self) -> None:
+        observability_feature = read_matrix()["features"][5]
+
+        self.assertEqual(EXPECTED_OBSERVABILITY_FEATURE, observability_feature)
+        self.assertEqual(32, len(observability_feature["implementation_paths"]))
+        self.assertEqual(
+            32,
+            len(set(observability_feature["implementation_paths"])),
+        )
+        self.assertNotIn(
+            "tests/feature/test_agent_failures.py",
+            observability_feature["implementation_paths"],
+        )
+        self.assertNotIn(
+            "tests/feature/test_api_load_smoke.py",
+            observability_feature["implementation_paths"],
         )
 
     def test_trailing_content_is_rejected_as_malformed_json(self) -> None:

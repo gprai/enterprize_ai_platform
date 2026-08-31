@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import pytest
 
 from enterprise_ai_platform.config import Settings
+from enterprise_ai_platform.telemetry.runtime import (
+    InMemoryTelemetryComposition,
+    build_in_memory_telemetry,
+)
+from tests.fakes.telemetry import DeterministicClock
 
 TESTS_ROOT = Path(__file__).resolve().parent
 CATEGORY_MARKERS = frozenset(
@@ -70,3 +76,27 @@ def agent_settings(valid_settings_values: dict[str, object]) -> Settings:
         agent_enabled=True,
         **valid_settings_values,
     )
+
+
+@pytest.fixture
+def telemetry_factory(
+    valid_settings: Settings,
+) -> Iterator[Callable[[], InMemoryTelemetryComposition]]:
+    """Build explicit deterministic providers and close every created runtime."""
+
+    compositions: list[InMemoryTelemetryComposition] = []
+
+    def build() -> InMemoryTelemetryComposition:
+        clock = DeterministicClock()
+        composition = build_in_memory_telemetry(
+            settings=valid_settings,
+            monotonic=clock.monotonic,
+            unix_time_ns=clock.unix_time_ns,
+        )
+        compositions.append(composition)
+        return composition
+
+    yield build
+
+    for composition in compositions:
+        composition.runtime.shutdown()
