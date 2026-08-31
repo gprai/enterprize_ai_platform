@@ -33,7 +33,7 @@
     "dataset_raw_sha256": "809aac88f84dd44aeb96c676f3bad229164a0767c6fc9d0ebeeb01b6823c06c2",
     "dataset_canonical_sha256": "e3ff344d9904ea0e9cff722441bbe8237105e6131e1f57d0ca42d35ddad410f9",
     "fixture_source_path": "src/enterprise_ai_platform/evaluation/fixtures.py",
-    "fixture_source_sha256": "70238839fb62588efc28f8291aaa69c343ad6ec97aa51bf8e6f9cbc695402d95",
+    "fixture_source_sha256": "c1a3285fad8235f3624c21da60b3f16233bf2f7203bbfc382b39599830608932",
     "ordinary_corpus_manifest": null
   },
   "evaluation": {
