@@ -61,6 +61,7 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W3-004](W3-004.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 17:31:21 SGT. Final local evidence records 465 passing ordinary tests, the exact controlled Q1/Q2 regression, atomic restoration to the known-good identity, restored absolute and baseline-comparison PASS, verified external archival and repository-local zero residue. All four W3-ROLLBACK-001 Column M documents are closed together.
 - [W4-001](W4-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-28 at 23:56:21 SGT. The deterministic local API boundary has focused [W4-01 API evidence](W4-01-api.txt) and [W4-02 authentication and authorization evidence](W4-02-auth.txt). The final ordinary suite recorded 537 passed, 7 skipped and 4 deselected. W4-10 is **NOT RUN — deferred until W4-06**; no `W4-10-load.json` evidence exists. All four W4-001 Column M documents are closed together.
 - [W4-002](W4-002.md) — bounded LangGraph controller, durable local approval, strict budgets and redacted SQLite state. Owner TEST-001 passed after preserved historical failures and bounded remediation: 613 passed, 7 skipped and 4 deselected in the final ordinary suite. At this original summary point, final owner approval was pending Column N and W4-09/W4-10 were **NOT RUN**; W4-002 was subsequently final-approved, and the separately governed W4-09/W4-10 closures are recorded later in this index.
+- [W4-ROLLBACK-001 / W4-11 / REL-001](../rollback-records/W4-release.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-31 at 16:52:21 SGT. The local immutable application-release rollback restored exact N in 838 ms; rollback, smoke and cleanup passed; the full suite recorded 724 passed, 7 skipped and 4 deselected; the remediated Make-target assertion failure and Starlette/httpx warning remain recorded; Python 3.11, deployment, cloud and infrastructure rollback were NOT RUN; zero unexpected residue remained. Both Column M documents are closed together. W4-12 sign-off is separate.
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
 
@@ -604,3 +605,96 @@ tests and these documents remain retained.
 
 Column N closed this index entry together with the other eight documents in
 the W4-003 Column M manifest; no partial closure occurred.
+
+## W4-ROLLBACK-001 local immutable application-release rollback
+
+The canonical [W4 application-release rollback record](../rollback-records/W4-release.md)
+covers `W4-ROLLBACK-001`, authoritative tracker step `W4-11` and feature
+`REL-001`. The owner demonstrated that the deliberately defective local N+1
+profile was safely rejected and the exact immutable known-good application
+release N was restored. This was application release-control work only; it
+was not W3 RAG-configuration rollback, source/Git rollback, shared-data or
+infrastructure rollback, deployment, cloud recovery or production-readiness
+evidence.
+
+Known-good N was `w4-known-good-v1`; synthetic N+1 was
+`w4-synthetic-regression-v1`. Both used repository baseline
+`faf5552f1eb8f2aaa884a9a68a3e3f8a38bec496`, package version `0.1.0`, the
+same 99-file payload and canonical composition SHA-256
+`5340439d876036885558c32738416dd908a27f763bd87fc5e43fd1690f08dbdc`.
+Their full descriptor SHA-256 values were respectively
+`0e210439a3117ca649db65f060530223afdbe913d810db11c930a16e4d4f50a4`
+and
+`78abcb87e73d2e157c1867f640c7a420fab039fbc2fc34d8b60de90fa6f33ec1`.
+N+1 used regression profile `w4-011.agent-route-disabled.v1`; the owner
+observed the expected HTTP 501 and safe code `agent_disabled`, with every
+listed downstream RAG, retrieval, embedding, provider, graph, approval and
+tool count equal to zero.
+
+The owner ran the prerequisite baseline and dependency inspection, scoped
+Ruff, strict MyPy, release unit/contract tests, functional/security/rollback/
+cleanliness tests, feature consumers, protected regressions, the full suite,
+platform validation, immutable-release validation and patch checks before the
+tracker-required sequence:
+
+1. `make PYTHON=E:/AI/.venvs/enterprise_ai_platform/Scripts/python.exe rollback-release`
+2. `make PYTHON=E:/AI/.venvs/enterprise_ai_platform/Scripts/python.exe smoke`
+
+Application rollback **PASS**: exact N was restored at owner-recorded
+generation 3 in 838 ms, below the 30,000 ms hard limit. Restored-N smoke
+**PASS**: its test phase passed 51 tests with the accepted warning, every
+approved smoke gate passed, smoke duration was separately recorded as 563 ms
+and the agent-route latch opened only afterward. Cleanup and independent
+verification both reported **ZERO_RESIDUE**. The four approved runtime reports,
+lock and temporary files are absent; the immutable descriptors and approved
+source/test changes remain intended repository artifacts.
+
+The final ordinary suite passed with **724 passed, 7 skipped, 4 deselected,
+1 warning and 10 subtests passed**. Open FAIL results: none. Open
+INDETERMINATE results: none. The first combined release scope remains a
+historical **FAIL** with 1 failed and 20 passed because its assertion matched
+`smoke:` inside the earlier `test-smoke:` Make target. Owner-approved bounded
+remediation changed the test to compare exact target lines, after which the
+same scope passed 21 tests. The historical failure is not converted into a
+first-run PASS.
+
+The Starlette/httpx deprecation warning and non-failing Git LF-to-CRLF notices
+remain recorded. The evidence was deterministic, local and in process;
+`network_activity=false` was recorded for the release probes. No live
+provider/model, vector service, identity provider, approval service,
+collector, Docker, registry, cloud, infrastructure or deployment activity was
+performed. No provider or cloud use was evidenced, but local machine and owner
+costs were not quantified as zero.
+
+Python 3.11 execution, local/production/cloud deployment, source/Git or
+shared-data rollback, infrastructure/Kubernetes/EKS/cloud rollback and
+operational production teardown remain **NOT RUN**. The 7 skips and 4
+deselections also remain NOT RUN. The 838 ms local measurement is not a
+production RTO, capacity, SLO or cloud-recovery claim. W4-12 sign-off and the
+Week 4 learning review remain separate governed tasks.
+
+### Final Owner Approval — W4-ROLLBACK-001
+
+- Prompt/task ID: `W4-ROLLBACK-001`
+- Authoritative tracker step and feature: `W4-11` / `REL-001`
+- Reviewer exact name: Gyan Prakash Rai
+- Reviewer role: Project Owner and Final Approval Reviewer
+- Exact final decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+- Approval date/time and timezone: `2026-08-31 16:52:21 SGT`
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W4-ROLLBACK-001**
+- Code review status: **APPROVED** for the bounded, owner-tested W4-ROLLBACK-001 implementation. This approval does not establish deployment, production or cloud readiness.
+- Documentation review status: **APPROVED**. Both documents in the W4-ROLLBACK-001 Column M manifest are closed together.
+- Owner-executed test status: **PASS within the deterministic local application-release boundary**. Ruff passed; strict MyPy passed across 106 source files; focused release, security, rollback and cleanliness scopes passed after the preserved historical Make-target assertion failure and bounded remediation; protected regressions passed; the full ordinary suite recorded 724 passed, 7 skipped, 4 deselected, 1 warning and 10 subtests passed; platform and immutable-release validation passed; exact N was restored in 838 ms; smoke passed; cleanup and independent zero-residue verification passed.
+- Accepted warnings, risks, gaps and limitations: All items recorded in the approved W4-ROLLBACK-001 Column M manifest are accepted; no additional item is silently accepted. This includes the Starlette/httpx warning, Git LF-to-CRLF notices, deterministic local and in-process scope, skipped and deselected work, Python 3.11 not being executed, unquantified local machine and owner cost, and no production RTO, performance, capacity, SLO, deployment, infrastructure-recovery or cloud-readiness proof.
+- Historical FAIL facts and successful remediation: Preserved. The first combined release scope reported 1 failed and 20 passed because its assertion matched `smoke:` inside the earlier `test-smoke:` Make target. Owner-approved bounded remediation changed the test to compare exact target lines, and the affected scope passed 21 tests on rerun. Open FAIL results: none.
+- NOT RUN and INDETERMINATE acceptance: All recorded NOT RUN activities remain NOT RUN and none is converted to PASS. This includes the 7 skipped tests, 4 deselected tests, Python 3.11, local/production/cloud deployment, source/Git and shared-data rollback, infrastructure/Kubernetes/EKS/cloud rollback, live integrations and operational production teardown. Every historical INDETERMINATE result remains preserved. Remaining open INDETERMINATE activities: None.
+- Deployment facts: Local service deployment, production deployment and cloud deployment were NOT RUN. No service, container, registry, infrastructure or cloud resource was deployed.
+- Rollback facts: Deterministic local immutable application-release rollback **PASS**; exact N was restored from synthetic N+1 in 838 ms against the 30,000 ms hard limit. Restored-N smoke **PASS**. Source/Git, shared-data, infrastructure, Kubernetes/EKS and cloud rollback were NOT RUN.
+- Teardown, cleanup and residual-resource facts: Owner-authorized local runtime cleanup and independent zero-residue verification **PASS**. `active.json`, `regression.json`, `rollback.json`, `smoke.json`, the activation lock, atomic temporary files and the isolated runtime directory are absent. Operational production service/container/cloud teardown was NOT RUN because no such resource was created. The immutable N/N+1 descriptors, release-control implementation, automated tests, feature ownership and Make targets remain retained intended repository artifacts, not unexpected residue.
+- Deferred actions and responsible owners: All deferred actions recorded in the W4-ROLLBACK-001 manifest remain open. Responsible owner: Gyan Prakash Rai, unless another owner is explicitly recorded for an individual action. W4-12 sign-off, the Week 4 learning review, Python 3.11, live integrations, production validation, deployment and cloud/infrastructure lifecycle proof remain separately governed.
+- Conditions attached to approval: Preserve all PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource facts; close both W4-ROLLBACK-001 Column M documents together; only the owner updates Excel and performs Git mutation; do not infer production or cloud readiness from local, fake, mocked, injected or in-process evidence.
+- Next-task handover: W4-12 sign-off and the Week 4 learning review remain separate governed tasks. Future deployment, production, infrastructure or cloud work requires separate approval and evidence.
+- Tracker update responsibility: Owner
+
+Column N closed this README entry and
+`docs/rollback-records/W4-release.md` together; no partial closure occurred.

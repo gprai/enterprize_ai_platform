@@ -397,6 +397,43 @@ EXPECTED_OBSERVABILITY_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": ["W3-09", "W4-08"],
 }
+EXPECTED_RELEASE_IMPLEMENTATION_PATHS = (
+    "configs/releases/versions/w4-known-good-v1.json",
+    "configs/releases/versions/w4-synthetic-regression-v1.json",
+    "src/enterprise_ai_platform/release_rollback/__init__.py",
+    "src/enterprise_ai_platform/release_rollback/errors.py",
+    "src/enterprise_ai_platform/release_rollback/models.py",
+    "src/enterprise_ai_platform/release_rollback/identity.py",
+    "src/enterprise_ai_platform/release_rollback/state.py",
+    "src/enterprise_ai_platform/release_rollback/probe.py",
+    "src/enterprise_ai_platform/release_rollback/service.py",
+    "tools/releasectl.py",
+    "tests/fakes/release_rollback.py",
+    "tests/unit/test_release_rollback_identity.py",
+    "tests/unit/test_release_rollback_state.py",
+    "tests/contract/test_release_rollback_contract.py",
+    "tests/integration/test_release_rollback_composition.py",
+    "tests/feature/test_w4_011_release_rollback.py",
+    "tests/smoke/test_w4_011_release_smoke.py",
+    "tests/security/test_w4_011_release_rollback_security.py",
+    "tests/rollback/test_w4_011_release_rollback.py",
+    "tests/teardown/test_w4_011_release_rollback_cleanliness.py",
+    ".gitignore",
+    "Makefile",
+    "feature-matrix.yaml",
+    "pyproject.toml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+)
+EXPECTED_RELEASE_FEATURE = {
+    "id": "REL-001",
+    "implementation_paths": list(EXPECTED_RELEASE_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W4-11"],
+}
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -404,6 +441,7 @@ EXPECTED_FEATURES = (
     EXPECTED_API_FEATURE,
     EXPECTED_AGENT_FEATURE,
     EXPECTED_OBSERVABILITY_FEATURE,
+    EXPECTED_RELEASE_FEATURE,
 )
 
 REQUIRED_DIRECTORIES = (
@@ -412,6 +450,8 @@ REQUIRED_DIRECTORIES = (
     "configs/rag",
     "configs/rag/versions",
     "configs/observability",
+    "configs/releases",
+    "configs/releases/versions",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -425,6 +465,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/telemetry",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
+    "src/enterprise_ai_platform/release_rollback",
     "src/enterprise_ai_platform/retrieval",
     "src/enterprise_ai_platform/retrieval/adapters",
     "docs/architecture",
@@ -512,6 +553,7 @@ REQUIRED_FILES = (
     *EXPECTED_API_IMPLEMENTATION_PATHS,
     *EXPECTED_AGENT_IMPLEMENTATION_PATHS,
     *EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
+    *EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -566,7 +608,8 @@ def validate_feature_matrix(data: object) -> list[str]:
     elif features != list(EXPECTED_FEATURES):
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
-            "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001"
+            "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001, "
+            "REL-001"
         )
 
     return errors

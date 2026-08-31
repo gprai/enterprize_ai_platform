@@ -19,6 +19,7 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS,
+    EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
 )
@@ -77,6 +78,12 @@ EXPECTED_OBSERVABILITY_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": ["W3-09", "W4-08"],
 }
+EXPECTED_RELEASE_FEATURE = {
+    "id": "REL-001",
+    "implementation_paths": list(EXPECTED_RELEASE_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W4-11"],
+}
 
 
 def read_matrix() -> dict[str, object]:
@@ -97,6 +104,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_API_FEATURE,
                 EXPECTED_AGENT_FEATURE,
                 EXPECTED_OBSERVABILITY_FEATURE,
+                EXPECTED_RELEASE_FEATURE,
             ],
             matrix["features"],
         )
@@ -112,6 +120,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "API-001",
                 "AGENT-001",
                 "OBS-001",
+                "REL-001",
             ],
             [feature["id"] for feature in features],
         )
@@ -136,6 +145,7 @@ class FeatureMatrixTests(unittest.TestCase):
             features[4]["linked_tracker_steps"],
         )
         self.assertEqual(["W3-09", "W4-08"], features[5]["linked_tracker_steps"])
+        self.assertEqual(["W4-11"], features[6]["linked_tracker_steps"])
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -159,6 +169,7 @@ class FeatureMatrixTests(unittest.TestCase):
             api_feature,
             agent_feature,
             observability_feature,
+            release_feature,
         ) = features
 
         self.assertEqual(
@@ -169,6 +180,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "API-001",
                 "AGENT-001",
                 "OBS-001",
+                "REL-001",
             ],
             [item["id"] for item in features],
         )
@@ -213,6 +225,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual("EVAL-001", eval_feature["id"])
         self.assertEqual("API-001", api_feature["id"])
         self.assertEqual("OBS-001", observability_feature["id"])
+        self.assertEqual("REL-001", release_feature["id"])
 
     def test_eval_001_owns_the_exact_w3_002_manifest(self) -> None:
         matrix = read_matrix()
@@ -346,6 +359,25 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertNotIn(
             "tests/feature/test_api_load_smoke.py",
             observability_feature["implementation_paths"],
+        )
+
+    def test_rel_001_owns_only_w4_11_and_exact_column_l_paths(self) -> None:
+        release_feature = read_matrix()["features"][6]
+
+        self.assertEqual(EXPECTED_RELEASE_FEATURE, release_feature)
+        self.assertEqual(["W4-11"], release_feature["linked_tracker_steps"])
+        self.assertEqual(29, len(release_feature["implementation_paths"]))
+        self.assertEqual(
+            29,
+            len(set(release_feature["implementation_paths"])),
+        )
+        self.assertEqual(
+            list(EXPECTED_RELEASE_IMPLEMENTATION_PATHS),
+            release_feature["implementation_paths"],
+        )
+        self.assertNotIn(
+            "docs/rollback-records/W4-release.md",
+            release_feature["implementation_paths"],
         )
 
     def test_trailing_content_is_rejected_as_malformed_json(self) -> None:

@@ -31,6 +31,7 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS,
+    EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
 )
@@ -76,6 +77,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "API-001",
                 "AGENT-001",
                 "OBS-001",
+                "REL-001",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -351,7 +353,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
         )
         self.assertEqual(
             ["W3-09", "W4-08"],
-            EXPECTED_FEATURES[-1]["linked_tracker_steps"],
+            EXPECTED_FEATURES[-2]["linked_tracker_steps"],
         )
         self.assertIn("configs/observability", REQUIRED_DIRECTORIES)
         self.assertIn(
@@ -359,4 +361,30 @@ class PlatformCtlUnitTests(unittest.TestCase):
             REQUIRED_DIRECTORIES,
         )
         for path in EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w4_011_release_contract_is_exactly_appended(self) -> None:
+        self.assertEqual(29, len(EXPECTED_RELEASE_IMPLEMENTATION_PATHS))
+        self.assertEqual(
+            29,
+            len(set(EXPECTED_RELEASE_IMPLEMENTATION_PATHS)),
+        )
+        self.assertEqual(
+            (
+                "configs/releases/versions/w4-known-good-v1.json",
+                "configs/releases/versions/w4-synthetic-regression-v1.json",
+                "src/enterprise_ai_platform/release_rollback/__init__.py",
+            ),
+            EXPECTED_RELEASE_IMPLEMENTATION_PATHS[:3],
+        )
+        self.assertEqual(
+            ["W4-11"],
+            EXPECTED_FEATURES[-1]["linked_tracker_steps"],
+        )
+        self.assertIn("configs/releases/versions", REQUIRED_DIRECTORIES)
+        self.assertIn(
+            "src/enterprise_ai_platform/release_rollback",
+            REQUIRED_DIRECTORIES,
+        )
+        for path in EXPECTED_RELEASE_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)

@@ -369,6 +369,44 @@
         "W3-09",
         "W4-08"
       ]
+    },
+    {
+      "id": "REL-001",
+      "implementation_paths": [
+        "configs/releases/versions/w4-known-good-v1.json",
+        "configs/releases/versions/w4-synthetic-regression-v1.json",
+        "src/enterprise_ai_platform/release_rollback/__init__.py",
+        "src/enterprise_ai_platform/release_rollback/errors.py",
+        "src/enterprise_ai_platform/release_rollback/models.py",
+        "src/enterprise_ai_platform/release_rollback/identity.py",
+        "src/enterprise_ai_platform/release_rollback/state.py",
+        "src/enterprise_ai_platform/release_rollback/probe.py",
+        "src/enterprise_ai_platform/release_rollback/service.py",
+        "tools/releasectl.py",
+        "tests/fakes/release_rollback.py",
+        "tests/unit/test_release_rollback_identity.py",
+        "tests/unit/test_release_rollback_state.py",
+        "tests/contract/test_release_rollback_contract.py",
+        "tests/integration/test_release_rollback_composition.py",
+        "tests/feature/test_w4_011_release_rollback.py",
+        "tests/smoke/test_w4_011_release_smoke.py",
+        "tests/security/test_w4_011_release_rollback_security.py",
+        "tests/rollback/test_w4_011_release_rollback.py",
+        "tests/teardown/test_w4_011_release_rollback_cleanliness.py",
+        ".gitignore",
+        "Makefile",
+        "feature-matrix.yaml",
+        "pyproject.toml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/feature/test_w2_002_embedder_contract.py",
+        "tests/feature/test_w2_003_ingestion_contract.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W4-11"
+      ]
     }
   ]
 }

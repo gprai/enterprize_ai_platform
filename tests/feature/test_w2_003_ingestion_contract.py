@@ -54,9 +54,15 @@ W2_003_IMPLEMENTATION_PATHS = (
 
 def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> None:
     matrix = json.loads((ROOT / "feature-matrix.yaml").read_text(encoding="utf-8"))
-    mvp, rag, eval_feature, api_feature, agent_feature, obs_feature = matrix[
-        "features"
-    ]
+    (
+        mvp,
+        rag,
+        eval_feature,
+        api_feature,
+        agent_feature,
+        obs_feature,
+        release_feature,
+    ) = matrix["features"]
 
     assert [
         mvp["id"],
@@ -65,6 +71,7 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         api_feature["id"],
         agent_feature["id"],
         obs_feature["id"],
+        release_feature["id"],
     ] == [
         "MVP-001",
         "RAG-001",
@@ -72,6 +79,7 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         "API-001",
         "AGENT-001",
         "OBS-001",
+        "REL-001",
     ]
     implementation_paths = rag["implementation_paths"]
     w2_003_start = implementation_paths.index(W2_003_IMPLEMENTATION_PATHS[0])

@@ -16,3 +16,12 @@ reports/w3-004/.active.json.*.tmp
 reports/w3-004/.regression.json.*.tmp
 reports/w3-004/.restored.json.*.tmp
 reports/w3-004/.rollback-record.json.*.tmp
+reports/w4-release/active.json
+reports/w4-release/regression.json
+reports/w4-release/rollback.json
+reports/w4-release/smoke.json
+reports/w4-release/activation.lock
+reports/w4-release/.active.json.*.tmp
+reports/w4-release/.regression.json.*.tmp
+reports/w4-release/.rollback.json.*.tmp
+reports/w4-release/.smoke.json.*.tmp
