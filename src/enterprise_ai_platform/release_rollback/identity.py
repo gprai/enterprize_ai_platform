@@ -24,9 +24,9 @@ KNOWN_GOOD_DESCRIPTOR_PATH: Final[Path] = Path("configs/releases/versions/w4-kno
 REGRESSION_DESCRIPTOR_PATH: Final[Path] = Path(
     "configs/releases/versions/w4-synthetic-regression-v1.json"
 )
-APPROVED_REPOSITORY_SHA: Final = "faf5552f1eb8f2aaa884a9a68a3e3f8a38bec496"
+APPROVED_REPOSITORY_SHA: Final = "bd7a82039ee1d8b3a789b9e0db9dd893d1c36745"
 APPROVED_COMPOSITION_SHA256: Final = (
-    "5340439d876036885558c32738416dd908a27f763bd87fc5e43fd1690f08dbdc"
+    "2bd002d111dbfae4390254d077acafd0623f42fac945f608a32bf685b3053b14"
 )
 APPROVED_ARTIFACT_COUNT: Final = 99
 
