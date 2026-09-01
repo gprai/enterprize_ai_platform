@@ -1,39 +1,195 @@
-W1-08 — Pre-commit and secret scanning
+W1-08 / SEC-003 — Pre-commit and secret-scanning corrective evidence
 
-Record type: Retrospective evidence-gap reconciliation
+Record type: Owner-executed corrective control evidence
 Original tracker step: W1-08
-Evidence-record ID: W1-08-precommit
+Corrective task: W1-08-SEC-003-REMEDIATION
 Canonical evidence path: docs/test-evidence/W1-08-precommit.txt
-Aggregate evidence source: docs/test-evidence/W1-003.md; docs/deployment-records/W1-signoff.md
-Implementation status: OPEN CONTROL GAP
-Pre-commit baseline present and verified: No
-Secret-scanning control present and verified: No
-Original step-level evidence: unavailable
-Test result: NOT RUN
-Retrospective execution: NOT RUN
-Current repository used as historical evidence: No
-Security implication: shift-left secret and quality enforcement is incomplete
-Completion claim permitted: No
-Tracker inconsistency: W1-08 is recorded as Done in the owner tracker, but implementation and verification are not complete; the owner must reconcile that status.
-Evidence limitation: This record discloses the gap. It is not evidence that pre-commit or secret scanning was implemented, executed, or passed.
-Deployment status: NOT RUN
-Rollback facts: NOT RUN; no W1-08 control was implemented.
-Teardown facts: NOT RUN; no W1-08 tool, hook, baseline, service, or managed resource was created by this reconciliation.
-Required remediation: new bounded implementation task and Code Edit Approval
-Responsible owner: Gyan Prakash Rai
-Target resolution: before W3-001 or before any production/cloud deployment, whichever occurs first
+Evidence source: Owner-provided decisions and execution transcripts
+Implementation status: PASS
+Owner-testing status: PASS
+Final task approval: Pending Column N
 Tracker update responsibility: Owner
-Documentation reconciliation: APPROVED
-Current reconciliation reviewer: Gyan Prakash Rai
-Reviewer role: Project Owner, Learner and Approval Reviewer
-Current decision: APPROVED WITH QUALIFICATIONS
-Approval timestamp: 2026-08-25 21:38:20 SGT (UTC+08:00)
-Control implementation: OPEN CONTROL GAP
-Pre-commit control verified: No
-Secret scanning verified: No
-Test result: NOT RUN
-Completion claim permitted: No
-Approval scope: Accuracy of the gap disclosure only; this approval is not approval of W1-08 implementation or proof.
-Remediation owner: Gyan Prakash Rai
-Final status: APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION
+
+BUSINESS PURPOSE
+
+This control reduces the risk that poor-quality Python changes or possible secrets
+reach a commit unnoticed. A pre-commit hook is a local Git checkpoint that runs
+approved checks before a commit is accepted. A secret baseline is a reviewed list
+of known non-secret identifiers and checksums; any new or changed finding remains
+blocking until the owner reviews it.
+
+ARCHITECTURE POSITION
+
+W1-08 sits between repository changes and Git commit creation. It provides a local
+quality and security gate before later CI, deployment, registry, infrastructure or
+cloud activity. It does not replace remote pull-request enforcement, live security
+testing, deployment validation or cloud inventory.
+
+APPROVED CONTROL BASELINE
+
+- Development dependencies: pre-commit 4.6.2 and detect-secrets 1.5.0.
+- Hook provenance: local repositories only, with system-language execution.
+- Approved hook order: Ruff lint check, Ruff format check, detect-secrets check.
+- Ruff checks are report-only and do not use automatic fixes.
+- Secret scanning excludes only the repository-root .secrets.baseline file.
+- Remote hook repositories, mutable revisions, additional hook dependencies,
+  hook-created environments and hook-initiated installation are prohibited.
+- The committed baseline contains only owner-reviewed hashed findings.
+- Synthetic secret-shaped fixtures are assembled only at runtime and are not stored
+  contiguously in committed source.
+- Remote CI enforcement remains deferred to a separately approved task.
+
+COMMIT CHAIN
+
+- Commit A — formatted security-control baseline:
+  38a655709abb84fa8b8fe6b54b0b98b90eb6cb3c
+- Commit B — RAG integrity metadata rebaseline:
+  bd7a82039ee1d8b3a789b9e0db9dd893d1c36745
+- Commit C — release integrity metadata rebaseline:
+  a981bc75481f1da27ffffb2a4c3a3759334d5d94
+
+OWNER-EXECUTED FINAL RESULTS
+
+- Scoped pre-commit: PASS for Ruff lint, Ruff format and detect-secrets.
+- All-files pre-commit: PASS for Ruff lint, Ruff format and detect-secrets.
+- Secret baseline: PASS; detect-secrets 1.5.0, 27 default plugins, 12 default
+  filters, 23 reviewed paths and 278 hashed findings.
+- Secret-baseline contract and W1-08 cleanliness tests: PASS — 9 passed.
+- Ruff lint and format: PASS across the approved W1-08 and remediated repository
+  scope.
+- Strict MyPy: PASS — no issues in 106 source files.
+- Complete ordinary Pytest suite: PASS — 734 passed, 7 skipped, 4 deselected,
+  10 subtests passed and 1 accepted warning.
+- Release-focused regression: PASS — 29 passed after canonical descriptor
+  correction.
+- Complete teardown suite: PASS — 62 passed with 1 accepted warning.
+- Release validation: PASS — VALIDATED with 99 artifacts.
+- Platform validation: PASS.
+- Path, hash, status, staging and whitespace comparisons: PASS; no unexpected
+  tracked-file mutation was detected.
+- Commit boundaries: PASS; Commit B and Commit C each contained exactly their four
+  approved integrity paths.
+
+HISTORICAL FAILURES AND RECOVERY
+
+- The original retrospective W1-08 record correctly reported NOT RUN and OPEN
+  CONTROL GAP because no contemporaneous W1-08 implementation evidence existed.
+  That historical result remains valid for the original Week 1 execution.
+- Development tools were initially unavailable. The owner installed the approved
+  dependencies into the external environment and verified their exact versions.
+- DeepEval attempted automatic Pytest plugin loading. The approved local Pytest
+  configuration suppressed the plugin without claiming whether earlier telemetry
+  or update-check activity occurred.
+- Initial repository-wide pre-commit execution reported Ruff formatting differences
+  and reviewed secret-shaped findings. The owner stopped, confirmed provenance and
+  approved bounded F1, F2, F3 and S2 remediations.
+- Secret-baseline contract tests exposed an accidental patch marker, formatting
+  differences, exact filter representation, Windows path normalization and digest
+  length assumptions. Each failure remained visible and received bounded correction
+  followed by owner retesting.
+- Detect-secrets initially rejected an unstaged refreshed baseline. No file changed;
+  staging the exact approved integrity paths before rerunning produced PASS.
+- Formatting changed RAG and release artifact bytes. The owner approved bounded
+  integrity rebaselines, reviewed refreshed redacted secret inventories and created
+  separate commits.
+- Release regression initially produced 14 failures because both canonical JSON
+  descriptors contained one leading LF byte. Removing only that byte produced the
+  final 29-test PASS.
+- The first direct releasectl invocation could not locate the src-layout package.
+  Setting PYTHONPATH to the repository src directory allowed the owner to run the
+  validation successfully with exit code 0.
+
+SECURITY AND PRIVACY RESULT
+
+- No possible real secret, credential, private key, API token, tenant secret,
+  production secret or real PII was identified in the owner-reviewed inventory.
+- The 278 findings are hashed records for approved checksums, identifiers,
+  revisions, fingerprints and the approved service-type identifier.
+- No plaintext finding value is stored in this document.
+- No baseline finding was silently accepted. Candidate inventories were reviewed by
+  the owner before each baseline refresh.
+- No credential rotation was required based on the owner-reviewed findings.
+
+WARNINGS, SKIPS AND LIMITATIONS
+
+- Accepted warning: non-blocking Starlette/TestClient deprecation warning.
+- Skipped: 7 owner-controlled tests in the complete ordinary suite.
+- Deselected: 4 tests under the default opt-in exclusion policy.
+- Opt-in local integrations and default-excluded tests: NOT RUN.
+- AWS and paid tests: NOT RUN.
+- Live integrations, deployment, live rollback, cloud teardown and production
+  behavior: NOT RUN and outside W1-08.
+- Initial DeepEval telemetry or update-check activity: INDETERMINATE.
+- The passing local hook does not establish remote pull-request enforcement.
+
+DEPLOYMENT, ROLLBACK, TEARDOWN AND RESIDUAL RESOURCES
+
+- Application or cloud deployment: NOT RUN.
+- Live application, infrastructure or cloud rollback: NOT RUN.
+- Cloud teardown: NOT RUN.
+- Repository-local teardown and cleanliness: PASS within the tested scope.
+- Installed local Git pre-commit hook: intentionally retained owner-controlled
+  residual resource.
+- External Python environment: intentionally retained for later owner work.
+- External task cache:
+  E:\AI\.pre-commit-cache\enterprise-ai-platform-w1-08
+  It is retained only through Column N. Its disk impact was not measured. After
+  Column N, the owner must remove this exact cache or explicitly approve continued
+  retention and record its purpose and disk impact.
+
+HISTORICAL EVIDENCE-GAP SNAPSHOT
+
+The original retrospective reconciliation remains part of the audit trail:
+
+- Original step-level evidence: unavailable.
+- Original W1-08 execution result: NOT RUN.
+- Original implementation status: OPEN CONTROL GAP.
+- Original completion claim permitted: No.
+- The tracker historically recorded Done despite the missing implementation proof.
+- The retrospective record disclosed the gap; it did not claim implementation.
+- Historical documentation reconciliation was APPROVED WITH QUALIFICATIONS by
+  Gyan Prakash Rai on 2026-08-25 at 21:38:20 SGT.
+
+CURRENT COLUMN M STATE
+
+- W1-08 code-stage acceptance: PASS.
+- SEC-003 security-control acceptance: PASS.
+- Owner TEST-001: PASS.
+- Documentation review: Ready for owner review.
+- Column N Final Approval: Pending.
+- Excel tracker correction: Pending owner action after Column N.
+- Completion claim permitted now: No; final approval remains pending.
 Tracker update responsibility: Owner
+FINAL APPROVAL CLOSURE — W1-08-SEC-003-REMEDIATION
+
+- Status: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+- Approval reviewer: G P Rai
+- Approval date: 2026-09-01
+- Commit A: 38a655709abb84fa8b8fe6b54b0b98b90eb6cb3c
+- Commit B: bd7a82039ee1d8b3a789b9e0db9dd893d1c36745
+- Commit C: a981bc75481f1da27ffffb2a4c3a3759334d5d94
+
+This final-approval closure supersedes any earlier pending Column N wording in this file while preserving every historical failure, warning, skipped or deselected result, NOT RUN activity, and INDETERMINATE result below.
+
+Final approved evidence:
+- Scoped and all-files pre-commit: PASS.
+- Ruff lint and format: PASS.
+- Detect-secrets: PASS with the owner-reviewed 23-path/278-finding baseline.
+- MyPy: PASS for 106 source files.
+- Full Pytest: PASS — 734 passed, 7 skipped, 4 deselected, and 10 subtests passed.
+- Teardown: PASS — 62 passed.
+- Release validation: PASS for 99 artifacts.
+- Platform validation: PASS.
+- Path, hash, status, staging, and whitespace controls: PASS.
+- Unexpected tracked-file mutation: none observed.
+
+Accepted warnings and limitations:
+- The non-blocking Starlette/TestClient deprecation warning is accepted.
+- Opt-in integrations and default-excluded tests were NOT RUN.
+- Live AWS, paid services, deployment, live rollback, and cloud teardown were NOT RUN and outside this corrective task.
+- Initial DeepEval telemetry or update-check activity remains INDETERMINATE.
+- The installed local Git pre-commit hook is an intentional retained resource.
+- The external cache at E:\AI\.pre-commit-cache\enterprise-ai-platform-w1-08 remains present. The owner elected to remove and verify it after Column N; cleanup remains PENDING OWNER ACTION.
+
+Approved baseline and next-task handover:
+W1-08 and SEC-003 are finally approved. Later tasks may rely on the approved local pre-commit, Ruff, secret-scanning, testing, teardown, RAG-integrity, and release-integrity foundations. This approval does not prove live AWS behavior, paid-service behavior, deployment, live rollback, or cloud teardown. Remote pull-request enforcement remains outside this task. The Excel tracker correction and external-cache removal remain owner actions.

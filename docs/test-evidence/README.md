@@ -44,7 +44,7 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W1-05 typed configuration](W1-05-config.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
 - [W1-06 test foundation](W1-06-tests.json) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
 - [W1-07 Makefile controls](W1-07-make.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W1-08 pre-commit and secret scanning](W1-08-precommit.txt) — **OPEN CONTROL GAP — implementation and verification not completed**; also a retrospective evidence-gap reconciliation, not contemporaneous command output.
+- [W1-08 pre-commit and secret scanning](W1-08-precommit.txt) — the original retrospective record remains a historical **NOT RUN / OPEN CONTROL GAP** disclosure; the later bounded W1-08/SEC-003 corrective implementation and owner testing are **PASS**, with final approval pending Column N.
 - [W1-09 Terraform roots](W1-09-roots.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
 - [W1-10 platformctl](W1-10-platformctl.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
 - [W1-11 cleanup verification](W1-11-cleanup.json) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
@@ -99,7 +99,7 @@ The next task may rely on W1-004's approved local lifecycle contracts, determini
 
 Nine original step-level files for W1-03 through W1-11 were unavailable. The indexed step records were created later to disclose the gap and map supported historical outcomes to approved aggregate W1-001 through W1-004 evidence. They do not recover or recreate original command output, and retrospective execution was **NOT RUN**. The current W2-expanded repository was not represented as the W1 baseline.
 
-Week 1 evidence completeness is **QUALIFIED**. W1-08 remains an **OPEN CONTROL GAP** requiring a new bounded implementation task plus Code Edit Approval. The owner later accepted it as a non-blocking deferral for W3-001; it remains unresolved for any future production/cloud deployment decision. Local and mocked results do not prove live AWS, deployment, rollback, teardown, or production behavior.
+Week 1 historical evidence completeness remains **QUALIFIED** because nine original step-level records are unavailable. At the 2026-08-25 reconciliation, W1-08 was correctly an **OPEN CONTROL GAP** and was later accepted as a non-blocking deferral for W3-001. A separately bounded W1-08/SEC-003 corrective task has now passed its code and owner-testing gates; final approval remains pending Column N. Local controls still do not prove live AWS, deployment, rollback, cloud teardown or production behavior.
 
 ### Week 1 reconciliation — Final Owner Approval
 
@@ -109,11 +109,40 @@ Week 1 evidence completeness is **QUALIFIED**. W1-08 remains an **OPEN CONTROL G
 - Current reconciliation decision: **APPROVED WITH QUALIFICATIONS**; documentation review **APPROVED**.
 - Approval timestamp: **2026-08-25 21:38:20 SGT (UTC+08:00)**.
 - Evidence completeness: **QUALIFIED**.
-- W1-08 status: **OPEN CONTROL GAP** — implementation and verification not completed.
+- W1-08 status at this historical reconciliation: **OPEN CONTROL GAP** — implementation and verification had not been completed at that time. Current corrective status: **CODE/TEST PASS — COLUMN N PENDING**.
 - Accepted limitations: missing contemporaneous records, historical warnings/gaps, retained external environment, dirty W2-era baseline excluded from W1 evidence, and local/mock proof not establishing live behavior.
 - NOT RUN and INDETERMINATE classifications remain exactly as recorded in the linked evidence.
 - Final reconciliation status: **APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION**.
 - Tracker reconciliation and update responsibility: **Owner — Gyan Prakash Rai**.
+
+## W1-08 / SEC-003 corrective evidence — Column M
+
+The later bounded corrective implementation closes the technical pre-commit and
+secret-scanning gap without rewriting the original retrospective NOT RUN result.
+Final owner approval is still pending Column N.
+
+- Commit A: 38a655709abb84fa8b8fe6b54b0b98b90eb6cb3c.
+- Commit B: bd7a82039ee1d8b3a789b9e0db9dd893d1c36745.
+- Commit C: a981bc75481f1da27ffffb2a4c3a3759334d5d94.
+- Scoped and all-files pre-commit: **PASS** for Ruff lint, Ruff format and
+  detect-secrets.
+- Owner-reviewed detect-secrets baseline: **PASS** — version 1.5.0, 27 default
+  plugins, 12 default filters, 23 paths and 278 hashed findings.
+- MyPy: **PASS** across 106 source files.
+- Complete ordinary suite: **734 passed, 7 skipped, 4 deselected, 10 subtests
+  passed**, with one accepted Starlette/TestClient warning.
+- Complete teardown: **62 passed**, with the same accepted warning.
+- Release validation: **PASS / VALIDATED** for 99 artifacts.
+- Platform, path, hash, status, staging and whitespace controls: **PASS**.
+- Unexpected tracked-file mutation: none.
+- AWS/paid tests, opt-in integrations, live deployment, live rollback and cloud
+  teardown: **NOT RUN**.
+- Installed local Git hook and external Python environment: intentionally retained.
+- External task cache
+  E:\AI\.pre-commit-cache\enterprise-ai-platform-w1-08: retained through
+  Column N; disk impact not measured. The owner must then remove it or explicitly
+  approve continued retention and record its purpose and disk impact.
+- Excel tracker correction: owner action after Column N.
 
 ## W2-001 final approval
 
@@ -698,3 +727,6 @@ Week 4 learning review remain separate governed tasks.
 
 Column N closed this README entry and
 `docs/rollback-records/W4-release.md` together; no partial closure occurred.
+> **W1-08 / SEC-003 final closure — 2026-09-01:** **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by G P Rai. Scoped and all-files pre-commit, Ruff lint/format, the owner-reviewed detect-secrets baseline, MyPy, full Pytest, teardown, release validation, platform validation, and path/hash/status/staging/whitespace controls passed. Historical OPEN CONTROL GAP and failure records remain preserved as dated evidence; any earlier pending Column N wording is superseded by this closure.
+>
+> **Approved baseline and next-task handover:** Later tasks may rely on the approved local pre-commit, Ruff, secret-scanning, testing, teardown, RAG-integrity, and release-integrity foundations. This does not prove live AWS, paid services, deployment, live rollback, cloud teardown, or remote pull-request enforcement. The local Git hook remains intentional. The external W1-08 cache remains present pending owner removal and verification; the Excel tracker correction also remains an owner action.

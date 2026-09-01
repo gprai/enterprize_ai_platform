@@ -4,7 +4,9 @@
 
 Week 1 established the governance, repository, typed-configuration, testing, lifecycle-control, and cleanup-verification foundations needed before enterprise AI capability work. It reduced the risk of building the wrong feature, using unapproved data, creating uncontrolled resources, or claiming success without evidence.
 
-The owner teach-back passed, but Week 1 evidence completeness is **QUALIFIED**: nine contemporaneous step-level evidence files were unavailable, and the intended W1-08 pre-commit and secret-scanning control remains an **OPEN CONTROL GAP**. The retrospective records created under `WEEKLY-LEARN-001` disclose those gaps; they do not recreate historical command output or implement W1-08.
+Corrective update: the OPEN CONTROL GAP language retained below records the 2026-08-25 reconciliation snapshot. W1-08 / SEC-003 was subsequently implemented, owner-tested, and granted **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by G P Rai on 2026-09-01.
+
+The owner teach-back passed, but Week 1 evidence completeness remains **QUALIFIED** because nine contemporaneous step-level evidence files were unavailable. At the 2026-08-25 reconciliation point, W1-08 remained an **OPEN CONTROL GAP**; the later SEC-003 corrective task produced owner-tested code/testing **PASS**, with Column N still pending. The retrospective records created under `WEEKLY-LEARN-001` disclose historical gaps rather than recreating command output.
 
 ## 2. Why an enterprise AI platform needs a control foundation
 
@@ -46,9 +48,11 @@ Unit, integration, contract, feature, smoke, security, and teardown tests prove 
 
 The intended quality chain combines Pytest behavior checks, Ruff linting, MyPy type checking, security scanning, and cleanliness verification. These gates are complementary: one passing gate cannot replace another. In particular, ordinary security tests do not replace a pre-commit secret-scanning baseline.
 
-## 11. W1-08 implementation gap
+## 11. W1-08 historical gap and corrective status
 
-W1-08 remains an **OPEN CONTROL GAP**. No verified pre-commit baseline or secret-scanning control exists, and neither validation was run. Any tracker state that presents W1-08 as fully complete requires owner reconciliation. Creating `docs/test-evidence/W1-08-precommit.txt` documents the gap but does not remediate it.
+The original W1-08 gap is preserved as part of the failure and recovery story. The later SEC-003 corrective task established the approved local pre-commit, Ruff, and detect-secrets controls. Owner testing passed and Column N final approval was granted on 2026-09-01.
+
+At the 2026-08-25 reconciliation point, W1-08 was an **OPEN CONTROL GAP**: no verified pre-commit baseline or secret-scanning control existed, and neither validation had run. The later SEC-003 corrective task implemented and owner-tested those controls successfully. The evidence document preserves both the historical gap and the corrective PASS. Final task approval is now granted; the Excel tracker correction remains pending owner action.
 
 ## 12. Makefile command vocabulary
 
@@ -97,7 +101,7 @@ Missing dependencies led to an isolated external environment. DeepEval auto-load
 ## 22. Accepted warnings, evidence gaps and limitations
 
 - Nine contemporaneous step-level evidence files were unavailable.
-- W1-08 pre-commit and secret-scanning controls are missing.
+- W1-08 pre-commit and secret-scanning controls were missing at the historical reconciliation point; the later corrective code/testing gates are **PASS**.
 - The W1-002 dependency-install final summary was not captured.
 - The Starlette/TestClient warning remains an accepted historical limitation.
 - Historical Ruff findings remain classified according to their approved task records.
@@ -107,7 +111,7 @@ Missing dependencies led to an isolated external environment. DeepEval auto-load
 
 ## 23. NOT RUN and INDETERMINATE activities
 
-**NOT RUN:** W1-08 pre-commit validation; W1-08 secret-scanning proof; retrospective W1-03 through W1-11 commands; Terraform apply/destroy; AWS mutation; live AWS cleanup inventory; Kubernetes/EKS; registry push; production deployment, rollback, teardown, performance, availability, or disaster recovery; paid APIs; RAG ingestion; vector retrieval; LLM generation; agents; Git mutation by Codex; Excel modification by Codex.
+**NOT RUN:** retrospective W1-03 through W1-11 commands; opt-in integrations and default-excluded tests; Terraform apply/destroy; AWS mutation; live AWS cleanup inventory; Kubernetes/EKS; registry push; production deployment, live rollback, cloud teardown, performance, availability, or disaster recovery; paid APIs; Git mutation by Codex; Excel modification by Codex. W1-08 pre-commit and detect-secrets verification were historically NOT RUN, then completed successfully during the later corrective task.
 
 **INDETERMINATE:** initial DeepEval telemetry or update-check activity where recorded, and live AWS residual-resource state in approved W1-004 evidence. These classifications must not be converted to PASS, FAIL, or NOT RUN.
 
@@ -117,7 +121,7 @@ The external virtual environment was intentionally retained for later owner work
 
 ## 25. Layman explanation
 
-Week 1 built the rulebook, labeled cupboards, safety switches, inspection checklist, and owner approval desk before installing the AI machinery. Most local safety checks passed, but nine original receipts are missing and one planned door alarm—pre-commit secret scanning—was never installed. The new records admit those facts instead of manufacturing receipts.
+Week 1 built the rulebook, labeled cupboards, safety switches, inspection checklist, and owner approval desk before installing the AI machinery. Nine original receipts remain unavailable. The planned door alarm—pre-commit secret scanning—was initially missing, then installed and owner-tested through the bounded W1-08 corrective task. The records preserve both facts rather than manufacturing history.
 
 ## 26. Owner teach-back record
 
@@ -126,10 +130,11 @@ Week 1 built the rulebook, labeled cupboards, safety switches, inspection checkl
 - Teach-back result: **PASS**
 - Learning result: **PASS with disclosed evidence limitations**
 - Week 1 evidence completeness: **QUALIFIED**
-- W1-08 control completeness: **OPEN CONTROL GAP**
+- W1-08 control completeness at the historical reconciliation point: **OPEN CONTROL GAP**
+- W1-08 / SEC-003 corrective state: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
 - Tracker update responsibility: **Owner**
 
-The teach-back PASS means the owner can explain the design. It does not convert W1-08 to PASS or make unavailable evidence available.
+The teach-back PASS means the owner can explain the design. The later W1-08 owner-tested result—not the teach-back—establishes the corrective code/testing PASS. It does not make unavailable historical evidence available.
 
 ## 27. Five interview questions with answer points
 
@@ -139,15 +144,15 @@ The teach-back PASS means the owner can explain the design. It does not convert 
 4. **What is the deterministic-fake trade-off?** Fast, private, repeatable, cost-free tests cannot prove live provider behavior.
 5. **What is the Week 1 evidence lesson?** Aggregate evidence can support a historical outcome, but missing step-level output must be disclosed, never recreated.
 
-## 28. W1-08 remediation handover
+## 28. W1-08 corrective outcome and remaining handover
 
-Create a separately bounded W1-08 implementation prompt. Inspect existing hooks; choose exact pre-commit, formatting, linting, and secret-scanning controls; define fake-secret tests without real credentials; update every quality-gate consumer; obtain Code Edit Approval; let the owner install and verify; create contemporaneous evidence from owner results; and reconcile sign-off/tracker only after final approval.
+The bounded SEC-003 corrective task implemented local pre-commit controls, deterministic Ruff checks, an owner-reviewed detect-secrets baseline, safe synthetic-fixture tests, and residue checks. The owner installed and verified the local hook, completed the approved validation sequence, and granted final approval on 2026-09-01.
 
-Responsible owner: Gyan Prakash Rai. Target: before W3-001 or before any production/cloud deployment, whichever occurs first.
+Responsible owner: G P Rai. Remaining actions: update the Excel tracker, then remove and verify removal of the exact task-specific external cache.
 
 ## 29. Week 2 dependency and handover
 
-Week 2 may rely on approved governance, MVP scope, repository identity, typed configuration, local test categories, deterministic fakes, lifecycle contracts, and the provider-free Terraform-root structure. It may not infer complete Week 1 step evidence, a completed W1-08 control, live AWS behavior, production readiness, or cloud cleanliness.
+Later tasks may rely on approved governance, MVP scope, repository identity, typed configuration, local test categories, deterministic fakes, lifecycle contracts, provider-free Terraform-root structure, and the finally approved W1-08 local quality gates. They may not infer complete Week 1 step evidence, live AWS behavior, production readiness, or cloud cleanliness.
 
 ## 30. Final Owner Approval
 
@@ -161,17 +166,17 @@ Week 2 may rely on approved governance, MVP scope, repository identity, typed co
 - Teach-back result: **PASS**
 - Learning result: **PASS WITH DISCLOSED LIMITATIONS**
 - Evidence completeness: **QUALIFIED**
-- W1-08 control status: **OPEN CONTROL GAP**
-- Accepted warnings, risks and gaps: nine unavailable contemporaneous step records; missing W1-08 controls; W1-002 installation-summary gap; historical Starlette/TestClient warning and Ruff limitations; retained external environment and disk usage; task-specific historical reviewer/date gaps; dirty W2-era baseline excluded from W1 evidence.
-- NOT RUN: retrospective W1-03 through W1-11 execution; W1-08 verification; live Terraform/AWS; deployment, rollback and cloud teardown; paid, RAG, vector, LLM, agent, production and resilience activities.
+- W1-08 control status at the 2026-08-25 reconciliation: **OPEN CONTROL GAP**; final corrective state on 2026-09-01: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+- Accepted warnings, risks and gaps: nine unavailable contemporaneous step records; historical W1-08 gap before remediation; W1-002 installation-summary gap; accepted Starlette/TestClient warning; retained external environment and task cache; task-specific historical reviewer/date gaps; dirty later-week baseline excluded from historical W1 evidence.
+- NOT RUN: retrospective W1-03 through W1-11 execution; opt-in integrations and default-excluded tests; live Terraform/AWS; paid services; deployment, live rollback and cloud teardown; production and resilience activities.
 - INDETERMINATE: initial DeepEval telemetry/update-check activity and live AWS residual-resource state where historically recorded.
 - Lifecycle and retained resources: local/mock cleanup remains scoped; no cloud deployment or teardown occurred; the external Python environment and owner-managed W2 working-tree changes remain retained.
-- Deferred action: Gyan Prakash Rai owns a new bounded W1-08 implementation and tracker-reconciliation task before W3-001 or production/cloud deployment, whichever occurs first.
-- Next-task handover: later tasks may rely on the approved local control foundation, but not on complete W1 evidence, W1-08 completion, live AWS behavior or production readiness.
+- Deferred action: G P Rai owns the Excel tracker correction and removal verification for the exact W1-08 external cache.
+- Next-task handover: later tasks may rely on the approved local control foundation and W1-08 quality gates, but not on complete historical W1 evidence, live AWS behavior, or production readiness.
 - Final status: **APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION**
 - Tracker update responsibility: **Owner**
 
-The detailed historical learning narrative below is retained as supporting context. Where it previously implied unqualified completion, this reconciliation's **QUALIFIED** evidence status and **OPEN CONTROL GAP** govern.
+The detailed historical learning narrative below is retained as supporting context. The evidence status remains **QUALIFIED** because historical step records are unavailable; the later W1-08 corrective code/testing PASS supersedes only the earlier control-gap status.
 
 ## Learning status
 
@@ -281,4 +286,62 @@ The owner demonstrated the failure-and-recovery story by identifying the missing
 
 ## Learning conclusion
 
-The owner teach-back for `WEEKLY-LEARN-001` is **PASS**. Week 1 evidence completeness remains **QUALIFIED**, the W1-08 implementation remains an **OPEN CONTROL GAP**, and the 18-document reconciliation is **APPROVED WITH QUALIFICATIONS**. The owner can explain the Week 1 business outcome, architecture position, decisions, trade-offs, failure and recovery history, and the difference between local evidence and live-cloud proof.
+The owner teach-back for `WEEKLY-LEARN-001` is **PASS**. Week 1 evidence completeness remains **QUALIFIED** because historical step evidence is unavailable. The later W1-08 / SEC-003 corrective code/testing gates are **PASS**, while Column N is pending. The owner can explain the Week 1 business outcome, architecture position, decisions, trade-offs, failure and recovery history, and the difference between local evidence and live-cloud proof.
+
+## W1-08 / SEC-003 corrective learning update — Column M
+
+### Business and architecture outcome
+
+The corrective task closed the local commit-time quality-control gap that could otherwise allow unformatted code or unreviewed secret-like content to enter a commit. These controls sit between a developer change and the Git commit: Ruff checks code quality and deterministic formatting, while detect-secrets compares findings with an owner-reviewed baseline. The installed hook gives immediate local feedback; it is not remote pull-request enforcement.
+
+### Approved implementation and integrity sequence
+
+- Commit A established the formatted security-control baseline: 38a655709abb84fa8b8fe6b54b0b98b90eb6cb3c.
+- Commit B established the RAG integrity baseline: bd7a82039ee1d8b3a789b9e0db9dd893d1c36745.
+- Commit C established the release integrity baseline: a981bc75481f1da27ffffb2a4c3a3759334d5d94.
+- The detect-secrets baseline contains 23 owner-reviewed paths and 278 hashed non-secret findings. It contains no approved plaintext credential or PII.
+- Release validation passed for the complete 99-artifact inventory.
+
+### Owner-executed results
+
+- Scoped and all-files pre-commit: **PASS**.
+- Ruff lint and Ruff format: **PASS**.
+- Detect-secrets: **PASS**.
+- MyPy: **PASS** for 106 source files.
+- Full Pytest suite: **PASS** — 734 passed, 7 skipped, 4 deselected, and 10 subtests passed.
+- Teardown: **PASS** — 62 passed.
+- Release validation and platform validation: **PASS**.
+- Path, hash, status, staging, whitespace, and unexpected tracked-file mutation controls: **PASS**.
+
+### Failure and recovery lesson
+
+The first all-files gate did not pass because it exposed pre-existing repository-wide formatting and secret-classification work. Formatting was split into bounded F1, F2, and F3 phases. Synthetic secret-shaped fixtures were constructed only at runtime. The owner reviewed the baseline inventory before it was accepted. Follow-up contract failures involving syntax, layout, Windows paths, digest shape, and filter metadata were corrected through small approved changes and repeated owner testing. RAG and release integrity metadata was then rebaselined, rather than leaving stale hashes or weakening integrity checks.
+
+### Trade-offs and accepted limitations
+
+Cache closure decision: the owner elected to remove and verify the exact W1-08 external cache after Column N. Until that owner action is completed, the cache remains present and cleanup remains **PENDING OWNER ACTION**.
+
+- Local hooks provide fast, deterministic feedback, but do not create remote CI enforcement.
+- A reviewed baseline prevents known non-secret identifiers from blocking every commit, but any new or changed finding remains blocking and requires owner review.
+- The accepted Starlette/TestClient warning remains non-blocking.
+- Opt-in integrations and default-excluded tests were **NOT RUN**.
+- Live AWS, paid services, deployment, live rollback, and cloud teardown were **NOT RUN** and outside this task.
+- Initial DeepEval telemetry or update-check activity remains **INDETERMINATE**.
+- The installed local Git hook is intentionally retained.
+- The external cache at E:AI.pre-commit-cacheenterprise-ai-platform-w1-08 is retained only through Column N. The owner must then remove it or explicitly approve continued retention and record its purpose and disk impact.
+
+### Interview talking points
+
+1. Pre-commit is a local policy checkpoint before a Git commit; it is not a substitute for server-side CI.
+2. A secret baseline stores hashes for reviewed non-secret findings so known identifiers are distinguished from new findings without storing plaintext secrets.
+3. Runtime construction keeps complete synthetic secret-shaped values out of committed source while still proving detectors and redaction behavior.
+4. Integrity rebaselining updates trustworthy hashes after approved byte changes; it must not weaken artifact inventories or invent commit identities.
+5. The most important recovery lesson is to preserve failures, make the smallest approved correction, and rerun the affected and full regression gates.
+
+### Approved baseline and next-task handover
+
+- Approval reviewer: G P Rai
+- Approval date: 2026-09-01
+- Final decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+
+W1-08 and SEC-003 are finally approved. Later tasks may rely on the approved local pre-commit, Ruff, secret-scanning, testing, teardown, RAG-integrity, and release-integrity foundations. This approval does not prove live AWS behavior, paid-service behavior, deployment, live rollback, or cloud teardown. Remote pull-request enforcement remains outside this corrective task. The Excel tracker correction and external-cache removal remain owner actions.
