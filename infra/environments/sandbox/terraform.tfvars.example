@@ -1,0 +1,197 @@
+# W5-INPUTS-001 — non-secret sandbox owner-input contract
+# Status: Final — Approved
+#
+# WARNING: This file must never contain credentials, access keys, secret keys,
+# session tokens, passwords, private keys, GitHub tokens, or live role sessions.
+# It is an inert input example only. No Terraform variable declarations consume
+# these values yet, and this file authorizes no Terraform, AWS, GitHub, network,
+# deployment, rollback, or teardown activity.
+#
+# Account purpose: personal learning sandbox; sandbox/non-production only.
+# Human access: short-lived federated AWS IAM Identity Center/SSO access.
+# Account owner, service-verification owner, network owner, escalation owner,
+# cost owner, stop-work authority, and KMS follow-up owner: Gyan Prakash Rai.
+#
+# Global Cross-Region is the owner-approved Bedrock processing-policy label.
+# It is not an AWS Region identifier and does not enumerate or approve concrete
+# destination Regions. aws_region and bedrock_region are validated independently.
+# Silent model, provider, inference-profile, application-region, or fallback-
+# region substitution is prohibited.
+
+aws_account_id = "526338061652"
+
+aws_region = "ap-southeast-1"
+
+aws_fallback_region = null
+
+network_ownership_mode = "project_owned"
+
+vpc_id = null
+
+private_subnet_ids = []
+
+vpc_cidr = "10.60.0.0/16"
+
+private_subnet_cidrs = [
+  "10.60.10.0/24",
+  "10.60.11.0/24",
+]
+
+dns_domain = null
+
+egress_mode = "private_endpoints_only"
+
+vpc_endpoint_services = [
+  "S3",
+  "DynamoDB",
+  "ECR API/DKR",
+  "EKS",
+  "STS",
+  "CloudWatch Logs",
+  "KMS",
+  "Secrets Manager",
+  "Bedrock Runtime",
+]
+
+allow_public_ingress = false
+
+allow_nat_gateway = false
+
+mandatory_tags = {
+  Project     = "enterprise-ai-platform"
+  Environment = "sandbox"
+  Owner       = "Gyan-Prakash-Rai"
+  ManagedBy   = "terraform"
+  CostCenter  = "Personal-Learning"
+  Feature     = "MVP-001"
+  ExpiresAt   = "TODO_OWNER"
+  Repository  = "enterprise-ai-platform"
+}
+
+# This field is a processing-policy field, not a concrete AWS Region allowlist.
+allowed_data_regions = ["Global Cross-Region"]
+
+permitted_data_classifications = [
+  "PUBLIC",
+  "INTERNAL",
+]
+
+monthly_budget_usd = 60
+
+daily_budget_alert_usd = 3
+
+max_paid_evaluation_usd = 5
+
+kms_deletion_window_days = 7
+
+kms_follow_up_owner = "Gyan Prakash Rai"
+
+github_organization = "gprai"
+
+github_repository = "enterprise-ai-platform"
+
+github_environment = "sandbox"
+
+github_oidc_role_name = "enterprise-ai-platform-sandbox-github-oidc"
+
+github_allowed_ref = "refs/heads/main"
+
+# Converse runtime target for the owner-selected Amazon Nova 2 Lite candidate.
+# The underlying model identity is documented only in W5-inputs.md. The
+# owner-recorded lifecycle status is Active.
+bedrock_model_id = "global.amazon.nova-2-lite-v1:0"
+
+bedrock_region = "ap-southeast-1"
+
+bedrock_access_status = "pending_verification"
+
+# null means None: no automatic model, provider, inference-profile, or Region
+# fallback is approved.
+bedrock_fallback_policy = null
+
+# Service availability and account quotas remain pending_verification for
+# Bedrock, OpenSearch, EKS, KMS, S3, DynamoDB, and any later service.
+#
+# ExpiresAt is the only approved unresolved tfvars value. The owner must replace
+# TODO_OWNER immediately before the applicable plan/apply review with an ISO-8601
+# UTC timestamp no more than 24 hours after resource creation. The historical
+# 2026-12-27T23:59:59Z date is a review deadline, not a resource expiry.
+#
+# Only synthetic, non-production, non-sensitive PUBLIC or INTERNAL data is
+# permitted. Credentials, PII, CONFIDENTIAL, RESTRICTED, production, and real
+# tenant data are prohibited. EKS, observability, SLO, cloud execution, and all
+# deployment lifecycle work remain deferred and NOT RUN.
+
+# Final Owner Approval — W5-INPUTS-001
+#
+# Prompt/task ID: W5-INPUTS-001
+# Reviewer: Gyan Prakash Rai
+# Reviewer role: Project Owner and Final Approval Reviewer
+# Decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+# Approval date and time/timezone: 2026-09-03 12:59:21 SGT
+# Final status: APPROVED FOR USER TRACKER UPDATE — W5-INPUTS-001
+#
+# Code/configuration review status: Approved only for this inert, non-secret,
+# 30-key example contract. No executable Terraform variable, provider, backend,
+# module, resource, policy, application, schema, or test implementation is
+# approved or claimed.
+# Documentation review status: Approved. This file and W5-inputs.md are closed
+# together as the complete two-document Column M manifest.
+# Owner-executed test status: NOT RUN — automated testing was not required for
+# this content-only task. The exact owner decision label above does not convert
+# testing, cloud access, or integration activity to PASS.
+#
+# Final reconciliation results:
+# - Column L bounded content creation: PASS
+# - File-count reconciliation: PASS
+# - Cross-file value reconciliation: PASS
+# - Secret/credential exclusion review: PASS
+# - Automated tests: NOT RUN — not required for this content task
+# - Terraform, AWS, Bedrock, GitHub, deployment, rollback, and teardown: NOT RUN
+# - Open FAIL: None
+# - Open INDETERMINATE: None within the Column M content preflight
+#
+# Accepted warnings, risks, evidence gaps, and scope limitations: All items in
+# the approved W5-INPUTS-001 Column M manifest are accepted; no additional item
+# is silently accepted. This includes Global Cross-Region processing, no fixed
+# destination Region, synthetic non-production data only, unverified model
+# access/quotas/network endpoints, policy-only budgets, unresolved ExpiresAt,
+# and no production, reliability, security, cost, or deployment-readiness claim.
+#
+# NOT RUN and INDETERMINATE: Every NOT RUN activity remains NOT RUN and none is
+# converted to PASS. Historical INDETERMINATE facts are preserved. Remaining
+# open INDETERMINATE activities: None. Account access, quota, compatibility, and
+# service availability remain pending_verification rather than PASS.
+#
+# ExpiresAt condition: TODO_OWNER remains unresolved. Gyan Prakash Rai owns the
+# later replacement immediately before plan/apply with an ISO-8601 UTC value no
+# more than 24 hours after resource creation. This approval does not supply or
+# approve a resource expiry.
+#
+# Deployment status: Local service startup, local deployment, production
+# deployment, and cloud deployment were NOT RUN. No service, container, model,
+# network, or cloud resource was created.
+# Rollback status: Runtime, operational, deployment, infrastructure, and cloud
+# rollback were NOT RUN. Future removal before commit requires owner approval;
+# after commit, reversal is owner-controlled Git work under separate authority.
+# Teardown status: Runtime, service, container, network, and cloud teardown were
+# NOT RUN because no such resource was created.
+# Residual resources: The two approved CREATE files only. Pre-existing owner-
+# controlled workbook, Office-lock, and .vscode items were preserved unchanged.
+# Provider/cloud cost: None incurred by this content task.
+#
+# Deferred work: Every Column M deferral remains open. Responsible owner: Gyan
+# Prakash Rai unless another owner is explicitly recorded. This includes W5-02
+# Terraform design, GitHub OIDC implementation, EKS-001, OBS-001, SLO-001,
+# ADR-015, access/quota/network/cost validation, and all cloud lifecycle work.
+#
+# Conditions: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk,
+# limitation, deferred-work, and residual-resource fact; close both manifest
+# documents together; only the owner updates Excel and performs Git mutation;
+# do not infer production or cloud readiness from local, fake, mocked, injected,
+# or documentation-only evidence.
+# Next-task handover: W5-02 is not authorized by this approval and requires its
+# own governed prompt and gates. The external pre-commit cache must be removed
+# and verified absent before W5-02, and ExpiresAt must be supplied before the
+# applicable plan/apply gate.
+# Tracker update responsibility: Owner
