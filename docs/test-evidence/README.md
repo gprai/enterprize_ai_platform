@@ -730,3 +730,86 @@ Column N closed this README entry and
 > **W1-08 / SEC-003 final closure — 2026-09-01:** **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by G P Rai. Scoped and all-files pre-commit, Ruff lint/format, the owner-reviewed detect-secrets baseline, MyPy, full Pytest, teardown, release validation, platform validation, and path/hash/status/staging/whitespace controls passed. Historical OPEN CONTROL GAP and failure records remain preserved as dated evidence; any earlier pending Column N wording is superseded by this closure.
 >
 > **Approved baseline and next-task handover:** Later tasks may rely on the approved local pre-commit, Ruff, secret-scanning, testing, teardown, RAG-integrity, and release-integrity foundations. This does not prove live AWS, paid services, deployment, live rollback, cloud teardown, or remote pull-request enforcement. The local Git hook remains intentional. The external W1-08 cache remains present pending owner removal and verification; the Excel tracker correction also remains an owner action.
+
+## W5-001 AWS sandbox infrastructure and Bedrock verification
+
+W5-001 testing is **CLOSED** with a formal overall **FAIL**. The owner accepts
+the failure as a documented Amazon Nova 2 Lite response limitation. Acceptance
+does not convert FAIL to PASS, establish release eligibility or establish
+production readiness.
+
+Column M documents:
+
+1. [W5-001 aggregate evidence](W5-001.md) — business, implementation, testing,
+   cost, evidence, limitations and lifecycle summary.
+2. [W5-02 bootstrap evidence](W5-02-bootstrap.txt) — static Terraform state
+   boundary, validation and cleanup evidence; plan/apply remain NOT RUN.
+3. [W5-02 Bedrock verification evidence](W5-02-bedrock-verification.txt) — AWS
+   identity, model, quotas, paid runs, costs and the final live-model FAIL.
+4. [W5-03 security evidence](W5-03-security.txt) — Checkov, OPA, TFLint, IAM
+   restrictions, historical findings and accepted sandbox limitations.
+5. [W5-04 IAM evidence](W5-04-iam.txt) — verified caller and static role, trust,
+   expiry, wildcard and bounded-resource controls.
+6. [W5-05 platform-plan boundary](W5-05-platform-plan.txt) — prominently records
+   that Terraform plan, apply, deployment, rollback and cloud teardown were
+   NOT RUN.
+
+The latest local quality evidence passed with 798 Pytest tests, 7 owner-
+controlled skips, 4 deselections and 10 subtests; Ruff, MyPy across 107 source
+files, platform validation, Terraform formatting and both root validations
+passed. Checkov 3.3.16 recorded 226 passed, 0 failed and 20 approved sandbox
+skips. OPA 1.20.0 passed 6/6 synthetic policy tests. TFLint 0.60.0 with AWS
+ruleset 0.48.0 was owner-reported PASS after approved remediation. One
+Starlette/httpx deprecation warning remains accepted and unresolved.
+
+The final [local Run 16 result](../../reports/verification/W5-001-20260904-16/result.json)
+records 25 provider requests and USD 0.005007339. Identity, model/profile,
+quota, access, pricing, smoke, citations, security and cost controls passed.
+The live hard gate failed Q15, Q18 and Q22 because Nova weakened or omitted
+mandatory control wording. Q1, Q2, Q4, Q21 and Q22 also missed the lexical
+exact-match gate; Q2 retains an unresolved completeness concern. All 24 live
+answers remain pending semantic owner review. No Run 16 owner-review.json or
+final.json exists.
+
+Runs 04 and 12 remain FAIL after owner semantic review. Run 08 and other
+unreconciled account-read-only results remain INDETERMINATE. Dry-run and
+smoke-only NOT RUN results remain NOT RUN. Historical failures and separately
+passing remediation reruns remain preserved. Retained run directories 01–16
+record USD 0.01929582, but this is not the complete historical cost because
+earlier paid attempts predate immutable run-scoped evidence.
+
+No Terraform plan/apply, application or AWS infrastructure deployment,
+operational/infrastructure/cloud rollback, or cloud teardown occurred. No
+cloud resource or cloud residual exists. Local Terraform initialization cleanup
+passed. `reports/verification/` and owner-managed OPA, TFLint, plugin-cache and
+isolated Checkov tooling are intentional local residual artifacts; the reports
+directory is excluded from Git. Local/static PASS results and bounded AWS
+access must not be represented as production proof.
+
+### Final Owner Approval — W5-001
+
+- Prompt/task ID: `W5-001`.
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Exact final decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**.
+- Decision date/time/timezone: **2026-09-04 14:27:21 SGT**.
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W5-001**. The documentation is closed while the formal test result remains FAIL.
+- Code and configuration review status: **APPROVED within the bounded W5-001 implementation/evidence scope**; no deployment, release eligibility or production readiness is approved.
+- Documentation review status: **APPROVED**. This index and all six linked W5-001 documents are closed together without partial closure.
+- Owner-executed test status: **FORMAL OVERALL FAIL**. Local/static checks and bounded AWS identity/model/quota/smoke/cost controls passed as indexed; Run 16 failed Q15, Q18 and Q22.
+- Formal test result: **FAIL**.
+- Testing lifecycle: **CLOSED**.
+- Accepted model limitation: Amazon Nova 2 Lite response variability and mandatory-control weakening are accepted as documented; FAIL is not converted to PASS.
+- Accepted warnings, risks, gaps and limitations: **All items in the approved Column M manifest are accepted; no additional item is silently accepted.** This includes the Starlette/httpx warning, sandbox skips, historical failures, Q2 concern, 24 pending semantic reviews, incomplete cost, local residue, Global Cross-Region processing and no production proof.
+- NOT RUN and INDETERMINATE activities: Every recorded NOT RUN remains NOT RUN, including skipped/deselected integrations, Terraform plan/apply, deployment, production validation, rollback and cloud teardown. Every historical INDETERMINATE result remains preserved. **Remaining open INDETERMINATE activities: None.** Pending semantic review is not converted to a reviewed result.
+- Deployment facts: Local application/service, production and AWS/cloud infrastructure deployment were **NOT RUN**; no cloud resource was deployed.
+- Rollback facts: Application, infrastructure and cloud rollback were **NOT RUN**. Local initialization-residue cleanup **PASS** is cleanup rather than rollback.
+- Teardown facts: Cloud teardown/destroy was **NOT RUN** because no cloud resource existed; no teardown PASS is claimed.
+- Residual resources: Git-excluded local verification reports and owner-managed OPA, TFLint/plugin-cache and isolated Checkov tooling remain retained; cloud resources/residuals are none.
+- Deferred actions and owners: All recorded deferrals remain open. Responsible owner: **Gyan Prakash Rai**, unless another owner is explicitly recorded.
+- Approval conditions: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferral and residual-resource fact; only the owner changes Excel/Git; do not infer production/cloud readiness from local, fake, mocked, injected, static or bounded evidence.
+- Next-task handover: The owner may update the W5-001 tracker row. No plan/apply, deployment, further paid evaluation or next prompt is authorized by this closure; future work requires separate approval.
+- Tracker update responsibility: **Owner**.
+
+Column N closed this README entry and all six linked W5-001 documents together.
+No partial closure occurred, and the formal FAIL remains FAIL.

@@ -36,10 +36,10 @@ REQUIRED_APPROVAL_FIELDS = frozenset(
 FIXED_TAG_VALUES: Mapping[str, str] = {
     "Project": "enterprise-ai-platform",
     "Owner": "Gyan-Prakash-Rai",
-    "ManagedBy": "Terraform",
-    "CostCenter": "PERSONAL-LEARNING",
+    "ManagedBy": "terraform",
+    "CostCenter": "Personal-Learning",
     "Feature": "MVP-001",
-    "Repository": "enterprize_ai_platform",
+    "Repository": "enterprise-ai-platform",
 }
 
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")

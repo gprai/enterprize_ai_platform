@@ -81,9 +81,11 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tests/teardown/test_w3_002_evaluation_cleanliness.py": {"Hex High Entropy String": 1},
     "tests/teardown/test_w3_003_guardrails_cleanliness.py": {"Hex High Entropy String": 3},
     "tests/teardown/test_w3_004_rag_rollback_cleanliness.py": {"Hex High Entropy String": 6},
+    "tests/unit/test_bedrock_owner_verify.py": {"Hex High Entropy String": 1},
     "tests/unit/test_evaluation_runner.py": {"Hex High Entropy String": 1},
     "tests/unit/test_prompt_template.py": {"Hex High Entropy String": 1},
     "tests/unit/test_retrieval_service.py": {"Hex High Entropy String": 1},
+    "tools/bedrock_owner_verify.py": {"Hex High Entropy String": 1},
     "tools/platformctl/aws_inventory.py": {"Secret Keyword": 1},
 }
 EXPECTED_REVIEWED_LINE_COUNTS = {
@@ -158,9 +160,11 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         21: 1,
         23: 1,
     },
+    "tests/unit/test_bedrock_owner_verify.py": {367: 1},
     "tests/unit/test_evaluation_runner.py": {214: 1},
     "tests/unit/test_prompt_template.py": {35: 1},
     "tests/unit/test_retrieval_service.py": {142: 1},
+    "tools/bedrock_owner_verify.py": {71: 1},
     "tools/platformctl/aws_inventory.py": {23: 1},
 }
 EXPECTED_BASELINE_FINDING_KEYS = {
@@ -296,6 +300,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
+    assert len(results) == 25
+    assert sum(len(findings) for findings in results.values()) == 280
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

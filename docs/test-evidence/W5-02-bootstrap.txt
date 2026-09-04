@@ -1,0 +1,105 @@
+W5-02 — TERRAFORM BOOTSTRAP STATIC EVIDENCE
+============================================================
+
+FORMAL W5-001 RESULT: FAIL
+TESTING LIFECYCLE: CLOSED
+OWNER DISPOSITION: Failure accepted as an Amazon Nova 2 Lite model-response limitation.
+This acceptance does not convert FAIL to PASS or establish production readiness.
+
+Purpose and boundary
+--------------------
+
+The bootstrap Terraform root defines the proposed learning-sandbox remote-state
+boundary: a dedicated KMS key and alias, versioned and encrypted S3 state
+bucket, DynamoDB lock table, public-access blocks, non-TLS deny policy,
+owner-expiry precondition and mandatory tags. The S3 bucket is configured with
+force_destroy=false. Its lifecycle configuration aborts incomplete multipart
+uploads after seven days. DynamoDB uses point-in-time recovery and KMS
+encryption.
+
+These are configuration-design facts only. Terraform was never planned or
+applied, no backend was created, and no AWS resource or Terraform state was
+created.
+
+Owner-observed results
+----------------------
+
+- Terraform formatting: PASS after approved formatting corrections.
+- Bootstrap Terraform initialization with the backend disabled: PASS.
+- Bootstrap Terraform configuration validation: PASS.
+- Static Terraform security checks: PASS within the recorded Checkov, OPA and
+  TFLint boundaries.
+- Terraform initialization-residue cleanup: PASS.
+- Terraform plan: NOT RUN.
+- Terraform apply: NOT RUN.
+- Terraform destroy: NOT RUN.
+
+Static state-boundary controls
+------------------------------
+
+- Region is fixed to ap-southeast-1.
+- The bounded state bucket name is
+  enterprise-ai-platform-sbx-tfstate-526338061652-ap-southeast-1.
+- Public ACLs and public policies are blocked.
+- Bucket ownership is enforced and versioning is enabled.
+- State encryption uses the dedicated customer-managed KMS key.
+- Non-TLS access is denied for the exact bucket and its objects.
+- The KMS key-policy Resource="*" represents only the attached key and is
+  bounded by enumerated actions and exact account principals; kms:* is absent.
+- The owner must replace TODO_OWNER with a future UTC ExpiresAt no more than 24
+  hours after creation before any applicable plan/apply review.
+
+Security history and limitations
+--------------------------------
+
+The state-bucket lifecycle gap identified by Checkov was remediated and passed
+on rerun. The historical finding remains recorded. Approved Checkov exceptions
+cover the bounded sandbox's lack of event notifications, cross-region
+replication and access logging; those production-oriented controls were not
+silently represented as implemented.
+
+Formatting and validation do not establish deployability, service
+availability, account authorization, backend creation, resilience, recovery
+or production readiness. No real Terraform plan JSON exists and no real-plan
+OPA evaluation occurred.
+
+Deployment, rollback, teardown and residue
+------------------------------------------
+
+- Application deployment: NOT RUN.
+- AWS infrastructure deployment: NOT RUN.
+- Infrastructure/cloud rollback: NOT RUN.
+- Cloud teardown/destroy: NOT RUN.
+- Cloud resources created: none.
+- Cloud residual resources: none.
+- Local Terraform initialization-residue cleanup: PASS.
+- Intended Terraform source files remain retained repository artifacts.
+
+No cloud teardown PASS is claimed because no cloud resource existed and no
+cloud teardown command was run.
+
+Final Owner Approval — W5-001
+--------------------------------
+
+- Prompt/task ID: W5-001.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Exact final decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Decision date/time/timezone: 2026-09-04 14:27:21 SGT.
+- Final status: APPROVED FOR USER TRACKER UPDATE — W5-001. The formal test result remains FAIL.
+- Code and configuration review status: APPROVED within the bounded W5-001 bootstrap/static implementation scope; no plan, apply, deployment or production readiness is approved.
+- Documentation review status: APPROVED as one of seven W5-001 Column M documents closed together.
+- Owner-executed test status: FORMAL OVERALL FAIL. Bootstrap formatting, backend-disabled initialization, validation, static security and initialization-residue cleanup passed; the W5-001 live Bedrock hard gate failed Q15, Q18 and Q22.
+- Formal test result: FAIL.
+- Testing lifecycle: CLOSED.
+- Accepted model limitation: Amazon Nova 2 Lite response variability is accepted as documented; FAIL is not converted to PASS.
+- Accepted warnings, risks, gaps and limitations: All approved Column M items are accepted, including the unresolved Starlette/httpx warning, approved sandbox security deviations, no real plan/backend/deployment proof, pending semantic reviews, incomplete historical cost and no production-readiness claim.
+- NOT RUN and INDETERMINATE activities: Terraform plan/apply/destroy, application/AWS deployment, infrastructure/cloud rollback and cloud teardown remain NOT RUN. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+- Deployment facts: Local application, production and AWS/cloud infrastructure deployment were NOT RUN; no backend or resource was created.
+- Rollback facts: Infrastructure and cloud rollback were NOT RUN. Local initialization-residue cleanup PASS is cleanup, not rollback.
+- Teardown facts: Cloud teardown/destroy was NOT RUN; no cloud teardown PASS is claimed.
+- Residual resources: Intended Terraform source plus local reports and owner-managed tools remain; cloud resources and cloud residuals are none.
+- Deferred actions and owners: All deferrals remain open; responsible owner is Gyan Prakash Rai unless another owner is explicitly recorded.
+- Approval conditions: Preserve all recorded statuses, warnings, risks, limitations, deferrals and residue; only the owner changes Excel/Git; do not infer deployment or production readiness.
+- Next-task handover: A future Terraform plan, apply, backend deployment or lifecycle operation requires a separate governed approval.
+- Tracker update responsibility: Owner.

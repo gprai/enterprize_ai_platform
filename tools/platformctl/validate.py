@@ -440,6 +440,80 @@ EXPECTED_RELEASE_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": ["W4-11"],
 }
+EXPECTED_AWS_IMPLEMENTATION_PATHS = (
+    ".tflint.hcl",
+    "infra/bootstrap/variables.tf",
+    "infra/bootstrap/outputs.tf",
+    "infra/environments/sandbox/variables.tf",
+    "infra/environments/sandbox/outputs.tf",
+    "infra/environments/sandbox/backend.hcl.example",
+    "infra/modules/network/main.tf",
+    "infra/modules/network/variables.tf",
+    "infra/modules/network/outputs.tf",
+    "infra/modules/kms/main.tf",
+    "infra/modules/kms/variables.tf",
+    "infra/modules/kms/outputs.tf",
+    "infra/modules/storage/main.tf",
+    "infra/modules/storage/variables.tf",
+    "infra/modules/storage/outputs.tf",
+    "infra/modules/secrets/main.tf",
+    "infra/modules/secrets/variables.tf",
+    "infra/modules/secrets/outputs.tf",
+    "infra/modules/iam/main.tf",
+    "infra/modules/iam/variables.tf",
+    "infra/modules/iam/outputs.tf",
+    "infra/modules/opensearch/main.tf",
+    "infra/modules/opensearch/variables.tf",
+    "infra/modules/opensearch/outputs.tf",
+    "infra/modules/ecr/main.tf",
+    "infra/modules/ecr/variables.tf",
+    "infra/modules/ecr/outputs.tf",
+    "policies/opa/terraform_plan.rego",
+    "policies/opa/terraform_plan_test.rego",
+    "tests/contract/test_terraform_module_contract.py",
+    "tests/security/test_terraform_security.py",
+    "tests/feature/test_terraform_sandbox_plan.py",
+    "tests/teardown/test_terraform_state_boundary.py",
+    ".gitignore",
+    "pyproject.toml",
+    "requirements-dev.txt",
+    "infra/bootstrap/main.tf",
+    "infra/bootstrap/versions.tf",
+    "infra/environments/sandbox/main.tf",
+    "infra/environments/sandbox/versions.tf",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/contracts.py",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/unit/test_platformctl_lifecycle.py",
+    "tests/integration/test_dependency_contract.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+    "tests/teardown/test_repository_cleanliness.py",
+    "tests/teardown/test_w1_002_cleanliness.py",
+    "tests/teardown/test_platformctl_cleanup.py",
+)
+EXPECTED_AWS_FEATURE = {
+    "id": "AWS-001",
+    "implementation_paths": list(EXPECTED_AWS_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W5-02", "W5-03", "W5-04", "W5-05"],
+}
+EXPECTED_BEDROCK_IMPLEMENTATION_PATHS = (
+    "configs/verification/bedrock-owner-test.json",
+    "tools/bedrock_owner_verify.py",
+    "tests/unit/test_bedrock_owner_verify.py",
+    "tests/security/test_bedrock_owner_verify_security.py",
+    "tests/teardown/test_bedrock_owner_verify_cleanliness.py",
+)
+EXPECTED_BEDROCK_FEATURE = {
+    "id": "BED-001",
+    "implementation_paths": list(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W5-02"],
+}
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -448,6 +522,8 @@ EXPECTED_FEATURES = (
     EXPECTED_AGENT_FEATURE,
     EXPECTED_OBSERVABILITY_FEATURE,
     EXPECTED_RELEASE_FEATURE,
+    EXPECTED_AWS_FEATURE,
+    EXPECTED_BEDROCK_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     ".pre-commit-config.yaml",
@@ -469,6 +545,7 @@ REQUIRED_DIRECTORIES = (
     "configs/observability",
     "configs/releases",
     "configs/releases/versions",
+    "configs/verification",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -496,6 +573,13 @@ REQUIRED_DIRECTORIES = (
     "tools/platformctl",
     "infra/bootstrap",
     "infra/modules",
+    "infra/modules/network",
+    "infra/modules/kms",
+    "infra/modules/storage",
+    "infra/modules/secrets",
+    "infra/modules/iam",
+    "infra/modules/opensearch",
+    "infra/modules/ecr",
     "infra/environments/sandbox",
     "tests/unit",
     "tests/integration",
@@ -507,6 +591,7 @@ REQUIRED_DIRECTORIES = (
     "tests/rollback",
     "tests/teardown",
     "policies",
+    "policies/opa",
 )
 
 REQUIRED_FILES = (
@@ -571,6 +656,8 @@ REQUIRED_FILES = (
     *EXPECTED_AGENT_IMPLEMENTATION_PATHS,
     *EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     *EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
+    *EXPECTED_AWS_IMPLEMENTATION_PATHS,
+    *EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
     *EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
@@ -624,7 +711,7 @@ def validate_feature_matrix(data: object) -> list[str]:
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
             "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001, "
-            "REL-001"
+            "REL-001, AWS-001, BED-001"
         )
 
     return errors

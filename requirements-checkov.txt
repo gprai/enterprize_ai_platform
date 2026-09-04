@@ -1,0 +1,2 @@
+# Install only in the dedicated Checkov tool environment.
+checkov==3.3.16

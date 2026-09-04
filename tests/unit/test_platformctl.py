@@ -24,6 +24,8 @@ from tools.platformctl.validate import (
     EXPECTED_AGENT_LINKED_TRACKER_STEPS,
     EXPECTED_API_IMPLEMENTATION_PATHS,
     EXPECTED_API_LINKED_TRACKER_STEPS,
+    EXPECTED_AWS_IMPLEMENTATION_PATHS,
+    EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
@@ -79,6 +81,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "AGENT-001",
                 "OBS-001",
                 "REL-001",
+                "AWS-001",
+                "BED-001",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -350,7 +354,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
         )
         self.assertEqual(
             ["W3-09", "W4-08"],
-            EXPECTED_FEATURES[-2]["linked_tracker_steps"],
+            EXPECTED_FEATURES[5]["linked_tracker_steps"],
         )
         self.assertIn("configs/observability", REQUIRED_DIRECTORIES)
         self.assertIn(
@@ -376,7 +380,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
         )
         self.assertEqual(
             ["W4-11"],
-            EXPECTED_FEATURES[-1]["linked_tracker_steps"],
+            EXPECTED_FEATURES[6]["linked_tracker_steps"],
         )
         self.assertIn("configs/releases/versions", REQUIRED_DIRECTORIES)
         self.assertIn(
@@ -402,4 +406,19 @@ class PlatformCtlUnitTests(unittest.TestCase):
             EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
         )
         for path in EXPECTED_W1_08_SECURITY_CONTROL_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w5_001_aws_and_bedrock_ownership_is_exact(self) -> None:
+        self.assertEqual(53, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
+        self.assertEqual(53, len(set(EXPECTED_AWS_IMPLEMENTATION_PATHS)))
+        self.assertEqual(5, len(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS))
+        self.assertEqual(5, len(set(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS)))
+        self.assertEqual(
+            ["W5-02", "W5-03", "W5-04", "W5-05"],
+            EXPECTED_FEATURES[7]["linked_tracker_steps"],
+        )
+        self.assertEqual(["W5-02"], EXPECTED_FEATURES[8]["linked_tracker_steps"])
+        self.assertIn("configs/verification", REQUIRED_DIRECTORIES)
+        self.assertIn("policies/opa", REQUIRED_DIRECTORIES)
+        for path in (*EXPECTED_AWS_IMPLEMENTATION_PATHS, *EXPECTED_BEDROCK_IMPLEMENTATION_PATHS):
             self.assertIn(path, REQUIRED_FILES)

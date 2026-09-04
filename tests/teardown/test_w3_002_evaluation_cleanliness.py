@@ -16,6 +16,7 @@ REPORTS = (
 BASELINE = ROOT / "configs" / "eval" / "baselines" / "w3-002-v1.json"
 BASELINE_SHA256 = "4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f"
 W3_004_RUNTIME = ROOT / "reports" / "w3-004"
+W5_001_RUNTIME = ROOT / "reports" / "verification"
 
 
 def _report_hashes() -> dict[Path, str]:
@@ -32,7 +33,11 @@ def _unexpected_runtime_artifacts() -> set[Path]:
         else set()
     )
     unexpected_reports = (
-        {path for path in report_root.iterdir() if path not in REPORTS and path != W3_004_RUNTIME}
+        {
+            path
+            for path in report_root.iterdir()
+            if path not in REPORTS and path not in {W3_004_RUNTIME, W5_001_RUNTIME}
+        }
         if report_root.exists()
         else set()
     )

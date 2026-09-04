@@ -1,0 +1,88 @@
+TERRAFORM PLAN — NOT RUN
+============================================================
+
+W5-05 — PLATFORM PLAN EVIDENCE BOUNDARY
+
+FORMAL W5-001 RESULT: FAIL
+TESTING LIFECYCLE: CLOSED
+The filename identifies the planned evidence position; it does not imply that
+a Terraform plan exists.
+
+Static results
+--------------
+
+- Terraform formatting: PASS after approved formatting corrections.
+- Bootstrap root initialization with backend disabled: PASS.
+- Sandbox root initialization with backend disabled: PASS.
+- Bootstrap configuration validation: PASS.
+- Sandbox configuration validation: PASS.
+- Checkov 3.3.16: PASS — 226 passed, 0 failed and 20 approved
+  sandbox-specific skips.
+- OPA 1.20.0: PASS — 6/6 tests using synthetic plan-shaped inputs.
+- TFLint 0.60.0 with AWS ruleset 0.48.0: owner-reported PASS after approved
+  remediation.
+- Terraform initialization-residue cleanup: PASS.
+
+Activities not performed
+------------------------
+
+- Terraform plan: NOT RUN.
+- Saved plan creation: NOT RUN.
+- Plan JSON generation: NOT RUN.
+- Real-plan OPA evaluation: NOT RUN.
+- Terraform apply: NOT RUN.
+- Terraform destroy: NOT RUN.
+- AWS infrastructure deployment: NOT RUN.
+- Application deployment: NOT RUN.
+- Infrastructure rollback: NOT RUN.
+- Cloud rollback: NOT RUN.
+- Cloud teardown/destroy: NOT RUN.
+
+No state backend, platform resource, IAM resource, network, OpenSearch domain,
+bucket, key, repository, secret or cloud resource was created, modified or
+deleted. Cloud residual resources are none. This is not a cloud teardown PASS;
+no cloud teardown was required or executed.
+
+Limitations
+-----------
+
+Static formatting, linting, validation and synthetic OPA tests cannot prove
+provider-time values, account capacity, deployability, resource creation,
+production compatibility, availability, resilience, performance, rollback or
+clean teardown. Platform readiness and production compatibility therefore
+remain unproven. The formal W5-001 live Bedrock result remains FAIL due to Q15,
+Q18 and Q22 control-strength failures accepted as a model limitation.
+
+Local residue
+-------------
+
+Terraform initialization residue cleanup passed. Intended Terraform source and
+test artifacts remain in the repository. Local verification reports are
+retained and excluded from Git. Owner-managed OPA, TFLint, TFLint plugin-cache
+and isolated Checkov tooling may remain installed under owner control.
+
+Final Owner Approval — W5-001
+--------------------------------
+
+- Prompt/task ID: W5-001.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Exact final decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Decision date/time/timezone: 2026-09-04 14:27:21 SGT.
+- Final status: APPROVED FOR USER TRACKER UPDATE — W5-001; the formal test result remains FAIL and TERRAFORM PLAN remains NOT RUN.
+- Code and configuration review status: APPROVED within the bounded static Terraform scope. No plan, apply, deployability or production compatibility is approved.
+- Documentation review status: APPROVED as one of seven W5-001 documents closed together.
+- Owner-executed test status: FORMAL OVERALL FAIL. Formatting, backend-disabled initialization, root validation, Checkov, OPA, TFLint and cleanup passed as recorded; no Terraform plan occurred, and the live model gate failed Q15, Q18 and Q22.
+- Formal test result: FAIL.
+- Testing lifecycle: CLOSED.
+- Accepted model limitation: Recorded and accepted without changing FAIL.
+- Accepted warnings, risks, gaps and limitations: All approved Column M items are accepted, including no plan/plan JSON/real-plan OPA evidence, static-only validation, approved sandbox skips, pending semantic review, incomplete cost and no deployment/production proof.
+- NOT RUN and INDETERMINATE activities: Terraform plan, saved plan, plan JSON, real-plan OPA evaluation, apply, destroy, deployment, rollback and cloud teardown remain NOT RUN. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+- Deployment facts: Local application, production and AWS/cloud infrastructure deployment were NOT RUN; no resource was deployed.
+- Rollback facts: Infrastructure and cloud rollback were NOT RUN; local initialization-residue cleanup PASS is cleanup, not rollback.
+- Teardown facts: Cloud teardown/destroy was NOT RUN; no cloud teardown PASS is claimed.
+- Residual resources: Terraform sources, Git-excluded local reports and owner-managed tools remain; cloud resources and cloud residuals are none.
+- Deferred actions and owners: All deferrals remain open; responsible owner is Gyan Prakash Rai unless another owner is explicitly recorded.
+- Approval conditions: Preserve prominent TERRAFORM PLAN — NOT RUN, all statuses and limitations; only the owner changes Excel/Git; no deployment or production inference.
+- Next-task handover: Any plan, plan review, apply, deployment, rollback or teardown requires a separate owner-governed prompt and evidence.
+- Tracker update responsibility: Owner.

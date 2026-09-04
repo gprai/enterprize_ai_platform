@@ -1,0 +1,112 @@
+W5-03 — STATIC INFRASTRUCTURE AND SECURITY EVIDENCE
+============================================================
+
+FORMAL W5-001 RESULT: FAIL
+TESTING LIFECYCLE: CLOSED
+The accepted Nova 2 Lite limitation does not convert FAIL to PASS or establish
+production readiness.
+
+Static security results
+-----------------------
+
+- Checkov 3.3.16: PASS — 226 passed, 0 failed and 20 explicitly approved
+  sandbox-specific skips.
+- OPA 1.20.0: PASS — 6/6 tests using inline synthetic Terraform-plan-shaped
+  inputs.
+- TFLint 0.60.0 with AWS ruleset 0.48.0: owner-reported PASS after approved
+  remediation.
+- IAM wildcard and bounded-resource automated tests: PASS.
+- Bedrock Run 16 security violations: 0.
+- Bedrock Run 16 invalid citations exposed: 0.
+
+Historical genuine Checkov findings
+-----------------------------------
+
+Six genuine gaps were identified and preserved as historical failures:
+
+1. Four OpenSearch CloudWatch log groups lacked customer-managed KMS encryption.
+2. The Terraform state bucket lacked incomplete-upload lifecycle protection.
+3. The default VPC security group was unrestricted.
+
+Approved remediation added CMK protection to all four log groups, seven-day
+incomplete-upload cleanup to the state bucket, and an empty-ingress/empty-egress
+default security group. The rerun passed with zero failed checks. The original
+findings are not erased or reclassified as first-run PASS.
+
+Approved sandbox exceptions and residual risk
+----------------------------------------------
+
+The 20 skipped Checkov results are approved sandbox-specific deviations rather
+than implemented controls. They include bounded decisions concerning 30-day
+log retention, single-node OpenSearch without dedicated masters or Multi-AZ,
+no cross-region S3 replication, no access-log/event-notification resources,
+no VPC flow-log destination and no secret-rotation schedule for a metadata-only
+module that instantiates zero secrets. KMS attached-key policies use bounded
+Resource="*" statements with enumerated actions and exact principals; kms:* is
+prohibited.
+
+These choices do not establish production availability, durability,
+observability, resilience or security readiness. The Starlette/httpx
+deprecation warning remains accepted and unresolved.
+
+OPA and TFLint scope
+--------------------
+
+OPA validated the approved policy logic only against synthetic plan-shaped
+objects. No Terraform plan JSON or real cloud plan was evaluated. TFLint
+initially exposed configuration/tooling and sandbox-name issues; approved
+remediation was applied and the owner subsequently reported PASS. Historical
+failures remain preserved.
+
+Data and evidence security
+--------------------------
+
+Bedrock testing was limited to synthetic non-production non-sensitive data.
+Credentials, PII, restricted data, production data and real tenant content were
+prohibited. Run evidence records questions, answers, citations, runtime
+metadata and request identifiers where returned, but not credentials,
+authentication secrets or raw provider response envelopes.
+
+Remaining limitations and NOT RUN work
+--------------------------------------
+
+- Terraform plan/apply and real-plan policy evaluation: NOT RUN.
+- Pod Identity associations and EKS integration: NOT RUN.
+- Application/AWS infrastructure deployment: NOT RUN.
+- Production model-quality, performance, capacity and readiness validation:
+  NOT RUN.
+- Infrastructure/cloud rollback and cloud teardown: NOT RUN.
+- Q15, Q18 and Q22 mandatory-strength failures remain formal FAIL evidence.
+- Q2 retains an unresolved completeness concern.
+- All 24 Run 16 live answers remain pending semantic review.
+
+No AWS infrastructure was created, modified or deleted. Cloud resources and
+cloud residual resources are none. Local verification reports and
+owner-managed security tooling remain intentional local artifacts.
+
+Final Owner Approval — W5-001
+--------------------------------
+
+- Prompt/task ID: W5-001.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Exact final decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Decision date/time/timezone: 2026-09-04 14:27:21 SGT.
+- Final status: APPROVED FOR USER TRACKER UPDATE — W5-001; the formal test result remains FAIL.
+- Code and configuration review status: APPROVED within the bounded static security implementation. The approval does not establish deployed or production security.
+- Documentation review status: APPROVED as one of seven W5-001 documents closed together.
+- Owner-executed test status: FORMAL OVERALL FAIL. Checkov 226/0/20, OPA 6/6, TFLint owner-reported PASS, IAM tests and Bedrock security/citation controls passed; the live model hard gate failed Q15, Q18 and Q22.
+- Formal test result: FAIL.
+- Testing lifecycle: CLOSED.
+- Accepted model limitation: Recorded and accepted without changing FAIL.
+- Accepted warnings, risks, gaps and limitations: All approved Column M items are accepted, including the Starlette/httpx warning, 20 sandbox-specific Checkov skips, six historical genuine findings, pending semantic review, Q2 concern, synthetic/static test boundaries and no production security proof.
+- Historical failures: The four log-group CMK gaps, state-bucket lifecycle gap and unrestricted default-security-group gap remain historical findings with separately passing remediation. Historical OPA/TFLint/tool failures also remain preserved.
+- NOT RUN and INDETERMINATE activities: Real Terraform plan-policy evaluation, Pod Identity/EKS integration, deployment, production security/quality/performance validation, rollback and cloud teardown remain NOT RUN. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+- Deployment facts: Local application, production and AWS/cloud infrastructure deployment were NOT RUN.
+- Rollback facts: Infrastructure and cloud rollback were NOT RUN; local initialization cleanup passed but is not rollback.
+- Teardown facts: Cloud teardown/destroy was NOT RUN; no teardown PASS is inferred.
+- Residual resources: Local reports, OPA, TFLint/plugin cache and isolated Checkov tooling remain owner-controlled; no cloud residual exists.
+- Deferred actions and owners: Every recorded deferral remains open; responsible owner is Gyan Prakash Rai unless another owner is explicitly recorded.
+- Approval conditions: Preserve historical findings, approved skips, warning and all lifecycle classifications; only the owner changes Excel/Git; no production inference.
+- Next-task handover: Deployed security, real-plan policy testing, production validation and cloud lifecycle work require separate governed approval.
+- Tracker update responsibility: Owner.

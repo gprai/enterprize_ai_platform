@@ -8,6 +8,8 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_REQUIREMENTS = REPOSITORY_ROOT / "requirements.txt"
 DEVELOPMENT_REQUIREMENTS = REPOSITORY_ROOT / "requirements-dev.txt"
+CHECKOV_REQUIREMENTS = REPOSITORY_ROOT / "requirements-checkov.txt"
+MAKEFILE = REPOSITORY_ROOT / "Makefile"
 
 EXPECTED_RUNTIME_PACKAGES = {
     "boto3",
@@ -41,10 +43,12 @@ EXPECTED_DEVELOPMENT_PACKAGES = {
     "ruff",
     "testcontainers",
 }
+EXPECTED_CHECKOV_PACKAGES = {"checkov"}
 EXACT_DEVELOPMENT_REQUIREMENTS = {
     "detect-secrets==1.5.0",
     "pre-commit==4.6.2",
 }
+EXACT_CHECKOV_REQUIREMENTS = {"checkov==3.3.16"}
 
 
 def requirement_lines(path: Path) -> list[str]:
@@ -63,11 +67,15 @@ def test_runtime_and_development_packages_are_separated() -> None:
     runtime_lines = requirement_lines(RUNTIME_REQUIREMENTS)
     development_lines = requirement_lines(DEVELOPMENT_REQUIREMENTS)
     development_specs = [line for line in development_lines if not line.startswith("-r ")]
+    checkov_lines = requirement_lines(CHECKOV_REQUIREMENTS)
 
     assert {package_name(line) for line in runtime_lines} == EXPECTED_RUNTIME_PACKAGES
     assert {package_name(line) for line in development_specs} == EXPECTED_DEVELOPMENT_PACKAGES
+    assert {package_name(line) for line in checkov_lines} == EXPECTED_CHECKOV_PACKAGES
     assert development_lines[0] == "-r requirements.txt"
     assert EXPECTED_RUNTIME_PACKAGES.isdisjoint(EXPECTED_DEVELOPMENT_PACKAGES)
+    assert EXPECTED_RUNTIME_PACKAGES.isdisjoint(EXPECTED_CHECKOV_PACKAGES)
+    assert EXPECTED_DEVELOPMENT_PACKAGES.isdisjoint(EXPECTED_CHECKOV_PACKAGES)
 
 
 def test_every_direct_package_is_bounded_or_an_approved_exact_pin() -> None:
@@ -77,6 +85,7 @@ def test_every_direct_package_is_bounded_or_an_approved_exact_pin() -> None:
     exact_development_specs = {
         requirement for requirement in development_specs if "==" in requirement
     }
+    checkov_specs = set(requirement_lines(CHECKOV_REQUIREMENTS))
     bounded_specs = requirement_lines(RUNTIME_REQUIREMENTS) + [
         requirement
         for requirement in development_specs
@@ -84,12 +93,15 @@ def test_every_direct_package_is_bounded_or_an_approved_exact_pin() -> None:
     ]
 
     assert exact_development_specs == EXACT_DEVELOPMENT_REQUIREMENTS
+    assert checkov_specs == EXACT_CHECKOV_REQUIREMENTS
     assert all(">=" in requirement and ",<" in requirement for requirement in bounded_specs)
 
 
 def test_default_requirements_contain_no_gpu_only_package() -> None:
     combined = "\n".join(
-        requirement_lines(RUNTIME_REQUIREMENTS) + requirement_lines(DEVELOPMENT_REQUIREMENTS)
+        requirement_lines(RUNTIME_REQUIREMENTS)
+        + requirement_lines(DEVELOPMENT_REQUIREMENTS)
+        + requirement_lines(CHECKOV_REQUIREMENTS)
     ).casefold()
 
     forbidden_tokens = ("cuda", "nvidia", "-gpu", "fastembed-gpu", "onnx-gpu")
@@ -101,6 +113,37 @@ def test_bedrock_sdk_versions_are_exactly_bounded_and_compatible() -> None:
 
     assert "boto3>=1.43.77,<1.44" in runtime_lines
     assert "botocore>=1.43.77,<1.44" in runtime_lines
+
+
+def test_checkov_is_pinned_in_an_isolated_tool_environment() -> None:
+    makefile = MAKEFILE.read_text(encoding="utf-8")
+
+    assert requirement_lines(CHECKOV_REQUIREMENTS) == ["checkov==3.3.16"]
+    assert "checkov" not in {
+        package_name(line)
+        for line in requirement_lines(DEVELOPMENT_REQUIREMENTS)
+        if not line.startswith("-r ")
+    }
+    assert (
+        "CHECKOV ?= E:/AI/.venvs/enterprise-ai-platform-checkov-3.3.16/Scripts/python.exe "
+        "E:/AI/.venvs/enterprise-ai-platform-checkov-3.3.16/Scripts/checkov"
+        in makefile.splitlines()
+    )
+
+
+def test_tflint_uses_the_approved_external_plugin_directory() -> None:
+    makefile_lines = MAKEFILE.read_text(encoding="utf-8").splitlines()
+
+    assert (
+        "TFLINT_PLUGIN_DIR ?= E:/AI/.tflint-cache/enterprise-ai-platform-w5-001" in makefile_lines
+    )
+    assert "export TFLINT_PLUGIN_DIR" in makefile_lines
+    assert not any("--plugin-dir" in line for line in makefile_lines)
+    assert "\t$(TFLINT) --chdir=infra/bootstrap --config=$(CURDIR)/.tflint.hcl" in makefile_lines
+    assert (
+        "\t$(TFLINT) --chdir=infra/environments/sandbox --config=$(CURDIR)/.tflint.hcl"
+        in makefile_lines
+    )
 
 
 def test_opentelemetry_dependencies_are_minimal_and_exactly_bounded() -> None:

@@ -16,6 +16,8 @@ class RepositoryCleanlinessTests(unittest.TestCase):
             ".pytest_cache",
             ".ruff_cache",
             ".terraform",
+            ".terraform.lock.hcl",
+            ".tflint.d",
             ".venv",
             "__pycache__",
             "htmlcov",
@@ -45,12 +47,37 @@ class RepositoryCleanlinessTests(unittest.TestCase):
             findings.append(".env")
         self.assertEqual([], findings)
 
-    def test_only_approved_w1_004_terraform_skeleton_exists(self) -> None:
+    def test_only_approved_w5_001_terraform_manifest_exists(self) -> None:
         expected_files = {
             "infra/bootstrap/main.tf",
+            "infra/bootstrap/outputs.tf",
+            "infra/bootstrap/variables.tf",
             "infra/bootstrap/versions.tf",
             "infra/environments/sandbox/main.tf",
+            "infra/environments/sandbox/outputs.tf",
+            "infra/environments/sandbox/variables.tf",
             "infra/environments/sandbox/versions.tf",
+            "infra/modules/ecr/main.tf",
+            "infra/modules/ecr/outputs.tf",
+            "infra/modules/ecr/variables.tf",
+            "infra/modules/iam/main.tf",
+            "infra/modules/iam/outputs.tf",
+            "infra/modules/iam/variables.tf",
+            "infra/modules/kms/main.tf",
+            "infra/modules/kms/outputs.tf",
+            "infra/modules/kms/variables.tf",
+            "infra/modules/network/main.tf",
+            "infra/modules/network/outputs.tf",
+            "infra/modules/network/variables.tf",
+            "infra/modules/opensearch/main.tf",
+            "infra/modules/opensearch/outputs.tf",
+            "infra/modules/opensearch/variables.tf",
+            "infra/modules/secrets/main.tf",
+            "infra/modules/secrets/outputs.tf",
+            "infra/modules/secrets/variables.tf",
+            "infra/modules/storage/main.tf",
+            "infra/modules/storage/outputs.tf",
+            "infra/modules/storage/variables.tf",
         }
         terraform_files = {
             path.relative_to(REPOSITORY_ROOT).as_posix()

@@ -12,6 +12,10 @@ from tools.platformctl.validate import (
     EXPECTED_AGENT_LINKED_TRACKER_STEPS,
     EXPECTED_API_IMPLEMENTATION_PATHS,
     EXPECTED_API_LINKED_TRACKER_STEPS,
+    EXPECTED_AWS_FEATURE,
+    EXPECTED_AWS_IMPLEMENTATION_PATHS,
+    EXPECTED_BEDROCK_FEATURE,
+    EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
@@ -105,6 +109,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_AGENT_FEATURE,
                 EXPECTED_OBSERVABILITY_FEATURE,
                 EXPECTED_RELEASE_FEATURE,
+                EXPECTED_AWS_FEATURE,
+                EXPECTED_BEDROCK_FEATURE,
             ],
             matrix["features"],
         )
@@ -121,6 +127,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "AGENT-001",
                 "OBS-001",
                 "REL-001",
+                "AWS-001",
+                "BED-001",
             ],
             [feature["id"] for feature in features],
         )
@@ -146,6 +154,8 @@ class FeatureMatrixTests(unittest.TestCase):
         )
         self.assertEqual(["W3-09", "W4-08"], features[5]["linked_tracker_steps"])
         self.assertEqual(["W4-11"], features[6]["linked_tracker_steps"])
+        self.assertEqual(["W5-02", "W5-03", "W5-04", "W5-05"], features[7]["linked_tracker_steps"])
+        self.assertEqual(["W5-02"], features[8]["linked_tracker_steps"])
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -170,6 +180,8 @@ class FeatureMatrixTests(unittest.TestCase):
             agent_feature,
             observability_feature,
             release_feature,
+            aws_feature,
+            bedrock_feature,
         ) = features
 
         self.assertEqual(
@@ -181,6 +193,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "AGENT-001",
                 "OBS-001",
                 "REL-001",
+                "AWS-001",
+                "BED-001",
             ],
             [item["id"] for item in features],
         )
@@ -226,6 +240,8 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual("API-001", api_feature["id"])
         self.assertEqual("OBS-001", observability_feature["id"])
         self.assertEqual("REL-001", release_feature["id"])
+        self.assertEqual("AWS-001", aws_feature["id"])
+        self.assertEqual("BED-001", bedrock_feature["id"])
 
     def test_eval_001_owns_the_exact_w3_002_manifest(self) -> None:
         matrix = read_matrix()
@@ -376,6 +392,18 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertNotIn(
             "docs/rollback-records/W4-release.md",
             release_feature["implementation_paths"],
+        )
+
+    def test_w5_001_features_partition_the_exact_edit_manifest(self) -> None:
+        aws_feature = read_matrix()["features"][7]
+        bedrock_feature = read_matrix()["features"][8]
+
+        self.assertEqual(EXPECTED_AWS_FEATURE, aws_feature)
+        self.assertEqual(EXPECTED_BEDROCK_FEATURE, bedrock_feature)
+        self.assertEqual(53, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
+        self.assertEqual(5, len(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS))
+        self.assertTrue(
+            set(EXPECTED_AWS_IMPLEMENTATION_PATHS).isdisjoint(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS)
         )
 
     def test_trailing_content_is_rejected_as_malformed_json(self) -> None:

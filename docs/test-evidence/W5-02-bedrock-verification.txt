@@ -1,0 +1,168 @@
+W5-02 — BEDROCK OWNER VERIFICATION EVIDENCE
+============================================================
+
+FORMAL W5-001 RESULT: FAIL
+TESTING LIFECYCLE: CLOSED
+OWNER DISPOSITION: Failure accepted as a documented Amazon Nova 2 Lite
+model-response limitation. It is not PASS, release approval or production
+readiness.
+
+Business purpose
+----------------
+
+The owner-gated verifier checks the exact AWS caller, Region, Bedrock model and
+Global Cross-Region inference profile, service quotas, owner-confirmed pricing,
+bounded smoke access, live synthetic evaluation, tokens, cost, privacy and
+durable evidence. It performs no silent model, provider, inference-profile,
+application-Region or fallback-Region substitution.
+
+Verified runtime and contract
+-----------------------------
+
+- API: Amazon Bedrock Converse.
+- Model: Amazon Nova 2 Lite.
+- Runtime inference profile: global.amazon.nova-2-lite-v1:0.
+- Underlying model ID: amazon.nova-2-lite-v1:0.
+- Request Region: ap-southeast-1.
+- Inference mode: Global Cross-Region.
+- Automatic fallback: none.
+- Maximum output: 512 tokens per request.
+- Temperature: 0; top_p: 1; concurrency: 1; verifier-added retries: 0.
+- Runtime: CPython 3.13.7, Windows 11 AMD64, boto3 1.43.77 and botocore 1.43.77.
+- Permitted data: synthetic, non-production, non-sensitive PUBLIC or INTERNAL
+  data only.
+
+Exact run-mode table
+--------------------
+
+| Run | Mode | Overall result | Requests | Recorded cost |
+|---|---|---|---:|---:|
+| W5-001-20260904-13 | Dry run | NOT RUN | 0 | USD 0 |
+| W5-001-20260904-14 | Account read-only | INDETERMINATE | 0 | USD 0 |
+| W5-001-20260904-15 | Paid smoke | NOT RUN overall; authorized smoke checks PASS | 1 | USD 0.000004941 |
+| W5-001-20260904-16 | Full paid evaluation | FAIL | 25 | USD 0.005007339 |
+
+Run 15's overall NOT RUN means that the full live evaluation was not
+authorized in that mode. Its successful bounded smoke invocation remains PASS.
+
+Run 16 passed controls
+----------------------
+
+- Exact configuration contract: PASS.
+- Caller identity: PASS.
+- Model and inference-profile configuration: PASS.
+- Service quotas: PASS.
+- Bedrock model access: PASS.
+- Owner-confirmed pricing contract: PASS.
+- Bounded smoke invocation: PASS.
+- Cost ceiling: PASS.
+- Retrieval Recall@5: 24/24.
+- MRR: 24/24.
+- Citation precision: 28/28.
+- Abstention correctness: 12/12.
+- Expected-error correctness: 3/3.
+- Release-blocking failures: 0.
+- Security violations: 0.
+- Invalid citations exposed: 0.
+- Automatic exact answered correctness: 19/24.
+- Combined automatic correctness: 31/36.
+
+Run 16 failed controls
+----------------------
+
+The live hard gate failed for exactly:
+
+- Q15: Nova weakened the evidence-backed imperative “Apply…” to “should apply…”.
+- Q18: Nova weakened the evidence-backed imperative “Roll back…” to “should roll back…”.
+- Q22: Nova omitted the mandatory word “must”.
+
+Q1, Q2, Q4, Q21 and Q22 missed the lexical exact-match gate. These lexical
+differences are not automatically semantic failures. Q2 omitted “Plans require
+review,” creating an unresolved completeness concern. All 24 live answers
+remain pending semantic owner review. No owner-review.json or final.json was
+produced for Run 16, and no final reviewed semantic score is inferred.
+
+Owner closure and model limitation
+----------------------------------
+
+The verifier operated as designed and correctly detected and reported these
+model-response failures. The approved questions were not weakened and the
+evaluation strictness was not reduced. The owner attributes the final failure
+to Nova 2 Lite response variability and failure to preserve mandatory control
+strength, accepts it as a documented model limitation, and closes testing.
+Further verifier remediation and further paid evaluation are not planned.
+
+Exact closure timestamp and timezone:
+2026-09-04 14:27:21 SGT.
+
+Cost
+----
+
+Run 16 recorded USD 0.005007339. Run 15 recorded USD 0.000004941. Retained run
+directories 01–16 total USD 0.01929582. This is not the complete historical
+cost because paid executions performed before immutable run-scoped evidence
+was introduced are excluded. Local CPU, storage, bandwidth, electricity and
+owner time are not represented as USD 0.
+
+Run 16 evidence and verified hashes
+-----------------------------------
+
+- reports/verification/W5-001-20260904-16/manifest.json
+  SHA-256 c9ce21c87784053fb1f3b5ab9904fbcbf307e5d2a7aff18b83ad332fde5f6c9e
+- reports/verification/W5-001-20260904-16/events.jsonl
+  SHA-256 b71a68d363dc8aafb889a305ee961876d174af6ecfd716a5da3e32378a89c9c2
+- reports/verification/W5-001-20260904-16/result.json
+  SHA-256 48a88794f7a17a129ff206d3e131f87368b8887345b5f604debf59e4bfa3f490
+- reports/verification/W5-001-20260904-16/integrity.json
+  SHA-256 927be29c16a1447db6b067b3670608a2fbeef41ff40e1374aa77eb71fb62e451
+
+The retained evidence includes runtime versions, repository/configuration
+hashes, provider-request events, request identifiers where returned, token
+usage, recorded cost, model answers, citations and gate results. It excludes
+AWS credentials, authentication secrets and raw provider response envelopes.
+Complete prompts, answers and provider payloads are not duplicated here.
+
+Historical classifications
+--------------------------
+
+- Runs 04 and 12 remain FAIL after owner semantic review.
+- Run 08 and unreconciled account-read-only results remain INDETERMINATE.
+- Dry-run and smoke-only NOT RUN results remain NOT RUN.
+- Historical tool/parser failures and their separately passing remediation
+  reruns remain preserved.
+
+Production and lifecycle limitations
+------------------------------------
+
+Production model-quality validation, production performance and capacity,
+application deployment, infrastructure deployment, rollback and cloud
+teardown were NOT RUN. No cloud resource was created. Local evidence is
+retained under reports/verification/, which is excluded from Git. The accepted
+failure cannot be used as a release or production-readiness claim.
+
+Final Owner Approval — W5-001
+--------------------------------
+
+- Prompt/task ID: W5-001.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Exact final decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Decision date/time/timezone: 2026-09-04 14:27:21 SGT.
+- Final status: APPROVED FOR USER TRACKER UPDATE — W5-001. Documentation is approved while the formal live result remains FAIL.
+- Code and configuration review status: APPROVED within the bounded owner-verifier scope. No further verifier remediation or paid evaluation is planned, and no production/release claim is approved.
+- Documentation review status: APPROVED as one of seven W5-001 Column M documents closed together.
+- Owner-executed test status: FORMAL OVERALL FAIL. Identity, model/profile, quotas, access, pricing, smoke, citations, security and cost controls passed. Run 16 failed the live hard gate for Q15, Q18 and Q22.
+- Formal test result: FAIL.
+- Testing lifecycle: CLOSED.
+- Accepted model limitation: Amazon Nova 2 Lite weakened mandatory control wording in Q15 and Q18 and omitted “must” in Q22. The owner accepts this limitation without converting FAIL to PASS.
+- Accepted warnings, risks, gaps and limitations: All approved Column M items are accepted, including Q2's unresolved completeness concern, all 24 pending semantic reviews, no Run 16 owner-review.json/final.json, incomplete historical cost, Global Cross-Region processing and no production-quality proof.
+- Historical results: Runs 04 and 12 remain FAIL after owner review; Run 08 and historical account-read-only results remain INDETERMINATE; NOT RUN dry/smoke classifications remain NOT RUN; parser/tool failures and passing remediations remain distinct.
+- NOT RUN and INDETERMINATE activities: Dry-run/full-evaluation exclusions, production model-quality/performance/capacity/readiness work, Terraform plan/apply, deployment, rollback and teardown remain NOT RUN as recorded. Historical INDETERMINATE results are preserved. Remaining open INDETERMINATE activities: None. Pending semantic review is not converted to a reviewed outcome.
+- Deployment facts: Local application, production and cloud deployment were NOT RUN; no resource was deployed.
+- Rollback facts: Application, infrastructure and cloud rollback were NOT RUN. Local Terraform initialization-residue cleanup PASS is not a model or deployment rollback.
+- Teardown facts: Cloud teardown/destroy was NOT RUN; no cloud teardown PASS is claimed.
+- Residual resources: Run directories 01–16 remain local and Git-excluded; owner-managed tools may remain. Cloud residual resources: none.
+- Deferred actions and owners: All deferrals remain open; responsible owner is Gyan Prakash Rai unless another owner is explicitly recorded.
+- Approval conditions: Preserve every status and evidence limitation; do not create semantic approval, production readiness or a complete historical-cost claim; only the owner changes Excel/Git.
+- Next-task handover: No further paid evaluation is planned. Any future model evaluation, model change, production validation or deployment requires separate approval.
+- Tracker update responsibility: Owner.

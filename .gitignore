@@ -25,3 +25,12 @@ reports/w4-release/.active.json.*.tmp
 reports/w4-release/.regression.json.*.tmp
 reports/w4-release/.rollback.json.*.tmp
 reports/w4-release/.smoke.json.*.tmp
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+reports/verification/bedrock-owner-test-result.json
+reports/verification/.bedrock-owner-test-result.json.*.tmp
+reports/verification/

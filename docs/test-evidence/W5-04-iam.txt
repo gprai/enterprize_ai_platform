@@ -1,0 +1,110 @@
+W5-04 — IAM AND WORKLOAD-IDENTITY STATIC EVIDENCE
+============================================================
+
+FORMAL W5-001 RESULT: FAIL
+TESTING LIFECYCLE: CLOSED
+The accepted model limitation does not convert FAIL to PASS or prove deployed
+IAM behavior.
+
+Verified caller identity
+------------------------
+
+The account-read-only and paid verification preflights confirmed the approved
+sandbox account and exact caller principal:
+
+arn:aws:iam::526338061652:user/finopsinfra
+
+This is the bounded owner-approved IAM-user sandbox exception. No credential,
+access key, secret key or session token is stored in this evidence. The
+verification does not expand or approve the IAM user's existing permissions.
+
+Static role and trust boundaries
+--------------------------------
+
+- Runtime role: enterprise-ai-sandbox-runtime.
+- Ingestion role: enterprise-ai-sandbox-ingestion.
+- OpenSearch administrator role: enterprise-ai-sandbox-opensearch-admin.
+- Runtime and ingestion trust principal: pods.eks.amazonaws.com.
+- Namespace: enterprise-ai-sandbox.
+- Runtime service account: enterprise-ai-runtime.
+- Ingestion service account: enterprise-ai-ingestion.
+- OpenSearch administrator trust is limited to the exact external caller and
+  expires through the `aws:CurrentTime` DateLessThan boundary
+  `2026-09-30T15:59:59Z`.
+- GitHub trust references the exact pre-existing OIDC provider and the sandbox
+  environment; it adds no deployment, plan/apply or ECR-push permissions.
+
+Pod Identity associations, an EKS cluster and GitHub OIDC provider creation
+were not implemented or executed by W5-001.
+
+Least-privilege and wildcard controls
+-------------------------------------
+
+- Runtime and ingestion roles are separate.
+- Bedrock runtime permission enumerates only bedrock:InvokeModel and applies
+  conditions for the exact inference profile, Region, account, runtime role and
+  expiry. Its Resource="*" is not unconditional.
+- Runtime S3 access is read/list only for the exact platform bucket and object
+  ARN. Ingestion permissions are enumerated for the same exact bucket.
+- KMS actions are enumerated and use exact key references in role policies;
+  kms:* is prohibited.
+- OpenSearch data-plane actions are enumerated; es:ESHttp* is prohibited and
+  resources are bounded to the exact sandbox domain.
+- OpenSearch log delivery is limited to four exact log-group stream ARNs, the
+  es.amazonaws.com service principal, the exact source account and exact source
+  domain.
+- S3 non-TLS policies are deny-only and grant no public access.
+- No IAM list/describe action wildcard or ECR authorization-token wildcard was
+  introduced.
+- Automated wildcard and bounded-resource tests passed.
+
+Owner-expiry boundary
+---------------------
+
+The infrastructure is statically fail-closed while `ExpiresAt` remains
+`TODO_OWNER`. The owner must supply a future ISO-8601 UTC expiry no more than 24
+hours after resource creation before an applicable plan/apply review. No expiry
+is inferred by this document.
+
+NOT RUN and limitations
+-----------------------
+
+- Pod Identity associations: NOT RUN.
+- EKS workload identity integration: NOT RUN.
+- GitHub OIDC deployment workflow: NOT RUN.
+- Terraform plan/apply: NOT RUN.
+- IAM role, policy or trust deployment: NOT RUN.
+- Application/cloud deployment: NOT RUN.
+- Infrastructure/cloud rollback: NOT RUN.
+- Cloud teardown: NOT RUN.
+
+Caller verification proves the current bounded principal and approved read-only
+checks; it does not prove every future role assumption, deployed resource
+policy, production authorization or service integration. No AWS infrastructure
+or IAM resource was created, modified or deleted.
+
+Final Owner Approval — W5-001
+--------------------------------
+
+- Prompt/task ID: W5-001.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Exact final decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Decision date/time/timezone: 2026-09-04 14:27:21 SGT.
+- Final status: APPROVED FOR USER TRACKER UPDATE — W5-001; the formal test result remains FAIL.
+- Code and configuration review status: APPROVED within the bounded static IAM and trust-policy implementation. No deployed IAM behavior or permission expansion is approved.
+- Documentation review status: APPROVED as one of seven W5-001 documents closed together.
+- Owner-executed test status: FORMAL OVERALL FAIL. Exact caller verification and static IAM/wildcard tests passed; the separate live model hard gate failed Q15, Q18 and Q22.
+- Formal test result: FAIL.
+- Testing lifecycle: CLOSED.
+- Accepted model limitation: Recorded and accepted without changing FAIL.
+- Accepted warnings, risks, gaps and limitations: All approved Column M items are accepted, including the bounded IAM-user sandbox exception, unresolved ExpiresAt, unexecuted Pod Identity/EKS/GitHub OIDC behavior, pending semantic reviews, incomplete cost and no production-authorization proof.
+- NOT RUN and INDETERMINATE activities: Pod Identity associations, EKS integration, GitHub deployment workflow, Terraform plan/apply, IAM deployment, production authorization testing, rollback and cloud teardown remain NOT RUN. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+- Deployment facts: No IAM role, policy, trust, application or cloud infrastructure was deployed.
+- Rollback facts: IAM/infrastructure/cloud rollback was NOT RUN; local initialization cleanup PASS is not rollback.
+- Teardown facts: Cloud teardown/destroy was NOT RUN because no IAM/cloud resource was created; no teardown PASS is claimed.
+- Residual resources: Static IAM sources, local reports and owner-managed tools remain; cloud resources/residuals are none.
+- Deferred actions and owners: All deferrals remain open; responsible owner is Gyan Prakash Rai unless another owner is explicitly recorded.
+- Approval conditions: Preserve the exact principal, time-bound trust, wildcard constraints, every status and all limitations; only the owner changes Excel/Git; no production inference.
+- Next-task handover: Any IAM deployment, Pod Identity association, EKS/GitHub integration or permission change requires separate approval and evidence.
+- Tracker update responsibility: Owner.

@@ -1,11 +1,17 @@
 PYTHON ?= python
+TERRAFORM ?= terraform
+CHECKOV ?= E:/AI/.venvs/enterprise-ai-platform-checkov-3.3.16/Scripts/python.exe E:/AI/.venvs/enterprise-ai-platform-checkov-3.3.16/Scripts/checkov
+TFLINT ?= E:/AI/.tools/tflint/0.60.0/tflint.exe
+TFLINT_PLUGIN_DIR ?= E:/AI/.tflint-cache/enterprise-ai-platform-w5-001
+export TFLINT_PLUGIN_DIR
+OPA ?= E:/AI/.tools/opa/1.20.0/opa.exe
 W2_004_COMPOSE = docker compose -p enterprise-ai-w2-004a -f docker-compose.yml -f docker-compose.w2-004.yml --profile local-retrieval
 W2_004_RUNNER_IMAGE = enterprise-ai-w2-004a-local_retrieval_runner:latest
 
-.PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke
+.PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke terraform-fmt-check terraform-validate-bootstrap terraform-validate-sandbox tflint-bootstrap tflint-sandbox checkov-terraform opa-terraform-policy bedrock-owner-dry-run w5-static-tests
 
 help:
-	@echo "Available targets: validate, test, test-unit, test-integration, test-feature, test-smoke, test-security, test-teardown, evaluate, local-retrieval-config, local-retrieval-build, local-retrieval-inspect, local-retrieval-up, local-retrieval-ingest, local-retrieval-query, local-retrieval-regression, rollback-local, local-retrieval-remove, stop-local, destroy-local, verify-clean-local, rollback-release, smoke"
+	@echo "Available targets: validate, test, test-unit, test-integration, test-feature, test-smoke, test-security, test-teardown, evaluate, local-retrieval-config, local-retrieval-build, local-retrieval-inspect, local-retrieval-up, local-retrieval-ingest, local-retrieval-query, local-retrieval-regression, rollback-local, local-retrieval-remove, stop-local, destroy-local, verify-clean-local, rollback-release, smoke, terraform-fmt-check, terraform-validate-bootstrap, terraform-validate-sandbox, tflint-bootstrap, tflint-sandbox, checkov-terraform, opa-terraform-policy, bedrock-owner-dry-run, w5-static-tests"
 
 validate:
 	$(PYTHON) -m tools.platformctl validate
@@ -76,3 +82,30 @@ smoke:
 	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/smoke/test_w4_011_release_smoke.py tests/feature/test_health_contract.py tests/feature/test_w3_001_cited_rag.py tests/feature/test_w3_002_offline_evaluation.py tests/feature/test_w3_003_guardrails.py tests/feature/test_agent_failures.py tests/security/test_api_authorization.py tests/feature/test_trace_correlation.py tests/security/test_telemetry_redaction.py tests/feature/test_api_load_smoke.py tests/security/test_w4_011_release_rollback_security.py
 	$(PYTHON) -B tools/releasectl.py smoke
 	$(PYTHON) -B tools/releasectl.py verify-clean
+
+terraform-fmt-check:
+	$(TERRAFORM) fmt -check -recursive infra
+
+terraform-validate-bootstrap:
+	$(TERRAFORM) -chdir=infra/bootstrap validate
+
+terraform-validate-sandbox:
+	$(TERRAFORM) -chdir=infra/environments/sandbox validate
+
+tflint-bootstrap:
+	$(TFLINT) --chdir=infra/bootstrap --config=$(CURDIR)/.tflint.hcl
+
+tflint-sandbox:
+	$(TFLINT) --chdir=infra/environments/sandbox --config=$(CURDIR)/.tflint.hcl
+
+checkov-terraform:
+	$(CHECKOV) --directory infra --framework terraform
+
+opa-terraform-policy:
+	$(OPA) test policies/opa
+
+bedrock-owner-dry-run:
+	$(PYTHON) -B tools/bedrock_owner_verify.py --config configs/verification/bedrock-owner-test.json --mode dry-run
+
+w5-static-tests:
+	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/contract/test_terraform_module_contract.py tests/security/test_terraform_security.py tests/feature/test_terraform_sandbox_plan.py tests/teardown/test_terraform_state_boundary.py tests/unit/test_bedrock_owner_verify.py tests/security/test_bedrock_owner_verify_security.py tests/teardown/test_bedrock_owner_verify_cleanliness.py

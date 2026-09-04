@@ -181,10 +181,10 @@ def test_canonical_tags_have_no_static_expiry_default() -> None:
     assert tags == {
         "Project": "enterprise-ai-platform",
         "Owner": "Gyan-Prakash-Rai",
-        "ManagedBy": "Terraform",
-        "CostCenter": "PERSONAL-LEARNING",
+        "ManagedBy": "terraform",
+        "CostCenter": "Personal-Learning",
         "Feature": "MVP-001",
-        "Repository": "enterprize_ai_platform",
+        "Repository": "enterprise-ai-platform",
         "Environment": "sandbox",
         "ExpiresAt": "2026-01-01T12:00:00Z",
     }

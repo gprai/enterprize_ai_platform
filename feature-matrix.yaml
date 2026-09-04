@@ -407,6 +407,85 @@
       "linked_tracker_steps": [
         "W4-11"
       ]
+    },
+    {
+      "id": "AWS-001",
+      "implementation_paths": [
+        ".tflint.hcl",
+        "infra/bootstrap/variables.tf",
+        "infra/bootstrap/outputs.tf",
+        "infra/environments/sandbox/variables.tf",
+        "infra/environments/sandbox/outputs.tf",
+        "infra/environments/sandbox/backend.hcl.example",
+        "infra/modules/network/main.tf",
+        "infra/modules/network/variables.tf",
+        "infra/modules/network/outputs.tf",
+        "infra/modules/kms/main.tf",
+        "infra/modules/kms/variables.tf",
+        "infra/modules/kms/outputs.tf",
+        "infra/modules/storage/main.tf",
+        "infra/modules/storage/variables.tf",
+        "infra/modules/storage/outputs.tf",
+        "infra/modules/secrets/main.tf",
+        "infra/modules/secrets/variables.tf",
+        "infra/modules/secrets/outputs.tf",
+        "infra/modules/iam/main.tf",
+        "infra/modules/iam/variables.tf",
+        "infra/modules/iam/outputs.tf",
+        "infra/modules/opensearch/main.tf",
+        "infra/modules/opensearch/variables.tf",
+        "infra/modules/opensearch/outputs.tf",
+        "infra/modules/ecr/main.tf",
+        "infra/modules/ecr/variables.tf",
+        "infra/modules/ecr/outputs.tf",
+        "policies/opa/terraform_plan.rego",
+        "policies/opa/terraform_plan_test.rego",
+        "tests/contract/test_terraform_module_contract.py",
+        "tests/security/test_terraform_security.py",
+        "tests/feature/test_terraform_sandbox_plan.py",
+        "tests/teardown/test_terraform_state_boundary.py",
+        ".gitignore",
+        "pyproject.toml",
+        "requirements-dev.txt",
+        "infra/bootstrap/main.tf",
+        "infra/bootstrap/versions.tf",
+        "infra/environments/sandbox/main.tf",
+        "infra/environments/sandbox/versions.tf",
+        "Makefile",
+        "feature-matrix.yaml",
+        "tools/platformctl/contracts.py",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/unit/test_platformctl_lifecycle.py",
+        "tests/integration/test_dependency_contract.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/feature/test_w2_002_embedder_contract.py",
+        "tests/feature/test_w2_003_ingestion_contract.py",
+        "tests/teardown/test_repository_cleanliness.py",
+        "tests/teardown/test_w1_002_cleanliness.py",
+        "tests/teardown/test_platformctl_cleanup.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W5-02",
+        "W5-03",
+        "W5-04",
+        "W5-05"
+      ]
+    },
+    {
+      "id": "BED-001",
+      "implementation_paths": [
+        "configs/verification/bedrock-owner-test.json",
+        "tools/bedrock_owner_verify.py",
+        "tests/unit/test_bedrock_owner_verify.py",
+        "tests/security/test_bedrock_owner_verify_security.py",
+        "tests/teardown/test_bedrock_owner_verify_cleanliness.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W5-02"
+      ]
     }
   ]
 }

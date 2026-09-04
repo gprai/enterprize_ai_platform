@@ -16,7 +16,7 @@ def uncommented_terraform(path: Path) -> str:
     return "\n".join(line.split("#", 1)[0] for line in path.read_text().splitlines())
 
 
-def test_terraform_control_roots_are_provider_and_resource_free() -> None:
+def test_terraform_control_roots_are_owner_gated_and_have_no_inline_backend() -> None:
     root_files = (
         REPOSITORY_ROOT / "infra" / "bootstrap" / "versions.tf",
         REPOSITORY_ROOT / "infra" / "bootstrap" / "main.tf",
@@ -24,8 +24,11 @@ def test_terraform_control_roots_are_provider_and_resource_free() -> None:
         REPOSITORY_ROOT / "infra" / "environments" / "sandbox" / "main.tf",
     )
     combined = "\n".join(uncommented_terraform(path) for path in root_files)
-    for forbidden_block in ("provider ", "backend ", "resource ", "module ", "data "):
-        assert forbidden_block not in combined
+    assert combined.count('provider "aws"') == 2
+    assert combined.count('resource "terraform_data" "owner_expiry_gate"') == 2
+    assert combined.count('module "') == 7
+    assert 'backend "' not in combined
+    assert combined.count('var.mandatory_tags["ExpiresAt"] != "TODO_OWNER"') == 2
     assert combined.count("required_version") == 2
 
 
