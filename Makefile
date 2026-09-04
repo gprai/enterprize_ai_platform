@@ -8,10 +8,10 @@ OPA ?= E:/AI/.tools/opa/1.20.0/opa.exe
 W2_004_COMPOSE = docker compose -p enterprise-ai-w2-004a -f docker-compose.yml -f docker-compose.w2-004.yml --profile local-retrieval
 W2_004_RUNNER_IMAGE = enterprise-ai-w2-004a-local_retrieval_runner:latest
 
-.PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke terraform-fmt-check terraform-validate-bootstrap terraform-validate-sandbox tflint-bootstrap tflint-sandbox checkov-terraform opa-terraform-policy bedrock-owner-dry-run w5-static-tests
+.PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke terraform-fmt-check terraform-validate-bootstrap terraform-validate-sandbox tflint-bootstrap tflint-sandbox checkov-config checkov-terraform opa-policy-check opa-terraform-policy w5-policy-tests w5-policy-rollback bedrock-owner-dry-run w5-static-tests
 
 help:
-	@echo "Available targets: validate, test, test-unit, test-integration, test-feature, test-smoke, test-security, test-teardown, evaluate, local-retrieval-config, local-retrieval-build, local-retrieval-inspect, local-retrieval-up, local-retrieval-ingest, local-retrieval-query, local-retrieval-regression, rollback-local, local-retrieval-remove, stop-local, destroy-local, verify-clean-local, rollback-release, smoke, terraform-fmt-check, terraform-validate-bootstrap, terraform-validate-sandbox, tflint-bootstrap, tflint-sandbox, checkov-terraform, opa-terraform-policy, bedrock-owner-dry-run, w5-static-tests"
+	@echo "Available targets: validate, test, test-unit, test-integration, test-feature, test-smoke, test-security, test-teardown, evaluate, local-retrieval-config, local-retrieval-build, local-retrieval-inspect, local-retrieval-up, local-retrieval-ingest, local-retrieval-query, local-retrieval-regression, rollback-local, local-retrieval-remove, stop-local, destroy-local, verify-clean-local, rollback-release, smoke, terraform-fmt-check, terraform-validate-bootstrap, terraform-validate-sandbox, tflint-bootstrap, tflint-sandbox, checkov-config, checkov-terraform, opa-policy-check, opa-terraform-policy, w5-policy-tests, w5-policy-rollback, bedrock-owner-dry-run, w5-static-tests"
 
 validate:
 	$(PYTHON) -m tools.platformctl validate
@@ -98,11 +98,23 @@ tflint-bootstrap:
 tflint-sandbox:
 	$(TFLINT) --chdir=infra/environments/sandbox --config=$(CURDIR)/.tflint.hcl
 
+checkov-config:
+	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/integration/test_dependency_contract.py tests/security/test_policy_pack.py
+
 checkov-terraform:
-	$(CHECKOV) --directory infra --framework terraform
+	$(CHECKOV) --config-file .checkov.yml -d infra
+
+opa-policy-check:
+	$(OPA) check --strict policies/opa
 
 opa-terraform-policy:
-	$(OPA) test policies/opa
+	$(OPA) test policies/opa --verbose
+
+w5-policy-tests:
+	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/contract/test_policy_exception_contract.py tests/feature/test_policy_gate.py tests/security/test_policy_pack.py
+
+w5-policy-rollback:
+	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/rollback/test_policy_pack_rollback.py tests/teardown/test_policy_pack_cleanliness.py
 
 bedrock-owner-dry-run:
 	$(PYTHON) -B tools/bedrock_owner_verify.py --config configs/verification/bedrock-owner-test.json --mode dry-run

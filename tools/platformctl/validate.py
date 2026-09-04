@@ -494,12 +494,20 @@ EXPECTED_AWS_IMPLEMENTATION_PATHS = (
     "tests/teardown/test_repository_cleanliness.py",
     "tests/teardown/test_w1_002_cleanliness.py",
     "tests/teardown/test_platformctl_cleanup.py",
+    ".checkov.yml",
+    "policies/opa/exceptions.json",
+    "tests/contract/test_policy_exception_contract.py",
+    "tests/feature/test_policy_gate.py",
+    "tests/rollback/test_policy_pack_rollback.py",
+    "tests/security/test_policy_pack.py",
+    "tests/teardown/test_policy_pack_cleanliness.py",
+    "infra/environments/sandbox/terraform.tfvars.example",
 )
 EXPECTED_AWS_FEATURE = {
     "id": "AWS-001",
     "implementation_paths": list(EXPECTED_AWS_IMPLEMENTATION_PATHS),
     "status": "In Progress",
-    "linked_tracker_steps": ["W5-02", "W5-03", "W5-04", "W5-05"],
+    "linked_tracker_steps": ["W5-02", "W5-03", "W5-04", "W5-05", "W5-06"],
 }
 EXPECTED_BEDROCK_IMPLEMENTATION_PATHS = (
     "configs/verification/bedrock-owner-test.json",
@@ -759,6 +767,40 @@ def validate_repository(root: Path | None = None) -> list[str]:
     for relative_path in REQUIRED_FILES:
         if not (target / relative_path).is_file():
             errors.append(f"missing required file: {relative_path}")
+
+    for relative_path in (
+        "policies/opa/terraform.rego",
+        "policies/opa/terraform_test.rego",
+    ):
+        if (target / relative_path).exists():
+            errors.append(f"forbidden duplicate policy path: {relative_path}")
+
+    for relative_directory in ("policies/checkov", "checks"):
+        policy_directory = target / relative_directory
+        if policy_directory.is_dir() and any(policy_directory.rglob("*.py")):
+            errors.append(f"unexpected custom Checkov policy path beneath: {relative_directory}")
+
+    opa_policy = target / "policies/opa/terraform_plan.rego"
+    if opa_policy.is_file():
+        policy_lines = opa_policy.read_text(encoding="utf-8").splitlines()
+        first_policy_line = next((line for line in policy_lines if line.strip()), "")
+        if first_policy_line != "package enterprise_ai.terraform.plan":
+            errors.append("OPA policy package must equal enterprise_ai.terraform.plan")
+
+    exception_registry = target / "policies/opa/exceptions.json"
+    if exception_registry.is_file():
+        try:
+            exception_data = json.loads(exception_registry.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"invalid W5 policy exception registry: {exc}")
+        else:
+            if (
+                not isinstance(exception_data, dict)
+                or exception_data.get("schema_version") != "w5-003.policy-exceptions.v1"
+            ):
+                errors.append(
+                    "policy exception schema_version must equal w5-003.policy-exceptions.v1"
+                )
 
     matrix_path = target / "feature-matrix.yaml"
     if matrix_path.is_file():

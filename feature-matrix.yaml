@@ -463,14 +463,23 @@
         "tests/feature/test_w2_003_ingestion_contract.py",
         "tests/teardown/test_repository_cleanliness.py",
         "tests/teardown/test_w1_002_cleanliness.py",
-        "tests/teardown/test_platformctl_cleanup.py"
+        "tests/teardown/test_platformctl_cleanup.py",
+        ".checkov.yml",
+        "policies/opa/exceptions.json",
+        "tests/contract/test_policy_exception_contract.py",
+        "tests/feature/test_policy_gate.py",
+        "tests/rollback/test_policy_pack_rollback.py",
+        "tests/security/test_policy_pack.py",
+        "tests/teardown/test_policy_pack_cleanliness.py",
+        "infra/environments/sandbox/terraform.tfvars.example"
       ],
       "status": "In Progress",
       "linked_tracker_steps": [
         "W5-02",
         "W5-03",
         "W5-04",
-        "W5-05"
+        "W5-05",
+        "W5-06"
       ]
     },
     {

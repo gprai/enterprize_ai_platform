@@ -248,8 +248,8 @@ variable "github_repository" {
   type        = string
   description = "Exact GitHub repository name."
   validation {
-    condition     = var.github_repository == "enterprise-ai-platform"
-    error_message = "github_repository must equal enterprise-ai-platform."
+    condition     = var.github_repository == "enterprize_ai_platform"
+    error_message = "github_repository must equal enterprize_ai_platform."
   }
 }
 

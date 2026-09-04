@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import tempfile
 import unittest
 from copy import deepcopy
 from pathlib import Path
@@ -408,13 +409,13 @@ class PlatformCtlUnitTests(unittest.TestCase):
         for path in EXPECTED_W1_08_SECURITY_CONTROL_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
-    def test_w5_001_aws_and_bedrock_ownership_is_exact(self) -> None:
-        self.assertEqual(53, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
-        self.assertEqual(53, len(set(EXPECTED_AWS_IMPLEMENTATION_PATHS)))
+    def test_w5_003_policy_pack_extends_aws_ownership_exactly(self) -> None:
+        self.assertEqual(61, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
+        self.assertEqual(61, len(set(EXPECTED_AWS_IMPLEMENTATION_PATHS)))
         self.assertEqual(5, len(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS))
         self.assertEqual(5, len(set(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS)))
         self.assertEqual(
-            ["W5-02", "W5-03", "W5-04", "W5-05"],
+            ["W5-02", "W5-03", "W5-04", "W5-05", "W5-06"],
             EXPECTED_FEATURES[7]["linked_tracker_steps"],
         )
         self.assertEqual(["W5-02"], EXPECTED_FEATURES[8]["linked_tracker_steps"])
@@ -422,3 +423,45 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertIn("policies/opa", REQUIRED_DIRECTORIES)
         for path in (*EXPECTED_AWS_IMPLEMENTATION_PATHS, *EXPECTED_BEDROCK_IMPLEMENTATION_PATHS):
             self.assertIn(path, REQUIRED_FILES)
+        self.assertEqual(
+            (
+                ".checkov.yml",
+                "policies/opa/exceptions.json",
+                "tests/contract/test_policy_exception_contract.py",
+                "tests/feature/test_policy_gate.py",
+                "tests/rollback/test_policy_pack_rollback.py",
+                "tests/security/test_policy_pack.py",
+                "tests/teardown/test_policy_pack_cleanliness.py",
+                "infra/environments/sandbox/terraform.tfvars.example",
+            ),
+            EXPECTED_AWS_IMPLEMENTATION_PATHS[-8:],
+        )
+
+    def test_stale_or_custom_policy_paths_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            opa_directory = root / "policies/opa"
+            checkov_directory = root / "policies/checkov"
+            opa_directory.mkdir(parents=True)
+            checkov_directory.mkdir(parents=True)
+            (opa_directory / "terraform.rego").write_text(
+                "package stale\n", encoding="utf-8", newline="\n"
+            )
+            (opa_directory / "terraform_plan.rego").write_text(
+                "package wrong.boundary\n", encoding="utf-8", newline="\n"
+            )
+            (opa_directory / "exceptions.json").write_text(
+                '{"schema_version":"wrong","exceptions":[]}\n',
+                encoding="utf-8",
+                newline="\n",
+            )
+            (checkov_directory / "custom.py").write_text(
+                "CUSTOM = True\n", encoding="utf-8", newline="\n"
+            )
+
+            errors = validate_repository(root)
+
+        assert any("forbidden duplicate policy path" in error for error in errors)
+        assert any("unexpected custom Checkov policy path" in error for error in errors)
+        assert any("OPA policy package" in error for error in errors)
+        assert any("policy exception schema_version" in error for error in errors)

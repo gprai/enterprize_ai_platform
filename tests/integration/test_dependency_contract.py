@@ -5,11 +5,16 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import yaml
+
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_REQUIREMENTS = REPOSITORY_ROOT / "requirements.txt"
 DEVELOPMENT_REQUIREMENTS = REPOSITORY_ROOT / "requirements-dev.txt"
 CHECKOV_REQUIREMENTS = REPOSITORY_ROOT / "requirements-checkov.txt"
 MAKEFILE = REPOSITORY_ROOT / "Makefile"
+CHECKOV_CONFIG = REPOSITORY_ROOT / ".checkov.yml"
+OPA_POLICY = REPOSITORY_ROOT / "policies/opa/terraform_plan.rego"
+OPA_EXCEPTIONS = REPOSITORY_ROOT / "policies/opa/exceptions.json"
 
 EXPECTED_RUNTIME_PACKAGES = {
     "boto3",
@@ -157,3 +162,47 @@ def test_opentelemetry_dependencies_are_minimal_and_exactly_bounded() -> None:
     assert not any(
         package_name(line).startswith("opentelemetry-exporter") for line in runtime_lines
     )
+
+
+def test_w5_checkov_configuration_is_offline_and_cli_only() -> None:
+    config = yaml.safe_load(CHECKOV_CONFIG.read_text(encoding="utf-8"))
+
+    assert config == {
+        "framework": ["terraform"],
+        "skip-download": True,
+        "skip-results-upload": True,
+        "download-external-modules": False,
+        "compact": True,
+        "quiet": True,
+        "soft-fail": False,
+    }
+    assert "skip-check" not in config
+    assert not any("api" in key.casefold() or "prisma" in key.casefold() for key in config)
+
+
+def test_w5_policy_tools_use_exact_approved_external_executables() -> None:
+    makefile_lines = MAKEFILE.read_text(encoding="utf-8").splitlines()
+
+    assert (
+        "CHECKOV ?= E:/AI/.venvs/enterprise-ai-platform-checkov-3.3.16/Scripts/python.exe "
+        "E:/AI/.venvs/enterprise-ai-platform-checkov-3.3.16/Scripts/checkov" in makefile_lines
+    )
+    assert "OPA ?= E:/AI/.tools/opa/1.20.0/opa.exe" in makefile_lines
+    assert "\t$(OPA) check --strict policies/opa" in makefile_lines
+    assert "\t$(OPA) test policies/opa --verbose" in makefile_lines
+    assert "\t$(CHECKOV) --config-file .checkov.yml -d infra" in makefile_lines
+    assert not any("--download-external-modules" in line for line in makefile_lines)
+
+
+def test_w5_policy_data_and_package_are_local_repository_inputs() -> None:
+    policy = OPA_POLICY.read_text(encoding="utf-8")
+    exception_data = OPA_EXCEPTIONS.read_text(encoding="utf-8")
+
+    assert "package enterprise_ai.terraform.plan" in policy.splitlines()
+    assert "http.send" not in policy
+    assert "registry_schema_version := data.schema_version" in policy
+    assert "registry_exceptions := data.exceptions" in policy
+    assert "object.get(data" not in policy
+    assert '"schema_version": "w5-003.policy-exceptions.v1"' in exception_data
+    assert not (REPOSITORY_ROOT / "policies/opa/terraform.rego").exists()
+    assert not (REPOSITORY_ROOT / "policies/opa/terraform_test.rego").exists()

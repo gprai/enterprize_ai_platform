@@ -1,0 +1,200 @@
+W5-06 POLICY-AS-CODE EVIDENCE — W5-003
+=======================================
+
+Status: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Feature owner: AWS-001
+Tracker step: W5-06
+Prompt/task ID: W5-003
+OPA package: enterprise_ai.terraform.plan
+Accepted repository baseline: main at b77b06f907ec55f207474af92396c473771834e6
+
+PURPOSE AND JOINT GATE
+----------------------
+
+W5-003 is the offline W5-06 policy-as-code producer. OPA evaluates the strict
+Terraform plan-shaped contract and project-specific controls. Checkov performs
+an independent static Terraform scan. Both tools must pass. Partial execution,
+disagreement, an unresolved finding, or invalid exception data is not PASS.
+
+ORDERED POLICY INVENTORY
+------------------------
+
+01. W5-PLAN-001  CRITICAL  Reject unevaluated or invalid plan input.
+02. W5-REG-001   CRITICAL  Require the approved ap-southeast-1 Region.
+03. W5-TAG-001   HIGH      Apply the exact mandatory tags.
+04. W5-TAG-002   HIGH      Require bounded ExpiresAt time.
+05. W5-PLAN-002  HIGH      Require owner review for destructive changes.
+06. W5-S3-001    CRITICAL  Block S3 public access.
+07. W5-S3-002    CRITICAL  Require approved S3 KMS encryption.
+08. W5-S3-003    HIGH      Require approved S3 versioning and lifecycle.
+09. W5-S3-004    CRITICAL  Enforce S3 TLS through an explicit deny.
+10. W5-KMS-001   CRITICAL  Require KMS rotation and lifecycle controls.
+11. W5-IAM-001   CRITICAL  Reject wildcard or prohibited IAM actions.
+12. W5-IAM-002   CRITICAL  Reject unapproved IAM scope and trust.
+13. W5-NET-001   CRITICAL  Require approved private network topology.
+14. W5-NET-002   CRITICAL  Restrict security-group traffic.
+15. W5-OS-001    CRITICAL  Require OpenSearch security controls.
+16. W5-OS-002    HIGH      Require OpenSearch operational logging.
+17. W5-ECR-001   CRITICAL  Require ECR immutability, scanning, and KMS.
+18. W5-ECR-002   HIGH      Retain exactly the approved ten ECR images.
+19. W5-SEC-001   CRITICAL  Reject secret or sensitive material.
+20. W5-EXC-001   CRITICAL  Reject an invalid exception registry.
+
+MANDATORY TAG CONTRACT
+----------------------
+
+Project=enterprise-ai-platform
+Environment=sandbox
+Owner=Gyan-Prakash-Rai
+ManagedBy=terraform
+CostCenter=Personal-Learning
+Feature=MVP-001
+Repository=enterprise-ai-platform
+ExpiresAt=<valid UTC timestamp after evaluation time and no more than 24 hours later>
+
+The logical Repository tag is enterprise-ai-platform. The separate GitHub
+repository identity is gprai/enterprize_ai_platform.
+
+EXCEPTION GOVERNANCE
+--------------------
+
+Schema: w5-003.policy-exceptions.v1
+Initial registry: empty
+Maximum lifetime: seven days
+Resource scope: 1-10 unique, exact Terraform resource addresses
+Owner and approver: Gyan Prakash Rai
+Allowed status: ACTIVE or REVOKED
+Non-exemptible policy IDs: W5-PLAN-001, W5-SEC-001, W5-EXC-001
+
+Each entry must contain exactly: exception_id, policy_id, resource_addresses,
+owner, approver, rationale, evidence_reference, issued_at, expires_at, status.
+Wildcards, globs, directories, source-file paths, blanket scope, duplicate IDs,
+duplicate bindings, expired/future/revoked suppression, and invalid registries
+cannot produce an exception PASS.
+
+SAFE FINDING CONTRACT
+---------------------
+
+Schema: w5-003.policy-finding.v1
+Allowed fields only: schema_version, policy_id, severity, resource_address,
+category, remediation_code, exception_status.
+
+Raw Terraform values, state, secret values, exception rationale/evidence,
+provider responses, environment secrets, exception messages, and stack traces
+are outside the finding and evidence boundary.
+
+CHECKOV OFFLINE CONTRACT
+------------------------
+
+Framework: Terraform
+Policy download: disabled
+Result upload: disabled
+External-module download: disabled
+Soft fail: disabled
+Custom Checkov Python checks: none
+Approved Checkov skip count: 20
+
+The 20 approved skips remain skips and are not transferred into the OPA
+exception registry. They are not PASS results.
+
+OWNER TEST-001 CLASSIFICATIONS
+------------------------------
+
+Final quality checks: PASS
+Final OPA and Checkov policy checks: PASS
+Final security checks: PASS
+Final regression checks: PASS
+Secure fixture result: PASS
+Insecure fixture rejection result: PASS
+Malformed/unsupported input fail-closed result: PASS
+Redaction and safe-finding result: PASS
+Automated rollback checks: PASS
+Cleanliness and residue checks: PASS
+Secret-baseline update: NOT REQUIRED
+Open FAIL results: none reported
+Open TEST-001 INDETERMINATE results: none reported
+Known warning: existing Starlette/httpx deprecation warning remains accepted
+Approved skips and deselections: recorded separately; not PASS
+
+Except for the approved Checkov skip count, the owner supplied final result
+classifications without numerical test counts in the Column M record.
+
+LIFECYCLE AND RESIDUE
+---------------------
+
+Real Terraform plan: NOT RUN
+Terraform apply/destroy: NOT RUN
+AWS activity or deployment: NOT RUN
+Automated policy rollback tests: PASS
+Real repository or cloud rollback: NOT RUN
+W5-003 cleanliness verification: PASS
+W5-003 temporary directory: absent
+W5-003 pre-commit cache: absent
+Cloud teardown: NOT RUN
+Cloud resources created: none
+Cloud residual resources: none
+Staged implementation: exact 18 approved paths intentionally retained
+Secret-baseline update: NOT REQUIRED
+Commit and push: NOT RUN
+Cleanup owner: Gyan Prakash Rai
+Provider/cloud cost: USD 0
+Local CPU, storage, electricity, and owner time: real but unpriced
+
+BOUNDARIES AND DEFERRALS
+------------------------
+
+W5-001 Bedrock evaluation remains formal FAIL and is not changed by this PASS.
+W5-002 owns later GitHub Actions integration. W5-004 owns later real Terraform
+plan evidence. Missing docs/adr/ADR-015-opensearch-boundary.md remains a
+deferred governance gap. Policy PASS is not deployment or production approval.
+
+FINAL OWNER APPROVAL — W5-003
+-----------------------------
+
+Prompt/task ID: W5-003
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Exact owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Decision date/time/timezone: 2026-09-05 00:30:21 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W5-003
+Code/configuration review status: APPROVED within the bounded 7 CREATE,
+11 UPDATE, 0 DELETE offline policy implementation; no deployment, production,
+cloud, or model-quality approval is implied.
+Documentation review status: APPROVED; all four W5-003 Column M documents are
+closed together.
+Owner-executed test status: PASS within the approved offline policy boundary.
+Quality, OPA and Checkov policy, security, regression, automated policy
+rollback, cleanliness, secure-fixture, insecure-fixture rejection,
+malformed/unsupported-input fail-closed, and safe-finding redaction checks
+passed. Secret-baseline update was NOT REQUIRED. Historical failures and
+passing bounded remediations remain preserved.
+Accepted warnings, risks, evidence gaps, and limitations: All items recorded
+in the approved W5-003 Column M manifest are accepted; no additional item is
+silently accepted. The Starlette/httpx warning, 20 Checkov skips, other skips
+and deselections, offline/static scope, unpriced local costs, deferred CI and
+real-plan evidence, missing ADR-015, and no production proof remain recorded.
+NOT RUN and INDETERMINATE: Commit, push, Terraform plan/apply/destroy, AWS
+activity, local/cloud/production deployment, real repository/deployment/cloud
+rollback, and cloud teardown remain NOT RUN. Historical INDETERMINATE results
+remain preserved. Remaining open INDETERMINATE activities: None.
+Deployment facts: NOT RUN; no W5-003 service, infrastructure, or cloud resource
+was deployed.
+Rollback facts: Automated policy rollback checks PASS; real repository,
+deployment, infrastructure, and cloud rollback remain NOT RUN.
+Teardown and residual-resource facts: Cleanliness and residue checks PASS; the
+task temporary directory and pre-commit cache are absent. Cloud teardown is
+NOT RUN because no cloud resource was created; cloud residuals are none. The
+18 staged implementation paths, W5-001 evidence, and owner-managed tooling are
+retained. The owner-controlled Excel lock remains excluded and unchanged.
+Deferred actions and owner: W5-002 CI integration, W5-004 real-plan evidence,
+ADR-015, and every recorded deferral remain open under Gyan Prakash Rai unless
+another owner is explicitly recorded.
+Conditions: Preserve every result, warning, risk, limitation, deferral, and
+residual-resource fact; W5-001 remains formal FAIL; only the owner changes
+Excel or Git; infer no production/cloud readiness from offline evidence.
+Next-task handover: The owner may update the W5-003 tracker row. CI, real-plan,
+ADR, deployment, and cloud work require separate approval and evidence.
+Tracker update responsibility: Owner
+
+Column N closed this file together with all four W5-003 Column M documents.
+No partial closure occurred.

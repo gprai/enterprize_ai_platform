@@ -813,3 +813,74 @@ access must not be represented as production proof.
 
 Column N closed this README entry and all six linked W5-001 documents together.
 No partial closure occurred, and the formal FAIL remains FAIL.
+
+## W5-003 / W5-06 offline OPA and Checkov policy pack
+
+W5-003/W5-06 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** within
+the approved offline policy boundary. This approval closes the four-document
+Column M manifest but does not establish deployment, model quality, production
+readiness, or cloud readiness.
+
+Column M documents:
+
+1. [W5-003 aggregate evidence](W5-003.md) — business objective, exact 18-path
+   implementation boundary, architecture, 20 controls, TEST-001 results,
+   historical remediation, limitations, cost, and lifecycle evidence.
+2. [W5-06 canonical policy evidence](W5-06-policy.txt) — ordered policy
+   inventory, mandatory tags, strict exception schema, safe findings, offline
+   Checkov behavior, and joint-gate results.
+3. [W5 policy-gate business summary](W5-policy.txt) — concise explanation of
+   what the joint gate protects, what blocks it, how exceptions work, and why
+   policy PASS is not deployment approval.
+
+Final quality, policy, security, regression, automated policy rollback, and
+cleanliness checks are recorded as PASS. Secure-fixture acceptance,
+insecure-fixture rejection, malformed/unsupported-input fail-closed behavior,
+and safe-finding redaction are recorded as PASS. The approved Checkov result
+retains 20 skips; skips and expected deselections are not PASS. The existing
+Starlette/httpx deprecation warning remains accepted. The secret-baseline
+update was NOT REQUIRED. No open FAIL or TEST-001 INDETERMINATE result was
+reported for W5-003.
+
+The OPA package contains 20 ordered controls and begins with an empty, strict,
+resource-scoped exception registry. OPA and Checkov must both pass; partial
+execution or disagreement is not PASS. Findings are limited to approved safe
+metadata. The logical tag remains `Repository=enterprise-ai-platform`; the
+GitHub repository identity is `gprai/enterprize_ai_platform`.
+
+W5-001 remains closed with its formal Bedrock **FAIL**; W5-003 policy PASS does
+not alter that result. W5-002 owns later GitHub Actions integration. W5-004
+owns later real Terraform plan evidence. Missing
+`docs/adr/ADR-015-opensearch-boundary.md` remains a deferred governance gap.
+
+Terraform plan/apply/destroy, AWS activity, deployment, real rollback, commit,
+push, and cloud teardown remain NOT RUN. No W5-003 cloud resource or cloud
+residual exists. The W5-003 task temporary directory and pre-commit cache are
+absent; the exact 18 staged implementation changes remain intentionally
+retained for owner Git action. Provider/cloud cost is USD 0; local costs are
+real but unpriced.
+
+### Final Owner Approval — W5-003
+
+- Prompt/task ID: `W5-003`.
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Exact owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**.
+- Decision date/time/timezone: **2026-09-05 00:30:21 SGT**.
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W5-003**.
+- Code/configuration review status: **APPROVED** within the bounded 7 CREATE, 11 UPDATE, 0 DELETE offline policy implementation. No deployment, production, cloud, or model-quality approval is implied.
+- Documentation review status: **APPROVED**. This README entry and all three linked W5-003 evidence documents are closed together.
+- Owner-executed test status: **PASS within the approved offline policy boundary**. Quality, OPA and Checkov policy, security, regression, automated policy rollback, cleanliness, fixture, fail-closed, and redaction checks passed. The secret-baseline update was NOT REQUIRED. Historical failures and their passing bounded remediations remain preserved.
+- Accepted warnings, risks, evidence gaps, and scope limitations: **All items recorded in the approved W5-003 Column M manifest are accepted; no additional item is silently accepted.** The Starlette/httpx warning, 20 Checkov skips, other approved skips and deselections, offline/static/synthetic scope, unpriced local costs, deferred CI and real-plan evidence, missing ADR-015, and no deployment or production proof remain recorded.
+- NOT RUN and INDETERMINATE activities: Commit, push, Terraform plan/apply/destroy, AWS activity, local/cloud/production deployment, real repository/deployment/infrastructure/cloud rollback, and cloud teardown remain **NOT RUN**. Historical INDETERMINATE results remain preserved. **Remaining open INDETERMINATE activities: None.**
+- Deployment facts: No W5-003 local, AWS/cloud, or production deployment occurred; no service, infrastructure, or cloud resource was deployed.
+- Rollback facts: Automated policy rollback checks **PASS**. Real repository, deployment, infrastructure, and cloud rollback remain **NOT RUN**.
+- Teardown, cleanup, and residual-resource facts: W5-003 cleanliness and residue checks **PASS**; the task temporary directory and pre-commit cache are absent. Cloud teardown remains **NOT RUN** because no cloud resource was created; cloud residuals are none. The exact 18 staged paths, W5-001 evidence, and owner-managed tooling remain retained. The optional owner-controlled Excel lock remains outside the closure boundary and was not modified.
+- Deferred actions and responsible owner: W5-002 GitHub Actions integration, W5-004 real Terraform plan evidence, missing `docs/adr/ADR-015-opensearch-boundary.md`, and all other recorded deferrals remain open. Responsible owner: **Gyan Prakash Rai**, unless another owner is explicitly recorded.
+- Conditions attached to approval: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work, and residual-resource fact; preserve W5-001's formal Bedrock FAIL; only the owner updates Excel and performs Git mutation; do not infer production or cloud readiness from local, fake, mocked, injected, static, synthetic, or offline evidence.
+- Next-task handover: The owner may update the W5-003 tracker row. W5-002 CI integration, W5-004 real-plan validation, ADR-015 governance work, deployment, and cloud lifecycle activity require separate approval and evidence.
+- Cleanup owner: **Gyan Prakash Rai**.
+- Tracker update responsibility: **Owner**.
+
+Column N closed this README entry and all three linked W5-003 documents
+together. No partial closure occurred.

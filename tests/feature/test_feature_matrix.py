@@ -154,7 +154,10 @@ class FeatureMatrixTests(unittest.TestCase):
         )
         self.assertEqual(["W3-09", "W4-08"], features[5]["linked_tracker_steps"])
         self.assertEqual(["W4-11"], features[6]["linked_tracker_steps"])
-        self.assertEqual(["W5-02", "W5-03", "W5-04", "W5-05"], features[7]["linked_tracker_steps"])
+        self.assertEqual(
+            ["W5-02", "W5-03", "W5-04", "W5-05", "W5-06"],
+            features[7]["linked_tracker_steps"],
+        )
         self.assertEqual(["W5-02"], features[8]["linked_tracker_steps"])
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
@@ -394,17 +397,35 @@ class FeatureMatrixTests(unittest.TestCase):
             release_feature["implementation_paths"],
         )
 
-    def test_w5_001_features_partition_the_exact_edit_manifest(self) -> None:
+    def test_w5_policy_pack_extends_only_aws_001(self) -> None:
         aws_feature = read_matrix()["features"][7]
         bedrock_feature = read_matrix()["features"][8]
 
         self.assertEqual(EXPECTED_AWS_FEATURE, aws_feature)
         self.assertEqual(EXPECTED_BEDROCK_FEATURE, bedrock_feature)
-        self.assertEqual(53, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
+        self.assertEqual(61, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
+        self.assertEqual(
+            [
+                ".checkov.yml",
+                "policies/opa/exceptions.json",
+                "tests/contract/test_policy_exception_contract.py",
+                "tests/feature/test_policy_gate.py",
+                "tests/rollback/test_policy_pack_rollback.py",
+                "tests/security/test_policy_pack.py",
+                "tests/teardown/test_policy_pack_cleanliness.py",
+                "infra/environments/sandbox/terraform.tfvars.example",
+            ],
+            aws_feature["implementation_paths"][-8:],
+        )
+        self.assertEqual(
+            ["W5-02", "W5-03", "W5-04", "W5-05", "W5-06"],
+            aws_feature["linked_tracker_steps"],
+        )
         self.assertEqual(5, len(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS))
         self.assertTrue(
             set(EXPECTED_AWS_IMPLEMENTATION_PATHS).isdisjoint(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS)
         )
+        self.assertNotIn("W5-07", aws_feature["linked_tracker_steps"])
 
     def test_trailing_content_is_rejected_as_malformed_json(self) -> None:
         valid_text = MATRIX_PATH.read_text(encoding="utf-8")

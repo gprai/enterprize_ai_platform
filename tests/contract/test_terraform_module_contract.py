@@ -159,3 +159,33 @@ def test_backend_example_uses_exact_owner_approved_boundary() -> None:
     assert 'key            = "sandbox/platform.tfstate"' in source
     assert 'dynamodb_table = "enterprise-ai-platform-sandbox-tflock"' in source
     assert 'kms_key_id     = "alias/enterprise-ai-platform-sandbox-terraform-state"' in source
+
+
+def test_github_repository_identity_produces_the_exact_oidc_subject() -> None:
+    tfvars = (SANDBOX / "terraform.tfvars.example").read_text(encoding="utf-8")
+    variables = (SANDBOX / "variables.tf").read_text(encoding="utf-8")
+    iam = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+
+    values = dict(
+        re.findall(
+            r'^(github_(?:organization|repository|environment))\s*=\s*"([^"]+)"$',
+            tfvars,
+            flags=re.MULTILINE,
+        )
+    )
+    assert values == {
+        "github_organization": "gprai",
+        "github_repository": "enterprize_ai_platform",
+        "github_environment": "sandbox",
+    }
+    subject = (
+        f"repo:{values['github_organization']}/{values['github_repository']}:"
+        f"environment:{values['github_environment']}"
+    )
+    assert subject == "repo:gprai/enterprize_ai_platform:environment:sandbox"
+    assert 'var.github_repository == "enterprize_ai_platform"' in variables
+    assert "github_repository must equal enterprize_ai_platform" in variables
+    assert (
+        "repo:${var.github_organization}/${var.github_repository}:"
+        "environment:${var.github_environment}" in iam
+    )
