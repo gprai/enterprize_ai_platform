@@ -57,7 +57,7 @@ def clean_results() -> dict[tuple[str, ...], CommandResult]:
             "?? tools/verify_w2_004_local.py\n"
             "?? docs/governance/"
             "~$Enterprise_AI_Architecture_6_Week_Execution_Tracker_"
-            "v1.3.4_repaired.xlsx\n",
+            "v1.3.5_repaired.xlsx\n",
         ),
         GIT_IGNORED_COMMAND: CommandResult(0),
     }

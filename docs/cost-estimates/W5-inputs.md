@@ -17,7 +17,7 @@ The governing precedence is:
 1. Enterprise AI Architecture Source of Truth v1.1.
 2. Final-approved ADRs and owner decision records.
 3. Coaching and learning records.
-4. Owner-approved tracker v1.3.4.
+4. Owner-approved tracker v1.3.5.
 5. Approved feature requirements, configuration, and implementation evidence.
 
 The Column L baseline was revalidated before creation:
@@ -29,7 +29,7 @@ The Column L baseline was revalidated before creation:
 | Reviewed HEAD | `0bc402ecf241121bb82e27c029b1d84ca76a7ca7` |
 | Source of Truth v1.1 SHA-256 | `D4CE5C6D2CBBA3704E8F7F385EDEB16573CF21E009B1BF7E87914BACE03FB04F` |
 | Owner Decision Compendium SHA-256 | `D738D4D9760930BF19CB8325AA66F963B2729EF999D24D75977698209DB1D216` |
-| Tracker v1.3.4 SHA-256 | `C4DFF3E2E87DBFC08782E30FF7CD9295A4B0D51EA3B613C268B765DEFF3A7153` |
+| Tracker v1.3.5 SHA-256 | `C4DFF3E2E87DBFC08782E30FF7CD9295A4B0D51EA3B613C268B765DEFF3A7153` |
 | Protected W3-002 baseline SHA-256 | `4BBC8F24AF911BA09356196E9285D261549926C713110F9549929E1E4AC9086F` |
 
 The open repaired workbook, its Office lock file, and the pre-existing `.vscode/settings.json` file are owner-controlled or excluded worktree items. They are not authority for this decision, were not modified, and do not broaden this two-file boundary.

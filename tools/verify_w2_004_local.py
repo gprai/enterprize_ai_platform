@@ -15,7 +15,7 @@ RUNNER_IMAGE_LABEL = "label=com.enterprise-ai.w2-004.role=local-retrieval-test-r
 MODEL_CACHE = Path(r"E:\AI\.model-cache\enterprise_ai_platform\W2-002")
 EXTERNAL_VENV = Path(r"E:\AI\.venvs\enterprise_ai_platform")
 ALLOWED_EXCEL_LOCK = (
-    "docs/governance/~$Enterprise_AI_Architecture_6_Week_Execution_Tracker_v1.3.4_repaired.xlsx"
+    "docs/governance/~$Enterprise_AI_Architecture_6_Week_Execution_Tracker_v1.3.5_repaired.xlsx"
 )
 APPROVED_CHANGED_PATHS = frozenset(
     {

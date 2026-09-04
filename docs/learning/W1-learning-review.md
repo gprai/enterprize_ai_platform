@@ -26,7 +26,7 @@ The canonical business feature is `MVP-001`; `W1-MVP-001` is the governing promp
 
 ## 5. Source-precedence governance
 
-Source of Truth v1.1 remains the highest implementation authority. Later owner-approved ADRs supersede only explicitly identified decisions. The Coaching Blueprint supplies supporting guidance, the current owner-approved tracker v1.3.4 controls sequencing and approval gates, and approved feature requirements control their own scope. Generated code cannot override governing decisions. Material conflicts stop for the owner.
+Source of Truth v1.1 remains the highest implementation authority. Later owner-approved ADRs supersede only explicitly identified decisions. The Coaching Blueprint supplies supporting guidance, the current owner-approved tracker v1.3.5 controls sequencing and approval gates, and approved feature requirements control their own scope. Generated code cannot override governing decisions. Material conflicts stop for the owner.
 
 ## 6. Repository and documentation structure
 

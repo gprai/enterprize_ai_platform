@@ -9,7 +9,7 @@
 | Approval Date | 16/08/2026 |
 | Scope | Governance only; no local, cloud, deployment, rollback, or teardown mutation is approved |
 
-The original decision and later restart review used the tracker versions approved at those times, including v1.1.1 and v1.3.0. Those references remain historical facts; this document does not pretend that a later tracker existed during earlier approvals. For current operations, the owner-approved Enterprise AI Architecture 6-Week Execution Tracker **v1.3.4** controls task sequencing, evidence expectations, approval gates, and owner-maintained status. The historical `Approved` ADR decision remains in force unless the owner explicitly supersedes an identified part of it.
+The original decision and later restart review used the tracker versions approved at those times, including v1.1.1 and v1.3.0. Those references remain historical facts; this document does not pretend that a later tracker existed during earlier approvals. For current operations, the owner-approved Enterprise AI Architecture 6-Week Execution Tracker **v1.3.5** controls task sequencing, evidence expectations, approval gates, and owner-maintained status. The historical `Approved` ADR decision remains in force unless the owner explicitly supersedes an identified part of it.
 
 ### Current Decision Statement
 
@@ -18,7 +18,7 @@ The governing sources are applied in this order:
 1. **Enterprise AI Architecture Source of Truth v1.1** is the highest implementation authority.
 2. **Later owner-approved Architecture Decision Records (ADRs)** may supersede only the exact decisions they identify. An ADR is a short record explaining an important architecture decision and its consequences.
 3. **Enterprise AI Architecture Coaching Blueprint** supplies supporting technical and learning guidance. It does not silently replace an owner decision.
-4. **The current owner-approved Execution Tracker, presently v1.3.4,** controls work sequence, evidence, approval gates, and owner-maintained status. Historical work remains associated with the tracker version governing it at the time.
+4. **The current owner-approved Execution Tracker, presently v1.3.5,** controls work sequence, evidence, approval gates, and owner-maintained status. Historical work remains associated with the tracker version governing it at the time.
 5. **Owner-approved feature requirements** govern only the feature scope they define.
 6. **Generated code and configuration** implement governing decisions; they cannot override them.
 
@@ -83,7 +83,7 @@ The project will apply the following precedence order from highest to lowest:
 1. **Enterprise AI Architecture Source of Truth v1.1** is the highest implementation authority.
 2. **Later owner-approved ADRs** supersede the Source of Truth only for the exact decision each ADR explicitly identifies. Every other Source of Truth requirement remains authoritative.
 3. **Enterprise AI Architecture Coaching Blueprint** supplies supporting technical guidance, component rationale, examples, original prompts, learning material, and implementation detail where it does not conflict with higher authority.
-4. **The owner-approved Execution Tracker** controls task sequence, grouped prompts, evidence expectations, owner gates, and owner-maintained status where it does not conflict with higher authority. Tracker v1.1.1 governed the original historical decision; v1.3.0 governed the documented restart review; the current operational authority is owner-approved tracker v1.3.4.
+4. **The owner-approved Execution Tracker** controls task sequence, grouped prompts, evidence expectations, owner gates, and owner-maintained status where it does not conflict with higher authority. Tracker v1.1.1 governed the original historical decision; v1.3.0 governed the documented restart review; the current operational authority is owner-approved tracker v1.3.5.
 5. **Owner-approved feature requirements** govern the exact approved feature scope where they do not conflict with sources above them.
 6. **Generated code and configuration** implement approved decisions but cannot override, reinterpret, or silently replace any governing source.
 
@@ -207,7 +207,7 @@ This Approved ADR records governance only. It does not approve application or in
 ## Week 1 evidence reconciliation — Final Owner Approval
 
 - ADR decision status: **Approved**; decision owner Gyan Prakash Rai; approval date 16/08/2026.
-- Current operational tracker authority: **owner-approved tracker v1.3.4**.
+- Current operational tracker authority: **owner-approved tracker v1.3.5**.
 - Week 1 reconciliation reviewer: **Gyan Prakash Rai — Project Owner, Learner and Approval Reviewer**.
 - Week 1 reconciliation decision: **APPROVED WITH QUALIFICATIONS**; documentation review **APPROVED**.
 - Reconciliation approval timestamp: **2026-08-25 21:38:20 SGT (UTC+08:00)**.
