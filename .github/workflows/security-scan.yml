@@ -1,0 +1,151 @@
+name: W5-002 candidate supply-chain controls
+
+on:
+  workflow_call:
+
+permissions: {}
+
+concurrency:
+  group: w5-002-supply-chain-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out one exact source commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Set up exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.11.16
+          cache: ""
+      - name: Install the hash-locked CI environment
+        shell: bash
+        run: |
+          python --version | grep -Fx "Python 3.11.16"
+          python -m pip --version | grep -F "pip 26.2.1"
+          python -B tools/w5_002_ci.py validate-locks \
+            --runtime requirements-runtime.lock --ci requirements-ci.lock \
+            --checkov requirements-checkov.lock
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+      - name: Set up exact BuildKit
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5
+        with:
+          name: enterprise-ai-platform-w5-002
+          driver: docker-container
+          driver-opts: >-
+            image=moby/buildkit:v0.30.0@sha256:57269d1784e49b46228c45a1a1b870fbe40e0a639ab60b37b032d83af5bccdfc
+          install: false
+          use: true
+          cleanup: true
+      - name: Verify immutable local tool identities
+        shell: bash
+        run: |
+          trivy --version | grep -F "Version: 0.74.0"
+          grype version | grep -F "Version: 0.118.0"
+          syft version | grep -F "Version: 1.51.1"
+      - name: Build one Linux AMD64 OCI archive without load or push
+        id: build
+        shell: bash
+        env:
+          OCI_ARCHIVE: ${{ runner.temp }}/w5-002-candidate.oci
+        run: |
+          docker buildx build \
+            --builder enterprise-ai-platform-w5-002 \
+            --platform linux/amd64 \
+            --file docker/application.Dockerfile \
+            --output "type=oci,dest=$OCI_ARCHIVE" \
+            --provenance=false \
+            --sbom=false \
+            .
+          digest="sha256:$(sha256sum "$OCI_ARCHIVE" | cut -d ' ' -f 1)"
+          echo "image_digest=$digest" >> "$GITHUB_OUTPUT"
+          mkdir -p reports/w5-002
+          python -B tools/w5_002_ci.py write-image-identity \
+            --output reports/w5-002/image-identity.json \
+            --source-commit "$GITHUB_SHA" \
+            --image-digest "$digest"
+      - name: Scan the filesystem and the same OCI archive
+        shell: bash
+        env:
+          OCI_ARCHIVE: ${{ runner.temp }}/w5-002-candidate.oci
+          OCI_LAYOUT: ${{ runner.temp }}/w5-002-oci-layout
+          RAW_GRYPE: ${{ runner.temp }}/w5-002-grype.json
+          RAW_TRIVY_FILESYSTEM: ${{ runner.temp }}/w5-002-trivy-filesystem.json
+          RAW_TRIVY_IMAGE: ${{ runner.temp }}/w5-002-trivy-image.json
+        run: |
+          cleanup() {
+            rm -rf -- "$OCI_LAYOUT"
+            rm -f -- "$RAW_TRIVY_FILESYSTEM" "$RAW_TRIVY_IMAGE" "$RAW_GRYPE"
+          }
+          trap cleanup EXIT
+          trivy filesystem --format json --output "$RAW_TRIVY_FILESYSTEM" \
+            --scanners vuln,secret .
+          test ! -e "$OCI_LAYOUT"
+          mkdir "$OCI_LAYOUT"
+          tar -xf "$OCI_ARCHIVE" -C "$OCI_LAYOUT"
+          test -f "$OCI_LAYOUT/index.json"
+          test -f "$OCI_LAYOUT/oci-layout"
+          trivy image --input "$OCI_LAYOUT" --format json \
+            --output "$RAW_TRIVY_IMAGE"
+          grype "oci-archive:$OCI_ARCHIVE" -o json > "$RAW_GRYPE"
+          python -B tools/w5_002_ci.py write-scan-summary \
+            --input "$RAW_TRIVY_FILESYSTEM" \
+            --output reports/w5-002/trivy-filesystem.json \
+            --source-commit "$GITHUB_SHA" \
+            --image-digest "${{ steps.build.outputs.image_digest }}" \
+            --scanner trivy --scope filesystem
+          python -B tools/w5_002_ci.py write-scan-summary \
+            --input "$RAW_TRIVY_IMAGE" \
+            --output reports/w5-002/trivy-image.json \
+            --source-commit "$GITHUB_SHA" \
+            --image-digest "${{ steps.build.outputs.image_digest }}" \
+            --scanner trivy --scope oci
+          python -B tools/w5_002_ci.py write-scan-summary \
+            --input "$RAW_GRYPE" \
+            --output reports/w5-002/grype-image.json \
+            --source-commit "$GITHUB_SHA" \
+            --image-digest "${{ steps.build.outputs.image_digest }}" \
+            --scanner grype --scope oci
+          cleanup
+          trap - EXIT
+      - name: Generate both SBOMs from the same OCI archive
+        shell: bash
+        env:
+          OCI_ARCHIVE: ${{ runner.temp }}/w5-002-candidate.oci
+        run: |
+          syft "oci-archive:$OCI_ARCHIVE" \
+            -o spdx-json=reports/w5-002/sbom.spdx.json
+          syft "oci-archive:$OCI_ARCHIVE" \
+            -o cyclonedx-json=reports/w5-002/sbom.cyclonedx.json
+      - name: Reconcile identity, provenance, limits, and eligibility
+        shell: bash
+        run: |
+          python -B tools/w5_002_ci.py reconcile-supply-chain \
+            --reports-dir reports/w5-002 \
+            --source-commit "$GITHUB_SHA" \
+            --image-digest "${{ steps.build.outputs.image_digest }}"
+          python -B tools/w5_002_ci.py validate-reports \
+            --reports-dir reports/w5-002 --profile supply-chain
+      - name: Upload only the bounded allowlisted reports
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w5-002-supply-chain
+          path: |
+            reports/w5-002/image-identity.json
+            reports/w5-002/trivy-filesystem.json
+            reports/w5-002/trivy-image.json
+            reports/w5-002/grype-image.json
+            reports/w5-002/sbom.spdx.json
+            reports/w5-002/sbom.cyclonedx.json
+            reports/w5-002/provenance.json
+            reports/w5-002/eligibility.json
+          if-no-files-found: error
+          retention-days: 7
+          include-hidden-files: false

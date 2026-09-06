@@ -64,6 +64,7 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         release_feature,
         aws_feature,
         bedrock_feature,
+        gha_feature,
     ) = matrix["features"]
 
     assert [
@@ -76,6 +77,7 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         release_feature["id"],
         aws_feature["id"],
         bedrock_feature["id"],
+        gha_feature["id"],
     ] == [
         "MVP-001",
         "RAG-001",
@@ -86,6 +88,7 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         "REL-001",
         "AWS-001",
         "BED-001",
+        "GHA-001",
     ]
     implementation_paths = rag["implementation_paths"]
     w2_003_start = implementation_paths.index(W2_003_IMPLEMENTATION_PATHS[0])

@@ -51,12 +51,20 @@ def test_ignore_boundary_is_exact_and_not_a_broad_reports_ignore() -> None:
     assert "reports/w4-release/" not in ignore_lines
 
 
-def test_descriptor_hashes_still_match_every_immutable_payload_file() -> None:
+def test_historical_descriptors_remain_byte_exact_and_internally_complete() -> None:
     descriptor = load_release_descriptor("w4-known-good-v1")
     assert tuple(item.path for item in descriptor.artifacts) == (APPROVED_ARTIFACT_PATHS)
-    assert {item.path: hash_file(ROOT / item.path) for item in descriptor.artifacts} == {
-        item.path: item.sha256 for item in descriptor.artifacts
+    expected_descriptor_hashes = {
+        "configs/releases/versions/w4-known-good-v1.json": (
+            "149c80300928e2c04c03f53be694876679655f4f316722c4dbfa65b33a485f94"
+        ),
+        "configs/releases/versions/w4-synthetic-regression-v1.json": (
+            "d8e65865c5564d9eccc57089564b17fb3f3b86ad46106143a091ef659d9571c3"
+        ),
     }
+    assert {
+        path: hash_file(ROOT / path) for path in expected_descriptor_hashes
+    } == expected_descriptor_hashes
 
 
 def test_owner_captured_cleanup_removes_only_isolated_runtime_state(

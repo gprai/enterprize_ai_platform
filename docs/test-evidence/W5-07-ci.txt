@@ -1,0 +1,143 @@
+# W5-07 local CI and workflow evidence
+
+## Formal disposition
+
+Prompt/task: W5-002 / W5-07
+W5-002 TEST-001: FAIL
+Candidate: REJECTED / INELIGIBLE
+
+The CI and workflow contracts passed in their executed local scopes. W5-002
+still failed because OCI vulnerability scanning is a mandatory joint release
+gate and no candidate met its zero-critical requirement.
+
+## Owner-executed local results
+
+- Canonical test environment: Python 3.11.16, Linux AMD64, pip 26.2.1.
+- Dependency integrity: PASS; `pip check` found no broken requirements in the
+  reusable Docker-native CI volume.
+- Complete Pytest suite: PASS — 895 passed, 15 skipped, 4 deselected,
+  1 warning, and 10 subtests passed in 189.72 seconds.
+- Focused W5-002 reruns: PASS — owner-reported successful scopes included
+  35 passed; 57 passed plus 10 subtests; 47 passed; 62 passed; and 15 passed
+  for the OCI-layout producer-consumer remediation.
+- Ruff lint: PASS.
+- Ruff format: PASS; 278 files already formatted after approved corrections.
+- Strict MyPy: PASS; no issues in 108 source files.
+- Platform validation: PASS.
+- Actionlint 1.7.12 and the security-scan workflow check: PASS.
+- Workflow contract and security checks: PASS in the executed local scopes.
+- Automated rollback and cleanliness contracts: PASS where executed.
+- Terraform format, bootstrap validate, sandbox validate, initialization
+  cleanup, and zero repository runtime residue: PASS.
+- Checkov 3.3.16: 226 passed, 0 failed, 20 skipped.
+- OPA 1.20.0: strict check PASS and 41/41 policy tests PASS.
+- TFLint 0.60.0 with AWS ruleset 0.48.0: owner-reported PASS.
+
+The complete suite's 15 skips and 4 deselections remain NOT RUN. The accepted
+Starlette/httpx deprecation warning remains unresolved. OPA and Checkov were
+unavailable to the canonical Linux Pytest container and therefore skipped
+there; their separate owner-controlled runs above passed. Checkov's 20 policy
+skips remain skips rather than passes.
+
+## Preserved historical failures and remediation
+
+- Ruff initially reported one unsafe YAML-loader finding and five import-order
+  findings; the bounded corrections passed on rerun.
+- A security assertion initially confused `.secrets.baseline` with a GitHub
+  `secrets.` expression; its bounded test correction passed 35 tests.
+- Linux path, historical release-lifecycle, and detect-secrets environment
+  mismatches were corrected in the approved scope; the affected 62-test scope
+  and later complete suite passed.
+- The first canonical Linux dependency environment was interrupted and
+  incomplete. It was removed under approval, replaced by a Docker-native
+  reusable volume, fully installed, and verified before testing.
+- Actionlint was initially absent and then installed externally at the exact
+  approved version after checksum and provenance verification.
+- The Trivy OCI consumer contract initially failed on the BuildKit archive.
+  The five-path layout remediation passed Ruff, format, 15 tests, and
+  Actionlint before the successful scanner rerun.
+
+Passing remediation reruns do not erase these historical failures.
+
+## Hosted and cloud activities
+
+The following remain NOT RUN:
+
+- GitHub-hosted workflow execution.
+- GitHub OIDC federation.
+- AWS authentication, role assumption, or account activity.
+- Registry push or image publication.
+- Application or production deployment.
+- Terraform plan or apply.
+- Operational infrastructure rollback and cloud teardown.
+
+No image was pushed or deployed. No AWS resource was created, changed, or
+deleted. Local PASS results do not prove hosted-runner, OIDC, AWS, registry,
+deployment, production, performance, capacity, availability, SLO, or cloud
+lifecycle behavior.
+
+## Lifecycle and retained resources
+
+Terraform initialization-residue cleanup passed. W5-002 evidence cleanup as a
+whole is DEFERRED / NOT RUN. The local builder, reusable CI volume, installed
+tools, Docker images, caches, task workspaces, OCI archive, scanner evidence,
+reports, and SBOMs remain owner-controlled and retained. Cloud residual
+resources are none. Column M authorizes no deletion.
+
+## Final Owner Approval
+
+- Prompt/task ID: `W5-002` / `W5-07`
+- Reviewer: **Gyan Prakash Rai**
+- Reviewer role: **Project Owner and Final Approval Reviewer**
+- Final owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+- Approval date and time/timezone: **2026-09-06 16:50:21 SGT**
+- Final closure status: **APPROVED FOR USER TRACKER UPDATE — W5-002** while
+  the formal W5-002 TEST-001 result remains FAIL.
+- Code and evidence review status: **APPROVED within the bounded local CI and
+  workflow-contract scope**. No hosted-runner, OIDC, AWS, registry,
+  deployment, production, or cloud approval is implied.
+- Documentation review status: **APPROVED** as one of four W5-002 manifest
+  documents closed together.
+- Owner-executed test status: The recorded local CI, dependency-integrity,
+  quality, policy, Terraform, workflow, rollback-contract, and cleanliness
+  checks passed in their stated scopes. The complete suite remains 895 passed,
+  15 skipped, 4 deselected, 1 warning, and 10 subtests. The mandatory OCI
+  security gate failed, so the overall task result remains FAIL.
+- Formal W5-002 TEST-001 result: **FAIL**
+- Local CI/workflow evidence status: **PASS within the recorded local scope**
+- Candidate status: **REJECTED / INELIGIBLE**
+- Accepted warnings, risks, evidence gaps, and limitations: **All Column M
+  items are accepted; no additional item is silently accepted.** The accepted
+  Starlette/httpx warning, all skips and deselections, Checkov skips,
+  historical failures/remediations, local-only execution, and unproven hosted,
+  cloud, and production behavior remain visible.
+- NOT RUN and INDETERMINATE activities: GitHub-hosted workflows, OIDC, AWS
+  authentication/role assumption, Terraform plan/apply, registry push,
+  deployment, operational infrastructure rollback, cloud teardown, and
+  production validation remain **NOT RUN**. Historical INDETERMINATE results
+  remain preserved. **Remaining open INDETERMINATE activities: None.**
+- Deployment facts: No image was pushed, published, released, or deployed; no
+  local application, AWS/cloud, or production deployment occurred.
+- Rollback facts: Automated local rollback contracts passed where executed;
+  operational release, deployment, infrastructure, and cloud rollback remain
+  **NOT RUN**.
+- Teardown and residual-resource facts: Terraform initialization residue was
+  removed and its bounded cleanup passed. Overall evidence cleanup and
+  operational/cloud teardown remain **DEFERRED / NOT RUN**. The builder,
+  reusable CI volume, tools, images, caches, workspaces, OCI evidence, scanner
+  reports, and SBOMs remain retained under owner control. Cloud residuals are
+  none.
+- Critical-CVE waiver: **None was granted.**
+- Deferred actions and owner: All recorded deferrals remain open under
+  **Gyan Prakash Rai**, unless another owner is explicitly recorded. Cleanup,
+  fixed-candidate retesting, hosted workflow execution, provenance,
+  reconciliation, deployment, and cloud validation require separate approval.
+- Conditions: Preserve every result, warning, limitation, deferral, and
+  retained-resource fact; infer no hosted, production, or cloud readiness from
+  local evidence; only the owner updates Excel or mutates Git.
+- Next-task handover: Local CI contracts may be relied upon only within their
+  recorded scope. The rejected candidate and mandatory security failure must
+  remain blocking until a separately approved fixed-candidate cycle succeeds.
+- Tracker update responsibility: **Owner**
+- Column N reconciliation: this record closed together with `W5-002.md`,
+  `W5-08-supply-chain.txt`, and the W5-002 README entry; no partial closure.

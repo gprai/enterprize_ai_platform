@@ -5,10 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from enterprise_ai_platform.agent.persistence import SQLiteAgentStateStore
+from enterprise_ai_platform.config import AGENT_STORE_PATH
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 AGENT_SOURCE = REPOSITORY_ROOT / "src" / "enterprise_ai_platform" / "agent"
-RUNTIME_STORE = Path(r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3")
+RUNTIME_STORE = AGENT_STORE_PATH
 
 
 def test_approved_long_lived_store_is_not_created_by_ordinary_tests() -> None:

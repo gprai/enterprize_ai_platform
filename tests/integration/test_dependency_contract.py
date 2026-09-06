@@ -6,11 +6,15 @@ import re
 from pathlib import Path
 
 import yaml
+from tools import w5_002_ci
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_REQUIREMENTS = REPOSITORY_ROOT / "requirements.txt"
 DEVELOPMENT_REQUIREMENTS = REPOSITORY_ROOT / "requirements-dev.txt"
 CHECKOV_REQUIREMENTS = REPOSITORY_ROOT / "requirements-checkov.txt"
+RUNTIME_LOCK = REPOSITORY_ROOT / "requirements-runtime.lock"
+CI_LOCK = REPOSITORY_ROOT / "requirements-ci.lock"
+CHECKOV_LOCK = REPOSITORY_ROOT / "requirements-checkov.lock"
 MAKEFILE = REPOSITORY_ROOT / "Makefile"
 CHECKOV_CONFIG = REPOSITORY_ROOT / ".checkov.yml"
 OPA_POLICY = REPOSITORY_ROOT / "policies/opa/terraform_plan.rego"
@@ -34,6 +38,7 @@ EXPECTED_RUNTIME_PACKAGES = {
     "qdrant-client",
     "sentence-transformers",
     "tokenizers",
+    "torch",
     "uvicorn",
 }
 EXPECTED_DEVELOPMENT_PACKAGES = {
@@ -113,11 +118,25 @@ def test_default_requirements_contain_no_gpu_only_package() -> None:
     assert not any(token in combined for token in forbidden_tokens)
 
 
+def test_runtime_and_ci_locks_are_cpu_only_after_transitive_resolution() -> None:
+    runtime = w5_002_ci.validate_dependency_lock(RUNTIME_LOCK, "runtime")
+    ci = w5_002_ci.validate_dependency_lock(CI_LOCK, "ci")
+    checkov = w5_002_ci.validate_dependency_lock(CHECKOV_LOCK, "checkov")
+
+    assert runtime["torch"].startswith("2.13.")
+    assert ci["torch"].startswith("2.13.")
+    assert "torch" not in checkov
+
+
 def test_bedrock_sdk_versions_are_exactly_bounded_and_compatible() -> None:
     runtime_lines = requirement_lines(RUNTIME_REQUIREMENTS)
 
     assert "boto3>=1.43.77,<1.44" in runtime_lines
     assert "botocore>=1.43.77,<1.44" in runtime_lines
+
+
+def test_torch_is_bounded_to_the_approved_cpu_compatible_minor() -> None:
+    assert "torch>=2.13,<2.14" in requirement_lines(RUNTIME_REQUIREMENTS)
 
 
 def test_checkov_is_pinned_in_an_isolated_tool_environment() -> None:
@@ -206,3 +225,43 @@ def test_w5_policy_data_and_package_are_local_repository_inputs() -> None:
     assert '"schema_version": "w5-003.policy-exceptions.v1"' in exception_data
     assert not (REPOSITORY_ROOT / "policies/opa/terraform.rego").exists()
     assert not (REPOSITORY_ROOT / "policies/opa/terraform_test.rego").exists()
+
+
+def test_w5_002_python_locks_are_hash_locked_and_input_bound() -> None:
+    lock_contracts = (
+        (RUNTIME_LOCK, RUNTIME_REQUIREMENTS),
+        (CI_LOCK, DEVELOPMENT_REQUIREMENTS),
+        (CHECKOV_LOCK, CHECKOV_REQUIREMENTS),
+    )
+    for lock, source in lock_contracts:
+        text = lock.read_text(encoding="utf-8")
+        assert "--hash=sha256:" in text
+        assert "git+" not in text
+        assert source.name in text
+    for lock in (RUNTIME_LOCK, CI_LOCK):
+        assert w5_002_ci.PYTORCH_INDEX_URL in lock.read_text(encoding="utf-8")
+    checkov_text = CHECKOV_LOCK.read_text(encoding="utf-8")
+    assert "--index-url" not in checkov_text
+    assert "--extra-index-url" not in checkov_text
+    assert "checkov==3.3.16" in CHECKOV_LOCK.read_text(encoding="utf-8")
+    assert "checkov==" not in CI_LOCK.read_text(encoding="utf-8")
+
+
+def test_w5_002_workflows_install_locks_without_dependency_resolution() -> None:
+    workflows = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (
+            REPOSITORY_ROOT / ".github/workflows/ci.yml",
+            REPOSITORY_ROOT / ".github/workflows/plan-sandbox.yml",
+            REPOSITORY_ROOT / ".github/workflows/security-scan.yml",
+        )
+    )
+
+    assert "requirements-runtime.lock" in (
+        REPOSITORY_ROOT / "docker/application.Dockerfile"
+    ).read_text(encoding="utf-8")
+    assert "requirements-ci.lock" in workflows
+    assert "requirements-checkov.lock" in workflows
+    assert workflows.count("--require-hashes --no-deps") >= 4
+    assert "requirements-dev.txt" not in workflows
+    assert "requirements-checkov.txt" not in workflows

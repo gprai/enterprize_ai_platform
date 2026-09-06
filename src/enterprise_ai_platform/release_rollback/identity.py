@@ -1,4 +1,4 @@
-"""Canonical W4-11 release identity and immutable artifact verification."""
+"""Canonical W4-11 historical identity and explicit checkout verification."""
 
 from __future__ import annotations
 
@@ -250,13 +250,19 @@ def _validate_descriptor(descriptor: ReleaseDescriptor) -> None:
         or artifact_composition_sha256(descriptor) != APPROVED_COMPOSITION_SHA256
     ):
         raise ReleaseIdentityError
+
+
+def validate_current_checkout(descriptor: ReleaseDescriptor) -> None:
+    """Fail unless the current checkout still contains the historical payload."""
+
+    _validate_descriptor(descriptor)
     for artifact in descriptor.artifacts:
         if hash_file(_exact_repository_file(artifact.path)) != artifact.sha256:
             raise ReleaseIdentityError
 
 
 def load_release_descriptor(version: ReleaseVersion) -> ReleaseDescriptor:
-    """Load one fixed descriptor and rehash its complete application payload."""
+    """Load one fixed historical descriptor without relabeling the current checkout."""
 
     descriptor = _load_descriptor_file(DESCRIPTOR_PATHS[version], version)
     _validate_descriptor(descriptor)

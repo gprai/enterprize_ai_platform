@@ -10,6 +10,10 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 class RepositoryCleanlinessTests(unittest.TestCase):
     def test_no_infrastructure_state_or_tool_cache_exists(self) -> None:
+        approved_provider_locks = {
+            Path("infra/bootstrap/.terraform.lock.hcl"),
+            Path("infra/environments/sandbox/.terraform.lock.hcl"),
+        }
         forbidden_names = {
             ".coverage",
             ".mypy_cache",
@@ -28,6 +32,8 @@ class RepositoryCleanlinessTests(unittest.TestCase):
         for path in REPOSITORY_ROOT.rglob("*"):
             relative_path = path.relative_to(REPOSITORY_ROOT)
             if ".git" in relative_path.parts:
+                continue
+            if relative_path in approved_provider_locks and path.is_file():
                 continue
             if path.name in forbidden_names or (
                 path.is_file() and path.suffix.casefold() in {".pyc", ".pyo"}

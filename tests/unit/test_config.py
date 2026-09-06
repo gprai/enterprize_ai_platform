@@ -5,7 +5,12 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from enterprise_ai_platform.config import Settings
+from enterprise_ai_platform.config import (
+    AGENT_STORE_PATH,
+    LINUX_AGENT_STORE_PATH,
+    WINDOWS_AGENT_STORE_PATH,
+    Settings,
+)
 
 REQUIRED_ENVIRONMENT_KEYS = (
     "ENTERPRISE_AI_EMBEDDING_MODEL_ID",
@@ -46,9 +51,14 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.agent_state_schema_version == "w4-002.agent-state.v1"
     assert settings.agent_graph_version == "w4-002.graph.v1"
     assert settings.agent_store_schema_version == "w4-002.agent-store.v1"
-    assert str(settings.agent_store_path) == (
+    assert str(settings.agent_store_path) == str(AGENT_STORE_PATH)
+    assert WINDOWS_AGENT_STORE_PATH == (
         r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3"
     )
+    assert LINUX_AGENT_STORE_PATH == (
+        "/var/lib/enterprise-ai-platform/w4-002/agent-control-v1.sqlite3"
+    )
+    assert settings.agent_store_path.is_absolute()
     assert settings.agent_approval_ttl_seconds == 600
     assert settings.agent_terminal_retention_seconds == 86_400
     assert settings.agent_maximum_graph_steps == 8

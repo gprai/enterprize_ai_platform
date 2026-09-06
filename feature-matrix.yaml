@@ -495,6 +495,55 @@
       "linked_tracker_steps": [
         "W5-02"
       ]
+    },
+    {
+      "id": "GHA-001",
+      "implementation_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/plan-sandbox.yml",
+        ".github/workflows/security-scan.yml",
+        "configs/ci/w5-002.json",
+        "docker/application.Dockerfile",
+        "docker/application.Dockerfile.dockerignore",
+        "requirements-runtime.lock",
+        "requirements-ci.lock",
+        "requirements-checkov.lock",
+        "infra/bootstrap/.terraform.lock.hcl",
+        "infra/environments/sandbox/.terraform.lock.hcl",
+        "tools/w5_002_ci.py",
+        "tests/unit/test_w5_002_ci.py",
+        "tests/contract/test_w5_002_workflow_contract.py",
+        "tests/integration/test_w5_002_ci_composition.py",
+        "tests/feature/test_w5_002_supply_chain.py",
+        "tests/security/test_w5_002_ci_security.py",
+        "tests/rollback/test_w5_002_workflow_rollback.py",
+        "tests/teardown/test_w5_002_cleanliness.py",
+        ".gitignore",
+        "Makefile",
+        "pyproject.toml",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/feature/test_w2_002_embedder_contract.py",
+        "tests/feature/test_w2_003_ingestion_contract.py",
+        "tests/integration/test_dependency_contract.py",
+        "tests/teardown/test_repository_cleanliness.py",
+        "tests/teardown/test_terraform_state_boundary.py",
+        "requirements.txt",
+        "src/enterprise_ai_platform/config.py",
+        "src/enterprise_ai_platform/release_rollback/identity.py",
+        "tests/unit/test_config.py",
+        "tests/unit/test_release_rollback_identity.py",
+        "tests/security/test_precommit_controls.py",
+        "tests/teardown/test_w4_002_agent_cleanliness.py",
+        "tests/teardown/test_w4_011_release_rollback_cleanliness.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W5-07",
+        "W5-08"
+      ]
     }
   ]
 }

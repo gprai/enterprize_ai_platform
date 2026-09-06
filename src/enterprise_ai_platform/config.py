@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from ipaddress import IPv4Address
 from pathlib import Path
 from typing import Literal
@@ -19,7 +20,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 TODO_MARKER = "TODO_USER"
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
-AGENT_STORE_PATH = Path(r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3")
+WINDOWS_AGENT_STORE_PATH = r"E:\AI\.runtime\enterprise_ai_platform\w4-002\agent-control-v1.sqlite3"
+LINUX_AGENT_STORE_PATH = "/var/lib/enterprise-ai-platform/w4-002/agent-control-v1.sqlite3"
+AGENT_STORE_PATH = Path(WINDOWS_AGENT_STORE_PATH if os.name == "nt" else LINUX_AGENT_STORE_PATH)
 
 
 class Settings(BaseSettings):

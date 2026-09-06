@@ -18,6 +18,8 @@ from tools.platformctl.validate import (
     EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
+    EXPECTED_GHA_FEATURE,
+    EXPECTED_GHA_IMPLEMENTATION_PATHS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
@@ -111,6 +113,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_RELEASE_FEATURE,
                 EXPECTED_AWS_FEATURE,
                 EXPECTED_BEDROCK_FEATURE,
+                EXPECTED_GHA_FEATURE,
             ],
             matrix["features"],
         )
@@ -129,6 +132,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "REL-001",
                 "AWS-001",
                 "BED-001",
+                "GHA-001",
             ],
             [feature["id"] for feature in features],
         )
@@ -159,6 +163,7 @@ class FeatureMatrixTests(unittest.TestCase):
             features[7]["linked_tracker_steps"],
         )
         self.assertEqual(["W5-02"], features[8]["linked_tracker_steps"])
+        self.assertEqual(["W5-07", "W5-08"], features[9]["linked_tracker_steps"])
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -185,6 +190,7 @@ class FeatureMatrixTests(unittest.TestCase):
             release_feature,
             aws_feature,
             bedrock_feature,
+            gha_feature,
         ) = features
 
         self.assertEqual(
@@ -198,6 +204,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "REL-001",
                 "AWS-001",
                 "BED-001",
+                "GHA-001",
             ],
             [item["id"] for item in features],
         )
@@ -245,6 +252,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual("REL-001", release_feature["id"])
         self.assertEqual("AWS-001", aws_feature["id"])
         self.assertEqual("BED-001", bedrock_feature["id"])
+        self.assertEqual("GHA-001", gha_feature["id"])
 
     def test_eval_001_owns_the_exact_w3_002_manifest(self) -> None:
         matrix = read_matrix()
@@ -426,6 +434,27 @@ class FeatureMatrixTests(unittest.TestCase):
             set(EXPECTED_AWS_IMPLEMENTATION_PATHS).isdisjoint(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS)
         )
         self.assertNotIn("W5-07", aws_feature["linked_tracker_steps"])
+
+    def test_w5_002_ci_feature_owns_only_the_exact_phase_a_manifest(self) -> None:
+        gha_feature = read_matrix()["features"][9]
+
+        self.assertEqual(EXPECTED_GHA_FEATURE, gha_feature)
+        self.assertEqual(39, len(EXPECTED_GHA_IMPLEMENTATION_PATHS))
+        self.assertEqual(39, len(set(EXPECTED_GHA_IMPLEMENTATION_PATHS)))
+        self.assertEqual(
+            [
+                "requirements.txt",
+                "src/enterprise_ai_platform/config.py",
+                "src/enterprise_ai_platform/release_rollback/identity.py",
+                "tests/unit/test_config.py",
+                "tests/unit/test_release_rollback_identity.py",
+                "tests/security/test_precommit_controls.py",
+                "tests/teardown/test_w4_002_agent_cleanliness.py",
+                "tests/teardown/test_w4_011_release_rollback_cleanliness.py",
+            ],
+            gha_feature["implementation_paths"][-8:],
+        )
+        self.assertEqual(["W5-07", "W5-08"], gha_feature["linked_tracker_steps"])
 
     def test_trailing_content_is_rejected_as_malformed_json(self) -> None:
         valid_text = MATRIX_PATH.read_text(encoding="utf-8")

@@ -10,9 +10,11 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaml
 from detect_secrets.plugins.aws import AWSKeyDetector
 from detect_secrets.pre_commit_hook import main as detect_secrets_hook_main
+from detect_secrets.util import git as detect_secrets_git
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 PRE_COMMIT_CONFIG = REPOSITORY_ROOT / ".pre-commit-config.yaml"
@@ -341,6 +343,7 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
 
 
 def test_runtime_synthetic_aws_key_is_detected_without_disclosure_or_residue(
+    monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     synthetic_path = tmp_path / "w1-08-synthetic-secret.txt"
@@ -355,6 +358,18 @@ def test_runtime_synthetic_aws_key_is_detected_without_disclosure_or_residue(
     synthetic_path.write_text(synthetic_line, encoding="utf-8")
     output = io.StringIO()
     error_output = io.StringIO()
+    git_queries = 0
+
+    def unchanged_baseline_files() -> tuple[()]:
+        nonlocal git_queries
+        git_queries += 1
+        return ()
+
+    monkeypatch.setattr(
+        detect_secrets_git,
+        "get_changed_but_unstaged_files",
+        unchanged_baseline_files,
+    )
 
     try:
         findings = list(
@@ -373,6 +388,7 @@ def test_runtime_synthetic_aws_key_is_detected_without_disclosure_or_residue(
         assert synthetic_value not in captured
         assert SECRETS_BASELINE.read_bytes() == baseline_before
         assert load_secrets_baseline()["results"] == baseline_results_before
+        assert git_queries == 1
     finally:
         synthetic_path.unlink(missing_ok=True)
 

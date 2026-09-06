@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from pydantic import ValidationError
 
+from enterprise_ai_platform.release_rollback import identity as identity_module
+from enterprise_ai_platform.release_rollback.errors import ReleaseIdentityError
 from enterprise_ai_platform.release_rollback.identity import (
     APPROVED_ARTIFACT_COUNT,
     APPROVED_ARTIFACT_PATHS,
@@ -16,6 +19,7 @@ from enterprise_ai_platform.release_rollback.identity import (
     canonical_json_bytes,
     descriptor_sha256,
     load_release_descriptor,
+    validate_current_checkout,
     validate_release_pair,
 )
 from enterprise_ai_platform.release_rollback.models import (
@@ -50,6 +54,18 @@ def test_release_profiles_differ_only_by_the_approved_safe_regression() -> None:
     assert regression.regression_profile == "w4-011.agent-route-disabled.v1"
     assert regression.expected_gate == "FAIL"
     assert regression.expected_safe_error_code == "agent_disabled"
+
+
+def test_historical_loading_and_current_checkout_verification_are_separate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    descriptor = load_release_descriptor("w4-known-good-v1")
+
+    monkeypatch.setattr(identity_module, "hash_file", lambda _: "0" * 64)
+
+    assert load_release_descriptor("w4-known-good-v1") == descriptor
+    with pytest.raises(ReleaseIdentityError):
+        validate_current_checkout(descriptor)
 
 
 def test_schema_rejects_extra_reordered_duplicate_and_unsafe_artifacts() -> None:

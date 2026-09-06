@@ -1,0 +1,215 @@
+# W5-08 OCI supply-chain evidence
+
+## Formal disposition
+
+Prompt/task: W5-002 / W5-08
+W5-002 TEST-001: FAIL
+Candidate: REJECTED / INELIGIBLE / NOT APPROVED FOR RELEASE OR DEPLOYMENT
+Critical-CVE waiver: NONE
+
+## Rejected candidate identity
+
+- Source commit: 706ac891e28acacd8a594f201a93e2d0cda78f78
+- Platform: Linux AMD64
+- Builder: enterprise-ai-platform-w5-002
+- BuildKit: v0.30.0
+- BuildKit image SHA-256:
+  57269d1784e49b46228c45a1a1b870fbe40e0a639ab60b37b032d83af5bccdfc
+- Python 3.11.16 slim Bookworm base-image SHA-256:
+  b1add8a6f2aca6bcfcf0b9c9b522352f7ce0d62a3d556a2f2f32511aa0cca250
+- Retained OCI archive:
+  E:\AI\.runtime\enterprise_ai_platform\w5-002\owner-test-01\candidate.oci
+- Archive size: 538,458,624 bytes
+- Archive SHA-256:
+  ac4be6c885c21414b508f75f39b65f370109fb317bebe57000d777908ba329ba
+- OCI manifest digest:
+  sha256:48ac11f21dd230318ee82bf6d176163f7ef65a4062fda616ec8da8cd2c183141
+- OCI configuration digest:
+  sha256:7f39217ffcf89d7fb146472dcddf6aa115a0376b3e2de2a31e3e13c07809ead0
+
+The build and identity checks passed, but identity is not a safety or release-
+eligibility decision.
+
+## Vulnerability-gate evidence
+
+Bookworm application candidate:
+
+- Trivy 0.74.0 successfully scanned the remediated OCI layout.
+- Trivy result: 5 CRITICAL and 57 HIGH.
+- Critical matches involved Debian `libsqlite3-0`, `perl-base`, and `zlib1g`.
+- Application code and Python application dependencies were not identified as
+  the source of these critical findings.
+- Mandatory zero-critical gate: FAIL.
+
+Grype 0.118.0 separately cataloged 252 packages and recorded 312 matches:
+13 critical, 77 high, 99 medium, 15 low, 84 negligible, and 24 unknown.
+Forty matches were reported fixed and 272 not fixed; one match was dropped.
+The 13 critical matches represented 10 unique identifiers and included
+Debian-package and binary-namespace observations. Scanner-specific counts are
+preserved without being merged or used to weaken the Trivy gate.
+
+Trixie and `slim` base-image audit:
+
+- Both official tags resolved to Linux AMD64 digest
+  sha256:d1053354624536b044162aaab1e418bd000ea35184fb1ae098ab3166b1072e72.
+- Trivy result: 3 CRITICAL and 53 HIGH.
+- Debian `perl-base` 5.40.1-6 findings:
+  - CVE-2026-13221: affected; no fixed version reported.
+  - CVE-2026-42496: fix deferred; no fixed version reported.
+  - CVE-2026-8376: affected; no fixed version reported.
+- The lower count did not satisfy the zero-critical gate.
+
+No evaluated candidate passed. No replacement digest is approved. Retesting
+is deferred until a compatible fixed Debian/Python digest becomes available.
+Any different base-image family requires a separate compatibility, security,
+and approval cycle.
+
+## OCI producer-consumer remediation history
+
+The first Trivy OCI invocation failed because the single BuildKit OCI archive
+was neither a Docker `manifest.json` tar nor a directory containing
+`index.json`. A bounded five-path remediation preserved the archive as the
+single source artifact, extracted it only into a task-bounded temporary OCI
+layout, required `index.json` and `oci-layout`, routed that layout only to
+Trivy, and continued routing the original archive to Grype and Syft.
+
+Focused Ruff and formatting checks, 15 tests, and Actionlint passed. The Trivy
+rerun succeeded, the archive hash remained unchanged, and the temporary layout
+was removed. Successful scanner operation then exposed the release-blocking
+findings above; it did not make the candidate eligible.
+
+## Completed SBOM evidence
+
+Syft version: 1.51.1
+Network activity during SBOM generation: NONE
+Source OCI SHA-256 before and after generation:
+ac4be6c885c21414b508f75f39b65f370109fb317bebe57000d777908ba329ba
+
+SPDX evidence:
+
+- Path: reports/w5-002/sbom.spdx.json
+- Specification: SPDX 2.3
+- Package count: 261
+- Size: 1,914,593 bytes
+- SHA-256:
+  cb997284ba6ef99e522d5b4c6bff6d8df5799eb39849f50d6254a0b59b7af3b2
+
+CycloneDX evidence:
+
+- Path: reports/w5-002/sbom.cyclonedx.json
+- Specification: CycloneDX 1.7
+- Component count: 792
+- Size: 876,144 bytes
+- SHA-256:
+  bdbbaa8e41b253771a4a2337cb284b5ef534c5ab42225a74d9ee466aab39637d
+
+Both valid, non-empty SBOMs are retained. Syft's optional user-cache creation
+was denied by the execution sandbox. The denial was non-blocking, and no Syft
+user cache was created. These SBOMs inventory the rejected candidate; they do
+not certify provenance, safety, eligibility, or production readiness.
+
+## Provenance and eligibility
+
+- Tool binary/archive checksum and provenance checks: completed where recorded
+  for the installed external tools.
+- Candidate-image provenance generation: NOT RUN.
+- Candidate-image provenance verification: NOT RUN.
+- Final eligibility reconciliation: NOT RUN.
+- Candidate status: REJECTED / INELIGIBLE based on the mandatory vulnerability
+  failure, independent of the unperformed reconciliation.
+- Registry publication and deployment: NOT RUN.
+
+## Retained evidence and cleanup
+
+Cleanup: DEFERRED / NOT RUN.
+
+Retained owner-controlled local resources include the original OCI archive,
+raw Trivy and Grype evidence, normalized reports, both SBOM files, base-image
+candidate-audit outputs, builder state, downloaded archives and provenance
+files, scanner databases and caches, L2 resolver workspaces, Docker images,
+locally installed tools, the reusable CI volume, and shared dependency,
+Terraform, and TFLint caches. The temporary unpacked Trivy OCI layout was
+removed after the successful scan. No Syft user cache exists.
+
+No cloud resource was created, changed, or deleted; cloud residual resources
+are none. Column M authorizes no deletion. Final cleanup or continued retention
+requires an explicit owner decision in Column N or a separate cleanup approval.
+
+## Limits
+
+No GitHub-hosted workflow, OIDC, AWS account operation, Terraform plan/apply,
+registry push, deployment, production execution, infrastructure rollback,
+cloud teardown, SLO, performance, capacity, availability, or production-cost
+verification was performed. Local CPU, storage, electricity, and owner time
+were not monetized as zero. No secrets, credentials, protected business data,
+or raw provider responses are reproduced here.
+
+## Final Owner Approval
+
+- Prompt/task ID: `W5-002` / `W5-08`
+- Reviewer: **Gyan Prakash Rai**
+- Reviewer role: **Project Owner and Final Approval Reviewer**
+- Final owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+- Approval date and time/timezone: **2026-09-06 16:50:21 SGT**
+- Final closure status: **APPROVED FOR USER TRACKER UPDATE — W5-002** while
+  the formal TEST-001 result remains FAIL and the candidate remains rejected.
+- Code, supply-chain, and evidence review status: **APPROVED within the
+  bounded owner-tested local scope**. The approval accepts the accurate failed
+  result; it does not approve the image, a release, deployment, production, or
+  cloud readiness.
+- Documentation review status: **APPROVED** as one of four W5-002 manifest
+  documents closed together.
+- Owner-executed test status: OCI build/identity and remediated scanner
+  execution completed, but the mandatory zero-critical gate **FAILED**. The
+  Bookworm result remains 5 Trivy critical findings; the Trixie/`slim` result
+  remains 3. Scanner-specific Grype evidence remains preserved. Both SBOMs
+  completed successfully without changing the failed disposition.
+- Formal W5-002 TEST-001 result: **FAIL**
+- Candidate status: **REJECTED / INELIGIBLE**
+- SBOM generation: **COMPLETED**
+- Provenance and eligibility reconciliation: **NOT RUN**
+- Accepted warnings, risks, gaps, and limitations: **All Column M items are
+  accepted; no additional item is silently accepted.** This includes the
+  critical findings, scanner-specific counts, Trivy vendor-severity warning,
+  historical OCI consumer failure/remediation, non-blocking Syft cache denial,
+  absent fixed replacement digest, local-only evidence, and the fact that an
+  SBOM is inventory rather than a safety or provenance certificate.
+- NOT RUN and INDETERMINATE activities: Candidate-image provenance generation
+  and verification, final eligibility reconciliation, GitHub-hosted workflow,
+  OIDC, AWS, Terraform plan/apply, registry push, deployment, production
+  execution, infrastructure rollback, cloud teardown, and production
+  performance/capacity/availability/SLO/cost verification remain **NOT RUN**.
+  Historical INDETERMINATE results remain preserved. **Remaining open
+  INDETERMINATE activities: None.**
+- Deployment facts: The local OCI archive was built and scanned but was not
+  loaded, pushed, published, released, or deployed. Local application,
+  AWS/cloud, and production deployment remain **NOT RUN**. No cloud resource
+  was created, changed, or deleted.
+- Rollback facts: No operational image, release, deployment, infrastructure,
+  or cloud rollback occurred; each remains **NOT RUN**.
+- Teardown and cleanup facts: The temporary unpacked Trivy OCI layout was
+  removed after the successful scan. Overall W5-002 evidence cleanup and
+  operational/cloud teardown remain **DEFERRED / NOT RUN**; no cloud teardown
+  PASS is claimed.
+- Residual-resource facts: The unchanged OCI archive, raw and normalized scan
+  evidence, SPDX and CycloneDX SBOMs, base-candidate audit, builder state,
+  archives, databases/caches, L2 workspaces, Docker images, tools, reusable CI
+  volume, and shared caches remain retained under owner control. No Syft user
+  cache exists. Cloud residual resources are none.
+- Critical-CVE waiver: **None was granted.** The candidate remains blocked by
+  the mandatory zero-critical gate.
+- Deferred actions and owner: All recorded deferrals remain open under
+  **Gyan Prakash Rai**, unless another owner is explicitly recorded. Cleanup
+  or continued retention, fixed-base-image research/retest, candidate
+  provenance, eligibility reconciliation, and all hosted/cloud/production
+  activity require separate approval.
+- Conditions: Preserve all findings, results, warnings, limitations,
+  deferrals, and retained evidence; do not represent the SBOMs as proof of
+  safety or eligibility; only the owner updates Excel or mutates Git.
+- Next-task handover: Retest only after a compatible fixed Debian/Python digest
+  is available or after a separately approved alternate-family review.
+  Candidate provenance and eligibility reconciliation remain future governed
+  work and are not authorized by this closure.
+- Tracker update responsibility: **Owner**
+- Column N reconciliation: this record closed together with `W5-002.md`,
+  `W5-07-ci.txt`, and the W5-002 README entry; no partial closure.

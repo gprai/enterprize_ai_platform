@@ -29,6 +29,7 @@ from tools.platformctl.validate import (
     EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
+    EXPECTED_GHA_IMPLEMENTATION_PATHS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
@@ -84,6 +85,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "REL-001",
                 "AWS-001",
                 "BED-001",
+                "GHA-001",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -436,6 +438,28 @@ class PlatformCtlUnitTests(unittest.TestCase):
             ),
             EXPECTED_AWS_IMPLEMENTATION_PATHS[-8:],
         )
+
+    def test_w5_002_ci_feature_extends_repository_ownership_exactly(self) -> None:
+        self.assertEqual(39, len(EXPECTED_GHA_IMPLEMENTATION_PATHS))
+        self.assertEqual(39, len(set(EXPECTED_GHA_IMPLEMENTATION_PATHS)))
+        self.assertEqual(["W5-07", "W5-08"], EXPECTED_FEATURES[9]["linked_tracker_steps"])
+        self.assertEqual(
+            (
+                "requirements.txt",
+                "src/enterprise_ai_platform/config.py",
+                "src/enterprise_ai_platform/release_rollback/identity.py",
+                "tests/unit/test_config.py",
+                "tests/unit/test_release_rollback_identity.py",
+                "tests/security/test_precommit_controls.py",
+                "tests/teardown/test_w4_002_agent_cleanliness.py",
+                "tests/teardown/test_w4_011_release_rollback_cleanliness.py",
+            ),
+            EXPECTED_GHA_IMPLEMENTATION_PATHS[-8:],
+        )
+        self.assertIn(".github/workflows", REQUIRED_DIRECTORIES)
+        self.assertIn("configs/ci", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_GHA_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
 
     def test_stale_or_custom_policy_paths_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

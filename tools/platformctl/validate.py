@@ -522,6 +522,53 @@ EXPECTED_BEDROCK_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": ["W5-02"],
 }
+EXPECTED_GHA_IMPLEMENTATION_PATHS = (
+    ".github/workflows/ci.yml",
+    ".github/workflows/plan-sandbox.yml",
+    ".github/workflows/security-scan.yml",
+    "configs/ci/w5-002.json",
+    "docker/application.Dockerfile",
+    "docker/application.Dockerfile.dockerignore",
+    "requirements-runtime.lock",
+    "requirements-ci.lock",
+    "requirements-checkov.lock",
+    "infra/bootstrap/.terraform.lock.hcl",
+    "infra/environments/sandbox/.terraform.lock.hcl",
+    "tools/w5_002_ci.py",
+    "tests/unit/test_w5_002_ci.py",
+    "tests/contract/test_w5_002_workflow_contract.py",
+    "tests/integration/test_w5_002_ci_composition.py",
+    "tests/feature/test_w5_002_supply_chain.py",
+    "tests/security/test_w5_002_ci_security.py",
+    "tests/rollback/test_w5_002_workflow_rollback.py",
+    "tests/teardown/test_w5_002_cleanliness.py",
+    ".gitignore",
+    "Makefile",
+    "pyproject.toml",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+    "tests/integration/test_dependency_contract.py",
+    "tests/teardown/test_repository_cleanliness.py",
+    "tests/teardown/test_terraform_state_boundary.py",
+    "requirements.txt",
+    "src/enterprise_ai_platform/config.py",
+    "src/enterprise_ai_platform/release_rollback/identity.py",
+    "tests/unit/test_config.py",
+    "tests/unit/test_release_rollback_identity.py",
+    "tests/security/test_precommit_controls.py",
+    "tests/teardown/test_w4_002_agent_cleanliness.py",
+    "tests/teardown/test_w4_011_release_rollback_cleanliness.py",
+)
+EXPECTED_GHA_FEATURE = {
+    "id": "GHA-001",
+    "implementation_paths": list(EXPECTED_GHA_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W5-07", "W5-08"],
+}
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -532,6 +579,7 @@ EXPECTED_FEATURES = (
     EXPECTED_RELEASE_FEATURE,
     EXPECTED_AWS_FEATURE,
     EXPECTED_BEDROCK_FEATURE,
+    EXPECTED_GHA_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     ".pre-commit-config.yaml",
@@ -554,10 +602,13 @@ REQUIRED_DIRECTORIES = (
     "configs/releases",
     "configs/releases/versions",
     "configs/verification",
+    "configs/ci",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
     "docker",
+    ".github",
+    ".github/workflows",
     "src/enterprise_ai_platform/ingestion",
     "src/enterprise_ai_platform/evaluation",
     "src/enterprise_ai_platform/guardrails",
@@ -666,6 +717,7 @@ REQUIRED_FILES = (
     *EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
     *EXPECTED_AWS_IMPLEMENTATION_PATHS,
     *EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
+    *EXPECTED_GHA_IMPLEMENTATION_PATHS,
     *EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
@@ -719,7 +771,7 @@ def validate_feature_matrix(data: object) -> list[str]:
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
             "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001, "
-            "REL-001, AWS-001, BED-001"
+            "REL-001, AWS-001, BED-001, GHA-001"
         )
 
     return errors

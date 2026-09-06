@@ -62,6 +62,9 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W4-001](W4-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-28 at 23:56:21 SGT. The deterministic local API boundary has focused [W4-01 API evidence](W4-01-api.txt) and [W4-02 authentication and authorization evidence](W4-02-auth.txt). The final ordinary suite recorded 537 passed, 7 skipped and 4 deselected. W4-10 is **NOT RUN — deferred until W4-06**; no `W4-10-load.json` evidence exists. All four W4-001 Column M documents are closed together.
 - [W4-002](W4-002.md) — bounded LangGraph controller, durable local approval, strict budgets and redacted SQLite state. Owner TEST-001 passed after preserved historical failures and bounded remediation: 613 passed, 7 skipped and 4 deselected in the final ordinary suite. At this original summary point, final owner approval was pending Column N and W4-09/W4-10 were **NOT RUN**; W4-002 was subsequently final-approved, and the separately governed W4-09/W4-10 closures are recorded later in this index.
 - [W4-ROLLBACK-001 / W4-11 / REL-001](../rollback-records/W4-release.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-31 at 16:52:21 SGT. The local immutable application-release rollback restored exact N in 838 ms; rollback, smoke and cleanup passed; the full suite recorded 724 passed, 7 skipped and 4 deselected; the remediated Make-target assertion failure and Starlette/httpx warning remain recorded; Python 3.11, deployment, cloud and infrastructure rollback were NOT RUN; zero unexpected residue remained. Both Column M documents are closed together. W4-12 sign-off is separate.
+- [W5-002 aggregate evidence](W5-002.md) — **TEST-001 FAIL** at the mandatory OCI zero-critical-vulnerability gate; the candidate is rejected and ineligible, SBOM generation is complete, and provenance/eligibility reconciliation remains NOT RUN.
+- [W5-07 local CI and workflow evidence](W5-07-ci.txt) — owner-executed local quality, workflow, policy, Terraform, rollback, and cleanliness results; hosted GitHub, OIDC, AWS, push, and deployment remain NOT RUN.
+- [W5-08 OCI supply-chain evidence](W5-08-supply-chain.txt) — candidate identity, Bookworm and Trixie vulnerability findings, OCI-layout remediation, completed SPDX/CycloneDX evidence, and retained-resource status.
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
 
@@ -884,3 +887,138 @@ real but unpriced.
 
 Column N closed this README entry and all three linked W5-003 documents
 together. No partial closure occurred.
+
+## W5-002 CI/CD and OCI supply-chain evidence
+
+W5-002 owner testing is closed with the formal result **TEST-001 — FAIL**.
+Local quality, policy, workflow, Terraform, build, identity, rollback, and
+cleanliness checks passed within their recorded scopes, but no evaluated OCI
+candidate met the mandatory zero-critical-vulnerability gate. The candidate
+is **REJECTED / INELIGIBLE** and is not approved for release or deployment.
+No critical-CVE waiver was granted.
+
+Column M documents:
+
+1. [W5-002 aggregate evidence](W5-002.md) — business outcome, final local test
+   results, historical remediation, mandatory security failure, lifecycle,
+   retained resources, and limitations.
+2. [W5-07 local CI and workflow evidence](W5-07-ci.txt) — executed local CI,
+   policy, workflow, Terraform, security, rollback, and cleanliness checks plus
+   the hosted and cloud work that remains NOT RUN.
+3. [W5-08 OCI supply-chain evidence](W5-08-supply-chain.txt) — exact candidate
+   identity, vulnerability results, OCI-layout remediation, completed SBOMs,
+   and provenance/eligibility gaps.
+
+The complete local suite passed with 895 tests, 15 skips, 4 deselections,
+1 accepted warning, and 10 passing subtests. Ruff, formatting, strict MyPy
+across 108 source files, platform validation, Terraform formatting and both
+root validations, Terraform initialization cleanup, Actionlint, workflow
+contracts, security/rollback/cleanliness scopes, Checkov, OPA, and TFLint
+passed as recorded in the aggregate evidence. The 15 skipped tests,
+4 deselected tests, and Checkov's 20 configured skips are not PASS. The
+accepted Starlette/httpx deprecation warning and every historical failure and
+bounded passing remediation remain recorded.
+
+Trivy reported 5 critical findings for the Bookworm application candidate.
+Grype independently reported 13 critical matches; its scanner-specific result
+is preserved without weakening the Trivy gate. The Trixie and `slim` tags
+resolved to the same Linux AMD64 digest and retained 3 Trivy critical findings
+on Debian `perl-base`, including one deferred fix. Application code and Python
+application dependencies were not identified as the critical-finding source.
+The reduced count still failed the zero-critical gate. No tested replacement
+digest was approved, and another base family requires separate review.
+
+The original OCI archive remains unchanged at SHA-256
+`ac4be6c885c21414b508f75f39b65f370109fb317bebe57000d777908ba329ba`.
+Syft 1.51.1 completed both retained SBOMs without network activity: SPDX 2.3
+with 261 packages, 1,914,593 bytes, SHA-256
+`cb997284ba6ef99e522d5b4c6bff6d8df5799eb39849f50d6254a0b59b7af3b2`;
+and CycloneDX 1.7 with 792 components, 876,144 bytes, SHA-256
+`bdbbaa8e41b253771a4a2337cb284b5ef534c5ab42225a74d9ee466aab39637d`.
+The optional Syft user cache was denied, non-blockingly, and was not created.
+SBOM completion does not prove safety, provenance, eligibility, or production
+readiness.
+
+Candidate provenance generation/verification and final eligibility
+reconciliation remain **NOT RUN**. GitHub-hosted workflows, OIDC, AWS account
+activity, Terraform plan/apply, registry push, deployment, production
+execution, infrastructure rollback, cloud teardown, and production
+performance/capacity/SLO/cost verification also remain **NOT RUN**.
+
+Cleanup is **DEFERRED / NOT RUN**. The OCI archive, raw and normalized scanner
+evidence, SBOMs, base-candidate audit, builder state, archives, caches, L2
+workspaces, Docker images, installed tools, reusable CI volume, and shared
+pip/Terraform/TFLint caches remain retained under owner control. The temporary
+Trivy OCI layout was removed after scanning, and no Syft user cache exists.
+No cloud resource was created, changed, or deleted; cloud residual resources
+are none. Column M authorizes no deletion.
+
+W5-001's formal FAIL remains unchanged and is neither reopened nor converted
+by W5-002. Neither task establishes production readiness.
+
+### Final Owner Approval — W5-002
+
+- Prompt/task ID: `W5-002`.
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Final owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**.
+- Approval date and time/timezone: **2026-09-06 16:50:21 SGT**.
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W5-002**. Documentation
+  is closed while the formal TEST-001 result remains FAIL.
+- Code and evidence review status: **APPROVED within the bounded W5-002 local
+  implementation and evidence scope**. The rejected candidate is not approved
+  for release or deployment, and no production/cloud readiness is implied.
+- Documentation review status: **APPROVED**. This README entry and all three
+  linked W5-002 records are closed together.
+- Owner-executed test status: **FORMAL OVERALL FAIL** at the mandatory OCI
+  zero-critical-vulnerability gate. The recorded local quality, policy,
+  workflow, Terraform, build-identity, rollback-contract, cleanliness, and
+  SBOM activities retain their individual results without changing the overall
+  FAIL.
+- Formal TEST-001 result: **FAIL**.
+- Candidate status: **REJECTED / INELIGIBLE**.
+- SBOM generation: **COMPLETED**.
+- Provenance and eligibility reconciliation: **NOT RUN**.
+- Accepted warnings, risks, gaps, and limitations: **All items in the approved
+  W5-002 Column M manifest are accepted; no additional item is silently
+  accepted.** The Starlette/httpx warning, skips, deselections, Checkov skips,
+  historical failures/remediations, vulnerability findings, no fixed approved
+  candidate, local-only evidence, and absent hosted/cloud/production proof
+  remain recorded.
+- NOT RUN and INDETERMINATE activities: Every recorded NOT RUN remains NOT RUN,
+  including candidate provenance and eligibility reconciliation, hosted
+  workflows, OIDC, AWS activity, Terraform plan/apply, registry push,
+  deployment, production validation, operational infrastructure rollback, and
+  cloud teardown. Historical INDETERMINATE results remain preserved.
+  **Remaining open INDETERMINATE activities: None.**
+- Deployment facts: The local OCI build/identity activity completed, but no
+  image was pushed, published, released, or deployed. Local application,
+  cloud, and production deployment remain **NOT RUN**. No AWS/cloud resource
+  was created, changed, or deleted.
+- Rollback facts: Automated local rollback contracts passed where executed;
+  operational release/deployment/infrastructure/cloud rollback remains
+  **NOT RUN**.
+- Teardown, cleanup, and residual-resource facts: Terraform initialization
+  directories and the temporary Trivy layout were removed as recorded.
+  Overall evidence cleanup and operational/cloud teardown remain **DEFERRED /
+  NOT RUN**. The OCI archive, reports, SBOMs, base audit, builder, archives,
+  databases/caches, workspaces, images, tools, reusable CI volume, and shared
+  caches remain retained under owner control. No Syft user cache or cloud
+  residual exists.
+- Critical-CVE waiver: **None was granted.**
+- Deferred actions and responsible owner: All recorded deferrals remain open.
+  Responsible owner: **Gyan Prakash Rai**, unless another owner is explicitly
+  recorded. Cleanup/retention, fixed-candidate retesting, provenance,
+  eligibility reconciliation, and hosted/cloud/production work require
+  separate approval.
+- Conditions: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk,
+  limitation, deferred-work, and residual-resource fact; preserve W5-001's
+  formal FAIL; infer no production/cloud readiness from local, fake, mocked,
+  injected, static, or container evidence; only the owner changes Excel/Git.
+- Next-task handover: The owner may update the W5-002 tracker row. Future
+  fixed-image testing, provenance/reconciliation, deployment, and cloud
+  lifecycle work remain separately governed. `W6-image.md` remains absent and
+  deferred.
+- Tracker update responsibility: **Owner**.
+- Column N reconciliation: this README entry, `W5-002.md`, `W5-07-ci.txt`, and
+  `W5-08-supply-chain.txt` closed together; no partial closure occurred.

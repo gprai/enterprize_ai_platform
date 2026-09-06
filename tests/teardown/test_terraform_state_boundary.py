@@ -5,10 +5,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_no_state_plan_lock_or_repository_tool_cache_exists() -> None:
+def test_only_tracked_provider_locks_may_exist_without_runtime_residue() -> None:
+    approved_provider_locks = {
+        Path("infra/bootstrap/.terraform.lock.hcl"),
+        Path("infra/environments/sandbox/.terraform.lock.hcl"),
+    }
     forbidden_names = {
         ".terraform",
-        ".terraform.lock.hcl",
         ".tflint.d",
         "terraform.tfstate",
         "terraform.tfstate.backup",
@@ -17,7 +20,14 @@ def test_no_state_plan_lock_or_repository_tool_cache_exists() -> None:
         path.relative_to(ROOT).as_posix()
         for path in ROOT.rglob("*")
         if ".git" not in path.relative_to(ROOT).parts
-        and (path.name in forbidden_names or path.suffix == ".tfplan")
+        and (
+            path.name in forbidden_names
+            or path.suffix == ".tfplan"
+            or (
+                path.name == ".terraform.lock.hcl"
+                and path.relative_to(ROOT) not in approved_provider_locks
+            )
+        )
     ]
 
     assert findings == []

@@ -1,0 +1,113 @@
+name: W5-002 pull-request CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions: {}
+
+concurrency:
+  group: w5-002-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the exact pull-request commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Set up exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.11.16
+          cache: ""
+      - name: Install the hash-locked CI environment
+        shell: bash
+        run: |
+          python --version | grep -Fx "Python 3.11.16"
+          python -m pip --version | grep -F "pip 26.2.1"
+          python -B tools/w5_002_ci.py validate-locks \
+            --runtime requirements-runtime.lock --ci requirements-ci.lock \
+            --checkov requirements-checkov.lock
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+      - name: Validate the W5-002 contract
+        run: python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
+      - name: Run bounded quality and secret gates
+        shell: bash
+        run: |
+          python -B -m ruff check --no-cache src tools tests
+          python -B -m ruff format --check --no-cache src tools tests
+          python -B -m mypy --no-incremental --cache-dir=/dev/null
+          detect-secrets scan --baseline .secrets.baseline
+          python -B -m pytest
+
+  infrastructure-policy:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the exact pull-request commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Set up exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: 3.11.16
+          cache: ""
+      - name: Set up exact Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: 1.16.1
+          terraform_wrapper: false
+      - name: Install hash-locked policy dependencies
+        shell: bash
+        env:
+          CHECKOV_VENV: ${{ runner.temp }}/w5-002-checkov
+        run: |
+          python --version | grep -Fx "Python 3.11.16"
+          python -m pip --version | grep -F "pip 26.2.1"
+          python -B tools/w5_002_ci.py validate-locks \
+            --runtime requirements-runtime.lock --ci requirements-ci.lock \
+            --checkov requirements-checkov.lock
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m venv --without-pip "$CHECKOV_VENV"
+          python -m pip --python "$CHECKOV_VENV/bin/python" install --require-hashes --no-deps -r requirements-checkov.lock
+      - name: Verify pre-provisioned immutable policy tools
+        shell: bash
+        run: |
+          test "$(tflint --version | head -n 1)" = "TFLint version 0.60.0"
+          opa version | grep -Fx "Version: 1.20.0"
+          actionlint -version | grep -Fx "1.7.12"
+      - name: Run static infrastructure and offline policy gates
+        shell: bash
+        env:
+          CHECKOV: ${{ runner.temp }}/w5-002-checkov/bin/checkov
+        run: |
+          terraform fmt -check -recursive infra
+          terraform -chdir=infra/bootstrap init -backend=false -lockfile=readonly
+          terraform -chdir=infra/bootstrap validate
+          terraform -chdir=infra/environments/sandbox init -backend=false -lockfile=readonly
+          terraform -chdir=infra/environments/sandbox validate
+          tflint --chdir=infra/bootstrap
+          tflint --chdir=infra/environments/sandbox
+          "$CHECKOV" --config-file .checkov.yml -d infra
+          opa check --strict policies/opa
+          opa test policies/opa --verbose
+          actionlint .github/workflows/ci.yml .github/workflows/plan-sandbox.yml \
+            .github/workflows/security-scan.yml
+
+  supply-chain:
+    if: github.event.pull_request.draft == false
+    uses: ./.github/workflows/security-scan.yml
+    permissions:
+      contents: read
