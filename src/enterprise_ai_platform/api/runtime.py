@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import threading
-from typing import TypeVar, cast
+from typing import cast
 from uuid import UUID, uuid4
 
 from pydantic import TypeAdapter, ValidationError
@@ -30,7 +30,6 @@ from .errors import APIError, api_error
 from .models import AgentRequest, QueryRequest
 
 REQUEST_ID_HEADER = "X-Request-ID"
-RequestT = TypeVar("RequestT")
 
 
 class RequestIdMiddleware:
@@ -139,7 +138,7 @@ def _validate_media_type(request: Request) -> None:
         raise api_error(415, "api_unsupported_media_type")
 
 
-async def _read_json_request(
+async def _read_json_request[RequestT](
     request: Request,
     *,
     maximum_bytes: int,

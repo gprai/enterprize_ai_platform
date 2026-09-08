@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from enterprise_ai_platform.llm.models import Usage
 from enterprise_ai_platform.retrieval.models import Answer
 
-AbstentionReason: TypeAlias = Literal[
+type AbstentionReason = Literal[
     "insufficient_evidence",
     "no_authorized_evidence",
     "conflicting_evidence",
@@ -47,7 +47,7 @@ class AbstentionResult(RAGResultModel):
     usage: Usage | None = None
 
 
-RAGResult: TypeAlias = Annotated[
+type RAGResult = Annotated[
     CitedAnswerResult | AbstentionResult,
     Field(discriminator="outcome"),
 ]

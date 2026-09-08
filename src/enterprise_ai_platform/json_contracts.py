@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import json
 import math
-from typing import TypeAlias, cast
+from typing import cast
 
 from pydantic import JsonValue as _PydanticJSONValue
 
-JSONScalar: TypeAlias = str | int | float | bool | None
-JSONValue: TypeAlias = _PydanticJSONValue
-JSONObject: TypeAlias = dict[str, JSONValue]
+type JSONScalar = str | int | float | bool | None
+type JSONValue = _PydanticJSONValue
+type JSONObject = dict[str, JSONValue]
 
 
 class DuplicateJSONKeyError(ValueError):

@@ -1,5 +1,5 @@
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 100
 src = ["src", "tools", "tests"]
 
@@ -14,7 +14,7 @@ known-first-party = ["enterprise_ai_platform"]
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
-python_version = "3.11"
+python_version = "3.13"
 mypy_path = "src"
 files = ["src", "tools/record_test_evidence.py", "tools/bedrock_owner_verify.py", "tools/w5_002_ci.py", "tools/platformctl", "tools/releasectl.py"]
 strict = true

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from enum import StrEnum
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -29,7 +29,7 @@ class ChatRole(StrEnum):
     ASSISTANT = "assistant"
 
 
-StopReason: TypeAlias = Literal[
+type StopReason = Literal[
     "end_turn",
     "tool_use",
     "max_tokens",

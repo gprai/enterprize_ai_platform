@@ -6,30 +6,30 @@ import math
 from datetime import datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from fractions import Fraction
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from enterprise_ai_platform.llm.models import Usage
 
-HexDigest: TypeAlias = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-GitSha: TypeAlias = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
-CaseId: TypeAlias = Annotated[str, Field(pattern=r"^Q(?:[1-9]|[1-3][0-9])$")]
-ExpectedOutcome: TypeAlias = Literal["ANSWERED", "ABSTAINED", "ERROR"]
-ActualOutcome: TypeAlias = Literal["ANSWERED", "ABSTAINED", "ERROR"]
-ExpectedAbstentionReason: TypeAlias = Literal[
+type HexDigest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+type GitSha = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+type CaseId = Annotated[str, Field(pattern=r"^Q(?:[1-9]|[1-3][0-9])$")]
+type ExpectedOutcome = Literal["ANSWERED", "ABSTAINED", "ERROR"]
+type ActualOutcome = Literal["ANSWERED", "ABSTAINED", "ERROR"]
+type ExpectedAbstentionReason = Literal[
     "insufficient_evidence",
     "no_authorized_evidence",
     "conflicting_evidence",
     "malformed_evidence",
     "invalid_generated_citation",
 ]
-ExpectedErrorCode: TypeAlias = Literal[
+type ExpectedErrorCode = Literal[
     "rag_output_validation_error",
     "llm_malformed_response_error",
 ]
-GateStatus: TypeAlias = Literal["PASS", "FAIL", "INDETERMINATE"]
-BaselineStatus: TypeAlias = Literal[
+type GateStatus = Literal["PASS", "FAIL", "INDETERMINATE"]
+type BaselineStatus = Literal[
     "PASS",
     "FAIL",
     "NO_APPROVED_BASELINE",

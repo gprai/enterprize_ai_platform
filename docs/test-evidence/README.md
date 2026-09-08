@@ -888,7 +888,126 @@ real but unpriced.
 Column N closed this README entry and all three linked W5-003 documents
 together. No partial closure occurred.
 
-## W5-002 CI/CD and OCI supply-chain evidence
+## W5-002 Python 3.13.15 remediation — final Column N closure
+
+Prompt ID: `W5-002-PY313-OCI-REMEDIATION-001`
+
+- Final W5-002 status: **PASS / APPROVED AND CLOSED AFTER SUCCESSFUL PYTHON
+  3.13.15 REMEDIATION**.
+- Python 3.13.15 remediation TEST-001: **PASS** within the approved local
+  implementation, quality, regression, runtime, supply-chain and zero-Critical
+  eligibility boundaries.
+- Final composed-image gate: **PASS — Trivy 0 Critical and Grype 0
+  Critical**.
+- Remediation eligibility: `eligible_for_owner_approval=true`.
+- Deployable: `false`.
+- Vulnerability-free claim: `false`.
+- W5-001 formal status: **FAIL**.
+
+The remediation uses CPython 3.13.15 on Linux AMD64 with immutable Chainguard
+Wolfi builder/runtime manifests. Local quality and regression validation
+recorded 918 passed, 15 skipped, 4 deselected, 1 warning and 10 subtests in
+334.11 seconds; Ruff, format, MyPy across 108 source files, platform,
+detect-secrets/pre-commit, Actionlint, Terraform, OPA, Checkov and TFLint
+checks passed within their recorded scopes. Skips and deselections remain NOT
+RUN. Historical intermediate failures and successful bounded reruns remain in
+the linked documents.
+
+Closed Column M/Column N manifest documents:
+
+1. [W5-002 aggregate evidence](W5-002.md) — historical Python 3.11 and failed
+   Debian evidence, Python 3.13.15 implementation/testing, composed-image
+   security, SBOM/provenance/eligibility, cleanup and lifecycle limits.
+2. [W5-07 CI evidence](W5-07-ci.txt) — dependency controls, local quality and
+   policy results, pull-request and trusted-main boundaries, and hosted/cloud
+   work that remains NOT RUN.
+3. [W5-08 supply-chain evidence](W5-08-supply-chain.txt) — qualified base and
+   composed OCI identities, scanner results/limitations, SBOMs, provenance,
+   eligibility, rollback identity, cleanup and retained resources.
+
+Canonical external evidence:
+`E:\AI\.runtime\enterprise_ai_platform\w5-002-py313-oci-remediation-001\owner-test-01\reports`
+
+The validated ten-report set is `image-identity.json`,
+`trivy-filesystem.json`, `trivy-image.json`, `grype-image.json`,
+`sbom.spdx.json`, `sbom.cyclonedx.json`, `provenance.json`,
+`eligibility.json`, `rollback-identity.json` and `cleanup-retention.json`.
+Complete reconciliation: **PASS**.
+
+Final reconciliation hashes supplied by the owner-approved evidence:
+
+- `cleanup-retention.json`:
+  `80cfd77ef8b64013fa27ddbe6d3ff618fd4a2b2de3e1f56ef6a6bae5c224d997`
+- `provenance.json`:
+  `a4ee2601484671e6e3d03a2a8f256969592352d1410a42a56c8805e70975adbd`
+- `rollback-identity.json`:
+  `0e1b59e6549bce1ce9a6218a3655ae8dd776cb1b84aa244508681cb3b051625e`
+- `eligibility.json`:
+  `d9f0cc9d23ce228a7446f7430f6f9345f181b4153dcc056aa2bf7b4be634bf15`
+
+Image push, GitHub-hosted execution, hosted Chainguard OIDC, AWS/ECR/EKS
+activity, deployment, production readiness, operational rollback and cloud
+teardown remain **NOT RUN**. Rollback identity is recorded only. The owner has
+approved and closed the local remediation, but the image is not deployable.
+The immutable `eligibility.json` retains the pre-Column-N execution-time
+`formal_w5_002_status=FAIL` fact; it remains unchanged and is distinct from the
+later final owner decision recorded here.
+
+Local TEST-001 cleanup removed the task builder/state, two test volumes and
+exact temporary root; zero task residue passed. Ten reports, scanner caches
+totalling 3,505,463,735 bytes, qualified images, the historical builder,
+shared tools/caches and historical evidence remain intentionally retained.
+These retained resources are not represented as zero residue. Further cleanup
+remains owner-controlled.
+
+### Final Owner Approval — W5-002 Python 3.13.15 remediation
+
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Exact owner decision: **FINAL APPROVAL AFTER SUCCESSFUL PYTHON 3.13.15
+  REMEDIATION — APPROVED**.
+- Approval date and time/timezone: **2026-09-07 20:46:37 SGT**.
+- Current final W5-002 status: **PASS / APPROVED AND CLOSED AFTER SUCCESSFUL
+  PYTHON 3.13.15 REMEDIATION**.
+- Code and evidence review: **APPROVED** within the exact remediation boundary;
+  the complete ten-report reconciliation passed.
+- Documentation review: **APPROVED**; all four manifest documents closed
+  together.
+- Owner-executed TEST-001: **PASS** within the approved local boundaries;
+  Trivy Critical **0** and Grype Critical **0**.
+- Eligibility: `true`; deployable: `false`; vulnerability-free claim: `false`;
+  W5-001 formal status: **FAIL**.
+- Historical results preserved: Python 3.11 W5-002 TEST-001 **FAIL** and Debian
+  Python 3.13 qualification **FAIL / INELIGIBLE**, including bounded
+  remediation history.
+- Accepted warnings, risks, limitations and retained resources: every item in
+  the approved Column M documents, including base and composed-image
+  non-Critical findings, Trivy coverage warnings, the Starlette warning, 15
+  skipped and 4 deselected tests, 20 Checkov skips, local-only evidence,
+  retained resources and unpriced local costs; no additional item is silently
+  accepted. Remaining INDETERMINATE activities: none.
+- NOT RUN: GitHub-hosted execution, hosted OIDC, publication, AWS/ECR/EKS,
+  deployment, production validation, operational rollback and cloud teardown.
+- Rollback and cleanup: `IDENTITY_RECORDED`; operational rollback NOT RUN;
+  task builder/state, two test volumes and exact temporary root removed; zero
+  task residue PASS; retained evidence, images and caches remain owner-controlled.
+- Deferred actions and owner: owner Git/tracker action and any future hosted,
+  cloud, deployment, rollback or retained-resource cleanup work; **Gyan
+  Prakash Rai** unless an individual action explicitly names another owner.
+- Conditions: preserve all current and historical statuses, warnings, risks,
+  gaps, limitations and retained-resource facts; infer no hosted, cloud,
+  deployment, production-readiness or vulnerability-free status.
+- Next-task handover: the owner may update the tracker; all further lifecycle
+  work requires separate approval and evidence.
+- Column N reconciliation: all four manifest paths closed together; no partial
+  closure occurred.
+- Tracker update responsibility: **Owner**.
+
+## Historical W5-002 Python 3.11 closure (preserved)
+
+The following prior closure is historical. Its Python 3.11 FAIL, rejected
+image identities, test results, SBOMs, warnings and lifecycle facts remain
+preserved and are superseded only for current runtime selection.
 
 W5-002 owner testing is closed with the formal result **TEST-001 — FAIL**.
 Local quality, policy, workflow, Terraform, build, identity, rollback, and

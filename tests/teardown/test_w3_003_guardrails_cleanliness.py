@@ -15,6 +15,7 @@ BASELINE = ROOT / "configs" / "eval" / "baselines" / "w3-002-v1.json"
 BASELINE_SHA256 = "4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac9086f"
 W3_004_RUNTIME_NAME = "w3-004"
 W5_001_RUNTIME_NAME = "verification"
+W5_002_RUNTIME_NAME = "w5-002"
 
 
 def test_retained_reports_and_promoted_baseline_are_exact() -> None:
@@ -33,7 +34,7 @@ def test_no_unexpected_report_cache_bytecode_or_temporary_residue() -> None:
         path.name
         for path in REPORT_ROOT.iterdir()
         if path.name not in REPORT_HASHES
-        and path.name not in {W3_004_RUNTIME_NAME, W5_001_RUNTIME_NAME}
+        and path.name not in {W3_004_RUNTIME_NAME, W5_001_RUNTIME_NAME, W5_002_RUNTIME_NAME}
     }
     residue = {
         path

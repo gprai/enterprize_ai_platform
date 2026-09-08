@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
+from shutil import which
 
 ROOT = Path(__file__).resolve().parents[2]
 APPROVED_LOCKS = {
@@ -11,8 +13,19 @@ APPROVED_LOCKS = {
 }
 
 
-def test_no_w5_002_runtime_report_or_candidate_archive_is_in_repository() -> None:
-    assert not (ROOT / "reports/w5-002").exists()
+def test_w5_002_runtime_reports_are_gitignored_and_untracked() -> None:
+    ignore_lines = (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert "reports/w5-002/" in ignore_lines
+    git = which("git")
+    assert git is not None
+    tracked = subprocess.run(  # noqa: S603 - fixed read-only Git inventory
+        [git, "-c", f"safe.directory={ROOT}", "ls-files", "--", "reports/w5-002"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert tracked.stdout == ""
     findings = [
         path.relative_to(ROOT).as_posix()
         for path in ROOT.rglob("*")
@@ -57,3 +70,42 @@ def test_no_task_cache_temp_state_plan_or_bytecode_residue_exists() -> None:
         and (path.name in forbidden_names or path.suffix.casefold() in {".pyc", ".pyo", ".tfplan"})
     ]
     assert findings == []
+
+
+def test_v2_cleanup_contract_preserves_shared_and_historical_resources() -> None:
+    helper = (ROOT / "tools/w5_002_ci.py").read_text(encoding="utf-8")
+    config = (ROOT / "configs/ci/w5-002.json").read_text(encoding="utf-8")
+
+    assert "w5-002.cleanup-retention.v2" in helper
+    assert "cleanup-retention.json" in config
+    assert "historical" in config
+    assert '"w5_002_formal_status":"FAIL"' in config
+
+
+def test_cleanup_is_bounded_to_migration_created_paths_and_builder() -> None:
+    workflow = (ROOT / ".github/workflows/security-scan.yml").read_text(encoding="utf-8")
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+    cleanup = workflow.split("Remove only migration-created runtime resources", maxsplit=1)[1]
+    assert 'echo "OCI_LAYOUT=$RUNNER_TEMP/w5-002-py313-oci-layout"' in workflow
+    assert '"$OCI_LAYOUT"' in cleanup
+    assert 'echo "OCI_ARCHIVE=$RUNNER_TEMP/w5-002-py313-candidate.oci"' in workflow
+    assert '"$OCI_ARCHIVE"' in cleanup
+    assert 'echo "RAW_DIR=$RUNNER_TEMP/w5-002-py313-raw"' in workflow
+    assert 'echo "TRIVY_CACHE=$RUNNER_TEMP/w5-002-py313-trivy"' in workflow
+    assert 'echo "GRYPE_CACHE=$RUNNER_TEMP/w5-002-py313-grype"' in workflow
+    assert '} >> "$GITHUB_ENV"' in workflow
+    assert "enterprise-ai-platform-w5-002-py313" in cleanup
+    assert "reports/verification" not in cleanup
+    assert "scanner-cache" not in cleanup
+    assert "terraform-cache" not in cleanup
+    assert "w5-002-clean-runtime:" in makefile
+    assert "write-cleanup-retention" in makefile
+
+
+def test_cleanup_report_is_not_a_cloud_teardown_or_rollback_claim() -> None:
+    helper = (ROOT / "tools/w5_002_ci.py").read_text(encoding="utf-8")
+
+    assert '"cloud_activity": "NOT RUN"' in helper
+    assert '"deployment_status": "NOT RUN"' in helper
+    assert '"rollback_status": "IDENTITY_RECORDED"' in helper

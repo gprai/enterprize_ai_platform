@@ -1,4 +1,180 @@
-# W5-08 OCI supply-chain evidence
+# W5-08 Python 3.13.15 OCI supply-chain evidence
+
+## Final Column N status — W5-002 Python 3.13.15 remediation
+
+Prompt/task: W5-002-PY313-OCI-REMEDIATION-001 / W5-08
+Final W5-002 status: PASS / APPROVED AND CLOSED AFTER SUCCESSFUL PYTHON 3.13.15 REMEDIATION
+Final composed-image zero-Critical gate: PASS
+Complete ten-report reconciliation: PASS
+Eligibility: true
+Deployable: false
+Vulnerability-free claim: false
+Final owner approval: FINAL APPROVAL AFTER SUCCESSFUL PYTHON 3.13.15 REMEDIATION — APPROVED
+
+The Python 3.13.15 composed image passed the approved Trivy and Grype
+zero-Critical eligibility gate, and Column N owner review closes the current
+W5-002 task as PASS / APPROVED. That decision does not rewrite the historical
+Python 3.11 or Debian qualification failures, establish deployment readiness
+or claim that the image is vulnerability-free.
+
+## Qualified builder and runtime identities
+
+Builder:
+
+- Manifest: cgr.dev/vayunetrix.com/python@sha256:023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811
+- OCI index: sha256:fb566a1a7663cdf0041186af5484204650d880ee305a4a42cdf92b6c8706a1bd
+- Platform: linux/amd64
+- OS/glibc: Wolfi / 2.44-r5
+- Python package: 3.13.15-r7
+
+Runtime:
+
+- Manifest: cgr.dev/vayunetrix.com/python@sha256:f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa
+- OCI index: sha256:7a212636a3bd38fa184cf1f0ccfe025d683d7f32fd8bad810e437aa351d3b634
+- Platform: linux/amd64
+- OS/glibc: Wolfi / 2.44-r5
+- Python package: 3.13.15-r7
+- User: non-root UID/GID 65532:65532
+- Runtime boundary: no shell or package manager, read-only root, bounded /tmp
+
+Both immutable bases passed qualification with zero Critical from Trivy and
+Grype. Grype reported three Medium and one Low finding on each base. Trivy
+reported zero findings but emitted publisher-SBOM/PURL namespace warnings for
+matching paths that skipped 147 builder packages and 48 runtime packages.
+These limitations are accepted for owner review; they do not support a
+vulnerability-free claim.
+
+## Failed Debian comparison — preserved
+
+The Python 3.13.15 slim Trixie builder and Distroless cc-debian13 runtime were
+both rejected. The builder retained Critical findings involving perl-base,
+libc6, libc-bin and openssl. The runtime was not a Python runtime and produced
+a scanner disagreement: Trivy zero Critical versus Grype one Critical libc6
+finding. The original Python 3.11 Debian application candidate also remains a
+formal historical FAIL. No waiver, ignore rule, suppression or severity
+threshold reduction was used.
+
+## Final composed OCI identity
+
+- Baseline HEAD: 9963f2b24d9c42c03c62b97615fd650ab0eb5bc8
+- Source commit: null; the evidence binds the approved uncommitted source
+  composition rather than inventing a commit identity.
+- Source-composition SHA-256:
+  d9596bcbbab2953f2aa9398d34a2b87a5f2d8751f298f680f287d1bd5648ddff
+- OCI manifest digest:
+  sha256:2f8feee065fe841d36cc72173b00ebffaaff1e8facc87c8263e8b006a3e6e7ab
+- OCI configuration digest:
+  sha256:c5be7f00595c50a1e8588d0087dabd24706474137453280663958d08f5fb2404
+- Temporary OCI archive SHA-256:
+  c9f1f03d3fe88c27948af7e5bfa4da83fb37babed4d097537788e0d8061381f9
+- Dockerfile SHA-256:
+  6c9ca15b89f64ab728fb4f9244890042c8ad55bc20ff049f1bbcd4f9f1377285
+- Runtime lock SHA-256:
+  796831a21aaa94d95d1e2a6a831b6770c1c8609527c05e0d079a573e9457a69a
+- CI lock SHA-256:
+  8e8592ebf3161f5e8d74d4944bb3b7ef506dd428ce679490dc8170e52e722ad2
+- Checkov lock SHA-256:
+  1bd2e5915cca74ee60f82443bae15a49c109a1d614888bea1608ea5b18135da6
+
+## Final scanner results and limitations
+
+Trivy 0.74.0 filesystem result:
+
+- Critical 0, High 0, Medium 0, Low 0 and secret findings 0.
+- Database identity:
+  sha256:34bbaf2cec6cc3550a16425296d675e3ebed5ec6b48f0b6f34775140642bf4e2
+- Raw report SHA-256:
+  26cc5c6f66a8aa06059016ffe443d5be7f7aac498e22103c7976410b2bdc857a
+
+Trivy 0.74.0 composed OCI result:
+
+- Critical 0, High 4, Medium 2, Low 0 and secret findings 0.
+- Same recorded Trivy database identity.
+- Raw report SHA-256:
+  a521237e220598ccf49511202925283d591a1fdccbf6de5d6ccb3fad9b914b48
+
+Grype 0.118.0 composed OCI summary:
+
+- Critical 0, High 2, Medium 3 and Low 1.
+- Database identity:
+  sha256:03815de560ad4504afae6472979138977825a478f871e3172f9926bc32d82710
+- Raw report SHA-256:
+  e6b66c1f0f305e928369c68d22051312694b4acfa5c6d67cc97ce82063d8837c
+
+The non-Critical totals are scanner-specific and are not combined or used to
+weaken the gate. Zero Critical is a result at the recorded database snapshots,
+not a claim that every vulnerability or matching path is absent.
+
+## SBOM evidence
+
+- sbom.spdx.json: SPDX 2.3, 173 packages, 2,387,619 bytes,
+  SHA-256 62aa29e6493e9b690f68270f44958e8d545ad184806eafbc22b25270a6cd9f3d.
+- sbom.cyclonedx.json: CycloneDX 1.7, 2,013 components, 1,071,722 bytes,
+  SHA-256 dd7e466f547fca10f04fc872be927c699e55c7a9f02d041e73e5f7ab4c369ef4.
+
+Both SBOMs inventory the same composed candidate. They do not independently
+prove safety, provenance, deployability or production readiness.
+
+## Provenance, eligibility and rollback
+
+The v2 provenance binds the qualified images, source composition, composed
+manifest, six candidate-input reports, scanner databases and exact approved
+tool versions. The complete report set validated as one candidate identity.
+Eligibility records zero Critical from both scanners and all ten mandatory
+gates true, producing eligible_for_owner_approval=true while retaining:
+
+- formal_w5_002_status=FAIL;
+- w5_001_status=FAIL;
+- deployable=false; and
+- vulnerability_free_claim=false.
+
+Rollback is an immutable identity record only. Its status is
+IDENTITY_RECORDED; deployment and operational rollback remain NOT RUN.
+
+## Canonical ten-report inventory
+
+Directory:
+E:\AI\.runtime\enterprise_ai_platform\w5-002-py313-oci-remediation-001\owner-test-01\reports
+
+- image-identity.json — 0115bada76fa122ec15f7a469b773dabb213ec322b5e4e5828b2e75e582271e9
+- trivy-filesystem.json — 844b7ff54efb64afb7c4e41fb9435abe3a8f0596d0f6c65075b7572fa4b43343
+- trivy-image.json — c88eaf523ba82db36e0f2a952e6b981d378adb44f624cce53debd5b993fdfd48
+- grype-image.json — 42e3e17dd7f7e0c086b6c0b66561140d61318949f49c50a3388302dc2bcba596
+- sbom.spdx.json — 62aa29e6493e9b690f68270f44958e8d545ad184806eafbc22b25270a6cd9f3d
+- sbom.cyclonedx.json — dd7e466f547fca10f04fc872be927c699e55c7a9f02d041e73e5f7ab4c369ef4
+- provenance.json — a4ee2601484671e6e3d03a2a8f256969592352d1410a42a56c8805e70975adbd
+- eligibility.json — d9f0cc9d23ce228a7446f7430f6f9345f181b4153dcc056aa2bf7b4be634bf15
+- rollback-identity.json — 0e1b59e6549bce1ce9a6218a3655ae8dd776cb1b84aa244508681cb3b051625e
+- cleanup-retention.json — 80cfd77ef8b64013fa27ddbe6d3ff618fd4a2b2de3e1f56ef6a6bae5c224d997
+
+No credentials, registry tokens, authentication output or sensitive
+environment values are reproduced.
+
+## Cleanup, retained resources and lifecycle facts
+
+Removed under the exact cleanup approval: the task-specific builder and its
+Buildx state volume, both task test volumes and the exact task temporary root,
+including temporary OCI, raw and extracted-layout artifacts. These deletions
+are not directly recoverable but can be regenerated. Zero task residue PASS;
+repository state and protected hashes unchanged; staged files 0.
+
+Intentionally retained: ten final reports, scanner caches totalling
+3,505,463,735 bytes, qualified Chainguard images, historical W5-002 builder,
+shared tools/caches, Chainguard qualification evidence, failed Debian
+qualification evidence and historical Python 3.11 OCI/scan/SBOM evidence.
+These are retained resources rather than zero residue. Further cleanup is
+owner-controlled.
+
+Image push, registry publication, ECR/EKS/AWS activity, GitHub-hosted workflow,
+deployment, production performance/readiness, operational rollback and cloud
+teardown remain NOT RUN. No cloud resource was created; cloud residuals are
+none. The image is eligible for owner approval but is not deployable.
+
+## Historical Python 3.11 W5-08 record — preserved from prior closure
+
+The remainder of this file preserves the rejected Python 3.11 supply-chain
+record and its prior owner closure. It remains historical evidence and is not
+rewritten as a Python 3.13 result.
 
 ## Formal disposition
 
@@ -144,7 +320,7 @@ verification was performed. Local CPU, storage, electricity, and owner time
 were not monetized as zero. No secrets, credentials, protected business data,
 or raw provider responses are reproduced here.
 
-## Final Owner Approval
+## Historical Final Owner Approval — Python 3.11 closure (preserved)
 
 - Prompt/task ID: `W5-002` / `W5-08`
 - Reviewer: **Gyan Prakash Rai**
@@ -213,3 +389,55 @@ or raw provider responses are reproduced here.
 - Tracker update responsibility: **Owner**
 - Column N reconciliation: this record closed together with `W5-002.md`,
   `W5-07-ci.txt`, and the W5-002 README entry; no partial closure.
+
+## Final Owner Approval — Python 3.13.15 supply chain
+
+- Prompt/task ID: W5-002-PY313-OCI-REMEDIATION-001 / W5-08
+- Reviewer: Gyan Prakash Rai
+- Reviewer role: Project Owner and Final Approval Reviewer
+- Exact owner decision: FINAL APPROVAL AFTER SUCCESSFUL PYTHON 3.13.15
+  REMEDIATION — APPROVED
+- Approval date and time/timezone: 2026-09-07 20:46:37 SGT
+- Current final W5-002 status: PASS / APPROVED AND CLOSED AFTER SUCCESSFUL
+  PYTHON 3.13.15 REMEDIATION
+- Code, supply-chain and evidence review: APPROVED within the exact remediation
+  boundary; final composed-image zero-Critical and ten-report gates PASS.
+- Documentation review: APPROVED; all four Column M documents closed together.
+- Eligibility: true; deployable: false; vulnerability-free claim: false.
+- W5-001: FAIL.
+- Owner-executed security status: Trivy Critical 0 and Grype Critical 0 at the
+  recorded database snapshots; non-Critical findings and coverage warnings
+  are accepted within this closure and do not support a vulnerability-free
+  claim.
+- Historical results preserved: Python 3.11 TEST-001 FAIL, Debian Python 3.13
+  qualification FAIL / INELIGIBLE, and all bounded remediation history.
+- Warnings, risks and gaps: all Column M items are accepted, including three
+  Medium and one Low Grype finding on each qualified base, final non-Critical
+  findings, Trivy PURL/SBOM warnings affecting 147 builder and 48 runtime
+  packages, local-only evidence, retained resources and unpriced local costs;
+  no additional item is silently accepted. Remaining INDETERMINATE activities:
+  none.
+- NOT RUN: image push, registry publication, GitHub-hosted execution, hosted
+  Chainguard OIDC, AWS/ECR/EKS, deployment, production validation, operational
+  rollback and cloud teardown.
+- Evidence-status distinction: immutable `eligibility.json` preserves the
+  pre-Column-N `formal_w5_002_status=FAIL` snapshot; this later owner decision
+  records the current final PASS / APPROVED closure without editing the report.
+- Rollback: IDENTITY_RECORDED only; operational rollback NOT RUN.
+- Cleanup: task builder/state, two test volumes, exact temporary root and
+  temporary OCI/raw/layout artifacts removed; zero task residue PASS. Ten
+  reports, 3,505,463,735 bytes of scanner caches, qualified images, historical
+  evidence and shared tools/caches remain intentionally retained; cloud
+  teardown NOT RUN.
+- Deferred actions and owner: hosted/cloud/deployment/rollback work,
+  owner-controlled Git/tracker action and later retained-resource cleanup;
+  Gyan Prakash Rai unless an individual action names another owner.
+- Conditions: preserve the historical Python 3.11 and failed Debian evidence,
+  scanner limitations, all lifecycle classifications and the prohibition on a
+  vulnerability-free or deployment-readiness claim.
+- Next-task handover: the owner may update the tracker; image publication,
+  deployment, production validation and operational rollback remain separately
+  governed.
+- Tracker update responsibility: Owner
+- Column N reconciliation: this record, `W5-002.md`, `W5-07-ci.txt` and the
+  W5-002 README entry closed together; no partial closure occurred.

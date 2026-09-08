@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from pathlib import PurePosixPath
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-HexDigest: TypeAlias = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-GitSha: TypeAlias = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
-ArtifactPath: TypeAlias = Annotated[
+type HexDigest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+type GitSha = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+type ArtifactPath = Annotated[
     str,
     Field(
         min_length=1,
@@ -17,16 +17,16 @@ ArtifactPath: TypeAlias = Annotated[
         pattern=r"^[A-Za-z0-9][A-Za-z0-9._/-]*$",
     ),
 ]
-ReleaseVersion: TypeAlias = Literal[
+type ReleaseVersion = Literal[
     "w4-known-good-v1",
     "w4-synthetic-regression-v1",
 ]
-ExpectedCurrent: TypeAlias = Literal[
+type ExpectedCurrent = Literal[
     "absent",
     "w4-known-good-v1",
     "w4-synthetic-regression-v1",
 ]
-SmokeGate: TypeAlias = Literal[
+type SmokeGate = Literal[
     "health",
     "route_profile",
     "release_identity",

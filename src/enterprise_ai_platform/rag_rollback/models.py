@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-HexDigest: TypeAlias = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-GitSha: TypeAlias = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
-IdentityAlias: TypeAlias = Literal["known-good", "synthetic-regression"]
-ExpectedCurrent: TypeAlias = Literal["absent", "known-good", "synthetic-regression"]
-DrillStatus: TypeAlias = Literal["PASS", "FAIL", "INDETERMINATE"]
+type HexDigest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+type GitSha = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+type IdentityAlias = Literal["known-good", "synthetic-regression"]
+type ExpectedCurrent = Literal["absent", "known-good", "synthetic-regression"]
+type DrillStatus = Literal["PASS", "FAIL", "INDETERMINATE"]
 
 
 class StrictRollbackModel(BaseModel):

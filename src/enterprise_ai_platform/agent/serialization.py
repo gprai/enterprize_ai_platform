@@ -6,7 +6,7 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from enum import Enum
-from typing import TypeVar, cast
+from typing import cast
 
 from pydantic import BaseModel, ValidationError
 
@@ -17,8 +17,6 @@ from enterprise_ai_platform.json_contracts import (
 )
 
 from .errors import AgentStateValidationError
-
-ModelT = TypeVar("ModelT", bound=BaseModel)
 
 
 def _json_value(value: object) -> JSONValue:
@@ -69,7 +67,7 @@ def hash_identifier(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8", errors="strict")).hexdigest()
 
 
-def load_canonical_model(
+def load_canonical_model[ModelT: BaseModel](
     model_type: type[ModelT],
     payload: bytes,
     *,

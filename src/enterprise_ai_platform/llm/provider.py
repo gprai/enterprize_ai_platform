@@ -5,11 +5,9 @@ from __future__ import annotations
 import asyncio
 import threading
 from collections.abc import Callable
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from enterprise_ai_platform.llm.models import ChatRequest, ChatResponse
-
-T = TypeVar("T")
 
 
 @runtime_checkable
@@ -87,7 +85,7 @@ class ProviderWorkerCancelledError(Exception):
     """Internal signal that a queued worker was cancelled before execution."""
 
 
-async def run_blocking_provider_call(
+async def run_blocking_provider_call[T](
     operation: Callable[[], T],
     *,
     gate: ProviderCallGate,

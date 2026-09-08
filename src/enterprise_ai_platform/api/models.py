@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import UUID4, BaseModel, ConfigDict, Field
@@ -53,7 +53,7 @@ class DecideAgentRequest(APIModel):
     arguments: MockSetServiceModeArguments
 
 
-AgentRequest: TypeAlias = Annotated[
+type AgentRequest = Annotated[
     StartAgentRequest | DecideAgentRequest,
     Field(discriminator="action"),
 ]
@@ -85,7 +85,7 @@ class AbstainedQueryResponse(APIModel):
     prompt_version: str
 
 
-QueryResponse: TypeAlias = Annotated[
+type QueryResponse = Annotated[
     AnsweredQueryResponse | AbstainedQueryResponse,
     Field(discriminator="outcome"),
 ]

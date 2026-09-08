@@ -64,6 +64,7 @@ EXPECTED_FILTER_PATHS = (
     "detect_secrets.filters.regex.should_exclude_file",
 )
 EXPECTED_REVIEWED_FINDING_COUNTS = {
+    "configs/ci/w5-002.json": {"Hex High Entropy String": 12},
     "configs/eval/baselines/w3-002-v1.json": {"Hex High Entropy String": 6},
     "configs/rag/versions/w3-002-v1.json": {"Hex High Entropy String": 14},
     "configs/rag/versions/w3-004-synthetic-regression-v1.json": {"Hex High Entropy String": 14},
@@ -77,20 +78,25 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "src/enterprise_ai_platform/release_rollback/identity.py": {"Hex High Entropy String": 2},
     "src/enterprise_ai_platform/retrieval/models.py": {"Hex High Entropy String": 1},
     "tests/contract/test_embedder.py": {"Hex High Entropy String": 1},
+    "tests/contract/test_w5_002_workflow_contract.py": {"Hex High Entropy String": 9},
     "tests/feature/test_local_retrieval.py": {"Hex High Entropy String": 1},
     "tests/integration/test_sentence_transformer_embedder.py": {"Hex High Entropy String": 1},
+    "tests/integration/test_w5_002_ci_composition.py": {"Base64 High Entropy String": 1},
     "tests/teardown/test_w2_004_retrieval_cleanliness.py": {"Hex High Entropy String": 1},
     "tests/teardown/test_w3_002_evaluation_cleanliness.py": {"Hex High Entropy String": 1},
     "tests/teardown/test_w3_003_guardrails_cleanliness.py": {"Hex High Entropy String": 3},
     "tests/teardown/test_w3_004_rag_rollback_cleanliness.py": {"Hex High Entropy String": 6},
+    "tests/teardown/test_w4_011_release_rollback_cleanliness.py": {"Hex High Entropy String": 2},
     "tests/unit/test_bedrock_owner_verify.py": {"Hex High Entropy String": 1},
     "tests/unit/test_evaluation_runner.py": {"Hex High Entropy String": 1},
     "tests/unit/test_prompt_template.py": {"Hex High Entropy String": 1},
     "tests/unit/test_retrieval_service.py": {"Hex High Entropy String": 1},
     "tools/bedrock_owner_verify.py": {"Hex High Entropy String": 1},
     "tools/platformctl/aws_inventory.py": {"Secret Keyword": 1},
+    "tools/w5_002_ci.py": {"Hex High Entropy String": 16},
 }
 EXPECTED_REVIEWED_LINE_COUNTS = {
+    "configs/ci/w5-002.json": {1: 12},
     "configs/eval/baselines/w3-002-v1.json": {1: 6},
     "configs/rag/versions/w3-002-v1.json": {
         6: 1,
@@ -149,8 +155,20 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "src/enterprise_ai_platform/release_rollback/identity.py": {27: 1, 29: 1},
     "src/enterprise_ai_platform/retrieval/models.py": {14: 1},
     "tests/contract/test_embedder.py": {17: 1},
+    "tests/contract/test_w5_002_workflow_contract.py": {
+        12: 1,
+        13: 1,
+        14: 1,
+        15: 1,
+        16: 1,
+        17: 1,
+        18: 1,
+        111: 1,
+        115: 1,
+    },
     "tests/feature/test_local_retrieval.py": {46: 1},
     "tests/integration/test_sentence_transformer_embedder.py": {111: 1},
+    "tests/integration/test_w5_002_ci_composition.py": {82: 1},
     "tests/teardown/test_w2_004_retrieval_cleanliness.py": {29: 1},
     "tests/teardown/test_w3_002_evaluation_cleanliness.py": {17: 1},
     "tests/teardown/test_w3_003_guardrails_cleanliness.py": {11: 1, 12: 1, 15: 1},
@@ -162,12 +180,31 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         21: 1,
         23: 1,
     },
+    "tests/teardown/test_w4_011_release_rollback_cleanliness.py": {59: 1, 62: 1},
     "tests/unit/test_bedrock_owner_verify.py": {367: 1},
     "tests/unit/test_evaluation_runner.py": {214: 1},
     "tests/unit/test_prompt_template.py": {35: 1},
     "tests/unit/test_retrieval_service.py": {142: 1},
     "tools/bedrock_owner_verify.py": {71: 1},
     "tools/platformctl/aws_inventory.py": {23: 1},
+    "tools/w5_002_ci.py": {
+        37: 1,
+        41: 1,
+        460: 1,
+        461: 1,
+        462: 1,
+        463: 1,
+        464: 1,
+        465: 1,
+        482: 1,
+        505: 1,
+        511: 1,
+        531: 1,
+        534: 1,
+        537: 1,
+        542: 1,
+        952: 1,
+    },
 }
 EXPECTED_BASELINE_FINDING_KEYS = {
     "type",
@@ -302,8 +339,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 25
-    assert sum(len(findings) for findings in results.values()) == 280
+    assert len(results) == 30
+    assert sum(len(findings) for findings in results.values()) == 320
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

@@ -1,142 +1,225 @@
-name: W5-002 candidate supply-chain controls
+name: W5-002 trusted Python 3.13 supply-chain controls
 
 on:
-  workflow_call:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: w5-002-supply-chain-${{ github.sha }}
+  group: w5-002-py313-supply-chain-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
   candidate:
+    if: >-
+      github.repository == 'gprai/enterprize_ai_platform' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: read
+      id-token: write
+    env:
+      BUILDER_IMAGE: cgr.dev/vayunetrix.com/python:3.13.15-dev@sha256:023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811
+      RUNTIME_IMAGE: cgr.dev/vayunetrix.com/python:3.13.15@sha256:f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa
     steps:
-      - name: Check out one exact source commit
+      - name: Establish bounded runner temporary paths
+        shell: bash
+        run: |
+          {
+            echo "OCI_ARCHIVE=$RUNNER_TEMP/w5-002-py313-candidate.oci"
+            echo "OCI_LAYOUT=$RUNNER_TEMP/w5-002-py313-oci-layout"
+            echo "RAW_DIR=$RUNNER_TEMP/w5-002-py313-raw"
+            echo "TRIVY_CACHE=$RUNNER_TEMP/w5-002-py313-trivy"
+            echo "GRYPE_CACHE=$RUNNER_TEMP/w5-002-py313-grype"
+          } >> "$GITHUB_ENV"
+      - name: Reject an unapproved trusted execution identity
+        shell: bash
+        run: |
+          test "$GITHUB_REPOSITORY" = "gprai/enterprize_ai_platform"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_EVENT_NAME" = "push" -o "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+      - name: Check out the exact trusted source commit
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           persist-credentials: false
       - name: Set up exact Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: 3.11.16
+          python-version: "3.13.15"
           cache: ""
-      - name: Install the hash-locked CI environment
+      - name: Install the hash-locked Python 3.13 CI environment
         shell: bash
         run: |
-          python --version | grep -Fx "Python 3.11.16"
-          python -m pip --version | grep -F "pip 26.2.1"
+          python --version | grep -Fx "Python 3.13.15"
           python -B tools/w5_002_ci.py validate-locks \
             --runtime requirements-runtime.lock --ci requirements-ci.lock \
             --checkov requirements-checkov.lock
           python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m pip --version | grep -F "pip 26.2.1"
+          python -m pip check
+      - name: Revalidate the v2 contract before requesting registry OIDC
+        run: python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
+      - name: Authenticate to Chainguard with the pull-only GitHub identity
+        uses: chainguard-dev/setup-chainctl@be0acd273acf04bfdf91f51198327e719f6af978
+        with:
+          identity: ${{ vars.CHAINGUARD_PULL_IDENTITY }}
+          version: "0.2.346"
+      - name: Verify the private manifest identities
+        shell: bash
+        run: |
+          chainctl version | grep -F "0.2.346"
+          docker buildx imagetools inspect "$BUILDER_IMAGE" | \
+            grep -F "sha256:023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811"
+          docker buildx imagetools inspect "$RUNTIME_IMAGE" | \
+            grep -F "sha256:f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa"
       - name: Set up exact BuildKit
         uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5
         with:
-          name: enterprise-ai-platform-w5-002
+          name: enterprise-ai-platform-w5-002-py313
           driver: docker-container
           driver-opts: >-
             image=moby/buildkit:v0.30.0@sha256:57269d1784e49b46228c45a1a1b870fbe40e0a639ab60b37b032d83af5bccdfc
           install: false
           use: true
-          cleanup: true
-      - name: Verify immutable local tool identities
+          cleanup: false
+      - name: Verify immutable local security-tool identities
         shell: bash
         run: |
           trivy --version | grep -F "Version: 0.74.0"
           grype version | grep -F "Version: 0.118.0"
           syft version | grep -F "Version: 1.51.1"
       - name: Build one Linux AMD64 OCI archive without load or push
-        id: build
         shell: bash
-        env:
-          OCI_ARCHIVE: ${{ runner.temp }}/w5-002-candidate.oci
         run: |
+          test ! -e "$OCI_ARCHIVE"
           docker buildx build \
-            --builder enterprise-ai-platform-w5-002 \
+            --builder enterprise-ai-platform-w5-002-py313 \
             --platform linux/amd64 \
             --file docker/application.Dockerfile \
             --output "type=oci,dest=$OCI_ARCHIVE" \
             --provenance=false \
             --sbom=false \
             .
-          digest="sha256:$(sha256sum "$OCI_ARCHIVE" | cut -d ' ' -f 1)"
-          echo "image_digest=$digest" >> "$GITHUB_OUTPUT"
           mkdir -p reports/w5-002
           python -B tools/w5_002_ci.py write-image-identity \
             --output reports/w5-002/image-identity.json \
-            --source-commit "$GITHUB_SHA" \
-            --image-digest "$digest"
-      - name: Scan the filesystem and the same OCI archive
+            --repository-root . \
+            --oci-archive "$OCI_ARCHIVE" \
+            --source-commit "$GITHUB_SHA"
+      - name: Pin the scanner database identities
+        id: databases
+        shell: bash
+        run: |
+          mkdir -p "$RAW_DIR" "$TRIVY_CACHE" "$GRYPE_CACHE"
+          trivy image --cache-dir "$TRIVY_CACHE" --download-db-only
+          GRYPE_DB_CACHE_DIR="$GRYPE_CACHE" grype db update
+          GRYPE_DB_CACHE_DIR="$GRYPE_CACHE" grype db status -o json > "$RAW_DIR/grype-db.json"
+          test -s "$TRIVY_CACHE/db/metadata.json"
+          test -s "$RAW_DIR/grype-db.json"
+          echo "trivy=sha256:$(sha256sum "$TRIVY_CACHE/db/metadata.json" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+          echo "grype=sha256:$(sha256sum "$RAW_DIR/grype-db.json" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+      - name: Scan qualified bases and the exact composed OCI content
         shell: bash
         env:
-          OCI_ARCHIVE: ${{ runner.temp }}/w5-002-candidate.oci
-          OCI_LAYOUT: ${{ runner.temp }}/w5-002-oci-layout
-          RAW_GRYPE: ${{ runner.temp }}/w5-002-grype.json
-          RAW_TRIVY_FILESYSTEM: ${{ runner.temp }}/w5-002-trivy-filesystem.json
-          RAW_TRIVY_IMAGE: ${{ runner.temp }}/w5-002-trivy-image.json
+          TRIVY_DATABASE_IDENTITY: ${{ steps.databases.outputs.trivy }}
+          GRYPE_DATABASE_IDENTITY: ${{ steps.databases.outputs.grype }}
+          GRYPE_DB_AUTO_UPDATE: "false"
+          GRYPE_CHECK_FOR_APP_UPDATE: "false"
         run: |
-          cleanup() {
-            rm -rf -- "$OCI_LAYOUT"
-            rm -f -- "$RAW_TRIVY_FILESYSTEM" "$RAW_TRIVY_IMAGE" "$RAW_GRYPE"
-          }
-          trap cleanup EXIT
-          trivy filesystem --format json --output "$RAW_TRIVY_FILESYSTEM" \
-            --scanners vuln,secret .
+          cleanup_layout() { rm -rf -- "$OCI_LAYOUT"; }
+          trap cleanup_layout EXIT
+          trivy image --cache-dir "$TRIVY_CACHE" --skip-db-update \
+            --skip-java-db-update --offline-scan --scanners vuln \
+            --severity CRITICAL --exit-code 1 --format json \
+            --output "$RAW_DIR/trivy-base-builder.json" "$BUILDER_IMAGE"
+          GRYPE_DB_CACHE_DIR="$GRYPE_CACHE" \
+            grype "$BUILDER_IMAGE" --fail-on critical -o json \
+            > "$RAW_DIR/grype-base-builder.json"
+          trivy image --cache-dir "$TRIVY_CACHE" --skip-db-update \
+            --skip-java-db-update --offline-scan --scanners vuln \
+            --severity CRITICAL --exit-code 1 --format json \
+            --output "$RAW_DIR/trivy-base-runtime.json" "$RUNTIME_IMAGE"
+          GRYPE_DB_CACHE_DIR="$GRYPE_CACHE" \
+            grype "$RUNTIME_IMAGE" --fail-on critical -o json \
+            > "$RAW_DIR/grype-base-runtime.json"
+          trivy filesystem --cache-dir "$TRIVY_CACHE" --skip-db-update \
+            --skip-java-db-update --offline-scan --format json \
+            --output "$RAW_DIR/trivy-filesystem.json" --scanners vuln,secret .
           test ! -e "$OCI_LAYOUT"
           mkdir "$OCI_LAYOUT"
           tar -xf "$OCI_ARCHIVE" -C "$OCI_LAYOUT"
           test -f "$OCI_LAYOUT/index.json"
           test -f "$OCI_LAYOUT/oci-layout"
-          trivy image --input "$OCI_LAYOUT" --format json \
-            --output "$RAW_TRIVY_IMAGE"
-          grype "oci-archive:$OCI_ARCHIVE" -o json > "$RAW_GRYPE"
+          trivy image --cache-dir "$TRIVY_CACHE" --skip-db-update \
+            --skip-java-db-update --offline-scan --input "$OCI_LAYOUT" \
+            --format json --output "$RAW_DIR/trivy-image.json" --scanners vuln,secret
+          GRYPE_DB_CACHE_DIR="$GRYPE_CACHE" \
+            grype "oci-archive:$OCI_ARCHIVE" --fail-on critical -o json \
+            > "$RAW_DIR/grype-image.json"
           python -B tools/w5_002_ci.py write-scan-summary \
-            --input "$RAW_TRIVY_FILESYSTEM" \
+            --input "$RAW_DIR/trivy-filesystem.json" \
             --output reports/w5-002/trivy-filesystem.json \
-            --source-commit "$GITHUB_SHA" \
-            --image-digest "${{ steps.build.outputs.image_digest }}" \
+            --image-identity reports/w5-002/image-identity.json \
+            --scanner-database-identity "$TRIVY_DATABASE_IDENTITY" \
             --scanner trivy --scope filesystem
           python -B tools/w5_002_ci.py write-scan-summary \
-            --input "$RAW_TRIVY_IMAGE" \
+            --input "$RAW_DIR/trivy-image.json" \
             --output reports/w5-002/trivy-image.json \
-            --source-commit "$GITHUB_SHA" \
-            --image-digest "${{ steps.build.outputs.image_digest }}" \
+            --image-identity reports/w5-002/image-identity.json \
+            --scanner-database-identity "$TRIVY_DATABASE_IDENTITY" \
             --scanner trivy --scope oci
           python -B tools/w5_002_ci.py write-scan-summary \
-            --input "$RAW_GRYPE" \
+            --input "$RAW_DIR/grype-image.json" \
             --output reports/w5-002/grype-image.json \
-            --source-commit "$GITHUB_SHA" \
-            --image-digest "${{ steps.build.outputs.image_digest }}" \
+            --image-identity reports/w5-002/image-identity.json \
+            --scanner-database-identity "$GRYPE_DATABASE_IDENTITY" \
             --scanner grype --scope oci
-          cleanup
+          cleanup_layout
           trap - EXIT
-      - name: Generate both SBOMs from the same OCI archive
+      - name: Generate SPDX and CycloneDX SBOMs from the same OCI archive
         shell: bash
         env:
-          OCI_ARCHIVE: ${{ runner.temp }}/w5-002-candidate.oci
+          SYFT_CHECK_FOR_APP_UPDATE: "false"
         run: |
           syft "oci-archive:$OCI_ARCHIVE" \
             -o spdx-json=reports/w5-002/sbom.spdx.json
           syft "oci-archive:$OCI_ARCHIVE" \
             -o cyclonedx-json=reports/w5-002/sbom.cyclonedx.json
-      - name: Reconcile identity, provenance, limits, and eligibility
+      - name: Remove only migration-created runtime resources
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$OCI_LAYOUT" "$RAW_DIR" "$TRIVY_CACHE" "$GRYPE_CACHE"
+          rm -f -- "$OCI_ARCHIVE"
+          if docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1; then
+            docker buildx rm enterprise-ai-platform-w5-002-py313
+          fi
+          test ! -e "$OCI_LAYOUT"
+          test ! -e "$RAW_DIR"
+          test ! -e "$TRIVY_CACHE"
+          test ! -e "$GRYPE_CACHE"
+          test ! -e "$OCI_ARCHIVE"
+          ! docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1
+          if test -d reports/w5-002; then
+            python -B tools/w5_002_ci.py write-cleanup-retention \
+              --output reports/w5-002/cleanup-retention.json
+          fi
+      - name: Reconcile v2 provenance, rollback, and eligibility
         shell: bash
         run: |
           python -B tools/w5_002_ci.py reconcile-supply-chain \
-            --reports-dir reports/w5-002 \
-            --source-commit "$GITHUB_SHA" \
-            --image-digest "${{ steps.build.outputs.image_digest }}"
+            --reports-dir reports/w5-002
           python -B tools/w5_002_ci.py validate-reports \
             --reports-dir reports/w5-002 --profile supply-chain
-      - name: Upload only the bounded allowlisted reports
+      - name: Upload only the bounded allowlisted v2 reports
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: w5-002-supply-chain
+          name: w5-002-supply-chain-v2
           path: |
             reports/w5-002/image-identity.json
             reports/w5-002/trivy-filesystem.json
@@ -146,6 +229,8 @@ jobs:
             reports/w5-002/sbom.cyclonedx.json
             reports/w5-002/provenance.json
             reports/w5-002/eligibility.json
+            reports/w5-002/rollback-identity.json
+            reports/w5-002/cleanup-retention.json
           if-no-files-found: error
           retention-days: 7
           include-hidden-files: false

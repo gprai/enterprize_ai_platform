@@ -15,6 +15,7 @@ PINS = {
     "hashicorp/setup-terraform": "dfe3c3f87815947d99a8997f908cb6525fc44e9e",
     "aws-actions/configure-aws-credentials": "e6de054238d6b7531b4efff3b6587d9aade6a06c",
     "docker/setup-buildx-action": "d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5",
+    "chainguard-dev/setup-chainctl": "be0acd273acf04bfdf91f51198327e719f6af978",
 }
 
 
@@ -43,7 +44,7 @@ def test_all_workflows_are_yaml_and_use_only_exact_action_commits() -> None:
         assert all(reference == f"uses: {action}@{commit}" for reference in references)
 
 
-def test_untrusted_pull_request_has_no_privileged_trigger_or_identity() -> None:
+def test_untrusted_pull_request_has_no_registry_cloud_or_oidc_authority() -> None:
     workflow = _yaml("ci.yml")
     text = _text("ci.yml")
 
@@ -53,21 +54,29 @@ def test_untrusted_pull_request_has_no_privileged_trigger_or_identity() -> None:
             "types": ["opened", "synchronize", "reopened", "ready_for_review"],
         }
     }
-    assert "pull_request_target" not in text
-    assert "id-token: write" not in text
-    assert "configure-aws-credentials" not in text
-    assert "environment:" not in text
+    for forbidden in (
+        "pull_request_target",
+        "id-token: write",
+        "configure-aws-credentials",
+        "environment:",
+        "uses: ./.github/workflows/security-scan.yml",
+        "cgr.dev/",
+        "CHAINGUARD_PULL_IDENTITY",
+        "setup-chainctl",
+    ):
+        assert forbidden not in text
+    assert 'python-version: "3.13.15"' in text
     assert "w5-002-pr-${{ github.event.pull_request.number }}" in text
 
 
-def test_trusted_plan_is_manual_exact_and_never_applies_or_destroys() -> None:
+def test_trusted_plan_is_manual_python_313_and_never_applies_or_destroys() -> None:
     workflow = _yaml("plan-sandbox.yml")
     text = _text("plan-sandbox.yml")
 
     assert set(workflow["on"]) == {"workflow_dispatch"}
+    assert 'python-version: "3.13.15"' in text
     assert "environment: sandbox" in text
     assert "id-token: write" in text
-    assert "repo:gprai/enterprize_ai_platform:environment:sandbox" not in text
     assert "arn:aws:iam::526338061652:role/enterprise-ai-platform-sandbox-github-oidc" in text
     assert "role-duration-seconds: 900" in text
     assert "-backend=false" in text
@@ -76,25 +85,77 @@ def test_trusted_plan_is_manual_exact_and_never_applies_or_destroys() -> None:
     assert "w5-002-plan-summary" in text and "retention-days: 7" in text
 
 
-def test_supply_chain_uses_one_oci_and_no_registry_or_cloud_authority() -> None:
+def test_private_supply_chain_runs_only_for_trusted_main_or_manual_events() -> None:
+    workflow = _yaml("security-scan.yml")
     text = _text("security-scan.yml")
 
-    assert "workflow_call:" in text
-    assert "w5-002-supply-chain-${{ github.sha }}" in text
-    assert "timeout-minutes: 30" in text
-    assert text.count("OCI_ARCHIVE: ${{ runner.temp }}/w5-002-candidate.oci") == 3
+    assert workflow["on"] == {"push": {"branches": ["main"]}, "workflow_dispatch": None}
+    assert "workflow_call" not in text
+    assert "pull_request" not in text
+    assert "github.repository == 'gprai/enterprize_ai_platform'" in text
+    assert "github.ref == 'refs/heads/main'" in text
+    assert "id-token: write" in text
+    assert "contents: read" in text
+    assert "${{ vars.CHAINGUARD_PULL_IDENTITY }}" in text
+    assert "${{ secrets." not in text
+    assert "secrets:" not in text
+    assert 'version: "0.2.346"' in text
+    assert 'python-version: "3.13.15"' in text
+
+
+def test_supply_chain_uses_exact_images_one_oci_and_no_push_or_load() -> None:
+    text = _text("security-scan.yml")
+
+    assert (
+        "cgr.dev/vayunetrix.com/python:3.13.15-dev@sha256:"
+        "023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811"
+    ) in text
+    assert (
+        "cgr.dev/vayunetrix.com/python:3.13.15@sha256:"
+        "f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa"
+    ) in text
     assert '--output "type=oci,dest=$OCI_ARCHIVE"' in text
-    assert "OCI_LAYOUT: ${{ runner.temp }}/w5-002-oci-layout" in text
     assert 'tar -xf "$OCI_ARCHIVE" -C "$OCI_LAYOUT"' in text
     assert 'test -f "$OCI_LAYOUT/index.json"' in text
     assert 'test -f "$OCI_LAYOUT/oci-layout"' in text
-    assert 'trivy image --input "$OCI_LAYOUT"' in text
-    assert 'trivy image --input "$OCI_ARCHIVE"' not in text
-    assert "oci-archive:$OCI_ARCHIVE" in text
-    assert 'rm -rf -- "$OCI_LAYOUT"' in text
+    assert 'trivy image --cache-dir "$TRIVY_CACHE"' in text
+    assert 'grype "oci-archive:$OCI_ARCHIVE"' in text
     assert "--load" not in text and "--push" not in text
-    assert "id-token" not in text and "configure-aws-credentials" not in text
-    assert "w5-002-supply-chain" in text and "retention-days: 7" in text
+    assert "docker push" not in text
+
+
+def test_four_base_scan_paths_and_independent_composed_scanners_are_required() -> None:
+    text = _text("security-scan.yml")
+
+    assert text.count("--severity CRITICAL --exit-code 1 --format json") == 2
+    assert '--output "$RAW_DIR/trivy-base-builder.json" "$BUILDER_IMAGE"' in text
+    assert '--output "$RAW_DIR/trivy-base-runtime.json" "$RUNTIME_IMAGE"' in text
+    assert 'grype "$BUILDER_IMAGE" --fail-on critical' in text
+    assert 'grype "$RUNTIME_IMAGE" --fail-on critical' in text
+    assert 'grype "oci-archive:$OCI_ARCHIVE"' in text
+    assert "--scanner-database-identity" in text
+
+
+def test_artifact_allowlist_contains_every_v2_report_and_no_raw_artifact() -> None:
+    text = _text("security-scan.yml")
+    upload = text.split("Upload only the bounded allowlisted v2 reports")[-1]
+
+    for name in (
+        "image-identity.json",
+        "trivy-filesystem.json",
+        "trivy-image.json",
+        "grype-image.json",
+        "sbom.spdx.json",
+        "sbom.cyclonedx.json",
+        "provenance.json",
+        "eligibility.json",
+        "rollback-identity.json",
+        "cleanup-retention.json",
+    ):
+        assert f"reports/w5-002/{name}" in upload
+    for forbidden in ("w5-002-py313-candidate.oci", "w5-002-py313-raw", "oci-layout"):
+        assert forbidden not in upload
+    assert "retention-days: 7" in upload
 
 
 def test_all_dependency_installations_are_hash_locked_and_non_resolving() -> None:

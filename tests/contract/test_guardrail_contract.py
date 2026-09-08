@@ -84,7 +84,7 @@ def test_disabled_adapter_satisfies_only_the_interface_contract() -> None:
 
 
 def test_existing_abstention_taxonomy_is_unchanged() -> None:
-    assert get_args(AbstentionReason) == (
+    assert get_args(AbstentionReason.__value__) == (
         "insufficient_evidence",
         "no_authorized_evidence",
         "conflicting_evidence",

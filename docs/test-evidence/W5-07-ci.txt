@@ -1,4 +1,128 @@
-# W5-07 local CI and workflow evidence
+# W5-07 Python 3.13.15 CI and workflow evidence
+
+## Final Column N status — W5-002 Python 3.13.15 remediation
+
+Prompt/task: W5-002-PY313-OCI-REMEDIATION-001 / W5-07
+Final W5-002 status: PASS / APPROVED AND CLOSED AFTER SUCCESSFUL PYTHON 3.13.15 REMEDIATION
+Python 3.13.15 remediation TEST-001: PASS within the approved local boundaries
+Remediation eligibility: eligible_for_owner_approval=true
+Deployable: false
+GitHub-hosted workflow execution: NOT RUN
+Final owner approval: FINAL APPROVAL AFTER SUCCESSFUL PYTHON 3.13.15 REMEDIATION — APPROVED
+
+The Python 3.13.15 remediation passed its local CI, dependency, policy,
+runtime and composed-image zero-Critical eligibility gates. Column N owner
+review closes the current W5-002 task as PASS / APPROVED; it remains
+non-deployable. The immutable pre-Column-N `eligibility.json` status remains an
+unchanged execution-time snapshot rather than the later owner decision.
+
+## Python and dependency contract
+
+- CPython: 3.13.15 on linux/amd64.
+- Project contract: >=3.13,<3.14.
+- Ruff target: py313.
+- MyPy Python version: 3.13.
+- Resolver: verified uv 0.12.9 with generated hashes, no builds and no Python
+  downloads.
+- Runtime and CI sources: PyPI plus the official PyTorch CPU index.
+- Checkov: isolated lock using PyPI.
+- Installation: --require-hashes --no-deps followed by pip check.
+- Torch: 2.13.0+cpu; deterministic import/operation PASS.
+- CUDA, NVIDIA, Triton, VCS, direct, local and editable sources: prohibited;
+  none was accepted in the validated locks.
+
+Exact lock hashes:
+
+- requirements-runtime.lock:
+  sha256:796831a21aaa94d95d1e2a6a831b6770c1c8609527c05e0d079a573e9457a69a
+- requirements-ci.lock:
+  sha256:8e8592ebf3161f5e8d74d4944bb3b7ef506dd428ce679490dc8170e52e722ad2
+- requirements-checkov.lock:
+  sha256:1bd2e5915cca74ee60f82443bae15a49c109a1d614888bea1608ea5b18135da6
+
+## Owner-executed local results
+
+- Python and dependency identity: PASS.
+- Three-lock reproducibility and validation: PASS.
+- CI and Checkov hash-enforced installations and pip check: PASS.
+- Ruff lint: PASS — All checks passed.
+- Ruff format: PASS — 278 files already formatted after bounded corrections.
+- Strict MyPy: PASS — no issues in 108 source files.
+- Focused W5-002 and remediation scopes: PASS on final reruns. Intermediate
+  failures are preserved below and in the aggregate evidence; no unsupported
+  aggregate numeric total is inferred.
+- Full ordinary Pytest: PASS — 918 passed, 15 skipped, 4 deselected, 1 warning
+  and 10 subtests passed in 334.11 seconds.
+- Platform validation: PASS.
+- Detect-secrets and pre-commit: PASS in the owner-recorded local scope.
+- Actionlint 1.7.12: PASS.
+- Terraform 1.16.1 formatting and both approved offline roots: PASS; task
+  initialization residue removed.
+- OPA 1.20.0: strict check PASS and 41/41 tests PASS.
+- Checkov 3.3.16: 226 passed, 0 failed and 20 skipped.
+- TFLint 0.60.0 with AWS ruleset 0.48.0: PASS.
+- Non-root/read-only-root runtime, health, query, agent, network-disabled
+  startup/shutdown, path-boundary and cleanliness checks: PASS.
+- Complete ten-report v2 reconciliation: PASS.
+
+The 15 skipped and 4 deselected tests remain NOT RUN. Checkov's 20 skips are
+not passes. The accepted current warning is Starlette TestClient's deprecated
+anyio.abc.BlockingPortal alias. The historical Starlette/httpx warning remains
+preserved in its original Python 3.11 evidence.
+
+## CI trust boundaries
+
+The pull-request workflow has no cloud authority: top-level permissions are
+empty, jobs receive only contents:read, checkout credentials are not
+persisted, and no OIDC or registry credential is available. It validates the
+three locks, installs the hash-locked CI environment and runs local quality,
+secret, test and infrastructure-policy contracts.
+
+The supply-chain workflow is limited to trusted main pushes or manual
+workflow dispatch in gprai/enterprize_ai_platform. Its job may request an OIDC
+token only after repository/ref/event and v2 contract checks. Chainguard
+authentication is designed around the CHAINGUARD_PULL_IDENTITY variable and a
+pull-only/viewer identity scoped to cgr.dev/vayunetrix.com/python. No
+long-lived registry credential is embedded in the repository or documented
+here.
+
+The local workflow and security contracts passed, but GitHub-hosted execution,
+GitHub OIDC authentication and hosted artifact upload remain NOT RUN. Local
+testing does not prove that future hosted authentication or execution works.
+
+## Preserved remediation history
+
+The Python 3.13 cycle initially exposed Ruff PEP 695/import/S108 and formatting
+findings, a MyPy tuple annotation, regression/base-scan contract drift,
+rollback/cleanup schema assertions, base-scan output assertions and invalid
+job-level runner.temp expressions. The approved bounded corrections passed
+their final focused checks, Ruff, formatting, MyPy, full Pytest, platform
+validation and Actionlint as applicable. Grype task-TEMP/provider and Trivy
+relative OCI-layout invocation remediations also passed later supply-chain
+execution. These intermediate failures remain part of the evidence.
+
+## Deployment, rollback, cleanup and limitations
+
+Image push, ECR/EKS/AWS activity, GitHub-hosted execution, deployment,
+production validation, operational rollback and cloud teardown remain NOT
+RUN. Rollback identity was recorded but no operational rollback occurred.
+Local TEST-001 cleanup removed only its task builder/state, two test volumes
+and exact temporary root; repository state and protected hashes were
+unchanged. Ten reports, scanner caches, qualified images, the historical
+builder, shared tools/caches and historical evidence remain intentionally
+retained. Cleanup ownership remains with Gyan Prakash Rai unless later exact
+approval records another owner.
+
+W5-001 remains formally FAIL. The composed-image scanners found zero Critical,
+but non-Critical findings and Trivy coverage warnings remain; no
+vulnerability-free, hosted-runner, cloud, deployment or production-readiness
+claim is made.
+
+## Historical Python 3.11 W5-07 record — preserved from prior closure
+
+The remainder of this file preserves the prior Python 3.11 CI record and its
+owner closure. It is historical and superseded only for current runtime
+selection.
 
 ## Formal disposition
 
@@ -84,7 +208,7 @@ tools, Docker images, caches, task workspaces, OCI archive, scanner evidence,
 reports, and SBOMs remain owner-controlled and retained. Cloud residual
 resources are none. Column M authorizes no deletion.
 
-## Final Owner Approval
+## Historical Final Owner Approval — Python 3.11 closure (preserved)
 
 - Prompt/task ID: `W5-002` / `W5-07`
 - Reviewer: **Gyan Prakash Rai**
@@ -141,3 +265,52 @@ resources are none. Column M authorizes no deletion.
 - Tracker update responsibility: **Owner**
 - Column N reconciliation: this record closed together with `W5-002.md`,
   `W5-08-supply-chain.txt`, and the W5-002 README entry; no partial closure.
+
+## Final Owner Approval — Python 3.13.15 CI remediation
+
+- Prompt/task ID: W5-002-PY313-OCI-REMEDIATION-001 / W5-07
+- Reviewer: Gyan Prakash Rai
+- Reviewer role: Project Owner and Final Approval Reviewer
+- Exact owner decision: FINAL APPROVAL AFTER SUCCESSFUL PYTHON 3.13.15
+  REMEDIATION — APPROVED
+- Approval date and time/timezone: 2026-09-07 20:46:37 SGT
+- Current final W5-002 status: PASS / APPROVED AND CLOSED AFTER SUCCESSFUL
+  PYTHON 3.13.15 REMEDIATION
+- Code and evidence review: APPROVED within the exact remediation boundary;
+  ten-report reconciliation PASS.
+- Documentation review: APPROVED; all four Column M documents closed together.
+- Owner-executed test status: PASS within the recorded local CI, dependency,
+  policy, runtime, supply-chain and zero-Critical eligibility scopes; Trivy
+  Critical 0 and Grype Critical 0.
+- Eligibility: true; deployable: false; vulnerability-free claim: false.
+- W5-001: FAIL.
+- Historical results preserved: Python 3.11 TEST-001 FAIL, Debian Python 3.13
+  qualification FAIL / INELIGIBLE, and all bounded remediation history.
+- Warnings, risks and gaps: all Column M items are accepted, including base and
+  composed-image non-Critical findings, Trivy coverage warnings, the Starlette
+  warning, 15 skipped and 4 deselected tests, 20 Checkov skips, local-only
+  evidence, retained resources and unpriced local costs; no additional item is
+  silently accepted. Remaining INDETERMINATE activities: none.
+- NOT RUN: GitHub-hosted workflows, hosted Chainguard OIDC, image publication,
+  AWS/ECR/EKS, deployment, production validation, operational rollback and
+  cloud teardown.
+- Evidence-status distinction: immutable `eligibility.json` preserves the
+  pre-Column-N formal FAIL snapshot while this owner decision records the
+  current final PASS / APPROVED closure.
+- Rollback: identity recorded only; operational rollback NOT RUN.
+- Cleanup: task builder/state, two test volumes and the exact temporary root
+  removed; zero task residue PASS. Ten reports, 3,505,463,735 bytes of scanner
+  caches, qualified images, historical evidence and shared tools/caches remain
+  intentionally retained; cloud teardown NOT RUN.
+- Deferred actions and owner: hosted/cloud/deployment/rollback work,
+  owner-controlled Git/tracker action and later retained-resource cleanup;
+  Gyan Prakash Rai unless an individual action names another owner.
+- Conditions: preserve all current and historical classifications and infer no
+  hosted, cloud, deployment, production-readiness or vulnerability-free status
+  from local evidence.
+- Next-task handover: the owner may update the tracker; hosted CI, OIDC, image
+  publication, deployment and production validation remain separately governed.
+- Tracker update responsibility: Owner
+- Column N reconciliation: this record, `W5-002.md`,
+  `W5-08-supply-chain.txt` and the W5-002 README entry closed together; no
+  partial closure occurred.
