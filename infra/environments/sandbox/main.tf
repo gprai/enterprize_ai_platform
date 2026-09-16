@@ -63,8 +63,7 @@ module "kms" {
     "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/OpenSearchService/domains/${local.opensearch_domain}/index-slow-logs",
     "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/OpenSearchService/domains/${local.opensearch_domain}/search-slow-logs",
   ]
-  tags       = var.mandatory_tags
-  depends_on = [terraform_data.owner_expiry_gate]
+  tags = var.mandatory_tags
 }
 
 module "storage" {
@@ -73,7 +72,6 @@ module "storage" {
   bucket_name = local.platform_bucket
   kms_key_arn = module.kms.key_arn
   tags        = var.mandatory_tags
-  depends_on  = [terraform_data.owner_expiry_gate]
 }
 
 module "secrets" {
@@ -106,7 +104,6 @@ module "iam" {
   runtime_service_account        = "enterprise-ai-runtime"
   ingestion_service_account      = "enterprise-ai-ingestion"
   tags                           = var.mandatory_tags
-  depends_on                     = [terraform_data.owner_expiry_gate]
 }
 
 module "opensearch" {
@@ -128,7 +125,6 @@ module "opensearch" {
   ingestion_role_arn     = module.iam.ingestion_role_arn
   administrator_role_arn = module.iam.opensearch_administrator_role_arn
   tags                   = var.mandatory_tags
-  depends_on             = [terraform_data.owner_expiry_gate]
 }
 
 module "ecr" {

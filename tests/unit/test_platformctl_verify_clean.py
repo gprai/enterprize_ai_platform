@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 import pytest
 from tools.platformctl.aws_inventory import (
     InventoryResource,
+    KmsSchedulingEvidence,
     ResourceState,
     ServiceIdentifier,
 )
@@ -64,15 +65,62 @@ def test_evidenced_kms_pending_deletion_is_the_only_expected_residual() -> None:
         resource_id="synthetic-key",
         tags=managed_tags(),
         state=ResourceState.PENDING_DELETION,
-        scheduled_deletion_at="2026-01-08T00:00:00Z",
+        scheduled_deletion_at="2026-01-08T00:10:00Z",
     )
     result = verify_clean(
         FakeAwsInventoryProvider(service_resources={ServiceIdentifier.KMS: (pending_key,)}),
         "sandbox",
         NOW,
+        scheduling_evidence=(
+            KmsSchedulingEvidence(
+                "synthetic-key",
+                "526338061652",
+                "ap-southeast-1",
+                "2026-01-01T00:10:00Z",
+                "2026-01-08T00:10:00Z",
+                7,
+                "owner-deletion",
+                "a" * 64,
+            ),
+        ),
     )
     assert result.exit_code is ExitCode.SUCCESS
     assert "1 evidenced KMS" in result.message
+
+
+def test_later_kms_verification_uses_original_schedule() -> None:
+    from datetime import timedelta
+
+    record = KmsSchedulingEvidence(
+        "synthetic-key",
+        "526338061652",
+        "ap-southeast-1",
+        "2026-01-01T00:10:00Z",
+        "2026-01-08T00:10:00Z",
+        7,
+        "owner-deletion",
+        "a" * 64,
+    )
+    key = InventoryResource(
+        ServiceIdentifier.KMS,
+        "synthetic-key",
+        managed_tags(),
+        ResourceState.PENDING_DELETION,
+        scheduled_deletion_at=record.deletion_at,
+    )
+    provider = FakeAwsInventoryProvider(service_resources={ServiceIdentifier.KMS: (key,)})
+    assert (
+        verify_clean(
+            provider, "sandbox", NOW + timedelta(days=2), scheduling_evidence=(record,)
+        ).exit_code
+        is ExitCode.SUCCESS
+    )
+    assert (
+        verify_clean(
+            provider, "sandbox", NOW + timedelta(days=8), scheduling_evidence=(record,)
+        ).exit_code
+        is ExitCode.VALIDATION_FAILURE
+    )
 
 
 def test_insufficient_kms_evidence_fails() -> None:
@@ -93,7 +141,7 @@ def test_active_or_unknown_kms_state_fails(state: ResourceState) -> None:
         resource_id="synthetic-key",
         tags=managed_tags(),
         state=state,
-        scheduled_deletion_at="2026-01-08T00:00:00Z",
+        scheduled_deletion_at="2026-01-08T00:10:00Z",
     )
     result = verify_clean(FakeAwsInventoryProvider(tagged_resources=(key,)), "sandbox", NOW)
     assert result.exit_code is ExitCode.VALIDATION_FAILURE
@@ -103,3 +151,38 @@ def test_unavailable_inventory_is_indeterminate_exit_three() -> None:
     result = verify_clean(FakeAwsInventoryProvider(unavailable=True), "sandbox", NOW)
     assert result.exit_code is ExitCode.PROVIDER_UNAVAILABLE
     assert result.message.startswith("INDETERMINATE:")
+
+
+def test_kms_pending_deletion_outside_exact_seven_day_window_fails() -> None:
+    pending_key = InventoryResource(
+        service=ServiceIdentifier.KMS,
+        resource_id="synthetic-key",
+        tags=managed_tags(),
+        state=ResourceState.PENDING_DELETION,
+        scheduled_deletion_at="2026-01-08T00:11:00Z",
+    )
+    result = verify_clean(FakeAwsInventoryProvider(tagged_resources=(pending_key,)), "sandbox", NOW)
+    assert result.exit_code is ExitCode.VALIDATION_FAILURE
+
+
+def test_explicit_shared_or_unrelated_resources_are_excluded_not_deleted() -> None:
+    shared = InventoryResource(
+        service=ServiceIdentifier.IAM,
+        resource_id="owner-managed-role",
+        tags={},
+        state=ResourceState.ACTIVE,
+        owner_classification="OWNER_MANAGED",
+    )
+    unrelated = InventoryResource(
+        service=ServiceIdentifier.S3,
+        resource_id="unrelated-bucket",
+        tags={},
+        state=ResourceState.ACTIVE,
+        owner_classification="UNRELATED",
+    )
+    result = verify_clean(
+        FakeAwsInventoryProvider(tagged_resources=(shared, unrelated)),
+        "sandbox",
+        NOW,
+    )
+    assert result.exit_code is ExitCode.SUCCESS

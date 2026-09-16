@@ -1,0 +1,105 @@
+{
+  "schema_version": "w5-004.resource-cleanliness.v1",
+  "task_id": "W5-004",
+  "environment": "sandbox",
+  "account": "526338061652",
+  "region": "ap-southeast-1",
+  "verification_status": "PASS",
+  "verification_timestamp": "2026-09-16T07:45:01.553238Z",
+  "scope": "W5-004 project resources and evidence-backed service discovery only; not global AWS-account cleanliness",
+  "platform_state": {
+    "status": "PASS",
+    "result": "EMPTY"
+  },
+  "bootstrap_state": {
+    "status": "PASS",
+    "result": "EMPTY",
+    "lineage": "c446f9a2-77d4-9954-20fa-523205d86a8a",
+    "serial": 31
+  },
+  "service_results": {
+    "network": "ABSENT",
+    "iam_roles_and_policies": "ABSENT",
+    "ecr_repository": "ABSENT",
+    "platform_s3_bucket": "ABSENT",
+    "cloudwatch_log_groups": "ABSENT",
+    "cloudwatch_log_resource_policy": "ABSENT",
+    "opensearch_resources": "ABSENT",
+    "platform_aliases": "ABSENT",
+    "bootstrap_state_bucket": "ABSENT",
+    "versioned_state_objects": "ABSENT",
+    "dynamodb_lock_table": "ABSENT",
+    "state_kms_alias": "ABSENT"
+  },
+  "expected_residuals": [
+    {
+      "resource_type": "aws_kms_key",
+      "key_id": "674992cd-d8ea-4c13-9f93-0e0267f273e4",
+      "scope": "platform",
+      "status": "PendingDeletion",
+      "scheduled_deletion": "2026-09-23T12:14:16.738+08:00",
+      "classification": "EXPECTED_TIME_BOUND_DELETION_TAIL",
+      "cost_bearing_classification": "UNPRICED_ACCEPTED_RISK",
+      "future_absence_verified": false
+    },
+    {
+      "resource_type": "aws_kms_key",
+      "key_id": "4a7a47a4-ab04-4f03-b3e8-251297dcbc3f",
+      "scope": "bootstrap-state",
+      "status": "PendingDeletion",
+      "scheduled_deletion": "2026-09-23T15:40:48.581+08:00",
+      "classification": "EXPECTED_TIME_BOUND_DELETION_TAIL",
+      "cost_bearing_classification": "UNPRICED_ACCEPTED_RISK",
+      "future_absence_verified": false
+    }
+  ],
+  "unexpected_active_resources": [],
+  "unexpected_residuals": [],
+  "cost_bearing_residual_classification": "KMS_PENDING_DELETION_TAILS_ONLY; delayed billing evidence remains unreconciled",
+  "evidence": {
+    "path": "E:\\AI\\.tmp\\enterprise-ai-platform-w5-004\\owner-test-01\\consolidated-remediation-001\\saved-bootstrap-destroy-018\\post-bootstrap-destroy-verification-001\\bootstrap-post-destroy-verification-result.json",
+    "sha256": "ce6e81bb3e32282da30cb2aa89b792e486a6ed894963d7b35d90acbb9a62bbed"
+  },
+  "limitations": [
+    "The result is scoped to W5-004 project/service discovery boundaries, not the global AWS account.",
+    "PendingDeletion is not physical key absence.",
+    "Cost eligibility remains WAIVED/ACCEPTED_RISK — NOT PASS.",
+    "USD_3_BOUNDED=false; actual delayed billing has not been reconciled.",
+    "Production eligibility remains BLOCKED."
+  ],
+  "deferred_verification": [
+    {
+      "owner": "Gyan Prakash Rai",
+      "action": "Use native AWS read-only checks after both scheduled deletion times to verify the two KMS keys are absent.",
+      "status": "NOT RUN"
+    },
+    {
+      "owner": "Gyan Prakash Rai",
+      "action": "Obtain delayed billing evidence and reconcile incurred, variable, teardown, and KMS-tail cost.",
+      "status": "NOT RUN"
+    }
+  ],
+  "fields_pending_column_n": {
+    "documentation_closure": "PENDING",
+    "cost_waiver_preserved": true,
+    "kms_future_absence_verification": "PENDING",
+    "production_eligibility": "BLOCKED"
+  },
+  "final_owner_approval": {
+    "prompt_id": "W5-004",
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner and Final Approval Reviewer",
+    "decision": "FINAL APPROVAL AFTER OWNER TEST — APPROVED",
+    "approval_time": "2026-09-16 16:37:21 SGT",
+    "final_status": "Documentation closure approved for W5-004; production eligibility remains BLOCKED.",
+    "code_and_documentation_review_status": "Documentation closure approved. The uncommitted Column L source is not release-ready because the current post-final-edit full-suite green rerun is not recorded.",
+    "owner_executed_test_status": "Preserve every recorded PASS and the final full-suite validation gap.",
+    "accepted_risks": "All items recorded in the approved W5-004 Column M manifest are accepted; no additional item is silently accepted.",
+    "not_run_and_indeterminate": "All recorded NOT RUN activities remain NOT RUN; no historical INDETERMINATE result is converted to PASS; remaining open INDETERMINATE activities: None.",
+    "deployment_rollback_teardown_residual_status": "Sandbox lifecycle, targeted rollback, platform destroy, bootstrap destroy, and scoped verification completed as recorded. The two KMS keys remain PendingDeletion, not absent.",
+    "deferred_actions_and_owner": "All manifest deferred actions remain open. Responsible owner: Gyan Prakash Rai unless individually reassigned.",
+    "conditions": "Preserve all statuses, warnings, risks, limitations, deferred work, and residual facts. Only the owner updates Excel and performs Git mutation.",
+    "next_task_handover": "W6-12 remains NOT RUN and requires fresh inputs, state, hashes, plans, policy/cost review, approvals, and discovery.",
+    "tracker_update_responsibility": "Owner"
+  }
+}

@@ -37,3 +37,13 @@ def test_no_real_plan_json_or_excluded_evidence_path_exists() -> None:
     assert not (ROOT / "docs/test-evidence/W5-terraform.txt").exists()
     assert not (ROOT / "reports/verification/bedrock-owner-test-result.json").exists()
     assert tuple(ROOT.rglob("terraform-plan*.json")) == ()
+
+
+def test_w5_004_runtime_artifacts_are_external_only() -> None:
+    forbidden_suffixes = (".tfplan", ".tfstate", ".tfstate.backup")
+    findings = [
+        path.relative_to(ROOT).as_posix()
+        for path in ROOT.rglob("*")
+        if path.is_file() and path.name.endswith(forbidden_suffixes)
+    ]
+    assert findings == []

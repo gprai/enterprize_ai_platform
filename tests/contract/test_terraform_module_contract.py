@@ -100,11 +100,15 @@ def test_only_approved_contract_inputs_suppress_tflint_unused_declarations() -> 
 
 
 def test_roots_pin_exact_terraform_and_aws_provider_bounds() -> None:
-    for path in (ROOT / "infra/bootstrap/versions.tf", SANDBOX / "versions.tf"):
+    bootstrap = ROOT / "infra/bootstrap/versions.tf"
+    sandbox = SANDBOX / "versions.tf"
+    for path in (bootstrap, sandbox):
         source = path.read_text(encoding="utf-8")
-        assert 'required_version = ">= 1.5, < 2.0"' in source
+        assert 'required_version = "= 1.16.1"' in source
         assert 'source  = "hashicorp/aws"' in source
-        assert 'version = "~> 6.55.0"' in source
+        assert 'version = "= 6.55.0"' in source
+    assert 'backend "local" {}' in bootstrap.read_text(encoding="utf-8")
+    assert 'backend "s3" {}' in sandbox.read_text(encoding="utf-8")
 
 
 def test_every_approved_module_has_main_variables_and_outputs() -> None:

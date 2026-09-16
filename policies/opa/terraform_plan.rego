@@ -6,26 +6,26 @@ day_ns := 86400000000000
 week_ns := 604800000000000
 
 policy_inventory := [
-  {"policy_id": "W5-PLAN-001", "severity": "CRITICAL", "category": "PLAN_INPUT", "remediation_code": "REJECT_UNEVALUATED_INPUT"},
-  {"policy_id": "W5-REG-001", "severity": "CRITICAL", "category": "REGION", "remediation_code": "USE_APPROVED_REGION"},
-  {"policy_id": "W5-TAG-001", "severity": "HIGH", "category": "TAGS", "remediation_code": "APPLY_MANDATORY_TAGS"},
-  {"policy_id": "W5-TAG-002", "severity": "HIGH", "category": "TAG_EXPIRY", "remediation_code": "SET_BOUNDED_EXPIRY"},
-  {"policy_id": "W5-PLAN-002", "severity": "HIGH", "category": "CHANGE_LIFECYCLE", "remediation_code": "REQUIRE_OWNER_REVIEW"},
-  {"policy_id": "W5-S3-001", "severity": "CRITICAL", "category": "S3_PUBLIC_ACCESS", "remediation_code": "ENABLE_S3_PUBLIC_BLOCK"},
-  {"policy_id": "W5-S3-002", "severity": "CRITICAL", "category": "S3_ENCRYPTION", "remediation_code": "USE_APPROVED_S3_KMS"},
-  {"policy_id": "W5-S3-003", "severity": "HIGH", "category": "S3_LIFECYCLE", "remediation_code": "ENABLE_S3_LIFECYCLE"},
-  {"policy_id": "W5-S3-004", "severity": "CRITICAL", "category": "S3_TRANSPORT", "remediation_code": "ENFORCE_S3_TLS"},
-  {"policy_id": "W5-KMS-001", "severity": "CRITICAL", "category": "KMS_LIFECYCLE", "remediation_code": "ENABLE_KMS_ROTATION"},
-  {"policy_id": "W5-IAM-001", "severity": "CRITICAL", "category": "IAM_ACTION", "remediation_code": "NARROW_IAM_ACTIONS"},
-  {"policy_id": "W5-IAM-002", "severity": "CRITICAL", "category": "IAM_SCOPE", "remediation_code": "NARROW_IAM_SCOPE"},
-  {"policy_id": "W5-NET-001", "severity": "CRITICAL", "category": "NETWORK_TOPOLOGY", "remediation_code": "USE_PRIVATE_NETWORK"},
-  {"policy_id": "W5-NET-002", "severity": "CRITICAL", "category": "NETWORK_TRAFFIC", "remediation_code": "RESTRICT_SECURITY_GROUP"},
-  {"policy_id": "W5-OS-001", "severity": "CRITICAL", "category": "OPENSEARCH_SECURITY", "remediation_code": "HARDEN_OPENSEARCH"},
-  {"policy_id": "W5-OS-002", "severity": "HIGH", "category": "OPENSEARCH_OPERATIONS", "remediation_code": "CONFIGURE_OPENSEARCH_LOGS"},
-  {"policy_id": "W5-ECR-001", "severity": "CRITICAL", "category": "ECR_SECURITY", "remediation_code": "HARDEN_ECR"},
-  {"policy_id": "W5-ECR-002", "severity": "HIGH", "category": "ECR_RETENTION", "remediation_code": "RETAIN_TEN_IMAGES"},
-  {"policy_id": "W5-SEC-001", "severity": "CRITICAL", "category": "SECRET_BOUNDARY", "remediation_code": "REMOVE_SECRET_MATERIAL"},
-  {"policy_id": "W5-EXC-001", "severity": "CRITICAL", "category": "EXCEPTION_REGISTRY", "remediation_code": "REPAIR_EXCEPTION_REGISTRY"},
+	{"policy_id": "W5-PLAN-001", "severity": "CRITICAL", "category": "PLAN_INPUT", "remediation_code": "REJECT_UNEVALUATED_INPUT"},
+	{"policy_id": "W5-REG-001", "severity": "CRITICAL", "category": "REGION", "remediation_code": "USE_APPROVED_REGION"},
+	{"policy_id": "W5-TAG-001", "severity": "HIGH", "category": "TAGS", "remediation_code": "APPLY_MANDATORY_TAGS"},
+	{"policy_id": "W5-TAG-002", "severity": "HIGH", "category": "TAG_EXPIRY", "remediation_code": "SET_BOUNDED_EXPIRY"},
+	{"policy_id": "W5-PLAN-002", "severity": "HIGH", "category": "CHANGE_LIFECYCLE", "remediation_code": "REQUIRE_OWNER_REVIEW"},
+	{"policy_id": "W5-S3-001", "severity": "CRITICAL", "category": "S3_PUBLIC_ACCESS", "remediation_code": "ENABLE_S3_PUBLIC_BLOCK"},
+	{"policy_id": "W5-S3-002", "severity": "CRITICAL", "category": "S3_ENCRYPTION", "remediation_code": "USE_APPROVED_S3_KMS"},
+	{"policy_id": "W5-S3-003", "severity": "HIGH", "category": "S3_LIFECYCLE", "remediation_code": "ENABLE_S3_LIFECYCLE"},
+	{"policy_id": "W5-S3-004", "severity": "CRITICAL", "category": "S3_TRANSPORT", "remediation_code": "ENFORCE_S3_TLS"},
+	{"policy_id": "W5-KMS-001", "severity": "CRITICAL", "category": "KMS_LIFECYCLE", "remediation_code": "ENABLE_KMS_ROTATION"},
+	{"policy_id": "W5-IAM-001", "severity": "CRITICAL", "category": "IAM_ACTION", "remediation_code": "NARROW_IAM_ACTIONS"},
+	{"policy_id": "W5-IAM-002", "severity": "CRITICAL", "category": "IAM_SCOPE", "remediation_code": "NARROW_IAM_SCOPE"},
+	{"policy_id": "W5-NET-001", "severity": "CRITICAL", "category": "NETWORK_TOPOLOGY", "remediation_code": "USE_PRIVATE_NETWORK"},
+	{"policy_id": "W5-NET-002", "severity": "CRITICAL", "category": "NETWORK_TRAFFIC", "remediation_code": "RESTRICT_SECURITY_GROUP"},
+	{"policy_id": "W5-OS-001", "severity": "CRITICAL", "category": "OPENSEARCH_SECURITY", "remediation_code": "HARDEN_OPENSEARCH"},
+	{"policy_id": "W5-OS-002", "severity": "HIGH", "category": "OPENSEARCH_OPERATIONS", "remediation_code": "CONFIGURE_OPENSEARCH_LOGS"},
+	{"policy_id": "W5-ECR-001", "severity": "CRITICAL", "category": "ECR_SECURITY", "remediation_code": "HARDEN_ECR"},
+	{"policy_id": "W5-ECR-002", "severity": "HIGH", "category": "ECR_RETENTION", "remediation_code": "RETAIN_TEN_IMAGES"},
+	{"policy_id": "W5-SEC-001", "severity": "CRITICAL", "category": "SECRET_BOUNDARY", "remediation_code": "REMOVE_SECRET_MATERIAL"},
+	{"policy_id": "W5-EXC-001", "severity": "CRITICAL", "category": "EXCEPTION_REGISTRY", "remediation_code": "REPAIR_EXCEPTION_REGISTRY"},
 ]
 
 policy_order := [entry.policy_id | some entry in policy_inventory]
@@ -33,912 +33,2264 @@ policy_ids := {entry.policy_id | some entry in policy_inventory}
 policy_by_id := {entry.policy_id: entry | some entry in policy_inventory}
 
 non_exemptible_policy_ids := {
-  "W5-PLAN-001",
-  "W5-SEC-001",
-  "W5-EXC-001",
+	"W5-PLAN-001",
+	"W5-SEC-001",
+	"W5-EXC-001",
 }
 
 required_tags := {
-  "Project": "enterprise-ai-platform",
-  "Environment": "sandbox",
-  "Owner": "Gyan-Prakash-Rai",
-  "ManagedBy": "terraform",
-  "CostCenter": "Personal-Learning",
-  "Feature": "MVP-001",
-  "Repository": "enterprise-ai-platform",
+	"Project": "enterprise-ai-platform",
+	"Environment": "sandbox",
+	"Owner": "Gyan-Prakash-Rai",
+	"ManagedBy": "terraform",
+	"CostCenter": "Personal-Learning",
+	"Feature": "MVP-001",
+	"Repository": "enterprise-ai-platform",
 }
 
 required_tag_keys := {
-  "Project",
-  "Environment",
-  "Owner",
-  "ManagedBy",
-  "CostCenter",
-  "Feature",
-  "Repository",
-  "ExpiresAt",
+	"Project",
+	"Environment",
+	"Owner",
+	"ManagedBy",
+	"CostCenter",
+	"Feature",
+	"Repository",
+	"ExpiresAt",
+}
+
+policy_critical_unknown_keys := {
+	"account_id",
+	"access_policies",
+	"assume_role_policy",
+	"aws_region",
+	"cidr_block",
+	"cloudwatch_log_group_arn",
+	"egress",
+	"ingress",
+	"kms_key_id",
+	"kms_key",
+	"kms_master_key_id",
+	"policy",
+	"policy_document",
+	"publicly_accessible",
+	"security_group_ids",
+	"subnet_id",
+	"subnet_ids",
+	"tags",
+	"tags_all",
+	"vpc_id",
 }
 
 taggable_resource_types := {
-  "aws_cloudwatch_log_group",
-  "aws_dynamodb_table",
-  "aws_ecr_repository",
-  "aws_iam_policy",
-  "aws_iam_role",
-  "aws_kms_key",
-  "aws_opensearch_domain",
-  "aws_route_table",
-  "aws_s3_bucket",
-  "aws_secretsmanager_secret",
-  "aws_security_group",
-  "aws_subnet",
-  "aws_vpc",
-  "aws_vpc_endpoint",
+	"aws_cloudwatch_log_group",
+	"aws_dynamodb_table",
+	"aws_ecr_repository",
+	"aws_iam_policy",
+	"aws_iam_role",
+	"aws_kms_key",
+	"aws_opensearch_domain",
+	"aws_route_table",
+	"aws_s3_bucket",
+	"aws_secretsmanager_secret",
+	"aws_security_group",
+	"aws_subnet",
+	"aws_vpc",
+	"aws_vpc_endpoint",
 }
 
 supported_aws_resource_types := {
-  "aws_cloudwatch_log_group",
-  "aws_cloudwatch_log_resource_policy",
-  "aws_default_security_group",
-  "aws_dynamodb_table",
-  "aws_ecr_lifecycle_policy",
-  "aws_ecr_repository",
-  "aws_iam_policy",
-  "aws_iam_role",
-  "aws_iam_role_policy",
-  "aws_internet_gateway",
-  "aws_kms_alias",
-  "aws_kms_key",
-  "aws_nat_gateway",
-  "aws_opensearch_domain",
-  "aws_route_table",
-  "aws_route_table_association",
-  "aws_s3_bucket",
-  "aws_s3_bucket_lifecycle_configuration",
-  "aws_s3_bucket_ownership_controls",
-  "aws_s3_bucket_policy",
-  "aws_s3_bucket_public_access_block",
-  "aws_s3_bucket_server_side_encryption_configuration",
-  "aws_s3_bucket_versioning",
-  "aws_secretsmanager_secret",
-  "aws_security_group",
-  "aws_subnet",
-  "aws_vpc",
-  "aws_vpc_endpoint",
+	"aws_cloudwatch_log_group",
+	"aws_cloudwatch_log_resource_policy",
+	"aws_default_security_group",
+	"aws_dynamodb_table",
+	"aws_ecr_lifecycle_policy",
+	"aws_ecr_repository",
+	"aws_iam_policy",
+	"aws_iam_role",
+	"aws_iam_role_policy",
+	"aws_internet_gateway",
+	"aws_kms_alias",
+	"aws_kms_key",
+	"aws_nat_gateway",
+	"aws_opensearch_domain",
+	"aws_route_table",
+	"aws_route_table_association",
+	"aws_s3_bucket",
+	"aws_s3_bucket_lifecycle_configuration",
+	"aws_s3_bucket_ownership_controls",
+	"aws_s3_bucket_policy",
+	"aws_s3_bucket_public_access_block",
+	"aws_s3_bucket_server_side_encryption_configuration",
+	"aws_s3_bucket_versioning",
+	"aws_secretsmanager_secret",
+	"aws_security_group",
+	"aws_subnet",
+	"aws_vpc",
+	"aws_vpc_endpoint",
 }
 
 supported_action_sequences := {
-  json.marshal(["create"]),
-  json.marshal(["update"]),
-  json.marshal(["delete"]),
-  json.marshal(["delete", "create"]),
-  json.marshal(["create", "delete"]),
-  json.marshal(["no-op"]),
-  json.marshal(["read"]),
+	json.marshal(["create"]),
+	json.marshal(["update"]),
+	json.marshal(["delete"]),
+	json.marshal(["delete", "create"]),
+	json.marshal(["create", "delete"]),
+	json.marshal(["no-op"]),
+	json.marshal(["read"]),
+}
+
+bootstrap_recovery_dynamodb_address := "aws_dynamodb_table.terraform_lock"
+bootstrap_recovery_kms_address := "aws_kms_key.terraform_state"
+bootstrap_recovery_bucket_address := "aws_s3_bucket.terraform_state"
+bootstrap_recovery_expiry_address := "terraform_data.owner_expiry_gate"
+
+bootstrap_recovery_update_addresses := {
+	bootstrap_recovery_kms_address,
+	bootstrap_recovery_bucket_address,
+	bootstrap_recovery_expiry_address,
+}
+
+approved_dynamodb_grant_statement := {
+	"Sid": "AllowExactAccountDynamoDBStateGrant",
+	"Effect": "Allow",
+	"Principal": {"AWS": "arn:aws:iam::526338061652:root"},
+	"Action": "kms:CreateGrant",
+	"Resource": "*",
+	"Condition": {
+		"StringEquals": {"kms:CallerAccount": "526338061652"},
+		"StringLike": {"kms:ViaService": "dynamodb.*.amazonaws.com"},
+	},
 }
 
 approved_endpoint_services := {
-  "com.amazonaws.ap-southeast-1.s3",
-  "com.amazonaws.ap-southeast-1.dynamodb",
-  "com.amazonaws.ap-southeast-1.ecr.api",
-  "com.amazonaws.ap-southeast-1.ecr.dkr",
-  "com.amazonaws.ap-southeast-1.eks",
-  "com.amazonaws.ap-southeast-1.sts",
-  "com.amazonaws.ap-southeast-1.logs",
-  "com.amazonaws.ap-southeast-1.kms",
-  "com.amazonaws.ap-southeast-1.secretsmanager",
-  "com.amazonaws.ap-southeast-1.bedrock-runtime",
+	"com.amazonaws.ap-southeast-1.s3",
+	"com.amazonaws.ap-southeast-1.dynamodb",
+	"com.amazonaws.ap-southeast-1.ecr.api",
+	"com.amazonaws.ap-southeast-1.ecr.dkr",
+	"com.amazonaws.ap-southeast-1.eks",
+	"com.amazonaws.ap-southeast-1.sts",
+	"com.amazonaws.ap-southeast-1.logs",
+	"com.amazonaws.ap-southeast-1.kms",
+	"com.amazonaws.ap-southeast-1.secretsmanager",
+	"com.amazonaws.ap-southeast-1.bedrock-runtime",
+}
+
+platform_vpc_address := "module.network.aws_vpc.this"
+platform_kms_address := "module.kms.aws_kms_key.this"
+platform_subnet_addresses := [
+	"module.network.aws_subnet.private[0]",
+	"module.network.aws_subnet.private[1]",
+]
+
+platform_endpoint_security_group_address := "module.network.aws_security_group.endpoints"
+opensearch_domain_address := "module.opensearch.aws_opensearch_domain.this"
+opensearch_admin_role_address := "module.iam.aws_iam_role.opensearch_administrator"
+opensearch_password_field_path := "advanced_security_options[].master_user_options[].master_user_password"
+opensearch_sensitive_relationship := "omitted-null-password-with-structurally-resolved-admin-role"
+opensearch_existing_sensitive_relationship := "omitted-null-password-with-existing-admin-role"
+platform_runtime_policy_address := "module.iam.aws_iam_role_policy.runtime"
+platform_runtime_policy_expiry_statement_sid := "InvokeExactApprovedInferenceProfile"
+
+platform_gateway_endpoint_addresses := {
+	`module.network.aws_vpc_endpoint.gateway["DynamoDB"]`,
+	`module.network.aws_vpc_endpoint.gateway["S3"]`,
+}
+
+platform_interface_endpoint_addresses := {
+	`module.network.aws_vpc_endpoint.interface["Bedrock Runtime"]`,
+	`module.network.aws_vpc_endpoint.interface["CloudWatch Logs"]`,
+	`module.network.aws_vpc_endpoint.interface["ECR API"]`,
+	`module.network.aws_vpc_endpoint.interface["ECR DKR"]`,
+	`module.network.aws_vpc_endpoint.interface["EKS"]`,
+	`module.network.aws_vpc_endpoint.interface["KMS"]`,
+	`module.network.aws_vpc_endpoint.interface["STS"]`,
+	`module.network.aws_vpc_endpoint.interface["Secrets Manager"]`,
+}
+
+platform_vpc_reference_consumers := (platform_gateway_endpoint_addresses | platform_interface_endpoint_addresses) | {
+	"module.network.aws_default_security_group.restricted",
+	"module.network.aws_route_table.private",
+	"module.network.aws_security_group.endpoints",
+	"module.network.aws_subnet.private[0]",
+	"module.network.aws_subnet.private[1]",
+}
+
+platform_log_group_addresses := {
+	`module.opensearch.aws_cloudwatch_log_group.this["application"]`,
+	`module.opensearch.aws_cloudwatch_log_group.this["audit"]`,
+	`module.opensearch.aws_cloudwatch_log_group.this["index_slow"]`,
+	`module.opensearch.aws_cloudwatch_log_group.this["search_slow"]`,
+}
+
+platform_recovery_create_resources := {
+	`module.opensearch.aws_cloudwatch_log_group.this["application"]`: "aws_cloudwatch_log_group",
+	`module.opensearch.aws_cloudwatch_log_group.this["audit"]`: "aws_cloudwatch_log_group",
+	`module.opensearch.aws_cloudwatch_log_group.this["index_slow"]`: "aws_cloudwatch_log_group",
+	`module.opensearch.aws_cloudwatch_log_group.this["search_slow"]`: "aws_cloudwatch_log_group",
+	"module.opensearch.aws_opensearch_domain.this": "aws_opensearch_domain",
+}
+
+platform_recovery_update_resources := {
+	"module.ecr.aws_ecr_repository.this": "aws_ecr_repository",
+	"module.iam.aws_iam_role.github_oidc": "aws_iam_role",
+	"module.iam.aws_iam_role.ingestion": "aws_iam_role",
+	"module.iam.aws_iam_role.opensearch_administrator": "aws_iam_role",
+	"module.iam.aws_iam_role.runtime": "aws_iam_role",
+	"module.iam.aws_iam_role_policy.runtime": "aws_iam_role_policy",
+	"module.kms.aws_kms_key.this": "aws_kms_key",
+	"module.network.aws_default_security_group.restricted": "aws_default_security_group",
+	"module.network.aws_route_table.private": "aws_route_table",
+	"module.network.aws_security_group.endpoints": "aws_security_group",
+	"module.network.aws_subnet.private[0]": "aws_subnet",
+	"module.network.aws_subnet.private[1]": "aws_subnet",
+	"module.network.aws_vpc.this": "aws_vpc",
+	`module.network.aws_vpc_endpoint.gateway["DynamoDB"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.gateway["S3"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.interface["Bedrock Runtime"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.interface["CloudWatch Logs"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.interface["ECR API"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.interface["ECR DKR"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.interface["EKS"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.interface["KMS"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.interface["STS"]`: "aws_vpc_endpoint",
+	`module.network.aws_vpc_endpoint.interface["Secrets Manager"]`: "aws_vpc_endpoint",
+	"module.storage.aws_s3_bucket.this": "aws_s3_bucket",
+	"terraform_data.owner_expiry_gate": "terraform_data",
+}
+
+platform_recovery_passive_resources := {
+	"module.ecr.aws_ecr_lifecycle_policy.retain_exact_count": "aws_ecr_lifecycle_policy",
+	"module.iam.aws_iam_role_policy.ingestion": "aws_iam_role_policy",
+	"module.iam.data.aws_iam_policy_document.administrator_trust": "aws_iam_policy_document",
+	"module.iam.data.aws_iam_policy_document.github_trust": "aws_iam_policy_document",
+	"module.iam.data.aws_iam_policy_document.ingestion": "aws_iam_policy_document",
+	"module.iam.data.aws_iam_policy_document.ingestion_trust": "aws_iam_policy_document",
+	"module.iam.data.aws_iam_policy_document.runtime": "aws_iam_policy_document",
+	"module.iam.data.aws_iam_policy_document.runtime_trust": "aws_iam_policy_document",
+	"module.kms.aws_kms_alias.this": "aws_kms_alias",
+	"module.kms.data.aws_iam_policy_document.this": "aws_iam_policy_document",
+	"module.network.aws_route_table_association.private[0]": "aws_route_table_association",
+	"module.network.aws_route_table_association.private[1]": "aws_route_table_association",
+	"module.opensearch.aws_cloudwatch_log_resource_policy.opensearch": "aws_cloudwatch_log_resource_policy",
+	"module.opensearch.data.aws_iam_policy_document.domain_access": "aws_iam_policy_document",
+	"module.opensearch.data.aws_iam_policy_document.log_delivery": "aws_iam_policy_document",
+	"module.storage.aws_s3_bucket_lifecycle_configuration.this": "aws_s3_bucket_lifecycle_configuration",
+	"module.storage.aws_s3_bucket_ownership_controls.this": "aws_s3_bucket_ownership_controls",
+	"module.storage.aws_s3_bucket_policy.tls_only": "aws_s3_bucket_policy",
+	"module.storage.aws_s3_bucket_public_access_block.this": "aws_s3_bucket_public_access_block",
+	"module.storage.aws_s3_bucket_server_side_encryption_configuration.this": "aws_s3_bucket_server_side_encryption_configuration",
+	"module.storage.aws_s3_bucket_versioning.this": "aws_s3_bucket_versioning",
+	"module.storage.data.aws_iam_policy_document.tls_only": "aws_iam_policy_document",
+}
+
+platform_recovery_resources := object.union(
+	object.union(platform_recovery_create_resources, platform_recovery_update_resources),
+	platform_recovery_passive_resources,
+)
+
+platform_policy_document_relationships := {
+	{
+		"resource_address": "module.iam.aws_iam_role_policy.ingestion",
+		"resource_type": "aws_iam_role_policy",
+		"field_path": "policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.ingestion",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role_policy.runtime",
+		"resource_type": "aws_iam_role_policy",
+		"field_path": "policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.runtime",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.kms.aws_kms_key.this",
+		"resource_type": "aws_kms_key",
+		"field_path": "policy",
+		"policy_document_address": "module.kms.data.aws_iam_policy_document.this",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.storage.aws_s3_bucket_policy.tls_only",
+		"resource_type": "aws_s3_bucket_policy",
+		"field_path": "policy",
+		"policy_document_address": "module.storage.data.aws_iam_policy_document.tls_only",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role.runtime",
+		"resource_type": "aws_iam_role",
+		"field_path": "assume_role_policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.runtime_trust",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role.ingestion",
+		"resource_type": "aws_iam_role",
+		"field_path": "assume_role_policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.ingestion_trust",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role.opensearch_administrator",
+		"resource_type": "aws_iam_role",
+		"field_path": "assume_role_policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.administrator_trust",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role.github_oidc",
+		"resource_type": "aws_iam_role",
+		"field_path": "assume_role_policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.github_trust",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.opensearch.aws_opensearch_domain.this",
+		"resource_type": "aws_opensearch_domain",
+		"field_path": "access_policies",
+		"policy_document_address": "module.opensearch.data.aws_iam_policy_document.domain_access",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.opensearch.aws_cloudwatch_log_resource_policy.opensearch",
+		"resource_type": "aws_cloudwatch_log_resource_policy",
+		"field_path": "policy_document",
+		"policy_document_address": "module.opensearch.data.aws_iam_policy_document.log_delivery",
+		"relationship": "exact-policy-document",
+	},
 }
 
 approved_log_types := {
-  "ES_APPLICATION_LOGS",
-  "AUDIT_LOGS",
-  "INDEX_SLOW_LOGS",
-  "SEARCH_SLOW_LOGS",
+	"ES_APPLICATION_LOGS",
+	"AUDIT_LOGS",
+	"INDEX_SLOW_LOGS",
+	"SEARCH_SLOW_LOGS",
 }
 
 approved_wildcard_arns := {
-  "arn:aws:s3:::enterprise-ai-platform-sandbox-tfstate-526338061652-ap-southeast-1/*",
-  "arn:aws:s3:::enterprise-ai-platform-526338061652-ap-southeast-1-sandbox/*",
-  "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/application-logs:*",
-  "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/audit-logs:*",
-  "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/index-slow-logs:*",
-  "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/search-slow-logs:*",
-  "arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/*",
-  "arn:aws:bedrock:*:526338061652:inference-profile/global.amazon.nova-2-lite-v1:0",
+	"arn:aws:s3:::enterprise-ai-platform-sandbox-tfstate-526338061652-ap-southeast-1/*",
+	"arn:aws:s3:::enterprise-ai-platform-526338061652-ap-southeast-1-sandbox/*",
+	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/application-logs:*",
+	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/audit-logs:*",
+	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/index-slow-logs:*",
+	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/search-slow-logs:*",
+	"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/*",
+	"arn:aws:bedrock:*:526338061652:inference-profile/global.amazon.nova-2-lite-v1:0",
 }
 
 exception_keys := {
-  "exception_id",
-  "policy_id",
-  "resource_addresses",
-  "owner",
-  "approver",
-  "rationale",
-  "evidence_reference",
-  "issued_at",
-  "expires_at",
-  "status",
+	"exception_id",
+	"policy_id",
+	"resource_addresses",
+	"owner",
+	"approver",
+	"rationale",
+	"evidence_reference",
+	"issued_at",
+	"expires_at",
+	"status",
 }
 
 resource_changes := object.get(input, "resource_changes", []) if is_object(input)
 evaluation_context := object.get(input, "evaluation_context", {}) if is_object(input)
+provider_computed_unknowns := object.get(evaluation_context, "provider_computed_unknowns", [])
+resource_reference_unknowns := object.get(evaluation_context, "resource_reference_unknowns", [])
+policy_document_bindings := object.get(evaluation_context, "policy_document_bindings", [])
+s3_bucket_policy_bindings := object.get(evaluation_context, "s3_bucket_policy_bindings", [])
+s3_kms_encryption_bindings := object.get(evaluation_context, "s3_kms_encryption_bindings", [])
+provider_sensitive_nulls := object.get(evaluation_context, "provider_sensitive_nulls", [])
 
 after(change) := object.get(object.get(change, "change", {}), "after", null)
 
 valid_utc_timestamp(value) if {
-  is_string(value)
-  endswith(value, "Z")
-  count(value) <= 40
-  time.parse_rfc3339_ns(value)
+	is_string(value)
+	endswith(value, "Z")
+	count(value) <= 40
+	time.parse_rfc3339_ns(value)
 }
 
 evaluation_time_ns := value if {
-  timestamp := object.get(evaluation_context, "evaluation_time", "")
-  valid_utc_timestamp(timestamp)
-  value := time.parse_rfc3339_ns(timestamp)
+	timestamp := object.get(evaluation_context, "evaluation_time", "")
+	valid_utc_timestamp(timestamp)
+	value := time.parse_rfc3339_ns(timestamp)
 }
 
 valid_resource_address(address) if {
-  is_string(address)
-  count(address) > 0
-  count(address) <= 240
-  regex.match(`^[A-Za-z0-9_.\[\]"-]+$`, address)
-  regex.match(`(^|\.)aws_[a-z0-9_]+\.[A-Za-z0-9_"\[\]-]+$`, address)
+	is_string(address)
+	count(address) > 0
+	count(address) <= 240
+	regex.match(`^[A-Za-z0-9_.\[\]"-]+$`, address)
+	regex.match(`(^|\.)aws_[a-z0-9_]+\.[A-Za-z0-9_"\[\]-]+$`, address)
+}
+
+valid_resource_address(address) if {
+	address in platform_interface_endpoint_addresses
 }
 
 supported_change_type(resource_type) if {
-  resource_type in supported_aws_resource_types
+	resource_type in supported_aws_resource_types
 }
 
 valid_change_after(actions, value) if {
-  json.marshal(actions) == json.marshal(["delete"])
-  value == null
+	json.marshal(actions) == json.marshal(["delete"])
+	value == null
 }
 
 valid_change_after(actions, value) if {
-  json.marshal(actions) == json.marshal(["delete"])
-  is_object(value)
+	json.marshal(actions) == json.marshal(["delete"])
+	is_object(value)
 }
 
 valid_change_after(actions, value) if {
-  json.marshal(actions) != json.marshal(["delete"])
-  is_object(value)
+	json.marshal(actions) != json.marshal(["delete"])
+	is_object(value)
 }
 
-change_has_no_unknown_values(change_body) if {
-  unknowns := object.get(change_body, "after_unknown", {})
-  not regex.match(`(^|[:,\[])true([,}\]]|$)`, json.marshal(unknowns))
+policy_critical_unknown_present(unknowns) if {
+	some key in policy_critical_unknown_keys
+	contains(json.marshal(unknowns), sprintf(`"%s":true`, [key]))
+}
+
+change_has_no_policy_critical_unknown_values(change_body) if {
+	unknowns := object.get(change_body, "after_unknown", {})
+	not policy_critical_unknown_present(unknowns)
+}
+
+valid_aws_change(change) if {
+	is_object(change)
+	address := object.get(change, "address", "")
+	valid_resource_address(address)
+	resource_type := object.get(change, "type", "")
+	is_string(resource_type)
+	supported_change_type(resource_type)
+	change_body := object.get(change, "change", null)
+	is_object(change_body)
+	actions := object.get(change_body, "actions", [])
+	is_array(actions)
+	json.marshal(actions) in supported_action_sequences
+	valid_change_after(actions, object.get(change_body, "after", null))
+	change_has_no_policy_critical_unknown_values(change_body)
+}
+
+valid_owner_expiry_gate_change(change) if {
+	is_object(change)
+	object.keys(change) == {"address", "change", "type"}
+	object.get(change, "address", "") == "terraform_data.owner_expiry_gate"
+	object.get(change, "type", "") == "terraform_data"
+
+	change_body := object.get(change, "change", null)
+	is_object(change_body)
+	valid_false_only_sensitive_shape(object.get(change_body, "before_sensitive", {}))
+	object.keys(object.remove(change_body, {"before_sensitive"})) == {
+		"actions",
+		"after",
+		"after_sensitive",
+		"after_unknown",
+		"before",
+	}
+	object.get(change_body, "actions", []) == ["create"]
+	object.get(change_body, "before", false) == null
+
+	after_values := object.get(change_body, "after", null)
+	is_object(after_values)
+	object.keys(after_values) == {"input", "store", "triggers_replace"}
+	object.get(after_values, "store", false) == null
+	object.get(after_values, "triggers_replace", false) == null
+	expires_at := object.get(after_values, "input", "")
+	valid_utc_timestamp(expires_at)
+	expires_at_ns := time.parse_rfc3339_ns(expires_at)
+	expires_at_ns > evaluation_time_ns
+	expires_at_ns - evaluation_time_ns <= day_ns
+
+	object.get(change_body, "after_unknown", null) == {"id": true, "output": true}
+	object.get(change_body, "after_sensitive", null) == {}
+}
+
+valid_owner_expiry_gate_change(change) if {
+	valid_owner_expiry_gate_recovery_update(change)
+}
+
+valid_owner_expiry_gate_recovery_update(change) if {
+	is_object(change)
+	object.keys(change) == {"address", "change", "type"}
+	object.get(change, "address", "") == bootstrap_recovery_expiry_address
+	object.get(change, "type", "") == "terraform_data"
+
+	change_body := object.get(change, "change", null)
+	is_object(change_body)
+	valid_false_only_sensitive_shape(object.get(change_body, "before_sensitive", {}))
+	object.keys(object.remove(change_body, {"before_sensitive"})) == {
+		"actions",
+		"after",
+		"after_sensitive",
+		"after_unknown",
+		"before",
+	}
+	object.get(change_body, "actions", []) == ["update"]
+
+	before_values := object.get(change_body, "before", null)
+	after_values := object.get(change_body, "after", null)
+	is_object(before_values)
+	is_object(after_values)
+	object.keys(before_values) == {"id", "input", "output", "store", "triggers_replace"}
+	object.keys(after_values) == {"id", "input", "store", "triggers_replace"}
+	is_string(object.get(before_values, "id", null))
+	object.get(before_values, "id", "") != ""
+	object.get(after_values, "id", null) == object.get(before_values, "id", null)
+	object.get(before_values, "store", false) == null
+	object.get(after_values, "store", false) == null
+	object.get(before_values, "triggers_replace", false) == null
+	object.get(after_values, "triggers_replace", false) == null
+
+	previous_expiry := object.get(before_values, "input", "")
+	next_expiry := object.get(after_values, "input", "")
+	valid_utc_timestamp(previous_expiry)
+	object.get(before_values, "output", null) == previous_expiry
+	valid_utc_timestamp(next_expiry)
+	next_expiry != previous_expiry
+	next_expiry_ns := time.parse_rfc3339_ns(next_expiry)
+	next_expiry_ns > evaluation_time_ns
+	next_expiry_ns - evaluation_time_ns <= day_ns
+
+	object.get(change_body, "after_unknown", null) == {"output": true}
+	object.get(change_body, "after_sensitive", null) == {}
+}
+
+valid_expiry_reconciliation(before_tags, after_tags, expected_expiry) if {
+	is_object(before_tags)
+	is_object(after_tags)
+	object.keys(before_tags) == object.keys(after_tags)
+	object.remove(before_tags, {"ExpiresAt"}) == object.remove(after_tags, {"ExpiresAt"})
+	previous_expiry := object.get(before_tags, "ExpiresAt", "")
+	next_expiry := object.get(after_tags, "ExpiresAt", "")
+	valid_utc_timestamp(previous_expiry)
+	valid_utc_timestamp(next_expiry)
+	next_expiry != previous_expiry
+	next_expiry == expected_expiry
+	next_expiry_ns := time.parse_rfc3339_ns(next_expiry)
+	next_expiry_ns > evaluation_time_ns
+	next_expiry_ns - evaluation_time_ns <= day_ns
+}
+
+valid_normalized_recovery_update(change, address, resource_type) if {
+	is_object(change)
+	object.keys(change) == {"address", "change", "type"}
+	object.get(change, "address", "") == address
+	object.get(change, "type", "") == resource_type
+	change_body := object.get(change, "change", null)
+	is_object(change_body)
+	valid_false_only_sensitive_shape(object.get(change_body, "before_sensitive", {}))
+	object.keys(object.remove(change_body, {"before_sensitive"})) == {
+		"actions",
+		"after",
+		"after_sensitive",
+		"after_unknown",
+		"before",
+	}
+	object.get(change_body, "actions", []) == ["update"]
+	is_object(object.get(change_body, "before", null))
+	is_object(object.get(change_body, "after", null))
+	change_has_no_sensitive_markers(change)
+	change_has_no_policy_critical_unknown_values(change_body)
+}
+
+valid_bootstrap_bucket_recovery_update(change) if {
+	valid_normalized_recovery_update(
+		change,
+		bootstrap_recovery_bucket_address,
+		"aws_s3_bucket",
+	)
+	change_body := change.change
+	before_values := change_body.before
+	after_values := change_body.after
+	object.remove(before_values, {"tags", "tags_all"}) == object.remove(after_values, {"tags", "tags_all"})
+	expiry_change := changes_by_address[bootstrap_recovery_expiry_address]
+	valid_owner_expiry_gate_recovery_update(expiry_change)
+	next_expiry := expiry_change.change.after.input
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, next_expiry)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, next_expiry)
+}
+
+valid_dynamodb_grant_policy_delta(before_policy, after_policy) if {
+	is_string(before_policy)
+	is_string(after_policy)
+	before_document := json.unmarshal(before_policy)
+	after_document := json.unmarshal(after_policy)
+	is_object(before_document)
+	is_object(after_document)
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+	before_statements := object.get(before_document, "Statement", [])
+	after_statements := object.get(after_document, "Statement", [])
+	is_array(before_statements)
+	is_array(after_statements)
+	count(after_statements) == count(before_statements) + 1
+	before_statement_set := {json.marshal(statement) | some statement in before_statements}
+	after_statement_set := {json.marshal(statement) | some statement in after_statements}
+	count(before_statement_set) == count(before_statements)
+	count(after_statement_set) == count(after_statements)
+	every statement in before_statements {
+		json.marshal(statement) in after_statement_set
+	}
+	json.marshal(approved_dynamodb_grant_statement) in after_statement_set
+	not json.marshal(approved_dynamodb_grant_statement) in before_statement_set
+}
+
+valid_bootstrap_kms_recovery_update(change) if {
+	valid_normalized_recovery_update(
+		change,
+		bootstrap_recovery_kms_address,
+		"aws_kms_key",
+	)
+	change_body := change.change
+	before_values := change_body.before
+	after_values := change_body.after
+	object.remove(before_values, {"policy", "tags", "tags_all"}) == object.remove(after_values, {"policy", "tags", "tags_all"})
+	expiry_change := changes_by_address[bootstrap_recovery_expiry_address]
+	valid_owner_expiry_gate_recovery_update(expiry_change)
+	next_expiry := expiry_change.change.after.input
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, next_expiry)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, next_expiry)
+	valid_dynamodb_grant_policy_delta(before_values.policy, after_values.policy)
+}
+
+valid_bootstrap_dynamodb_recovery_create(change) if {
+	is_object(change)
+	object.keys(change) == {"address", "change", "type"}
+	object.get(change, "address", "") == bootstrap_recovery_dynamodb_address
+	object.get(change, "type", "") == "aws_dynamodb_table"
+	change_body := object.get(change, "change", null)
+	is_object(change_body)
+	object.get(change_body, "actions", []) == ["create"]
+	object.get(change_body, "before", false) == null
+	object.get(change_body, "after_sensitive", {}) == {}
+	change_has_no_policy_critical_unknown_values(change_body)
+	after_values := object.get(change_body, "after", null)
+	is_object(after_values)
+	object.get(after_values, "billing_mode", "") == "PAY_PER_REQUEST"
+	object.get(after_values, "hash_key", "") == "LockID"
+	object.get(after_values, "attribute", []) == [{"name": "LockID", "type": "S"}]
+	some recovery in object.get(after_values, "point_in_time_recovery", [])
+	object.get(recovery, "enabled", false)
+	some encryption in object.get(after_values, "server_side_encryption", [])
+	object.get(encryption, "enabled", false)
+	kms_key_arn := object.get(encryption, "kms_key_arn", "")
+	regex.match(`^arn:aws:kms:ap-southeast-1:526338061652:key/[A-Za-z0-9-]+$`, kms_key_arn)
+	fixed_tags_valid(tags_for(change))
+	expires_at_valid(tags_for(change))
+}
+
+partial_bootstrap_recovery_has_destructive_change if {
+	some change in resource_changes
+	"delete" in object.get(change.change, "actions", [])
+}
+
+partial_bootstrap_recovery_plan_valid if {
+	create_addresses := {
+	change.address |
+		some change in resource_changes
+		object.get(change.change, "actions", []) == ["create"]
+	}
+	create_addresses == {bootstrap_recovery_dynamodb_address}
+
+	update_addresses := {
+	change.address |
+		some change in resource_changes
+		object.get(change.change, "actions", []) == ["update"]
+	}
+	update_addresses == bootstrap_recovery_update_addresses
+
+	not partial_bootstrap_recovery_has_destructive_change
+
+	dynamodb_change := changes_by_address[bootstrap_recovery_dynamodb_address]
+	valid_bootstrap_dynamodb_recovery_create(dynamodb_change)
+	kms_change := changes_by_address[bootstrap_recovery_kms_address]
+	valid_bootstrap_kms_recovery_update(kms_change)
+	bucket_change := changes_by_address[bootstrap_recovery_bucket_address]
+	valid_bootstrap_bucket_recovery_update(bucket_change)
+	expiry_change := changes_by_address[bootstrap_recovery_expiry_address]
+	valid_owner_expiry_gate_recovery_update(expiry_change)
+}
+
+valid_platform_recovery_create(change) if {
+	expected_type := platform_recovery_create_resources[change.address]
+	change.type == expected_type
+	change.change.actions == ["create"]
+	object.get(change.change, "before", false) == null
+	valid_aws_change(change)
+	change_has_no_sensitive_markers(change)
+}
+
+runtime_policy_expiry_statements(document) := [
+statement |
+	some statement in object.get(document, "Statement", [])
+	is_object(statement)
+	object.get(statement, "Sid", "") == platform_runtime_policy_expiry_statement_sid
+]
+
+runtime_policy_nonexpiry_statement_set(document) := {
+json.marshal(statement) |
+	some statement in object.get(document, "Statement", [])
+	is_object(statement)
+	object.get(statement, "Sid", "") != platform_runtime_policy_expiry_statement_sid
+}
+
+valid_runtime_policy_expiry_delta(before_policy, after_policy, next_expiry) if {
+	is_string(before_policy)
+	is_string(after_policy)
+	before_document := json.unmarshal(before_policy)
+	after_document := json.unmarshal(after_policy)
+	is_object(before_document)
+	is_object(after_document)
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+
+	before_statements := object.get(before_document, "Statement", null)
+	after_statements := object.get(after_document, "Statement", null)
+	is_array(before_statements)
+	is_array(after_statements)
+	count(before_statements) == count(after_statements)
+
+	before_expiry_statements := runtime_policy_expiry_statements(before_document)
+	after_expiry_statements := runtime_policy_expiry_statements(after_document)
+	count(before_expiry_statements) == 1
+	count(after_expiry_statements) == 1
+	before_expiry_statement := before_expiry_statements[0]
+	after_expiry_statement := after_expiry_statements[0]
+	object.remove(before_expiry_statement, {"Condition"}) == object.remove(after_expiry_statement, {"Condition"})
+
+	before_other_statements := runtime_policy_nonexpiry_statement_set(before_document)
+	after_other_statements := runtime_policy_nonexpiry_statement_set(after_document)
+	count(before_other_statements) == count(before_statements) - 1
+	count(after_other_statements) == count(after_statements) - 1
+	before_other_statements == after_other_statements
+
+	before_condition := object.get(before_expiry_statement, "Condition", null)
+	after_condition := object.get(after_expiry_statement, "Condition", null)
+	is_object(before_condition)
+	is_object(after_condition)
+	object.remove(before_condition, {"DateLessThan"}) == object.remove(after_condition, {"DateLessThan"})
+
+	before_date_less_than := object.get(before_condition, "DateLessThan", null)
+	after_date_less_than := object.get(after_condition, "DateLessThan", null)
+	is_object(before_date_less_than)
+	is_object(after_date_less_than)
+	object.keys(before_date_less_than) == {"aws:CurrentTime"}
+	object.keys(after_date_less_than) == {"aws:CurrentTime"}
+	previous_expiry := object.get(before_date_less_than, "aws:CurrentTime", "")
+	policy_expiry := object.get(after_date_less_than, "aws:CurrentTime", "")
+	valid_utc_timestamp(previous_expiry)
+	valid_utc_timestamp(policy_expiry)
+	previous_expiry != policy_expiry
+	policy_expiry == next_expiry
+	next_expiry_ns := time.parse_rfc3339_ns(next_expiry)
+	next_expiry_ns > evaluation_time_ns
+	next_expiry_ns - evaluation_time_ns <= day_ns
+}
+
+valid_runtime_policy_expiry_recovery_update(change) if {
+	valid_normalized_recovery_update(
+		change,
+		platform_runtime_policy_address,
+		"aws_iam_role_policy",
+	)
+	object.get(change.change, "after_unknown", null) == {}
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"policy"}) == object.remove(after_values, {"policy"})
+
+	expiry_change := changes_by_address[bootstrap_recovery_expiry_address]
+	valid_owner_expiry_gate_recovery_update(expiry_change)
+	next_expiry := expiry_change.change.after.input
+	valid_runtime_policy_expiry_delta(
+		object.get(before_values, "policy", null),
+		object.get(after_values, "policy", null),
+		next_expiry,
+	)
+}
+
+valid_platform_expiry_recovery_update(change) if {
+	change.address != bootstrap_recovery_expiry_address
+	change.address != platform_runtime_policy_address
+	expected_type := platform_recovery_update_resources[change.address]
+	change.type == expected_type
+	valid_normalized_recovery_update(change, change.address, change.type)
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"tags", "tags_all"}) == object.remove(after_values, {"tags", "tags_all"})
+	expiry_change := changes_by_address[bootstrap_recovery_expiry_address]
+	valid_owner_expiry_gate_recovery_update(expiry_change)
+	next_expiry := expiry_change.change.after.input
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, next_expiry)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, next_expiry)
+}
+
+valid_platform_expiry_recovery_update(change) if {
+	change.address == bootstrap_recovery_expiry_address
+	change.type == platform_recovery_update_resources[change.address]
+	valid_owner_expiry_gate_recovery_update(change)
+}
+
+valid_platform_expiry_recovery_update(change) if {
+	change.address == platform_runtime_policy_address
+	change.type == platform_recovery_update_resources[change.address]
+	valid_runtime_policy_expiry_recovery_update(change)
+}
+
+valid_platform_expiry_recovery_update(change) if {
+	change.address == platform_kms_address
+	change.type == "aws_kms_key"
+
+	expiry_change := changes_by_address[bootstrap_recovery_expiry_address]
+	valid_owner_expiry_gate_recovery_update(expiry_change)
+	next_expiry := expiry_change.change.after.input
+
+	valid_platform_kms_log_compatibility_update(change, next_expiry)
+}
+
+valid_platform_recovery_passive_change(change) if {
+	expected_type := platform_recovery_passive_resources[change.address]
+	change.type == expected_type
+	change.change.actions in [["no-op"], ["read"]]
+	valid_change(change)
+	change_has_no_sensitive_markers(change)
+}
+
+valid_platform_recovery_change(change) if {
+	valid_platform_recovery_create(change)
+}
+
+valid_platform_recovery_change(change) if {
+	valid_platform_expiry_recovery_update(change)
+}
+
+valid_platform_recovery_change(change) if {
+	valid_platform_recovery_passive_change(change)
+}
+
+partial_platform_recovery_plan_valid if {
+	create_addresses := {
+	change.address |
+		some change in resource_changes
+		object.get(change.change, "actions", []) == ["create"]
+	}
+	create_addresses == object.keys(platform_recovery_create_resources)
+
+	update_addresses := {
+	change.address |
+		some change in resource_changes
+		object.get(change.change, "actions", []) == ["update"]
+	}
+	update_addresses == object.keys(platform_recovery_update_resources)
+
+	every change in resource_changes {
+		expected_type := platform_recovery_resources[change.address]
+		change.type == expected_type
+		valid_platform_recovery_change(change)
+	}
+}
+
+invalid_sensitive_leaf(value) if {
+	walk(value, [_, leaf])
+	not is_object(leaf)
+	not is_array(leaf)
+	leaf != false
+}
+
+valid_false_only_sensitive_shape(value) if {
+	is_object(value)
+	not invalid_sensitive_leaf(value)
+}
+
+change_has_no_sensitive_markers(change) if {
+	change_body := object.get(change, "change", {})
+	sensitive := object.get(change_body, "after_sensitive", {})
+	valid_false_only_sensitive_shape(sensitive)
+	valid_false_only_sensitive_shape(object.get(change_body, "before_sensitive", {}))
+}
+
+resource_change_matches(address, resource_type) if {
+	some change in resource_changes
+	change.address == address
+	change.type == resource_type
+	change_has_no_sensitive_markers(change)
+}
+
+resource_address_has_type(address, resource_type) if {
+	valid_resource_address(address)
+	regex.match(sprintf(`(^|\.)%s\.[A-Za-z0-9_"\[\]-]+$`, [resource_type]), address)
+}
+
+valid_binding_paths(paths) if {
+	is_array(paths)
+	count(paths) > 0
+	sort(paths) == paths
+	count(paths) == count({path | some path in paths})
+	every path in paths {
+		is_string(path)
+		count(path) > 0
+		count(path) <= 180
+	}
+}
+
+resource_reference_record_exists(address, field_path, relationship) if {
+	some binding in resource_reference_unknowns
+	binding.address == address
+	binding.unknown_paths == [field_path]
+	binding.relationship == relationship
+}
+
+valid_provider_computed_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"address", "type", "unknown_paths"}
+	binding.type == "aws_s3_bucket"
+	binding.unknown_paths == ["policy"]
+	resource_change_matches(binding.address, binding.type)
+	some relationship in s3_bucket_policy_bindings
+	relationship.bucket_address == binding.address
+}
+
+valid_provider_computed_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"address", "type", "unknown_paths"}
+	binding.type == "aws_s3_bucket_server_side_encryption_configuration"
+	binding.unknown_paths == ["rule[].apply_server_side_encryption_by_default[].kms_master_key_id"]
+	resource_change_matches(binding.address, binding.type)
+	some relationship in s3_kms_encryption_bindings
+	relationship.encryption_address == binding.address
+}
+
+valid_provider_computed_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"address", "type", "unknown_paths"}
+	binding.address in platform_gateway_endpoint_addresses
+	binding.type == "aws_vpc_endpoint"
+	binding.unknown_paths == ["policy", "security_group_ids", "subnet_ids"]
+	resource_change_matches(binding.address, binding.type)
+	object.get(after(changes_by_address[binding.address]), "vpc_endpoint_type", "") == "Gateway"
+}
+
+valid_provider_computed_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"address", "type", "unknown_paths"}
+	binding.address in platform_interface_endpoint_addresses
+	binding.type == "aws_vpc_endpoint"
+	binding.unknown_paths == ["policy"]
+	resource_change_matches(binding.address, binding.type)
+	object.get(after(changes_by_address[binding.address]), "vpc_endpoint_type", "") == "Interface"
+}
+
+valid_provider_computed_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"address", "type", "unknown_paths"}
+	binding.address == "module.opensearch.aws_opensearch_domain.this"
+	binding.type == "aws_opensearch_domain"
+	binding.unknown_paths == ["vpc_options[].vpc_id"]
+	resource_change_matches(binding.address, binding.type)
+	resource_reference_record_exists(
+		binding.address,
+		"vpc_options[].vpc_id",
+		"opensearch-vpc-derived-from-network",
+	)
+}
+
+valid_network_vpc_reference(binding) if {
+	binding.address in platform_vpc_reference_consumers
+	binding.unknown_paths == ["vpc_id"]
+	binding.source_addresses == [platform_vpc_address]
+	binding.relationship == "network-vpc-reference"
+}
+
+valid_network_subnet_reference(binding) if {
+	binding.address == "module.network.aws_route_table_association.private[0]"
+	binding.unknown_paths == ["subnet_id"]
+	binding.source_addresses == [platform_subnet_addresses[0]]
+	binding.relationship == "network-subnet-reference"
+}
+
+valid_network_subnet_reference(binding) if {
+	binding.address == "module.network.aws_route_table_association.private[1]"
+	binding.unknown_paths == ["subnet_id"]
+	binding.source_addresses == [platform_subnet_addresses[1]]
+	binding.relationship == "network-subnet-reference"
+}
+
+valid_network_subnet_reference(binding) if {
+	binding.address == "module.opensearch.aws_opensearch_domain.this"
+	binding.unknown_paths == ["vpc_options[].subnet_ids"]
+	binding.source_addresses == [platform_subnet_addresses[0]]
+	binding.relationship == "network-subnet-reference"
+}
+
+valid_private_subnets_reference(binding) if {
+	binding.address in platform_interface_endpoint_addresses
+	binding.unknown_paths == ["subnet_ids"]
+	binding.source_addresses == platform_subnet_addresses
+	binding.relationship == "network-private-subnets-reference"
+}
+
+valid_endpoint_security_group_reference(binding) if {
+	binding.address in platform_interface_endpoint_addresses
+	binding.unknown_paths == ["security_group_ids"]
+	binding.source_addresses == [platform_endpoint_security_group_address]
+	binding.relationship == "network-endpoint-security-group-reference"
+}
+
+valid_endpoint_security_group_reference(binding) if {
+	binding.address == "module.opensearch.aws_opensearch_domain.this"
+	binding.unknown_paths == ["vpc_options[].security_group_ids"]
+	binding.source_addresses == [platform_endpoint_security_group_address]
+	binding.relationship == "network-endpoint-security-group-reference"
+}
+
+valid_kms_reference(binding) if {
+	binding.address in platform_log_group_addresses
+	binding.unknown_paths == ["kms_key_id"]
+	binding.source_addresses == [platform_kms_address]
+	binding.relationship == "platform-kms-key-reference"
+}
+
+valid_kms_reference(binding) if {
+	binding.address == "module.opensearch.aws_opensearch_domain.this"
+	binding.unknown_paths == ["encrypt_at_rest[].kms_key_id"]
+	binding.source_addresses == [platform_kms_address]
+	binding.relationship == "platform-kms-key-reference"
+}
+
+valid_kms_reference(binding) if {
+	binding.address == "module.storage.aws_s3_bucket_server_side_encryption_configuration.this"
+	binding.unknown_paths == ["rule[].apply_server_side_encryption_by_default[].kms_master_key_id"]
+	binding.source_addresses == [platform_kms_address]
+	binding.relationship == "platform-kms-key-reference"
+}
+
+valid_opensearch_vpc_reference(binding) if {
+	binding.address == "module.opensearch.aws_opensearch_domain.this"
+	binding.unknown_paths == ["vpc_options[].vpc_id"]
+	binding.source_addresses == [
+		platform_endpoint_security_group_address,
+		platform_subnet_addresses[0],
+		platform_vpc_address,
+	]
+	binding.relationship == "opensearch-vpc-derived-from-network"
+}
+
+valid_ecr_kms_reference(binding) if {
+	binding.address == "module.ecr.aws_ecr_repository.this"
+	binding.type == "aws_ecr_repository"
+	binding.unknown_paths == ["encryption_configuration[].kms_key"]
+	binding.source_addresses == [platform_kms_address]
+	binding.relationship == "platform-ecr-kms-key-reference"
+	provider_computed_arn_source(platform_kms_address, "aws_kms_key")
+}
+
+valid_opensearch_log_groups_reference(binding) if {
+	binding.address == opensearch_domain_address
+	binding.type == "aws_opensearch_domain"
+	binding.unknown_paths == ["log_publishing_options[].cloudwatch_log_group_arn"]
+	binding.source_addresses == sort([address | some address in platform_log_group_addresses])
+	binding.relationship == "opensearch-log-groups-reference"
+	every address in platform_log_group_addresses {
+		provider_computed_arn_source(address, "aws_cloudwatch_log_group")
+	}
+}
+
+provider_computed_arn_source(address, resource_type) if {
+	some source in resource_changes
+	source.address == address
+	source.type == resource_type
+	object.get(source.change, "actions", []) == ["create"]
+	object.get(after(source), "arn", null) == null
+	object.get(object.get(source.change, "after_unknown", {}), "arn", false) == true
+	change_has_no_sensitive_markers(source)
+}
+
+valid_resource_reference_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {
+		"address",
+		"relationship",
+		"source_addresses",
+		"type",
+		"unknown_paths",
+	}
+	valid_resource_address(binding.address)
+	valid_binding_paths(binding.unknown_paths)
+	is_array(binding.source_addresses)
+	sort(binding.source_addresses) == binding.source_addresses
+	count(binding.source_addresses) == count({source | some source in binding.source_addresses})
+	resource_change_matches(binding.address, binding.type)
+	every source in binding.source_addresses {
+		valid_resource_address(source)
+		some source_change in resource_changes
+		source_change.address == source
+		change_has_no_sensitive_markers(source_change)
+	}
+	valid_approved_resource_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_network_vpc_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_network_subnet_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_private_subnets_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_endpoint_security_group_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_kms_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_opensearch_vpc_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_ecr_kms_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_opensearch_log_groups_reference(binding)
+}
+
+valid_policy_document_binding(binding) if {
+	is_object(binding)
+	object.keys(binding) == {
+		"field_path",
+		"policy_document_address",
+		"relationship",
+		"resource_address",
+		"resource_type",
+	}
+	binding in platform_policy_document_relationships
+	resource_change_matches(binding.resource_address, binding.resource_type)
+	resource_change_matches(binding.policy_document_address, "aws_iam_policy_document")
+}
+
+policy_document_bound(resource_address, policy_document_address) if {
+	policy_document_field_bound(resource_address, "policy", policy_document_address)
+}
+
+policy_document_field_bound(resource_address, field_path, policy_document_address) if {
+	some binding in policy_document_bindings
+	binding.resource_address == resource_address
+	binding.field_path == field_path
+	binding.policy_document_address == policy_document_address
+	valid_policy_document_binding(binding)
+}
+
+valid_bound_policy_document_change(change) if {
+	is_object(change)
+	change.type == "aws_iam_policy_document"
+	some binding in policy_document_bindings
+	binding.policy_document_address == change.address
+	change_body := object.get(change, "change", null)
+	is_object(change_body)
+	object.get(change_body, "actions", []) == ["read"]
+	valid_change_after(["read"], object.get(change_body, "after", null))
+	change_has_no_policy_critical_unknown_values(change_body)
+	change_has_no_sensitive_markers(change)
+}
+
+s3_tls_policy_evidence_valid(change) if {
+	s3_tls_policy_valid(change)
+}
+
+s3_tls_policy_evidence_valid(change) if {
+	change.address == "module.storage.aws_s3_bucket_policy.tls_only"
+	policy_document_bound(
+		change.address,
+		"module.storage.data.aws_iam_policy_document.tls_only",
+	)
+}
+
+valid_s3_bucket_policy_binding(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"bucket_address", "policy_address"}
+	bucket_address := object.get(binding, "bucket_address", "")
+	policy_address := object.get(binding, "policy_address", "")
+	valid_resource_address(bucket_address)
+	valid_resource_address(policy_address)
+	resource_address_has_type(bucket_address, "aws_s3_bucket")
+	resource_address_has_type(policy_address, "aws_s3_bucket_policy")
+	some bucket in resource_changes
+	bucket.address == bucket_address
+	bucket.type == "aws_s3_bucket"
+	change_has_no_sensitive_markers(bucket)
+	some policy in resource_changes
+	policy.address == policy_address
+	policy.type == "aws_s3_bucket_policy"
+	change_has_no_sensitive_markers(policy)
+	s3_tls_policy_evidence_valid(policy)
+}
+
+valid_s3_kms_encryption_binding(binding) if {
+	is_object(binding)
+	object.keys(binding) == {
+		"bucket_address",
+		"encryption_address",
+		"field_path",
+		"kms_key_address",
+	}
+	bucket_address := object.get(binding, "bucket_address", "")
+	encryption_address := object.get(binding, "encryption_address", "")
+	kms_key_address := object.get(binding, "kms_key_address", "")
+	object.get(binding, "field_path", "") == "rule[].apply_server_side_encryption_by_default[].kms_master_key_id"
+	valid_resource_address(bucket_address)
+	valid_resource_address(encryption_address)
+	valid_resource_address(kms_key_address)
+	resource_address_has_type(bucket_address, "aws_s3_bucket")
+	resource_address_has_type(encryption_address, "aws_s3_bucket_server_side_encryption_configuration")
+	resource_address_has_type(kms_key_address, "aws_kms_key")
+	some bucket in resource_changes
+	bucket.address == bucket_address
+	bucket.type == "aws_s3_bucket"
+	change_has_no_sensitive_markers(bucket)
+	some encryption in resource_changes
+	encryption.address == encryption_address
+	encryption.type == "aws_s3_bucket_server_side_encryption_configuration"
+	change_has_no_sensitive_markers(encryption)
+	s3_kms_algorithm_valid(encryption)
+	some key in resource_changes
+	key.address == kms_key_address
+	key.type == "aws_kms_key"
+	change_has_no_sensitive_markers(key)
+}
+
+valid_opensearch_provider_sensitive_null(binding) if {
+	is_object(binding)
+	object.keys(binding) == {
+		"address",
+		"field_path",
+		"relationship",
+		"source_address",
+		"type",
+	}
+	binding.address == opensearch_domain_address
+	binding.type == "aws_opensearch_domain"
+	binding.field_path == opensearch_password_field_path
+	binding.relationship == opensearch_sensitive_relationship
+	binding.source_address == opensearch_admin_role_address
+
+	domain := changes_by_address[opensearch_domain_address]
+	domain.type == "aws_opensearch_domain"
+	domain.change.actions == ["create"]
+	change_has_no_sensitive_markers(domain)
+	advanced_options := object.get(after(domain), "advanced_security_options", [])
+	count(advanced_options) == 1
+	advanced := advanced_options[0]
+	object.get(advanced, "enabled", false) == true
+	object.get(advanced, "internal_user_database_enabled", true) == false
+	master_options := object.get(advanced, "master_user_options", [])
+	count(master_options) == 1
+	master := master_options[0]
+	object.get(master, "master_user_arn", null) == null
+	object.get(master, "master_user_name", null) == null
+	object.get(master, "master_user_password", null) == null
+
+	domain_unknowns := object.get(domain.change, "after_unknown", {})
+	unknown_advanced_options := object.get(domain_unknowns, "advanced_security_options", [])
+	count(unknown_advanced_options) == 1
+	unknown_master_options := object.get(unknown_advanced_options[0], "master_user_options", [])
+	count(unknown_master_options) == 1
+	object.get(unknown_master_options[0], "master_user_arn", false) == true
+	object.get(unknown_master_options[0], "master_user_password", false) == false
+
+	role := changes_by_address[opensearch_admin_role_address]
+	role.type == "aws_iam_role"
+	role.change.actions == ["create"]
+	change_has_no_sensitive_markers(role)
+	object.get(object.get(role.change, "after_unknown", {}), "arn", false) == true
+}
+
+valid_existing_opensearch_admin_role_action(role) if {
+	role.change.actions == ["no-op"]
+	role.change.before == role.change.after
+	valid_aws_change(role)
+}
+
+valid_existing_opensearch_admin_role_action(role) if {
+	valid_platform_expiry_recovery_update(role)
+}
+
+valid_opensearch_provider_sensitive_null(binding) if {
+	is_object(binding)
+	object.keys(binding) == {
+		"address",
+		"field_path",
+		"relationship",
+		"source_address",
+		"type",
+	}
+	binding.address == opensearch_domain_address
+	binding.type == "aws_opensearch_domain"
+	binding.field_path == opensearch_password_field_path
+	binding.relationship == opensearch_existing_sensitive_relationship
+	binding.source_address == opensearch_admin_role_address
+
+	domain := changes_by_address[opensearch_domain_address]
+	domain.type == "aws_opensearch_domain"
+	domain.change.actions in [["create"], ["no-op"], ["update"]]
+	change_has_no_sensitive_markers(domain)
+	advanced_options := object.get(after(domain), "advanced_security_options", [])
+	count(advanced_options) == 1
+	advanced := advanced_options[0]
+	object.get(advanced, "enabled", false) == true
+	object.get(advanced, "internal_user_database_enabled", true) == false
+	master_options := object.get(advanced, "master_user_options", [])
+	count(master_options) == 1
+	master := master_options[0]
+	master_user_arn := object.get(master, "master_user_arn", null)
+	is_string(master_user_arn)
+	master_user_arn != ""
+	object.get(master, "master_user_name", null) == null
+	object.get(master, "master_user_password", null) == null
+
+	domain_unknowns := object.get(domain.change, "after_unknown", {})
+	unknown_advanced_options := object.get(domain_unknowns, "advanced_security_options", [{"master_user_options": [{}]}])
+	count(unknown_advanced_options) == 1
+	unknown_master_options := object.get(unknown_advanced_options[0], "master_user_options", [])
+	count(unknown_master_options) == 1
+	object.get(unknown_master_options[0], "master_user_arn", false) == false
+	object.get(unknown_master_options[0], "master_user_password", false) == false
+
+	role := changes_by_address[opensearch_admin_role_address]
+	role.type == "aws_iam_role"
+	valid_existing_opensearch_admin_role_action(role)
+	change_has_no_sensitive_markers(role)
+	role_unknowns := object.get(role.change, "after_unknown", {})
+	not policy_critical_unknown_present(role_unknowns)
+	object.get(role_unknowns, "arn", false) == false
+	role_before := object.get(role.change, "before", null)
+	role_after := object.get(role.change, "after", null)
+	is_object(role_before)
+	is_object(role_after)
+	object.get(role_before, "arn", "") == master_user_arn
+	object.get(role_after, "arn", "") == master_user_arn
+	before_policy := object.get(role_before, "assume_role_policy", null)
+	after_policy := object.get(role_after, "assume_role_policy", null)
+	is_string(before_policy)
+	before_policy == after_policy
+}
+
+opensearch_sensitive_metadata_required(change) if {
+	change.address == opensearch_domain_address
+	change.type == "aws_opensearch_domain"
+	change.change.actions in [["create"], ["no-op"], ["update"]]
+	advanced_options := object.get(after(change), "advanced_security_options", [])
+	count(advanced_options) == 1
+	advanced := advanced_options[0]
+	object.get(advanced, "internal_user_database_enabled", true) == false
+	master_options := object.get(advanced, "master_user_options", [])
+	count(master_options) == 1
+	object.get(master_options[0], "master_user_arn", null) == null
+	domain_unknowns := object.get(change.change, "after_unknown", {})
+	unknown_advanced_options := object.get(domain_unknowns, "advanced_security_options", [])
+	count(unknown_advanced_options) == 1
+	unknown_master_options := object.get(unknown_advanced_options[0], "master_user_options", [])
+	count(unknown_master_options) == 1
+	object.get(unknown_master_options[0], "master_user_arn", false) == true
+}
+
+opensearch_sensitive_metadata_required(change) if {
+	change.address == opensearch_domain_address
+	change.type == "aws_opensearch_domain"
+	change.change.actions in [["create"], ["no-op"], ["update"]]
+	advanced_options := object.get(after(change), "advanced_security_options", [])
+	count(advanced_options) == 1
+	advanced := advanced_options[0]
+	object.get(advanced, "internal_user_database_enabled", true) == false
+	master_options := object.get(advanced, "master_user_options", [])
+	count(master_options) == 1
+	master_user_arn := object.get(master_options[0], "master_user_arn", null)
+	is_string(master_user_arn)
+	master_user_arn != ""
+}
+
+required_opensearch_sensitive_changes := [
+change |
+	some change in resource_changes
+	opensearch_sensitive_metadata_required(change)
+]
+
+valid_binding_context if {
+	valid_before_sensitive_context
+	is_array(provider_computed_unknowns)
+	is_array(resource_reference_unknowns)
+	is_array(policy_document_bindings)
+	is_array(s3_bucket_policy_bindings)
+	is_array(s3_kms_encryption_bindings)
+	is_array(provider_sensitive_nulls)
+	count(provider_computed_unknowns) == count({json.marshal(binding) | some binding in provider_computed_unknowns})
+	count(resource_reference_unknowns) == count({json.marshal(binding) | some binding in resource_reference_unknowns})
+	count(policy_document_bindings) == count({json.marshal(binding) | some binding in policy_document_bindings})
+	count(s3_bucket_policy_bindings) == count({json.marshal(binding) | some binding in s3_bucket_policy_bindings})
+	count(s3_kms_encryption_bindings) == count({json.marshal(binding) | some binding in s3_kms_encryption_bindings})
+	count(provider_sensitive_nulls) == count({json.marshal(binding) | some binding in provider_sensitive_nulls})
+	count(required_opensearch_sensitive_changes) == count(provider_sensitive_nulls)
+	every binding in provider_computed_unknowns {
+		valid_provider_computed_unknown(binding)
+	}
+	every binding in resource_reference_unknowns {
+		valid_resource_reference_unknown(binding)
+	}
+	every binding in policy_document_bindings {
+		valid_policy_document_binding(binding)
+	}
+	every binding in s3_bucket_policy_bindings {
+		valid_s3_bucket_policy_binding(binding)
+	}
+	every binding in s3_kms_encryption_bindings {
+		valid_s3_kms_encryption_binding(binding)
+	}
+	every binding in provider_sensitive_nulls {
+		valid_opensearch_provider_sensitive_null(binding)
+	}
 }
 
 valid_change(change) if {
-  is_object(change)
-  address := object.get(change, "address", "")
-  valid_resource_address(address)
-  resource_type := object.get(change, "type", "")
-  is_string(resource_type)
-  supported_change_type(resource_type)
-  change_body := object.get(change, "change", null)
-  is_object(change_body)
-  actions := object.get(change_body, "actions", [])
-  is_array(actions)
-  json.marshal(actions) in supported_action_sequences
-  valid_change_after(actions, object.get(change_body, "after", null))
-  change_has_no_unknown_values(change_body)
+	valid_aws_change(change)
+}
+
+valid_change(change) if {
+	valid_owner_expiry_gate_change(change)
+}
+
+valid_change(change) if {
+	valid_bound_policy_document_change(change)
 }
 
 valid_policy_context if {
-  is_object(evaluation_context)
-  timestamp := object.get(evaluation_context, "evaluation_time", "")
-  valid_utc_timestamp(timestamp)
-  configured_policy_ids := object.get(evaluation_context, "policy_ids", null)
-  is_array(configured_policy_ids)
-  count(configured_policy_ids) == count(policy_inventory)
-  {policy_id | some policy_id in configured_policy_ids} == policy_ids
+	is_object(evaluation_context)
+	timestamp := object.get(evaluation_context, "evaluation_time", "")
+	valid_utc_timestamp(timestamp)
+	configured_policy_ids := object.get(evaluation_context, "policy_ids", null)
+	is_array(configured_policy_ids)
+	count(configured_policy_ids) == count(policy_inventory)
+	{policy_id | some policy_id in configured_policy_ids} == policy_ids
+	valid_binding_context
 }
 
 input_contract_valid if {
-  is_object(input)
-  object.get(input, "format_version", "") != ""
-  object.get(input, "terraform_version", "") != ""
-  variables := object.get(input, "variables", null)
-  is_object(variables)
-  changes := object.get(input, "resource_changes", null)
-  is_array(changes)
-  count(changes) > 0
-  valid_policy_context
-  every change in changes {
-    valid_change(change)
-  }
+	is_object(input)
+	object.get(input, "format_version", "") != ""
+	object.get(input, "terraform_version", "") != ""
+	variables := object.get(input, "variables", null)
+	is_object(variables)
+	changes := object.get(input, "resource_changes", null)
+	is_array(changes)
+	count(changes) == count({change.address | some change in changes; is_object(change); is_string(change.address)})
+	valid_policy_context
+	every change in changes {
+		valid_change(change)
+	}
 }
 
 evaluated_changes := resource_changes if input_contract_valid
-changes_by_address := {change.address: change | some change in evaluated_changes}
+changes_by_address := {change.address: change | some change in resource_changes}
 
 violation(policy_id, resource_address) := {
-  "policy_id": policy_id,
-  "resource_address": resource_address,
+	"policy_id": policy_id,
+	"resource_address": resource_address,
 }
 
 tags_for(change) := tags if {
-  values := after(change)
-  is_object(values)
-  tags := object.get(values, "tags_all", object.get(values, "tags", {}))
-  is_object(tags)
+	values := after(change)
+	is_object(values)
+	tags := object.get(values, "tags_all", object.get(values, "tags", {}))
+	is_object(tags)
 }
 
 tags_for(change) := {} if {
-  values := after(change)
-  is_object(values)
-  tags := object.get(values, "tags_all", object.get(values, "tags", {}))
-  not is_object(tags)
+	values := after(change)
+	is_object(values)
+	tags := object.get(values, "tags_all", object.get(values, "tags", {}))
+	not is_object(tags)
 }
 
 fixed_tags_valid(tags) if {
-  count(required_tag_keys - object.keys(tags)) == 0
-  object.get(tags, "Project", "") == required_tags.Project
-  object.get(tags, "Environment", "") == required_tags.Environment
-  object.get(tags, "Owner", "") == required_tags.Owner
-  object.get(tags, "ManagedBy", "") == required_tags.ManagedBy
-  object.get(tags, "CostCenter", "") == required_tags.CostCenter
-  object.get(tags, "Feature", "") == required_tags.Feature
-  object.get(tags, "Repository", "") == required_tags.Repository
+	count(required_tag_keys - object.keys(tags)) == 0
+	object.get(tags, "Project", "") == required_tags.Project
+	object.get(tags, "Environment", "") == required_tags.Environment
+	object.get(tags, "Owner", "") == required_tags.Owner
+	object.get(tags, "ManagedBy", "") == required_tags.ManagedBy
+	object.get(tags, "CostCenter", "") == required_tags.CostCenter
+	object.get(tags, "Feature", "") == required_tags.Feature
+	object.get(tags, "Repository", "") == required_tags.Repository
 }
 
 expires_at_valid(tags) if {
-  expires_at := object.get(tags, "ExpiresAt", "")
-  valid_utc_timestamp(expires_at)
-  expires_ns := time.parse_rfc3339_ns(expires_at)
-  expires_ns > evaluation_time_ns
-  expires_ns - evaluation_time_ns <= day_ns
+	expires_at := object.get(tags, "ExpiresAt", "")
+	valid_utc_timestamp(expires_at)
+	expires_ns := time.parse_rfc3339_ns(expires_at)
+	expires_ns > evaluation_time_ns
+	expires_ns - evaluation_time_ns <= day_ns
 }
 
 destructive_change(change) if {
-  actions := object.get(object.get(change, "change", {}), "actions", [])
-  "delete" in actions
+	actions := object.get(object.get(change, "change", {}), "actions", [])
+	"delete" in actions
+}
+
+unapproved_initial_change(change) if {
+	actions := object.get(object.get(change, "change", {}), "actions", [])
+	"update" in actions
+	not partial_bootstrap_recovery_plan_valid
+	not partial_platform_recovery_plan_valid
+}
+
+unapproved_initial_change(change) if {
+	destructive_change(change)
 }
 
 related_address(address, resource_type) := replace(
-  address,
-  "aws_s3_bucket.",
-  sprintf("%s.", [resource_type]),
+	address,
+	"aws_s3_bucket.",
+	sprintf("%s.", [resource_type]),
 )
 
 related_change(bucket, resource_type) := change if {
-  address := related_address(bucket.address, resource_type)
-  change := changes_by_address[address]
+	address := related_address(bucket.address, resource_type)
+	change := changes_by_address[address]
 }
 
 related_change_exists(bucket, resource_type) if {
-  related_change(bucket, resource_type)
+	resource_type != "aws_s3_bucket_policy"
+	related_change(bucket, resource_type)
+}
+
+related_change_exists(bucket, "aws_s3_bucket_policy") if {
+	some binding in s3_bucket_policy_bindings
+	binding.bucket_address == bucket.address
+	policy := changes_by_address[binding.policy_address]
+	policy.type == "aws_s3_bucket_policy"
+	s3_tls_policy_evidence_valid(policy)
 }
 
 s3_public_access_valid(change) if {
-  values := after(change)
-  object.get(values, "block_public_acls", false)
-  object.get(values, "block_public_policy", false)
-  object.get(values, "ignore_public_acls", false)
-  object.get(values, "restrict_public_buckets", false)
+	values := after(change)
+	object.get(values, "block_public_acls", false)
+	object.get(values, "block_public_policy", false)
+	object.get(values, "ignore_public_acls", false)
+	object.get(values, "restrict_public_buckets", false)
+}
+
+s3_kms_algorithm_valid(change) if {
+	values := after(change)
+	some rule in object.get(values, "rule", [])
+	some defaults in object.get(rule, "apply_server_side_encryption_by_default", [])
+	object.get(defaults, "sse_algorithm", "") == "aws:kms"
 }
 
 s3_encryption_valid(change) if {
-  values := after(change)
-  some rule in object.get(values, "rule", [])
-  some defaults in object.get(rule, "apply_server_side_encryption_by_default", [])
-  object.get(defaults, "sse_algorithm", "") == "aws:kms"
-  object.get(defaults, "kms_master_key_id", "") != ""
+	s3_kms_algorithm_valid(change)
+	values := after(change)
+	some rule in object.get(values, "rule", [])
+	some defaults in object.get(rule, "apply_server_side_encryption_by_default", [])
+	object.get(defaults, "kms_master_key_id", "") != ""
+}
+
+s3_encryption_valid(change) if {
+	s3_kms_algorithm_valid(change)
+	some binding in s3_kms_encryption_bindings
+	binding.encryption_address == change.address
 }
 
 s3_versioning_valid(change) if {
-  some configuration in object.get(after(change), "versioning_configuration", [])
-  object.get(configuration, "status", "") == "Enabled"
+	some configuration in object.get(after(change), "versioning_configuration", [])
+	object.get(configuration, "status", "") == "Enabled"
 }
 
 state_bucket_address(address) if contains(address, "terraform_state")
 
 s3_lifecycle_valid(change, address) if {
-  state_bucket_address(address)
-  rules := object.get(after(change), "rule", [])
-  some rule in rules
-  some abort in object.get(rule, "abort_incomplete_multipart_upload", [])
-  object.get(abort, "days_after_initiation", 0) == 7
-  every candidate in rules {
-    count(object.get(candidate, "expiration", [])) == 0
-    count(object.get(candidate, "noncurrent_version_expiration", [])) == 0
-  }
+	state_bucket_address(address)
+	rules := object.get(after(change), "rule", [])
+	some rule in rules
+	some abort in object.get(rule, "abort_incomplete_multipart_upload", [])
+	object.get(abort, "days_after_initiation", 0) == 7
+	every candidate in rules {
+		count(object.get(candidate, "expiration", [])) == 0
+		count(object.get(candidate, "noncurrent_version_expiration", [])) == 0
+	}
 }
 
 lifecycle_prefix_expires(rules, prefix) if {
-  some rule in rules
-  some filter in object.get(rule, "filter", [])
-  object.get(filter, "prefix", "") == prefix
-  some expiration in object.get(rule, "expiration", [])
-  object.get(expiration, "days", 0) == 30
+	some rule in rules
+	some filter in object.get(rule, "filter", [])
+	object.get(filter, "prefix", "") == prefix
+	some expiration in object.get(rule, "expiration", [])
+	object.get(expiration, "days", 0) == 30
 }
 
 s3_lifecycle_valid(change, address) if {
-  not state_bucket_address(address)
-  rules := object.get(after(change), "rule", [])
-  some rule in rules
-  some abort in object.get(rule, "abort_incomplete_multipart_upload", [])
-  object.get(abort, "days_after_initiation", 0) == 7
-  some noncurrent in object.get(rule, "noncurrent_version_expiration", [])
-  object.get(noncurrent, "noncurrent_days", 0) == 30
-  lifecycle_prefix_expires(rules, "tmp/")
-  lifecycle_prefix_expires(rules, "test/")
+	not state_bucket_address(address)
+	rules := object.get(after(change), "rule", [])
+	some rule in rules
+	some abort in object.get(rule, "abort_incomplete_multipart_upload", [])
+	object.get(abort, "days_after_initiation", 0) == 7
+	some noncurrent in object.get(rule, "noncurrent_version_expiration", [])
+	object.get(noncurrent, "noncurrent_days", 0) == 30
+	lifecycle_prefix_expires(rules, "tmp/")
+	lifecycle_prefix_expires(rules, "test/")
 }
 
 s3_tls_policy_valid(change) if {
-  policy := lower(object.get(after(change), "policy", ""))
-  contains(policy, `"effect":"deny"`)
-  contains(policy, "aws:securetransport")
-  contains(policy, `"false"`)
+	policy := lower(object.get(after(change), "policy", ""))
+	contains(policy, `"effect":"deny"`)
+	contains(policy, "aws:securetransport")
+	contains(policy, `"false"`)
 }
 
 policy_text(change) := policy if {
-  values := after(change)
-  is_object(values)
-  policy := object.get(
-    values,
-    "policy",
-    object.get(
-      values,
-      "assume_role_policy",
-      object.get(values, "policy_document", ""),
-    ),
-  )
-  is_string(policy)
+	values := after(change)
+	is_object(values)
+	policy := object.get(
+		values,
+		"policy",
+		object.get(
+			values,
+			"assume_role_policy",
+			object.get(values, "policy_document", ""),
+		),
+	)
+	is_string(policy)
 }
 
 policy_has_action_wildcard(policy) if {
-  regex.match(`(?i)"Action"\s*:\s*("[^"]*\*"|\[[^\]]*"[^"]*\*)`, policy)
+	regex.match(`(?i)"Action"\s*:\s*("[^"]*\*"|\[[^\]]*"[^"]*\*)`, policy)
 }
 
 policy_has_prohibited_action(policy) if {
-  action_fields := regex.find_n(`(?i)"Action"\s*:\s*("[^"]*"|\[[^\]]*\])`, policy, -1)
-  some action_field in action_fields
-  regex.match(
-    `(?i)(kms:\*|es:ESHttp\*|logs:\*|ecr:GetAuthorizationToken|iam:(List|Describe)[A-Za-z0-9]*)`,
-    action_field,
-  )
+	action_fields := regex.find_n(`(?i)"Action"\s*:\s*("[^"]*"|\[[^\]]*\])`, policy, -1)
+	some action_field in action_fields
+	regex.match(
+		`(?i)(kms:\*|es:ESHttp\*|logs:\*|ecr:GetAuthorizationToken|iam:(List|Describe)[A-Za-z0-9]*)`,
+		action_field,
+	)
 }
 
 approved_wildcard_arn(arn) if arn in approved_wildcard_arns
 
 iam_scope_invalid(policy) if {
-  regex.match(`(?i)"Resource"\s*:\s*"\*"`, policy)
+	regex.match(`(?i)"Resource"\s*:\s*"\*"`, policy)
 }
 
 iam_scope_invalid(policy) if {
-  regex.match(`(?i)"Principal"\s*:\s*("\*"|\{[^}]*"\*"\s*:\s*"\*")`, policy)
+	regex.match(`(?i)"Principal"\s*:\s*("\*"|\{[^}]*"\*"\s*:\s*"\*")`, policy)
 }
 
 iam_scope_invalid(policy) if contains(policy, "repo:gprai/enterprise-ai-platform:")
 
 iam_scope_invalid(policy) if {
-  contains(policy, "token.actions.githubusercontent.com:sub")
-  not contains(policy, "repo:gprai/enterprize_ai_platform:environment:sandbox")
+	contains(policy, "token.actions.githubusercontent.com:sub")
+	not contains(policy, "repo:gprai/enterprize_ai_platform:environment:sandbox")
 }
 
 iam_scope_invalid(policy) if {
-  wildcard_arns := regex.find_n(`arn:aws:[^",[:space:]]*\*`, policy, -1)
-  some wildcard_arn in wildcard_arns
-  not approved_wildcard_arn(wildcard_arn)
+	wildcard_arns := regex.find_n(`arn:aws:[^",[:space:]]*\*`, policy, -1)
+	some wildcard_arn in wildcard_arns
+	not approved_wildcard_arn(wildcard_arn)
 }
 
 endpoint_services := {
-  object.get(after(change), "service_name", "") |
-  some change in evaluated_changes
-  change.type == "aws_vpc_endpoint"
+object.get(after(change), "service_name", "") |
+	some change in evaluated_changes
+	change.type == "aws_vpc_endpoint"
 }
 
 vpc_present if {
-  some change in evaluated_changes
-  change.type == "aws_vpc"
+	some change in evaluated_changes
+	change.type == "aws_vpc"
 }
 
 network_topology_invalid(change) if {
-  change.type in {"aws_internet_gateway", "aws_nat_gateway"}
-  after(change) != null
+	change.type in {"aws_internet_gateway", "aws_nat_gateway"}
+	after(change) != null
 }
 
 network_topology_invalid(change) if {
-  change.type == "aws_subnet"
-  object.get(after(change), "map_public_ip_on_launch", true)
+	change.type == "aws_subnet"
+	object.get(after(change), "map_public_ip_on_launch", true)
 }
 
 network_topology_invalid(change) if {
-  change.type == "aws_vpc"
-  not object.get(after(change), "enable_dns_support", false)
+	change.type == "aws_vpc"
+	not object.get(after(change), "enable_dns_support", false)
 }
 
 network_topology_invalid(change) if {
-  change.type == "aws_vpc"
-  not object.get(after(change), "enable_dns_hostnames", false)
+	change.type == "aws_vpc"
+	not object.get(after(change), "enable_dns_hostnames", false)
 }
 
 network_topology_invalid(change) if {
-  change.type == "aws_vpc"
-  endpoint_services != approved_endpoint_services
+	change.type == "aws_vpc"
+	endpoint_services != approved_endpoint_services
 }
 
 network_topology_invalid(change) if {
-  change.type == "aws_vpc_endpoint"
-  service_name := object.get(after(change), "service_name", "")
-  not service_name in approved_endpoint_services
+	change.type == "aws_vpc_endpoint"
+	service_name := object.get(after(change), "service_name", "")
+	not service_name in approved_endpoint_services
 }
 
 network_topology_invalid(change) if {
-  change.type == "aws_vpc_endpoint"
-  object.get(after(change), "vpc_endpoint_type", "") == "Interface"
-  not object.get(after(change), "private_dns_enabled", false)
+	change.type == "aws_vpc_endpoint"
+	object.get(after(change), "vpc_endpoint_type", "") == "Interface"
+	not object.get(after(change), "private_dns_enabled", false)
 }
 
 network_topology_invalid(change) if {
-  change.type == "aws_route_table"
-  serialized := json.marshal(after(change))
-  regex.match(`(?i)(0\.0\.0\.0/0|::/0)`, serialized)
+	change.type == "aws_route_table"
+	serialized := json.marshal(after(change))
+	regex.match(`(?i)(0\.0\.0\.0/0|::/0)`, serialized)
 }
 
 public_cidr(rule) if {
-  some cidr in object.get(rule, "cidr_blocks", [])
-  cidr in {"0.0.0.0/0", "::/0"}
+	some cidr in object.get(rule, "cidr_blocks", [])
+	cidr in {"0.0.0.0/0", "::/0"}
 }
 
 public_cidr(rule) if {
-  some cidr in object.get(rule, "ipv6_cidr_blocks", [])
-  cidr == "::/0"
+	some cidr in object.get(rule, "ipv6_cidr_blocks", [])
+	cidr == "::/0"
 }
 
 network_traffic_invalid(change) if {
-  change.type in {"aws_security_group", "aws_default_security_group"}
-  some rule in object.get(after(change), "ingress", [])
-  public_cidr(rule)
+	change.type in {"aws_security_group", "aws_default_security_group"}
+	some rule in object.get(after(change), "ingress", [])
+	public_cidr(rule)
 }
 
 network_traffic_invalid(change) if {
-  change.type in {"aws_security_group", "aws_default_security_group"}
-  count(object.get(after(change), "egress", [])) > 0
+	change.type in {"aws_security_group", "aws_default_security_group"}
+	count(object.get(after(change), "egress", [])) > 0
+}
+
+opensearch_kms_valid(change) if {
+	some at_rest in object.get(after(change), "encrypt_at_rest", [])
+	object.get(at_rest, "kms_key_id", "") != ""
+}
+
+opensearch_kms_valid(change) if {
+	resource_reference_record_exists(
+		change.address,
+		"encrypt_at_rest[].kms_key_id",
+		"platform-kms-key-reference",
+	)
 }
 
 opensearch_security_valid(change) if {
-  values := after(change)
-  count(object.get(values, "vpc_options", [])) > 0
-  some at_rest in object.get(values, "encrypt_at_rest", [])
-  object.get(at_rest, "enabled", false)
-  object.get(at_rest, "kms_key_id", "") != ""
-  some node in object.get(values, "node_to_node_encryption", [])
-  object.get(node, "enabled", false)
-  some endpoint in object.get(values, "domain_endpoint_options", [])
-  object.get(endpoint, "enforce_https", false)
-  object.get(endpoint, "tls_security_policy", "") == "Policy-Min-TLS-1-2-2019-07"
+	values := after(change)
+	count(object.get(values, "vpc_options", [])) > 0
+	some at_rest in object.get(values, "encrypt_at_rest", [])
+	object.get(at_rest, "enabled", false)
+	opensearch_kms_valid(change)
+	some node in object.get(values, "node_to_node_encryption", [])
+	object.get(node, "enabled", false)
+	some endpoint in object.get(values, "domain_endpoint_options", [])
+	object.get(endpoint, "enforce_https", false)
+	object.get(endpoint, "tls_security_policy", "") == "Policy-Min-TLS-1-2-2019-07"
+}
+
+opensearch_access_policy_valid(change) if {
+	values := after(change)
+	access_policy := object.get(values, "access_policies", "")
+	is_string(access_policy)
+	contains(access_policy, "526338061652")
+	not regex.match(`(?i)"Principal"\s*:\s*("\*"|\{[^}]*"AWS"\s*:\s*"\*")`, access_policy)
+}
+
+opensearch_access_policy_valid(change) if {
+	change.address == opensearch_domain_address
+	policy_document_field_bound(
+		change.address,
+		"access_policies",
+		"module.opensearch.data.aws_iam_policy_document.domain_access",
+	)
 }
 
 opensearch_logs_valid(change) if {
-  values := after(change)
-  options := object.get(values, "log_publishing_options", [])
-  count(options) == 4
-  {object.get(option, "log_type", "") | some option in options} == approved_log_types
-  every option in options {
-    object.get(option, "enabled", false)
-    object.get(option, "cloudwatch_log_group_arn", "") != ""
-  }
-  access_policy := object.get(values, "access_policies", "")
-  is_string(access_policy)
-  contains(access_policy, "526338061652")
-  not regex.match(`(?i)"Principal"\s*:\s*("\*"|\{[^}]*"AWS"\s*:\s*"\*")`, access_policy)
+	values := after(change)
+	options := object.get(values, "log_publishing_options", [])
+	count(options) == 4
+	{object.get(option, "log_type", "") | some option in options} == approved_log_types
+	every option in options {
+		object.get(option, "enabled", false)
+		opensearch_log_destination_valid(change, option)
+	}
+	opensearch_access_policy_valid(change)
+}
+
+opensearch_log_destination_valid(_, option) if {
+	arn := object.get(option, "cloudwatch_log_group_arn", "")
+	is_string(arn)
+	arn != ""
+}
+
+opensearch_log_destination_valid(change, _) if {
+	resource_reference_record_exists(
+		change.address,
+		"log_publishing_options[].cloudwatch_log_group_arn",
+		"opensearch-log-groups-reference",
+	)
+}
+
+log_group_kms_valid(group) if {
+	object.get(after(group), "kms_key_id", "") != ""
+}
+
+log_group_kms_valid(group) if {
+	resource_reference_record_exists(
+		group.address,
+		"kms_key_id",
+		"platform-kms-key-reference",
+	)
 }
 
 opensearch_log_groups_valid if {
-  groups := [change | some change in evaluated_changes; change.type == "aws_cloudwatch_log_group"]
-  count(groups) == 4
-  every group in groups {
-    object.get(after(group), "retention_in_days", 0) == 30
-    object.get(after(group), "kms_key_id", "") != ""
-  }
+	groups := [change | some change in evaluated_changes; change.type == "aws_cloudwatch_log_group"]
+	count(groups) == 4
+	every group in groups {
+		object.get(after(group), "retention_in_days", 0) == 30
+		log_group_kms_valid(group)
+	}
 }
 
 opensearch_log_resource_policy_valid if {
-  some change in evaluated_changes
-  change.type == "aws_cloudwatch_log_resource_policy"
-  policy := policy_text(change)
-  contains(policy, "es.amazonaws.com")
-  contains(policy, "logs:CreateLogStream")
-  contains(policy, "logs:PutLogEvents")
-  contains(policy, "aws:SourceAccount")
-  contains(policy, "526338061652")
-  contains(policy, "aws:SourceArn")
-  contains(
-    policy,
-    "arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox",
-  )
-  not policy_has_action_wildcard(policy)
-  not iam_scope_invalid(policy)
+	some change in evaluated_changes
+	change.type == "aws_cloudwatch_log_resource_policy"
+	policy := policy_text(change)
+	contains(policy, "es.amazonaws.com")
+	contains(policy, "logs:CreateLogStream")
+	contains(policy, "logs:PutLogEvents")
+	contains(policy, "aws:SourceAccount")
+	contains(policy, "526338061652")
+	contains(policy, "aws:SourceArn")
+	contains(
+		policy,
+		"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox",
+	)
+	not policy_has_action_wildcard(policy)
+	not iam_scope_invalid(policy)
+}
+
+opensearch_log_resource_policy_valid if {
+	some change in evaluated_changes
+	change.address == "module.opensearch.aws_cloudwatch_log_resource_policy.opensearch"
+	change.type == "aws_cloudwatch_log_resource_policy"
+	policy_document_field_bound(
+		change.address,
+		"policy_document",
+		"module.opensearch.data.aws_iam_policy_document.log_delivery",
+	)
 }
 
 ecr_security_valid(change) if {
-  values := after(change)
-  object.get(values, "image_tag_mutability", "") == "IMMUTABLE"
-  some scanning in object.get(values, "image_scanning_configuration", [])
-  object.get(scanning, "scan_on_push", false)
-  some encryption in object.get(values, "encryption_configuration", [])
-  object.get(encryption, "encryption_type", "") == "KMS"
-  object.get(encryption, "kms_key", "") != ""
+	values := after(change)
+	object.get(values, "image_tag_mutability", "") == "IMMUTABLE"
+	some scanning in object.get(values, "image_scanning_configuration", [])
+	object.get(scanning, "scan_on_push", false)
+	some encryption in object.get(values, "encryption_configuration", [])
+	object.get(encryption, "encryption_type", "") == "KMS"
+	ecr_kms_key_valid(change, encryption)
+}
+
+ecr_kms_key_valid(_, encryption) if {
+	kms_key := object.get(encryption, "kms_key", "")
+	is_string(kms_key)
+	kms_key != ""
+}
+
+ecr_kms_key_valid(change, _) if {
+	resource_reference_record_exists(
+		change.address,
+		"encryption_configuration[].kms_key",
+		"platform-ecr-kms-key-reference",
+	)
 }
 
 ecr_lifecycle_valid if {
-  some change in evaluated_changes
-  change.type == "aws_ecr_lifecycle_policy"
-  policy := object.get(after(change), "policy", "")
-  contains(policy, `"countType":"imageCountMoreThan"`)
-  contains(policy, `"countNumber":10`)
+	some change in evaluated_changes
+	change.type == "aws_ecr_lifecycle_policy"
+	policy := object.get(after(change), "policy", "")
+	contains(policy, `"countType":"imageCountMoreThan"`)
+	contains(policy, `"countNumber":10`)
 }
 
 secret_material_present if {
-  serialized := json.marshal(input)
-  regex.match(
-    `(?i)"(secret_string|secret_binary|password|passwd|access_key|secret_key|private_key|credential|client_secret|auth_token|api_key)"\s*:`,
-    serialized,
-  )
+	serialized := json.marshal(input)
+	regex.match(
+		`(?i)"(secret_string|secret_binary|password|master_user_password|passwd|access_key|secret_key|private_key|credential|client_secret|auth_token|api_key)"\s*:`,
+		serialized,
+	)
 }
 
 secret_material_present if {
-  some change in resource_changes
-  change_body := object.get(change, "change", {})
-  sensitive := object.get(change_body, "after_sensitive", {})
-  regex.match(`(^|[:,\[])true([,}\]]|$)`, json.marshal(sensitive))
+	some change in resource_changes
+	change_body := object.get(change, "change", {})
+	sensitive := object.get(change_body, "after_sensitive", {})
+	regex.match(`(^|[:,\[])true([,}\]]|$)`, json.marshal(sensitive))
 }
 
 secret_material_present if {
-  some change in resource_changes
-  object.get(change, "type", "") in {
-    "aws_iam_access_key",
-    "aws_secretsmanager_secret_version",
-  }
+	some change in resource_changes
+	object.get(change, "type", "") in {
+		"aws_iam_access_key",
+		"aws_secretsmanager_secret_version",
+	}
 }
 
 registry_schema_version := data.schema_version
 registry_exceptions := data.exceptions
 
 valid_exception_address(address) if {
-  valid_resource_address(address)
-  not contains(address, "*")
-  not contains(address, "?")
-  not endswith(address, ".tf")
-  not endswith(address, ".py")
-  not endswith(address, "/")
+	valid_resource_address(address)
+	not contains(address, "*")
+	not contains(address, "?")
+	not endswith(address, ".tf")
+	not endswith(address, ".py")
+	not endswith(address, "/")
 }
 
 valid_exception_shape(exception) if {
-  is_object(exception)
-  object.keys(exception) == exception_keys
-  exception_id := exception.exception_id
-  is_string(exception_id)
-  regex.match(`^W5-EXC-[A-Z0-9][A-Z0-9-]{0,71}$`, exception_id)
-  exception.policy_id in policy_ids
-  not exception.policy_id in non_exemptible_policy_ids
-  addresses := exception.resource_addresses
-  is_array(addresses)
-  count(addresses) >= 1
-  count(addresses) <= 10
-  count({address | some address in addresses}) == count(addresses)
-  every address in addresses {
-    valid_exception_address(address)
-  }
-  exception.owner == "Gyan Prakash Rai"
-  exception.approver == "Gyan Prakash Rai"
-  is_string(exception.rationale)
-  count(exception.rationale) >= 1
-  count(exception.rationale) <= 500
-  is_string(exception.evidence_reference)
-  count(exception.evidence_reference) >= 1
-  count(exception.evidence_reference) <= 256
-  valid_utc_timestamp(exception.issued_at)
-  valid_utc_timestamp(exception.expires_at)
-  issued_ns := time.parse_rfc3339_ns(exception.issued_at)
-  expires_ns := time.parse_rfc3339_ns(exception.expires_at)
-  expires_ns > issued_ns
-  expires_ns - issued_ns <= week_ns
-  exception.status in {"ACTIVE", "REVOKED"}
+	is_object(exception)
+	object.keys(exception) == exception_keys
+	exception_id := exception.exception_id
+	is_string(exception_id)
+	regex.match(`^W5-EXC-[A-Z0-9][A-Z0-9-]{0,71}$`, exception_id)
+	exception.policy_id in policy_ids
+	not exception.policy_id in non_exemptible_policy_ids
+	addresses := exception.resource_addresses
+	is_array(addresses)
+	count(addresses) >= 1
+	count(addresses) <= 10
+	count({address | some address in addresses}) == count(addresses)
+	every address in addresses {
+		valid_exception_address(address)
+	}
+	exception.owner == "Gyan Prakash Rai"
+	exception.approver == "Gyan Prakash Rai"
+	is_string(exception.rationale)
+	count(exception.rationale) >= 1
+	count(exception.rationale) <= 500
+	is_string(exception.evidence_reference)
+	count(exception.evidence_reference) >= 1
+	count(exception.evidence_reference) <= 256
+	valid_utc_timestamp(exception.issued_at)
+	valid_utc_timestamp(exception.expires_at)
+	issued_ns := time.parse_rfc3339_ns(exception.issued_at)
+	expires_ns := time.parse_rfc3339_ns(exception.expires_at)
+	expires_ns > issued_ns
+	expires_ns - issued_ns <= week_ns
+	exception.status in {"ACTIVE", "REVOKED"}
 }
 
 unique_exception_ids if {
-  ids := {exception.exception_id | some exception in registry_exceptions}
-  count(ids) == count(registry_exceptions)
+	ids := {exception.exception_id | some exception in registry_exceptions}
+	count(ids) == count(registry_exceptions)
 }
 
 unique_exception_bindings if {
-  bindings := [
-    sprintf("%s|%s", [exception.policy_id, address]) |
-    some exception in registry_exceptions
-    some address in exception.resource_addresses
-  ]
-  count({binding | some binding in bindings}) == count(bindings)
+	bindings := [
+	sprintf("%s|%s", [exception.policy_id, address]) |
+		some exception in registry_exceptions
+		some address in exception.resource_addresses
+	]
+	count({binding | some binding in bindings}) == count(bindings)
 }
 
 registry_valid if {
-  registry_schema_version == "w5-003.policy-exceptions.v1"
-  is_array(registry_exceptions)
-  unique_exception_ids
-  unique_exception_bindings
-  every exception in registry_exceptions {
-    valid_exception_shape(exception)
-  }
+	registry_schema_version == "w5-003.policy-exceptions.v1"
+	is_array(registry_exceptions)
+	unique_exception_ids
+	unique_exception_bindings
+	every exception in registry_exceptions {
+		valid_exception_shape(exception)
+	}
 }
 
 exception_state(exception) := "REVOKED" if exception.status == "REVOKED"
 
 exception_state(exception) := "FUTURE" if {
-  exception.status == "ACTIVE"
-  time.parse_rfc3339_ns(exception.issued_at) > evaluation_time_ns
+	exception.status == "ACTIVE"
+	time.parse_rfc3339_ns(exception.issued_at) > evaluation_time_ns
 }
 
 exception_state(exception) := "EXPIRED" if {
-  exception.status == "ACTIVE"
-  time.parse_rfc3339_ns(exception.expires_at) <= evaluation_time_ns
+	exception.status == "ACTIVE"
+	time.parse_rfc3339_ns(exception.expires_at) <= evaluation_time_ns
 }
 
 exception_state(exception) := "ACTIVE" if {
-  exception.status == "ACTIVE"
-  time.parse_rfc3339_ns(exception.issued_at) <= evaluation_time_ns
-  time.parse_rfc3339_ns(exception.expires_at) > evaluation_time_ns
+	exception.status == "ACTIVE"
+	time.parse_rfc3339_ns(exception.issued_at) <= evaluation_time_ns
+	time.parse_rfc3339_ns(exception.expires_at) > evaluation_time_ns
 }
 
 matching_exception(policy_id, resource_address) := exception if {
-  registry_valid
-  some exception in registry_exceptions
-  exception.policy_id == policy_id
-  resource_address in exception.resource_addresses
+	registry_valid
+	some exception in registry_exceptions
+	exception.policy_id == policy_id
+	resource_address in exception.resource_addresses
 }
 
 matching_exception_exists(policy_id, resource_address) if {
-  matching_exception(policy_id, resource_address)
+	matching_exception(policy_id, resource_address)
 }
 
 exception_status_for(policy_id, resource_address) := "INVALID" if {
-  policy_id in policy_ids
-  is_string(resource_address)
-  not registry_valid
+	policy_id in policy_ids
+	is_string(resource_address)
+	not registry_valid
 }
 
 exception_status_for(policy_id, resource_address) := state if {
-  registry_valid
-  exception := matching_exception(policy_id, resource_address)
-  state := exception_state(exception)
+	registry_valid
+	exception := matching_exception(policy_id, resource_address)
+	state := exception_state(exception)
 }
 
 exception_status_for(policy_id, resource_address) := "NONE" if {
-  registry_valid
-  not matching_exception_exists(policy_id, resource_address)
+	registry_valid
+	not matching_exception_exists(policy_id, resource_address)
 }
 
 finding_suppressed(policy_id, resource_address) if {
-  not policy_id in non_exemptible_policy_ids
-  exception := matching_exception(policy_id, resource_address)
-  exception_state(exception) == "ACTIVE"
+	not policy_id in non_exemptible_policy_ids
+	exception := matching_exception(policy_id, resource_address)
+	exception_state(exception) == "ACTIVE"
 }
 
 raw_violations contains violation("W5-PLAN-001", "policy.input") if {
-  not input_contract_valid
+	not input_contract_valid
 }
 
 raw_violations contains violation("W5-REG-001", "policy.region") if {
-  variables := object.get(input, "variables", {})
-  region := object.get(object.get(variables, "aws_region", {}), "value", "")
-  region != "ap-southeast-1"
-  input_contract_valid
+	variables := object.get(input, "variables", {})
+	region := object.get(object.get(variables, "aws_region", {}), "value", "")
+	region != "ap-southeast-1"
+	input_contract_valid
 }
 
 raw_violations contains violation("W5-TAG-001", change.address) if {
-  some change in evaluated_changes
-  change.type in taggable_resource_types
-  after(change) != null
-  tags := tags_for(change)
-  not fixed_tags_valid(tags)
+	some change in evaluated_changes
+	change.type in taggable_resource_types
+	after(change) != null
+	tags := tags_for(change)
+	not fixed_tags_valid(tags)
 }
 
 raw_violations contains violation("W5-TAG-002", change.address) if {
-  some change in evaluated_changes
-  change.type in taggable_resource_types
-  after(change) != null
-  tags := tags_for(change)
-  not expires_at_valid(tags)
+	some change in evaluated_changes
+	change.type in taggable_resource_types
+	after(change) != null
+	tags := tags_for(change)
+	not expires_at_valid(tags)
 }
 
 raw_violations contains violation("W5-PLAN-002", change.address) if {
-  some change in evaluated_changes
-  destructive_change(change)
+	some change in evaluated_changes
+	unapproved_initial_change(change)
 }
 
 raw_violations contains violation("W5-S3-001", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_s3_bucket_public_access_block"
-  not s3_public_access_valid(change)
+	some change in evaluated_changes
+	change.type == "aws_s3_bucket_public_access_block"
+	not s3_public_access_valid(change)
 }
 
 raw_violations contains violation("W5-S3-001", bucket.address) if {
-  some bucket in evaluated_changes
-  bucket.type == "aws_s3_bucket"
-  after(bucket) != null
-  not related_change_exists(bucket, "aws_s3_bucket_public_access_block")
+	some bucket in evaluated_changes
+	bucket.type == "aws_s3_bucket"
+	after(bucket) != null
+	not related_change_exists(bucket, "aws_s3_bucket_public_access_block")
 }
 
 raw_violations contains violation("W5-S3-002", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_s3_bucket_server_side_encryption_configuration"
-  not s3_encryption_valid(change)
+	some change in evaluated_changes
+	change.type == "aws_s3_bucket_server_side_encryption_configuration"
+	not s3_encryption_valid(change)
 }
 
 raw_violations contains violation("W5-S3-002", bucket.address) if {
-  some bucket in evaluated_changes
-  bucket.type == "aws_s3_bucket"
-  after(bucket) != null
-  not related_change_exists(bucket, "aws_s3_bucket_server_side_encryption_configuration")
+	some bucket in evaluated_changes
+	bucket.type == "aws_s3_bucket"
+	after(bucket) != null
+	not related_change_exists(bucket, "aws_s3_bucket_server_side_encryption_configuration")
 }
 
 raw_violations contains violation("W5-S3-003", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_s3_bucket_versioning"
-  not s3_versioning_valid(change)
+	some change in evaluated_changes
+	change.type == "aws_s3_bucket_versioning"
+	not s3_versioning_valid(change)
 }
 
 raw_violations contains violation("W5-S3-003", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_s3_bucket_lifecycle_configuration"
-  not s3_lifecycle_valid(change, change.address)
+	some change in evaluated_changes
+	change.type == "aws_s3_bucket_lifecycle_configuration"
+	not s3_lifecycle_valid(change, change.address)
 }
 
 raw_violations contains violation("W5-S3-003", bucket.address) if {
-  some bucket in evaluated_changes
-  bucket.type == "aws_s3_bucket"
-  after(bucket) != null
-  not related_change_exists(bucket, "aws_s3_bucket_versioning")
+	some bucket in evaluated_changes
+	bucket.type == "aws_s3_bucket"
+	after(bucket) != null
+	not related_change_exists(bucket, "aws_s3_bucket_versioning")
 }
 
 raw_violations contains violation("W5-S3-003", bucket.address) if {
-  some bucket in evaluated_changes
-  bucket.type == "aws_s3_bucket"
-  after(bucket) != null
-  not related_change_exists(bucket, "aws_s3_bucket_lifecycle_configuration")
+	some bucket in evaluated_changes
+	bucket.type == "aws_s3_bucket"
+	after(bucket) != null
+	not related_change_exists(bucket, "aws_s3_bucket_lifecycle_configuration")
 }
 
 raw_violations contains violation("W5-S3-004", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_s3_bucket_policy"
-  not s3_tls_policy_valid(change)
+	some change in evaluated_changes
+	change.type == "aws_s3_bucket_policy"
+	not s3_tls_policy_evidence_valid(change)
 }
 
 raw_violations contains violation("W5-S3-004", bucket.address) if {
-  some bucket in evaluated_changes
-  bucket.type == "aws_s3_bucket"
-  after(bucket) != null
-  not related_change_exists(bucket, "aws_s3_bucket_policy")
+	some bucket in evaluated_changes
+	bucket.type == "aws_s3_bucket"
+	after(bucket) != null
+	not related_change_exists(bucket, "aws_s3_bucket_policy")
 }
 
 raw_violations contains violation("W5-KMS-001", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_kms_key"
-  values := after(change)
-  not object.get(values, "enable_key_rotation", false)
+	some change in evaluated_changes
+	change.type == "aws_kms_key"
+	values := after(change)
+	not object.get(values, "enable_key_rotation", false)
 }
 
 raw_violations contains violation("W5-KMS-001", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_kms_key"
-  object.get(after(change), "deletion_window_in_days", 0) != 7
+	some change in evaluated_changes
+	change.type == "aws_kms_key"
+	object.get(after(change), "deletion_window_in_days", 0) != 7
 }
 
 raw_violations contains violation("W5-IAM-001", change.address) if {
-  some change in evaluated_changes
-  change.type in {"aws_iam_policy", "aws_iam_role_policy", "aws_cloudwatch_log_resource_policy"}
-  policy := policy_text(change)
-  policy_has_action_wildcard(policy)
+	some change in evaluated_changes
+	change.type in {"aws_iam_policy", "aws_iam_role_policy", "aws_cloudwatch_log_resource_policy"}
+	policy := policy_text(change)
+	policy_has_action_wildcard(policy)
 }
 
 raw_violations contains violation("W5-IAM-001", change.address) if {
-  some change in evaluated_changes
-  change.type in {"aws_iam_policy", "aws_iam_role_policy", "aws_cloudwatch_log_resource_policy"}
-  policy := policy_text(change)
-  policy_has_prohibited_action(policy)
+	some change in evaluated_changes
+	change.type in {"aws_iam_policy", "aws_iam_role_policy", "aws_cloudwatch_log_resource_policy"}
+	policy := policy_text(change)
+	policy_has_prohibited_action(policy)
 }
 
 raw_violations contains violation("W5-IAM-002", change.address) if {
-  some change in evaluated_changes
-  change.type in {"aws_iam_policy", "aws_iam_role", "aws_iam_role_policy", "aws_cloudwatch_log_resource_policy"}
-  policy := policy_text(change)
-  iam_scope_invalid(policy)
+	some change in evaluated_changes
+	change.type in {"aws_iam_policy", "aws_iam_role", "aws_iam_role_policy", "aws_cloudwatch_log_resource_policy"}
+	policy := policy_text(change)
+	iam_scope_invalid(policy)
 }
 
 raw_violations contains violation("W5-NET-001", change.address) if {
-  some change in evaluated_changes
-  network_topology_invalid(change)
+	some change in evaluated_changes
+	network_topology_invalid(change)
 }
 
 raw_violations contains violation("W5-NET-002", change.address) if {
-  some change in evaluated_changes
-  network_traffic_invalid(change)
+	some change in evaluated_changes
+	network_traffic_invalid(change)
 }
 
 raw_violations contains violation("W5-OS-001", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_opensearch_domain"
-  not opensearch_security_valid(change)
+	some change in evaluated_changes
+	change.type == "aws_opensearch_domain"
+	not opensearch_security_valid(change)
 }
 
 raw_violations contains violation("W5-OS-002", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_opensearch_domain"
-  opensearch_security_valid(change)
-  not opensearch_logs_valid(change)
+	some change in evaluated_changes
+	change.type == "aws_opensearch_domain"
+	opensearch_security_valid(change)
+	not opensearch_logs_valid(change)
 }
 
 raw_violations contains violation("W5-OS-002", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_opensearch_domain"
-  opensearch_security_valid(change)
-  opensearch_logs_valid(change)
-  not opensearch_log_groups_valid
+	some change in evaluated_changes
+	change.type == "aws_opensearch_domain"
+	opensearch_security_valid(change)
+	opensearch_logs_valid(change)
+	not opensearch_log_groups_valid
 }
 
 raw_violations contains violation("W5-OS-002", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_opensearch_domain"
-  opensearch_security_valid(change)
-  opensearch_logs_valid(change)
-  opensearch_log_groups_valid
-  not opensearch_log_resource_policy_valid
+	some change in evaluated_changes
+	change.type == "aws_opensearch_domain"
+	opensearch_security_valid(change)
+	opensearch_logs_valid(change)
+	opensearch_log_groups_valid
+	not opensearch_log_resource_policy_valid
 }
 
 raw_violations contains violation("W5-ECR-001", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_ecr_repository"
-  not ecr_security_valid(change)
+	some change in evaluated_changes
+	change.type == "aws_ecr_repository"
+	not ecr_security_valid(change)
 }
 
 raw_violations contains violation("W5-ECR-002", change.address) if {
-  some change in evaluated_changes
-  change.type == "aws_ecr_repository"
-  ecr_security_valid(change)
-  not ecr_lifecycle_valid
+	some change in evaluated_changes
+	change.type == "aws_ecr_repository"
+	ecr_security_valid(change)
+	not ecr_lifecycle_valid
 }
 
 raw_violations contains violation("W5-SEC-001", "policy.input") if {
-  secret_material_present
+	secret_material_present
 }
 
 raw_violations contains violation("W5-EXC-001", "policy.exceptions") if {
-  not registry_valid
+	not registry_valid
 }
 
 safe_finding(item) := {
-  "schema_version": "w5-003.policy-finding.v1",
-  "policy_id": item.policy_id,
-  "severity": metadata.severity,
-  "resource_address": item.resource_address,
-  "category": metadata.category,
-  "remediation_code": metadata.remediation_code,
-  "exception_status": exception_status_for(item.policy_id, item.resource_address),
+	"schema_version": "w5-003.policy-finding.v1",
+	"policy_id": item.policy_id,
+	"severity": metadata.severity,
+	"resource_address": item.resource_address,
+	"category": metadata.category,
+	"remediation_code": metadata.remediation_code,
+	"exception_status": exception_status_for(item.policy_id, item.resource_address),
 } if {
-  metadata := policy_by_id[item.policy_id]
+	metadata := policy_by_id[item.policy_id]
 }
 
 effective_findings contains finding if {
-  some item in raw_violations
-  not finding_suppressed(item.policy_id, item.resource_address)
-  finding := safe_finding(item)
+	some item in raw_violations
+	not finding_suppressed(item.policy_id, item.resource_address)
+	finding := safe_finding(item)
 }
 
-finding_map := {
-  sprintf("%s|%s|%s", [finding.policy_id, finding.resource_address, finding.remediation_code]): finding |
-  some finding in effective_findings
+finding_map := {sprintf("%s|%s|%s", [finding.policy_id, finding.resource_address, finding.remediation_code]): finding |
+	some finding in effective_findings
 }
 
 finding_keys := sort(object.keys(finding_map))
 
 findings := [
-  finding_map[key] |
-  some index
-  key := finding_keys[index]
+finding_map[key] |
+	some index
+	key := finding_keys[index]
 ]
 
 deny := findings
@@ -946,3 +2298,432 @@ deny := findings
 allow if count(findings) == 0
 
 policy_evaluated := true
+
+# The legacy package remains readable for historical offline evidence. Production
+# queries only decision and must supply the bound, operation-specific v2 profile.
+operational := object.get(evaluation_context, "operation", {})
+
+operational_rule(change) := rule if {
+	some rule in object.get(operational, "rules", [])
+	rule.address == change.address
+	rule.resource_type == change.type
+	rule.actions == change.change.actions
+}
+
+operational_expiry_delta(change, rule) if {
+	rule.delta_rule == "EXPIRES_AT"
+	rule.update_paths == ["tags.ExpiresAt", "tags_all.ExpiresAt"]
+	change.address != "terraform_data.owner_expiry_gate"
+	change.change.actions == ["update"]
+	before_values := change.change.before
+	after_values := change.change.after
+	is_object(before_values)
+	is_object(after_values)
+	object.remove(before_values, {"tags", "tags_all"}) == object.remove(after_values, {"tags", "tags_all"})
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, operational.resource_expires_at)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
+	change_has_no_sensitive_markers(change)
+	not critical_unknown_present(change)
+}
+
+operational_expiry_delta(change, rule) if {
+	rule.delta_rule == "EXPIRES_AT"
+	rule.update_paths == ["input"]
+	change.address == "terraform_data.owner_expiry_gate"
+	valid_owner_expiry_gate_recovery_update(change)
+	change.change.after.input == operational.resource_expires_at
+}
+
+operational_expiry_delta(change, rule) if {
+	rule.delta_rule == "RUNTIME_IAM_EXPIRY"
+	rule.update_paths == ["policy.Statement[Sid=InvokeExactApprovedInferenceProfile].Condition.DateLessThan.aws:CurrentTime"]
+	change.address == "module.iam.aws_iam_role_policy.runtime"
+	valid_runtime_policy_expiry_recovery_update(change)
+	changes_by_address["terraform_data.owner_expiry_gate"].change.after.input == operational.resource_expires_at
+}
+
+approved_opensearch_log_context_arns := [
+	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/application-logs",
+	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/audit-logs",
+	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/index-slow-logs",
+	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/search-slow-logs",
+]
+
+approved_opensearch_log_encryption_statement := {
+	"Sid": "AllowExactOpenSearchLogEncryption",
+	"Effect": "Allow",
+	"Principal": {"Service": "logs.ap-southeast-1.amazonaws.com"},
+	"Action": [
+		"kms:Decrypt",
+		"kms:DescribeKey",
+		"kms:Encrypt",
+		"kms:GenerateDataKey",
+		"kms:GenerateDataKeyWithoutPlaintext",
+		"kms:ReEncryptFrom",
+		"kms:ReEncryptTo",
+	],
+	"Resource": "*",
+	"Condition": {
+		"ArnEquals": {
+			"kms:EncryptionContext:aws:logs:arn": approved_opensearch_log_context_arns,
+		},
+	},
+}
+
+approved_opensearch_log_encryption_statement_before := object.union(
+	approved_opensearch_log_encryption_statement,
+	{
+		"Condition": {
+			"ArnEquals": {
+				"kms:EncryptionContext:aws:logs:arn": approved_opensearch_log_context_arns,
+			},
+			"StringEquals": {
+				"kms:ViaService": "logs.ap-southeast-1.amazonaws.com",
+			},
+		},
+	},
+)
+
+approved_opensearch_log_encryption_actions := {
+	"kms:Decrypt",
+	"kms:DescribeKey",
+	"kms:Encrypt",
+	"kms:GenerateDataKey",
+	"kms:GenerateDataKeyWithoutPlaintext",
+	"kms:ReEncryptFrom",
+	"kms:ReEncryptTo",
+}
+
+approved_opensearch_log_context_arn_set := {
+arn |
+	arn := approved_opensearch_log_context_arns[_]
+}
+
+exact_string_members(values, expected) if {
+	is_array(values)
+	count(values) == count(expected)
+	{value | value := values[_]} == expected
+}
+
+exact_string_value_or_members(value, expected) if {
+	is_string(value)
+	expected == {value}
+}
+
+exact_string_value_or_members(value, expected) if {
+	exact_string_members(value, expected)
+}
+
+valid_opensearch_log_encryption_statement_core(statement) if {
+	object.keys(statement) == {
+		"Action",
+		"Condition",
+		"Effect",
+		"Principal",
+		"Resource",
+		"Sid",
+	}
+	statement.Sid == "AllowExactOpenSearchLogEncryption"
+	statement.Effect == "Allow"
+	exact_string_value_or_members(statement.Resource, {"*"})
+	statement.Principal == {"Service": "logs.ap-southeast-1.amazonaws.com"}
+	exact_string_members(
+		statement.Action,
+		approved_opensearch_log_encryption_actions,
+	)
+}
+
+valid_opensearch_log_encryption_statement_after(statement) if {
+	valid_opensearch_log_encryption_statement_core(statement)
+
+	condition := statement.Condition
+	object.keys(condition) == {"ArnEquals"}
+
+	arn_equals := condition.ArnEquals
+	object.keys(arn_equals) == {"kms:EncryptionContext:aws:logs:arn"}
+
+	exact_string_members(
+		arn_equals["kms:EncryptionContext:aws:logs:arn"],
+		approved_opensearch_log_context_arn_set,
+	)
+}
+
+valid_opensearch_log_encryption_statement_before(statement) if {
+	valid_opensearch_log_encryption_statement_core(statement)
+
+	condition := statement.Condition
+	object.keys(condition) == {"ArnEquals", "StringEquals"}
+
+	arn_equals := condition.ArnEquals
+	object.keys(arn_equals) == {"kms:EncryptionContext:aws:logs:arn"}
+	exact_string_members(
+		arn_equals["kms:EncryptionContext:aws:logs:arn"],
+		approved_opensearch_log_context_arn_set,
+	)
+
+	string_equals := condition.StringEquals
+	object.keys(string_equals) == {"kms:ViaService"}
+	string_equals["kms:ViaService"] == "logs.ap-southeast-1.amazonaws.com"
+}
+
+valid_opensearch_log_viaservice_removal(before_policy, after_policy) if {
+	is_string(before_policy)
+	is_string(after_policy)
+
+	before_document := json.unmarshal(before_policy)
+	after_document := json.unmarshal(after_policy)
+
+	is_object(before_document)
+	is_object(after_document)
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+
+	before_statements := object.get(before_document, "Statement", [])
+	after_statements := object.get(after_document, "Statement", [])
+	is_array(before_statements)
+	is_array(after_statements)
+	count(before_statements) == count(after_statements)
+
+	before_target := [
+	statement |
+		statement := before_statements[_]
+		object.get(statement, "Sid", "") == "AllowExactOpenSearchLogEncryption"
+	]
+	after_target := [
+	statement |
+		statement := after_statements[_]
+		object.get(statement, "Sid", "") == "AllowExactOpenSearchLogEncryption"
+	]
+
+	count(before_target) == 1
+	count(after_target) == 1
+	valid_opensearch_log_encryption_statement_before(before_target[0])
+	valid_opensearch_log_encryption_statement_after(after_target[0])
+
+	before_other := {
+	json.marshal(statement) |
+		statement := before_statements[_]
+		object.get(statement, "Sid", "") != "AllowExactOpenSearchLogEncryption"
+	}
+	after_other := {
+	json.marshal(statement) |
+		statement := after_statements[_]
+		object.get(statement, "Sid", "") != "AllowExactOpenSearchLogEncryption"
+	}
+
+	count(before_other) == count(before_statements) - 1
+	count(after_other) == count(after_statements) - 1
+	before_other == after_other
+}
+
+valid_platform_kms_log_compatibility_update(change, expected_expiry) if {
+	valid_normalized_recovery_update(
+		change,
+		platform_kms_address,
+		"aws_kms_key",
+	)
+
+	before_values := change.change.before
+	after_values := change.change.after
+
+	object.remove(before_values, {"policy", "tags", "tags_all"}) == object.remove(after_values, {"policy", "tags", "tags_all"})
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, expected_expiry)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, expected_expiry)
+	valid_opensearch_log_viaservice_removal(before_values.policy, after_values.policy)
+}
+
+operational_expiry_delta(change, rule) if {
+	rule.delta_rule == "EXPIRES_AT"
+	rule.update_paths == ["tags.ExpiresAt", "tags_all.ExpiresAt"]
+	change.address == platform_kms_address
+	valid_platform_kms_log_compatibility_update(change, operational.resource_expires_at)
+}
+
+operational_change_valid(change, rule) if {
+	change.change.actions in [["create"], ["read"], ["no-op"]]
+	rule.update_paths == []
+	rule.delta_rule == "NONE"
+	valid_change(change)
+	change_has_no_sensitive_markers(change)
+}
+
+operational_change_valid(change, rule) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	operational_expiry_delta(change, rule)
+}
+
+operational_apply_profile_valid if {
+	is_object(operational)
+	object.keys(operational) == {
+		"schema_version", "operation_id", "action", "profile", "rules", "state_lineage",
+		"state_serial", "inventory_sha256", "source_sha256", "resource_expires_at", "expires_at",
+	}
+	operational.schema_version == "w5-004.lifecycle.v2"
+	is_string(operational.operation_id)
+	operational.operation_id != ""
+	operational.action in {"BOOTSTRAP-APPLY", "PLATFORM-APPLY"}
+	operational.profile in {"INITIAL", "PARTIAL_RECOVERY"}
+	valid_utc_timestamp(operational.expires_at)
+	time.parse_rfc3339_ns(operational.expires_at) > evaluation_time_ns
+	valid_utc_timestamp(operational.resource_expires_at)
+	time.parse_rfc3339_ns(operational.resource_expires_at) == evaluation_time_ns + 85500000000000
+	regex.match("^[0-9a-f]{64}$", operational.inventory_sha256)
+	regex.match("^[0-9a-f]{64}$", operational.source_sha256)
+	is_array(operational.rules)
+	count(operational.rules) > 0
+	count(operational.rules) == count(resource_changes)
+	count(operational.rules) == count({rule.address | some rule in operational.rules})
+	every change in resource_changes {
+		rule := operational_rule(change)
+		object.keys(rule) == {"address", "resource_type", "actions", "update_paths", "delta_rule"}
+		operational_change_valid(change, rule)
+	}
+}
+
+operational_profile_valid if operational_apply_profile_valid
+
+operational_profile_valid if operational_destroy_profile_valid
+
+operational_destroy_resource_valid(change) if {
+	change.type in supported_aws_resource_types
+	valid_resource_address(change.address)
+}
+
+operational_destroy_resource_valid(change) if {
+	change.address == "terraform_data.owner_expiry_gate"
+	change.type == "terraform_data"
+}
+
+operational_destroy_change_valid(change, rule) if {
+	operational_destroy_resource_valid(change)
+	rule.update_paths == []
+	rule.delta_rule == "NONE"
+	change.change.actions == ["delete"]
+	is_object(change.change.before)
+	change.change.after == null
+	change.change.after_unknown == {}
+	change_has_no_sensitive_markers(change)
+}
+
+operational_destroy_change_valid(change, rule) if {
+	rule.update_paths == []
+	rule.delta_rule == "NONE"
+	change.change.actions in [["read"], ["no-op"]]
+	valid_change(change)
+	change_has_no_sensitive_markers(change)
+	not critical_unknown_present(change)
+}
+
+operational_destroy_profile_valid if {
+	valid_before_sensitive_context
+	input.terraform_version == "1.16.1"
+	input.variables.aws_region.value == "ap-southeast-1"
+	is_string(input.format_version)
+	object.keys(operational) == {
+		"schema_version", "operation_id", "action", "profile", "rules", "state_lineage",
+		"state_serial", "inventory_sha256", "source_sha256", "resource_expires_at", "expires_at",
+	}
+	operational.schema_version == "w5-004.lifecycle.v2"
+	operational.profile == "DESTROY"
+	operational.action in {"PLATFORM-DESTROY", "BOOTSTRAP-DESTROY"}
+	is_string(operational.operation_id)
+	operational.operation_id != ""
+	is_string(operational.state_lineage)
+	operational.state_lineage != ""
+	is_number(operational.state_serial)
+	operational.state_serial >= 0
+	floor(operational.state_serial) == operational.state_serial
+	valid_utc_timestamp(operational.expires_at)
+	time.parse_rfc3339_ns(operational.expires_at) > evaluation_time_ns
+	time.parse_rfc3339_ns(operational.expires_at) <= evaluation_time_ns + 3600000000000
+	regex.match("^[0-9a-f]{64}$", operational.inventory_sha256)
+	regex.match("^[0-9a-f]{64}$", operational.source_sha256)
+	is_array(operational.rules)
+	count(operational.rules) > 0
+	count(operational.rules) == count(resource_changes)
+	count(operational.rules) == count({rule.address | some rule in operational.rules})
+	count(resource_changes) == count({candidate.address | some candidate in resource_changes})
+	some change in resource_changes
+	change.change.actions == ["delete"]
+	every candidate in resource_changes {
+		rule := operational_rule(candidate)
+		object.keys(rule) == {"address", "resource_type", "actions", "update_paths", "delta_rule"}
+		operational_destroy_change_valid(candidate, rule)
+	}
+}
+
+critical_unknown_present(change) if {
+	walk(object.get(change.change, "after_unknown", {}), [path, true])
+	some part in path
+	part in {"account_id", "aws_region", "cidr_block", "egress", "ingress", "kms_key_id", "policy", "publicly_accessible", "security_group_ids", "subnet_id", "subnet_ids", "tags", "tags_all", "vpc_id"}
+}
+
+partial_platform_recovery_plan_valid if {
+	operational.profile == "PARTIAL_RECOVERY"
+	operational.action == "PLATFORM-APPLY"
+	operational_profile_valid
+}
+
+production_findings contains item if {
+	operational.profile != "DESTROY"
+	some item in effective_findings
+}
+
+# Destroy reviews use deletion/ownership rules rather than requiring resources
+# being removed to satisfy create-only configuration tests. Privacy and the
+# exception registry remain mandatory, and the dispatch gate binds native ownership.
+production_findings contains item if {
+	operational.profile == "DESTROY"
+	not registry_valid
+	item := safe_finding(violation("W5-EXC-001", "policy.exceptions"))
+}
+
+production_findings contains item if {
+	operational.profile == "DESTROY"
+	secret_material_present
+	item := safe_finding(violation("W5-SEC-001", "policy.input"))
+}
+
+production_findings contains item if {
+	not operational_profile_valid
+	item := safe_finding(violation("W5-PLAN-002", "policy.operation"))
+}
+
+decision := {
+	"schema_version": "w5-004.policy-decision.v2",
+	"allow": count(production_findings) == 0,
+	"findings": sort(production_findings),
+}
+
+valid_before_sensitive_context if {
+	bindings := object.get(evaluation_context, "provider_sensitive_before_nulls", [])
+	is_array(bindings)
+	count(bindings) <= 1
+	every binding in bindings {
+		object.keys(binding) == {"address", "type", "field_path", "relationship", "source_address"}
+		binding.address == opensearch_domain_address
+		binding.type == "aws_opensearch_domain"
+		binding.field_path == opensearch_password_field_path
+		binding.relationship == opensearch_existing_sensitive_relationship
+		binding.source_address == opensearch_admin_role_address
+		domain := changes_by_address[opensearch_domain_address]
+		domain.type == "aws_opensearch_domain"
+		before := domain.change.before
+		is_object(before)
+		count(before.advanced_security_options) == 1
+		advanced := before.advanced_security_options[0]
+		advanced.enabled == true
+		advanced.internal_user_database_enabled == false
+		count(advanced.master_user_options) == 1
+		master := advanced.master_user_options[0]
+		object.get(master, "master_user_name", null) == null
+		object.get(master, "master_user_password", null) == null
+		is_string(master.master_user_arn)
+		master.master_user_arn != ""
+		role := changes_by_address[opensearch_admin_role_address]
+		role.type == "aws_iam_role"
+		role.change.before.arn == master.master_user_arn
+		is_string(role.change.before.assume_role_policy)
+		valid_false_only_sensitive_shape(object.get(role.change, "before_sensitive", {}))
+		change_has_no_sensitive_markers(domain)
+	}
+}

@@ -12,6 +12,13 @@ SYFT ?= E:/AI/.tools/syft/1.51.1/syft.exe
 COSIGN ?= E:/AI/.tools/cosign/3.1.2/cosign.exe
 CHAINCTL ?= E:/AI/.tools/chainctl/0.2.346/chainctl.exe
 UV ?= E:/AI/.tools/uv/0.12.9/uv-x86_64-unknown-linux-gnu/uv
+INFRACOST ?= E:/AI/.tools/infracost/0.10.45/infracost.exe
+W5_004_CONFIG = configs/lifecycle/w5-004.json
+W5_004_APPROVAL ?= owner-must-supply-exact-external-approval.json
+W5_004_CONFIRMATION ?= owner-must-supply-exact-typed-confirmation
+W5_004_ARTIFACT_SHA256 ?= owner-must-supply-exact-lowercase-sha256
+W5_004_TARGET ?= owner-must-supply-exact-target
+W5_004_EXECUTION_FLAGS ?=
 W5_002_CONFIG = configs/ci/w5-002.json
 W5_002_REPORTS = reports/w5-002
 W5_002_OCI ?= owner-must-supply-exact-external-w5-002-py313-candidate.oci
@@ -26,9 +33,10 @@ W2_004_COMPOSE = docker compose -p enterprise-ai-w2-004a -f docker-compose.yml -
 W2_004_RUNNER_IMAGE = enterprise-ai-w2-004a-local_retrieval_runner:latest
 
 .PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke terraform-fmt-check terraform-validate-bootstrap terraform-validate-sandbox tflint-bootstrap tflint-sandbox checkov-config checkov-terraform opa-policy-check opa-terraform-policy w5-policy-tests w5-policy-rollback bedrock-owner-dry-run w5-static-tests w5-002-validate-config w5-002-validate-locks w5-002-static w5-002-workflow-contract w5-002-build w5-002-scan w5-002-sbom w5-002-clean-runtime w5-002-reconcile w5-002-rollback-identity w5-002-clean w5-002-verify-clean
+.PHONY: plan-sandbox w5-004-bootstrap-plan w5-004-bootstrap-apply w5-004-platform-plan w5-004-policy-review w5-004-cost-review w5-004-platform-apply w5-004-aws-verify w5-004-infrastructure-rollback w5-004-destroy-plan w5-004-purge-sandbox w5-004-platform-destroy w5-004-bootstrap-destroy w5-004-verify-clean
 
 help:
-	@echo "Available targets include W5-002 Python 3.13 validation, build, scan, SBOM, reconciliation, rollback identity, and bounded cleanup; execution remains owner-controlled."
+	@echo "Available targets include W5-002 supply-chain controls and separately owner-gated W5-004 plan, apply, rollback, destroy, and cleanliness phases."
 
 validate:
 	$(PYTHON) -m tools.platformctl validate
@@ -191,3 +199,50 @@ w5-002-clean:
 
 w5-002-verify-clean:
 	powershell -NoProfile -Command "if (Test-Path -LiteralPath '$(W5_002_OCI)') { throw 'W5-002 OCI archive remains' }; if (Test-Path -LiteralPath '$(W5_002_RAW_DIR)') { throw 'W5-002 raw scanner directory remains' }; if (Test-Path -LiteralPath '$(W5_002_REPORTS)') { throw 'W5-002 report directory remains' }; if (docker buildx inspect '$(W5_002_BUILDER)' 2>$$null) { throw 'W5-002 migration builder remains' }"
+
+w5-004-bootstrap-plan:
+	# Intent only. Execution uses a separately bound v2 request and owner approval.
+	$(PYTHON) -B -m tools.platformctl bootstrap-plan --environment sandbox --target bootstrap $(W5_004_EXECUTION_FLAGS)
+
+w5-004-bootstrap-apply:
+	$(PYTHON) -B -m tools.platformctl bootstrap-apply --environment sandbox --aws-account-id 526338061652 --aws-region ap-southeast-1 --target bootstrap --artifact-sha256 $(W5_004_ARTIFACT_SHA256) --approval-record $(W5_004_APPROVAL) --confirmation "$(W5_004_CONFIRMATION)" --executor Gyan-Prakash-Rai $(W5_004_EXECUTION_FLAGS)
+
+w5-004-platform-plan:
+	$(PYTHON) -B -m tools.platformctl platform-plan --environment sandbox --target platform $(W5_004_EXECUTION_FLAGS)
+
+plan-sandbox: w5-004-platform-plan
+
+w5-004-policy-review:
+	$(PYTHON) -B -m tools.platformctl policy-review --environment sandbox --target $(W5_004_TARGET) $(W5_004_EXECUTION_FLAGS)
+
+w5-004-cost-review:
+	$(PYTHON) -B -m tools.platformctl cost-review --environment sandbox --target $(W5_004_TARGET) $(W5_004_EXECUTION_FLAGS)
+
+w5-004-platform-apply:
+	$(PYTHON) -B -m tools.platformctl platform-apply --environment sandbox --aws-account-id 526338061652 --aws-region ap-southeast-1 --target platform --artifact-sha256 $(W5_004_ARTIFACT_SHA256) --approval-record $(W5_004_APPROVAL) --confirmation "$(W5_004_CONFIRMATION)" --executor Gyan-Prakash-Rai $(W5_004_EXECUTION_FLAGS)
+
+w5-004-aws-verify:
+	$(PYTHON) -B -m tools.platformctl aws-verify --environment sandbox --target $(W5_004_TARGET) $(W5_004_EXECUTION_FLAGS)
+
+w5-004-infrastructure-rollback:
+	$(PYTHON) -B -m tools.platformctl infrastructure-rollback --environment sandbox --aws-account-id 526338061652 --aws-region ap-southeast-1 --target platform --artifact-sha256 $(W5_004_ARTIFACT_SHA256) --approval-record $(W5_004_APPROVAL) --confirmation "$(W5_004_CONFIRMATION)" --executor Gyan-Prakash-Rai $(W5_004_EXECUTION_FLAGS)
+
+w5-004-destroy-plan:
+	$(PYTHON) -B -m tools.platformctl destroy-plan --environment sandbox --target $(W5_004_TARGET) $(W5_004_EXECUTION_FLAGS)
+
+w5-004-purge-sandbox:
+	$(PYTHON) -B -m tools.platformctl purge-sandbox --environment sandbox --aws-account-id 526338061652 --aws-region ap-southeast-1 --target $(W5_004_TARGET) --artifact-sha256 $(W5_004_ARTIFACT_SHA256) --approval-record $(W5_004_APPROVAL) --confirmation "$(W5_004_CONFIRMATION)" --executor Gyan-Prakash-Rai $(W5_004_EXECUTION_FLAGS)
+
+w5-004-platform-destroy:
+	$(PYTHON) -B -m tools.platformctl platform-destroy --environment sandbox --aws-account-id 526338061652 --aws-region ap-southeast-1 --target platform --artifact-sha256 $(W5_004_ARTIFACT_SHA256) --approval-record $(W5_004_APPROVAL) --confirmation "$(W5_004_CONFIRMATION)" --executor Gyan-Prakash-Rai $(W5_004_EXECUTION_FLAGS)
+
+w5-004-bootstrap-destroy:
+	$(PYTHON) -B -m tools.platformctl bootstrap-destroy --environment sandbox --aws-account-id 526338061652 --aws-region ap-southeast-1 --target bootstrap --artifact-sha256 $(W5_004_ARTIFACT_SHA256) --approval-record $(W5_004_APPROVAL) --confirmation "$(W5_004_CONFIRMATION)" --executor Gyan-Prakash-Rai $(W5_004_EXECUTION_FLAGS)
+
+w5-004-verify-clean:
+	$(PYTHON) -B -m tools.platformctl verify-clean --environment sandbox $(W5_004_EXECUTION_FLAGS)
+
+# Thin owner launch interface; no hashes, decisions or PASS markers are synthesized here.
+.PHONY: w5-004-request-help
+w5-004-request-help:
+	$(PYTHON) -B -m tools.platformctl platform-plan --help

@@ -85,11 +85,6 @@ data "aws_iam_policy_document" "this" {
       variable = "kms:EncryptionContext:aws:logs:arn"
       values   = var.opensearch_log_group_arns
     }
-    condition {
-      test     = "StringEquals"
-      variable = "kms:ViaService"
-      values   = ["logs.ap-southeast-1.amazonaws.com"]
-    }
   }
 }
 

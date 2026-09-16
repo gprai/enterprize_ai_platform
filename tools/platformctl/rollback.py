@@ -1,19 +1,23 @@
-"""Offline immutable-release rollback validation."""
+"""Owner-gated infrastructure rollback validation."""
 
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 
 from .contracts import (
     Action,
+    ApprovalConsumptionRegistry,
     ApprovalRecord,
     ApprovalUsageRegistry,
     ContractError,
     ExitCode,
     MutationRequest,
     OperationResult,
+    VerifiedExecutionContext,
     validate_mutation_request,
 )
+from .terraform_runner import TerraformRunner
 
 
 def validate_request(
@@ -22,17 +26,43 @@ def validate_request(
     usage_registry: ApprovalUsageRegistry,
     now: datetime,
 ) -> OperationResult:
-    """Validate an immutable rollback request without restoring a release."""
-    if request.action is not Action.ROLLBACK:
+    """Validate an infrastructure rollback without redefining release rollback."""
+    if request.action is not Action.INFRASTRUCTURE_ROLLBACK:
         raise ContractError("rollback request uses the wrong action")
     validate_mutation_request(
         request,
         approval,
         usage_registry,
         now,
-        require_resource_expiry=False,
     )
     return OperationResult(
         ExitCode.SUCCESS,
-        "DRY_RUN: rollback intent validated; no release was restored",
+        "DRY_RUN: infrastructure rollback intent validated; no plan was applied",
+    )
+
+
+def apply_approved_infrastructure_rollback(
+    request: MutationRequest,
+    approval: ApprovalRecord,
+    usage_registry: ApprovalConsumptionRegistry,
+    now: datetime,
+    *,
+    runner: TerraformRunner,
+    terraform_root: Path,
+    saved_plan: Path,
+    execution_context: VerifiedExecutionContext | None = None,
+) -> OperationResult:
+    """Apply a separately reviewed last-known-good Terraform plan."""
+    validate_request(request, approval, usage_registry, now)
+    from .plan import execute_reviewed_plan
+
+    return execute_reviewed_plan(
+        request,
+        approval.approval_id,
+        usage_registry,
+        now,
+        runner=runner,
+        terraform_root=terraform_root,
+        saved_plan=saved_plan,
+        execution_context=execution_context,
     )

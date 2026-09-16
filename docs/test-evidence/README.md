@@ -65,6 +65,32 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W5-002 aggregate evidence](W5-002.md) — **TEST-001 FAIL** at the mandatory OCI zero-critical-vulnerability gate; the candidate is rejected and ineligible, SBOM generation is complete, and provenance/eligibility reconciliation remains NOT RUN.
 - [W5-07 local CI and workflow evidence](W5-07-ci.txt) — owner-executed local quality, workflow, policy, Terraform, rollback, and cleanliness results; hosted GitHub, OIDC, AWS, push, and deployment remain NOT RUN.
 - [W5-08 OCI supply-chain evidence](W5-08-supply-chain.txt) — candidate identity, Bookworm and Trixie vulnerability findings, OCI-layout remediation, completed SPDX/CycloneDX evidence, and retained-resource status.
+- [W5-004 reviewed lifecycle evidence](W5-004.md) — owner-executed sandbox deployment, targeted rollback, platform and bootstrap teardown, and final project-scoped residue verification. The lifecycle-cost gate remains **WAIVED/ACCEPTED_RISK — NOT PASS**; production remains **BLOCKED**; the final current Python-suite rerun remains an open validation gap.
+- [W5-004 plan review](../deployment-records/W5-plan-review.md) — exact forward-plan binding, OPA result, action boundary, owner approval controls, and accepted cost risk.
+- [W5-004 sandbox lifecycle](../deployment-records/W5-sandbox.md) — deployment, KMS compatibility remediation, post-apply checks, and targeted rollback outcome.
+- [W5-004 teardown plan](../deployment-records/W5-destroy-plan.md) — platform-first and bootstrap-last destruction sequence, exact plan identities, and retained KMS tails.
+- [W5-004 resource cleanliness](../resource-cleanliness/W5-report.json) — machine-readable project-scoped absence findings, expected `PendingDeletion` keys, and deferred billing/KMS checks.
+- [W6-12 future final-cleanliness handover](../resource-cleanliness/W6-final.json) — **NOT RUN**; reusable W5 handover only, requiring wholly fresh Week 6 plans, evidence, approvals, and discovery.
+
+## W5-004 reviewed deploy, rollback, teardown and orphan scan — Column N closure
+
+W5-004 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on `2026-09-16 16:37:21 SGT`.
+
+The approved seven-document closure consists of [W5-004 owner evidence](W5-004.md), [plan review](../deployment-records/W5-plan-review.md), [sandbox lifecycle](../deployment-records/W5-sandbox.md), [teardown record](../deployment-records/W5-destroy-plan.md), [W5 cleanliness result](../resource-cleanliness/W5-report.json), this index, and the [W6-12 handover](../resource-cleanliness/W6-final.json).
+
+The synthetic, non-production sandbox lifecycle completed with forward deployment, targeted rollback, platform destroy, bootstrap destroy, and project-scoped final verification. This closure preserves the full-suite validation gap, `WAIVED/ACCEPTED_RISK — NOT PASS` lifecycle-cost status, `USD_3_BOUNDED=false`, production `BLOCKED` status, delayed billing follow-up, and two expected KMS `PendingDeletion` tails. W6-12 remains **NOT RUN**. The uncommitted source tree is not release-ready; only the owner may update the tracker or perform Git mutation.
+
+### Final Owner Approval — W5-004
+
+- Prompt/task ID: `W5-004`.
+- Reviewer and role: Gyan Prakash Rai, Project Owner and Final Approval Reviewer.
+- Decision/date: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**, `2026-09-16 16:37:21 SGT`.
+- Code and documentation review status: documentation closure approved; current source release readiness remains deferred pending final current-suite evidence, source review, and authorized Git review.
+- Owner-executed results: preserve every W5-004 PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work, and residual-resource fact exactly as linked documents record it.
+- Deployment/rollback/teardown/residuals: scoped sandbox lifecycle completed; targeted rollback was verified; platform and bootstrap resources were destroyed; two KMS keys remain `PendingDeletion`, not absent.
+- Deferred actions and owner: all manifest deferrals remain open for Gyan Prakash Rai unless separately reassigned.
+- Conditions and handover: do not infer production or cloud readiness from this closure. W6-12 remains **NOT RUN** and requires a new lifecycle with fresh evidence and approvals.
+- Tracker update responsibility: Owner.
 
 W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
 

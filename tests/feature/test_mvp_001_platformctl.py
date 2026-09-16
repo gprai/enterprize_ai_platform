@@ -23,12 +23,19 @@ def test_w1_004_maps_to_mvp_001_without_changing_the_matrix() -> None:
 def test_mvp_control_surface_contains_all_lifecycle_commands() -> None:
     help_text = build_parser().format_help()
     for command in (
-        "bootstrap",
-        "plan",
-        "deploy",
         "validate",
-        "rollback",
-        "destroy",
+        "bootstrap-plan",
+        "bootstrap-apply",
+        "platform-plan",
+        "policy-review",
+        "cost-review",
+        "platform-apply",
+        "aws-verify",
+        "infrastructure-rollback",
+        "destroy-plan",
+        "purge-sandbox",
+        "platform-destroy",
+        "bootstrap-destroy",
         "verify-clean",
     ):
         assert command in help_text

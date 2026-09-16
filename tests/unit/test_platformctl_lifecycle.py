@@ -18,8 +18,6 @@ from tools.platformctl.contracts import (
     canonical_resource_tags,
     validate_resource_expires_at,
 )
-from tools.platformctl.destroy import DestroyMode
-from tools.platformctl.destroy import validate_request as validate_destroy
 
 from tests.fakes.aws_inventory import FakeApprovalUsageRegistry
 
@@ -28,13 +26,15 @@ ARTIFACT_SHA256 = "a" * 64
 APPROVAL_ID = "approval-w1-004-001"
 
 
-def approval_mapping(action: str = "DEPLOY", environment: str = "sandbox") -> dict[str, str]:
+def approval_mapping(
+    action: str = "PLATFORM-APPLY", environment: str = "sandbox"
+) -> dict[str, str]:
     return {
         "schema_version": "1.0",
         "approval_id": APPROVAL_ID,
         "action": action,
         "environment": environment,
-        "aws_account_id": "123456789012",
+        "aws_account_id": "526338061652",
         "aws_region": "ap-southeast-1",
         "target": "platform",
         "artifact_sha256": ARTIFACT_SHA256,
@@ -54,7 +54,6 @@ def request_for(approval: ApprovalRecord, *, confirmation: str | None = None) ->
         artifact_sha256=approval.artifact_sha256,
         confirmation=confirmation or approval.confirmation_text(),
         executor="Gyan-Prakash-Rai",
-        resource_expires_at="2026-01-01T12:00:00Z",
     )
 
 
@@ -70,12 +69,12 @@ def test_deploy_contract_accepts_exact_unused_approval() -> None:
 @pytest.mark.parametrize(
     "confirmation",
     [
-        f"confirm DEPLOY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID}",
-        f"CONFIRM DEPLOY  sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID}",
-        f" CONFIRM DEPLOY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID}",
-        f"CONFIRM DEPLOY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID} ",
-        f"CONFIRM DEPLOY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID} extra",
-        f"CONFIRM DEPLOY sandbox platform {ARTIFACT_SHA256}",
+        f"confirm PLATFORM-APPLY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID}",
+        f"CONFIRM PLATFORM-APPLY  sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID}",
+        f" CONFIRM PLATFORM-APPLY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID}",
+        f"CONFIRM PLATFORM-APPLY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID} ",
+        f"CONFIRM PLATFORM-APPLY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID} extra",
+        f"CONFIRM PLATFORM-APPLY sandbox platform {ARTIFACT_SHA256}",
     ],
 )
 def test_confirmation_variations_fail_closed(confirmation: str) -> None:
@@ -114,8 +113,8 @@ def test_request_and_approval_mismatches_fail_closed(field_name: str, different_
 
 
 def test_one_action_cannot_authorize_another() -> None:
-    approval = ApprovalRecord.from_mapping(approval_mapping(action="ROLLBACK"))
-    request = replace(request_for(approval), action=Action.DEPLOY)
+    approval = ApprovalRecord.from_mapping(approval_mapping(action="INFRASTRUCTURE-ROLLBACK"))
+    request = replace(request_for(approval), action=Action.PLATFORM_APPLY)
     with pytest.raises(ApprovalError, match="action does not match"):
         deploy.validate_request(request, approval, FakeApprovalUsageRegistry(), NOW)
 
@@ -157,21 +156,17 @@ def test_unknown_approval_field_is_rejected() -> None:
         ApprovalRecord.from_mapping(data)
 
 
-def test_resource_expiry_is_runtime_bounded() -> None:
+def test_resource_expiry_is_exactly_generated_and_bounded() -> None:
     expires_at = validate_resource_expires_at(
-        "2026-01-02T00:09:00Z",
-        approval_time=datetime(2026, 1, 1, tzinfo=UTC),
-        deployment_time=NOW,
-        creation_time=NOW,
+        "2026-01-01T23:55:00Z",
+        plan_preparation_time=NOW,
     )
-    assert expires_at == datetime(2026, 1, 2, 0, 9, tzinfo=UTC)
+    assert expires_at == datetime(2026, 1, 1, 23, 55, tzinfo=UTC)
 
-    with pytest.raises(ContractError, match="24-hour"):
+    with pytest.raises(ContractError, match="23-hour-45-minute"):
         validate_resource_expires_at(
-            "2026-01-02T00:11:00Z",
-            approval_time=datetime(2026, 1, 1, tzinfo=UTC),
-            deployment_time=NOW,
-            creation_time=NOW,
+            "2026-01-01T23:54:59Z",
+            plan_preparation_time=NOW,
         )
 
 
@@ -191,15 +186,14 @@ def test_canonical_tags_have_no_static_expiry_default() -> None:
 
 
 def test_purge_sandbox_fails_for_every_other_environment() -> None:
-    approval = ApprovalRecord.from_mapping(
-        approval_mapping(action="PURGE-SANDBOX", environment="production")
-    )
-    request = request_for(approval)
-    with pytest.raises(ContractError, match="only for sandbox"):
-        validate_destroy(
-            DestroyMode.PURGE_SANDBOX,
-            request,
-            approval,
-            FakeApprovalUsageRegistry(),
-            NOW,
+    with pytest.raises(ApprovalError, match="environment is not approved"):
+        ApprovalRecord.from_mapping(
+            approval_mapping(action="PURGE-SANDBOX", environment="production")
         )
+
+
+def test_plain_boolean_is_not_a_verified_execution_capability() -> None:
+    from tools.platformctl.contracts import VerifiedExecutionContext
+
+    with pytest.raises(ApprovalError, match="VERIFIED_CONTEXT"):
+        VerifiedExecutionContext(True, None, None, None, None, None)

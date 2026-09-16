@@ -51,7 +51,7 @@ def test_prohibited_action_wildcards_and_permissions_are_absent() -> None:
 
 def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     source = terraform_source()
-    assert source.count('resources = ["*"]') == 6
+    assert source.count('resources = ["*"]') == 7
     assert source.count('identifiers = ["*"]') == 2
     assert (
         "arn:aws:s3:::enterprise-ai-platform-sbx-tfstate-526338061652-ap-southeast-1/*"
@@ -60,6 +60,23 @@ def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     assert '"${local.state_bucket_arn}/*"' in source
     assert '"${local.platform_bucket_arn}/*"' in source
     assert '"${local.opensearch_domain_arn}/*"' in source
+
+
+def test_dynamodb_create_grant_is_exactly_account_and_service_bounded() -> None:
+    source = (INFRA / "bootstrap/main.tf").read_text(encoding="utf-8")
+    grant_statement = source.split('sid    = "AllowExactAccountDynamoDBStateGrant"', maxsplit=1)[
+        1
+    ].split("\n  }\n}", maxsplit=1)[0]
+
+    assert source.count('"kms:CreateGrant"') == 1
+    assert 'identifiers = ["arn:aws:iam::${var.aws_account_id}:root"]' in grant_statement
+    assert 'actions   = ["kms:CreateGrant"]' in grant_statement
+    assert 'resources = ["*"]' in grant_statement
+    assert 'variable = "kms:CallerAccount"' in grant_statement
+    assert "values   = [var.aws_account_id]" in grant_statement
+    assert 'variable = "kms:ViaService"' in grant_statement
+    assert 'values   = ["dynamodb.*.amazonaws.com"]' in grant_statement
+    assert 'identifiers = ["*"]' not in grant_statement
 
 
 def test_exact_opensearch_log_stream_wildcards_are_conditioned() -> None:
@@ -74,10 +91,14 @@ def test_exact_opensearch_log_stream_wildcards_are_conditioned() -> None:
 
 def test_exact_cloudwatch_logs_kms_access_is_bounded() -> None:
     source = (INFRA / "modules/kms/main.tf").read_text(encoding="utf-8")
+    grant_statement = source.split('sid    = "AllowExactOpenSearchLogEncryption"', maxsplit=1)[
+        1
+    ].split("\n  }\n}", maxsplit=1)[0]
 
-    assert 'identifiers = ["logs.ap-southeast-1.amazonaws.com"]' in source
-    assert 'variable = "kms:EncryptionContext:aws:logs:arn"' in source
-    assert 'variable = "kms:ViaService"' in source
+    assert 'identifiers = ["logs.ap-southeast-1.amazonaws.com"]' in grant_statement
+    assert 'variable = "kms:EncryptionContext:aws:logs:arn"' in grant_statement
+    assert "values   = var.opensearch_log_group_arns" in grant_statement
+    assert 'variable = "kms:ViaService"' not in grant_statement
     for action in (
         "kms:Decrypt",
         "kms:DescribeKey",
@@ -87,7 +108,7 @@ def test_exact_cloudwatch_logs_kms_access_is_bounded() -> None:
         "kms:ReEncryptFrom",
         "kms:ReEncryptTo",
     ):
-        assert f'"{action}"' in source
+        assert f'"{action}"' in grant_statement
 
 
 def test_only_exact_owner_reviewed_checkov_skips_exist() -> None:

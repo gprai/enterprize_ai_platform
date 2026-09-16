@@ -1,0 +1,63 @@
+{
+  "schema_version": "w6-12.future-cleanliness-handover.v1",
+  "task_id": "W6-12",
+  "status": "NOT RUN",
+  "purpose": "Future reusable W6-12 lifecycle handover baseline derived from W5-004; this is not a completed Week 6 final cleanliness report.",
+  "week_6_execution": {
+    "plan": "NOT RUN",
+    "deployment": "NOT RUN",
+    "rollback": "NOT RUN",
+    "destroy": "NOT RUN",
+    "native_cleanup": "NOT RUN"
+  },
+  "w5_004_handover": {
+    "status": "PASS_WITH_LIMITATIONS",
+    "final_evidence_sha256": "ce6e81bb3e32282da30cb2aa89b792e486a6ed894963d7b35d90acbb9a62bbed",
+    "expected_kms_tails": [
+      {
+        "key_id": "674992cd-d8ea-4c13-9f93-0e0267f273e4",
+        "status": "PendingDeletion",
+        "scheduled_deletion": "2026-09-23T12:14:16.738+08:00"
+      },
+      {
+        "key_id": "4a7a47a4-ab04-4f03-b3e8-251297dcbc3f",
+        "status": "PendingDeletion",
+        "scheduled_deletion": "2026-09-23T15:40:48.581+08:00"
+      }
+    ],
+    "cost_eligibility": "WAIVED/ACCEPTED_RISK — NOT PASS",
+    "production_eligibility": "BLOCKED"
+  },
+  "reuse_restrictions": [
+    "W5 saved-plan bytes must not be reused for Week 6.",
+    "Week 6 requires fresh inputs, state, saved plans, hashes, policy review, cost review, approvals, and native discovery.",
+    "W5-004 completion does not complete W6-12."
+  ],
+  "fields_pending_future_w6_execution": [
+    "Fresh W6 scope and owner approval.",
+    "Fresh state and resource discovery.",
+    "Fresh plan, OPA, cost, identity, and teardown evidence.",
+    "Native verification after any W6 execution."
+  ],
+  "fields_pending_column_n": {
+    "w5_handover_documentation_closure": "PENDING",
+    "w6_execution_status": "NOT RUN"
+  },
+  "final_owner_approval": {
+    "prompt_id": "W5-004",
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner and Final Approval Reviewer",
+    "decision": "FINAL APPROVAL AFTER OWNER TEST — APPROVED",
+    "approval_time": "2026-09-16 16:37:21 SGT",
+    "final_status": "W5 handover documentation is approved; W6-12 remains NOT RUN.",
+    "code_and_documentation_review_status": "W5 documentation closure is approved. No Week 6 source, test, deployment, or release approval is implied.",
+    "owner_executed_test_status": "Only recorded W5 results are carried as handover context; no Week 6 test was run.",
+    "accepted_risks": "All W5 Column M risks remain as recorded; no Week 6 risk acceptance is created.",
+    "not_run_and_indeterminate": "W6-12 plan, deployment, rollback, destroy, and native cleanup remain NOT RUN. No historical INDETERMINATE result is converted to PASS.",
+    "deployment_rollback_teardown_residual_status": "No Week 6 activity occurred. W5 KMS PendingDeletion tails remain future verification items.",
+    "deferred_actions_and_owner": "W5 KMS and billing follow-up remain with Gyan Prakash Rai unless reassigned; all W6 work requires future owner approval.",
+    "conditions": "Do not reuse W5 saved-plan bytes or treat this handover as a completed W6 final-cleanliness report.",
+    "next_task_handover": "W6-12 requires fresh inputs, state, plans, hashes, policy/cost review, approvals, and native discovery.",
+    "tracker_update_responsibility": "Owner"
+  }
+}

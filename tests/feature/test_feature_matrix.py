@@ -159,7 +159,17 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(["W3-09", "W4-08"], features[5]["linked_tracker_steps"])
         self.assertEqual(["W4-11"], features[6]["linked_tracker_steps"])
         self.assertEqual(
-            ["W5-02", "W5-03", "W5-04", "W5-05", "W5-06"],
+            [
+                "W5-02",
+                "W5-03",
+                "W5-04",
+                "W5-05",
+                "W5-06",
+                "W5-09",
+                "W5-10",
+                "W5-11",
+                "W5-12",
+            ],
             features[7]["linked_tracker_steps"],
         )
         self.assertEqual(["W5-02"], features[8]["linked_tracker_steps"])
@@ -411,22 +421,32 @@ class FeatureMatrixTests(unittest.TestCase):
 
         self.assertEqual(EXPECTED_AWS_FEATURE, aws_feature)
         self.assertEqual(EXPECTED_BEDROCK_FEATURE, bedrock_feature)
-        self.assertEqual(61, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
+        self.assertEqual(96, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
         self.assertEqual(
             [
-                ".checkov.yml",
-                "policies/opa/exceptions.json",
-                "tests/contract/test_policy_exception_contract.py",
-                "tests/feature/test_policy_gate.py",
-                "tests/rollback/test_policy_pack_rollback.py",
-                "tests/security/test_policy_pack.py",
-                "tests/teardown/test_policy_pack_cleanliness.py",
-                "infra/environments/sandbox/terraform.tfvars.example",
+                "tools/platformctl/verify_clean.py",
+                "tests/unit/test_platformctl_verify_clean.py",
+                "tests/contract/test_platformctl_cli_contract.py",
+                "tests/integration/test_platformctl_dry_run.py",
+                "tests/feature/test_mvp_001_platformctl.py",
+                "tests/smoke/test_platformctl_help.py",
+                "tests/security/test_platformctl_approval_gates.py",
+                "tests/security/test_repository_security.py",
             ],
             aws_feature["implementation_paths"][-8:],
         )
         self.assertEqual(
-            ["W5-02", "W5-03", "W5-04", "W5-05", "W5-06"],
+            [
+                "W5-02",
+                "W5-03",
+                "W5-04",
+                "W5-05",
+                "W5-06",
+                "W5-09",
+                "W5-10",
+                "W5-11",
+                "W5-12",
+            ],
             aws_feature["linked_tracker_steps"],
         )
         self.assertEqual(5, len(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS))

@@ -46,7 +46,7 @@ jobs:
           python -B -m ruff check --no-cache src tools tests
           python -B -m ruff format --check --no-cache src tools tests
           python -B -m mypy --no-incremental --cache-dir=/dev/null
-          detect-secrets scan --baseline .secrets.baseline
+          python -B -m tools.secret_scan check --all-files
           python -B -m pytest
 
   infrastructure-policy:

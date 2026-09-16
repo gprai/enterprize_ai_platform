@@ -81,6 +81,27 @@ data "aws_iam_policy_document" "terraform_state_key" {
     ]
     resources = ["*"]
   }
+
+  statement {
+    sid    = "AllowExactAccountDynamoDBStateGrant"
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${var.aws_account_id}:root"]
+    }
+    actions   = ["kms:CreateGrant"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "kms:CallerAccount"
+      values   = [var.aws_account_id]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "kms:ViaService"
+      values   = ["dynamodb.*.amazonaws.com"]
+    }
+  }
 }
 
 resource "aws_kms_key" "terraform_state" {

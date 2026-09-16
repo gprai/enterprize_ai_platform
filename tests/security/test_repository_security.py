@@ -32,7 +32,7 @@ class RepositorySecurityTests(unittest.TestCase):
                     findings.append(f"{path.name}: {pattern.pattern}")
         self.assertEqual([], findings)
 
-    def test_platformctl_has_no_network_process_or_write_capability(self) -> None:
+    def test_platformctl_limits_live_and_write_capability_to_approved_adapters(self) -> None:
         forbidden_imports = {
             "boto3",
             "http",
@@ -52,6 +52,7 @@ class RepositorySecurityTests(unittest.TestCase):
             "write_bytes",
             "write_text",
         }
+        approved_write_modules = {"lifecycle_io.py", "operation_state.py"}
         findings: list[str] = []
 
         for path in PLATFORMCTL_ROOT.glob("*.py"):
@@ -59,16 +60,52 @@ class RepositorySecurityTests(unittest.TestCase):
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for imported in node.names:
-                        if imported.name.split(".")[0] in forbidden_imports:
+                        if imported.name.split(".")[0] in forbidden_imports and not (
+                            path.name == "terraform_runner.py" and imported.name == "subprocess"
+                        ):
                             findings.append(f"{path.name}: import {imported.name}")
                 elif isinstance(node, ast.ImportFrom) and node.module:
                     if node.module.split(".")[0] in forbidden_imports:
                         findings.append(f"{path.name}: from {node.module}")
                 elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-                    if node.func.attr in forbidden_methods:
+                    is_utc_isoformat_normalization = (
+                        node.func.attr == "replace"
+                        and isinstance(node.func.value, ast.Call)
+                        and isinstance(node.func.value.func, ast.Attribute)
+                        and node.func.value.func.attr == "isoformat"
+                        and not node.keywords
+                        and len(node.args) == 2
+                        and all(isinstance(argument, ast.Constant) for argument in node.args)
+                        and [argument.value for argument in node.args] == ["+00:00", "Z"]
+                    )
+                    is_datetime_precision_normalization = (
+                        node.func.attr == "replace"
+                        and not node.args
+                        and len(node.keywords) == 1
+                        and node.keywords[0].arg == "microsecond"
+                        and isinstance(node.keywords[0].value, ast.Constant)
+                        and node.keywords[0].value.value == 0
+                    )
+                    if (
+                        node.func.attr in forbidden_methods
+                        and path.name not in approved_write_modules
+                        and not is_utc_isoformat_normalization
+                        and not is_datetime_precision_normalization
+                    ):
                         findings.append(f"{path.name}: call {node.func.attr}")
 
         self.assertEqual([], findings)
+
+    def test_live_aws_and_process_boundaries_are_not_ambient(self) -> None:
+        files = {
+            path.name: path.read_text(encoding="utf-8") for path in PLATFORMCTL_ROOT.glob("*.py")
+        }
+        for name, source in files.items():
+            if name != "aws_live.py":
+                self.assertNotIn("get_caller_identity", source)
+                self.assertNotIn("client_factory", source)
+            if name != "terraform_runner.py":
+                self.assertNotIn('"apply", "-input=false"', source)
 
     def test_feature_matrix_contains_no_secret_fields(self) -> None:
         matrix = json.loads((REPOSITORY_ROOT / "feature-matrix.yaml").read_text(encoding="utf-8"))

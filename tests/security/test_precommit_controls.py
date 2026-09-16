@@ -5,6 +5,9 @@ from __future__ import annotations
 import io
 import json
 import os
+import shutil
+import socket
+import subprocess
 from collections import Counter
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
@@ -13,8 +16,7 @@ from typing import Any
 import pytest
 import yaml
 from detect_secrets.plugins.aws import AWSKeyDetector
-from detect_secrets.pre_commit_hook import main as detect_secrets_hook_main
-from detect_secrets.util import git as detect_secrets_git
+from tools import secret_scan
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 PRE_COMMIT_CONFIG = REPOSITORY_ROOT / ".pre-commit-config.yaml"
@@ -64,6 +66,13 @@ EXPECTED_FILTER_PATHS = (
     "detect_secrets.filters.regex.should_exclude_file",
 )
 EXPECTED_REVIEWED_FINDING_COUNTS = {
+    "configs/lifecycle/w5-004.json": {"Hex High Entropy String": 5},
+    "tests/security/test_w5_004_lifecycle_security.py": {"Hex High Entropy String": 2},
+    "tests/unit/test_platformctl_cost.py": {"Hex High Entropy String": 1},
+    "tests/unit/test_platformctl_plan_identity.py": {"Hex High Entropy String": 1},
+    "tools/platformctl/cost.py": {"Hex High Entropy String": 3},
+    "tools/platformctl/lifecycle_io.py": {"Hex High Entropy String": 5},
+    "tools/platformctl/policy_runner.py": {"Hex High Entropy String": 20},
     "configs/ci/w5-002.json": {"Hex High Entropy String": 12},
     "configs/eval/baselines/w3-002-v1.json": {"Hex High Entropy String": 6},
     "configs/rag/versions/w3-002-v1.json": {"Hex High Entropy String": 14},
@@ -71,6 +80,8 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "configs/releases/versions/w4-known-good-v1.json": {"Hex High Entropy String": 101},
     "configs/releases/versions/w4-synthetic-regression-v1.json": {"Hex High Entropy String": 101},
     "docker-compose.w2-004.yml": {"Base64 High Entropy String": 1},
+    "docs/resource-cleanliness/W5-report.json": {"Hex High Entropy String": 1},
+    "docs/resource-cleanliness/W6-final.json": {"Hex High Entropy String": 1},
     "docs/test-evidence/W2-09-retrieval.json": {"Hex High Entropy String": 2},
     "src/enterprise_ai_platform/embeddings/sentence_transformer.py": {"Hex High Entropy String": 1},
     "src/enterprise_ai_platform/evaluation/fixtures.py": {"Hex High Entropy String": 3},
@@ -98,6 +109,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
 EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/ci/w5-002.json": {1: 12},
     "configs/eval/baselines/w3-002-v1.json": {1: 6},
+    "configs/lifecycle/w5-004.json": {6: 1, 7: 1, 86: 1, 90: 1, 91: 1},
     "configs/rag/versions/w3-002-v1.json": {
         6: 1,
         9: 1,
@@ -133,6 +145,8 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/releases/versions/w4-known-good-v1.json": {1: 101},
     "configs/releases/versions/w4-synthetic-regression-v1.json": {1: 101},
     "docker-compose.w2-004.yml": {29: 1},
+    "docs/resource-cleanliness/W5-report.json": {61: 1},
+    "docs/resource-cleanliness/W6-final.json": {15: 1},
     "docs/test-evidence/W2-09-retrieval.json": {27: 1, 29: 1},
     "src/enterprise_ai_platform/embeddings/sentence_transformer.py": {43: 1},
     "src/enterprise_ai_platform/evaluation/fixtures.py": {35: 1, 36: 1, 62: 1},
@@ -169,6 +183,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "tests/feature/test_local_retrieval.py": {46: 1},
     "tests/integration/test_sentence_transformer_embedder.py": {111: 1},
     "tests/integration/test_w5_002_ci_composition.py": {82: 1},
+    "tests/security/test_w5_004_lifecycle_security.py": {390: 1, 391: 1},
     "tests/teardown/test_w2_004_retrieval_cleanliness.py": {29: 1},
     "tests/teardown/test_w3_002_evaluation_cleanliness.py": {17: 1},
     "tests/teardown/test_w3_003_guardrails_cleanliness.py": {11: 1, 12: 1, 15: 1},
@@ -183,10 +198,36 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "tests/teardown/test_w4_011_release_rollback_cleanliness.py": {59: 1, 62: 1},
     "tests/unit/test_bedrock_owner_verify.py": {367: 1},
     "tests/unit/test_evaluation_runner.py": {214: 1},
+    "tests/unit/test_platformctl_cost.py": {644: 1},
+    "tests/unit/test_platformctl_plan_identity.py": {76: 1},
     "tests/unit/test_prompt_template.py": {35: 1},
     "tests/unit/test_retrieval_service.py": {142: 1},
     "tools/bedrock_owner_verify.py": {71: 1},
-    "tools/platformctl/aws_inventory.py": {23: 1},
+    "tools/platformctl/aws_inventory.py": {39: 1},
+    "tools/platformctl/cost.py": {46: 1, 48: 1, 51: 1},
+    "tools/platformctl/lifecycle_io.py": {28: 1, 1010: 1, 1036: 1, 1038: 1, 1069: 1},
+    "tools/platformctl/policy_runner.py": {
+        102: 1,
+        106: 1,
+        110: 1,
+        116: 1,
+        215: 1,
+        218: 1,
+        221: 1,
+        224: 1,
+        227: 1,
+        230: 1,
+        236: 1,
+        252: 1,
+        261: 1,
+        264: 1,
+        267: 1,
+        270: 1,
+        274: 1,
+        275: 1,
+        279: 1,
+        285: 1,
+    },
     "tools/w5_002_ci.py": {
         37: 1,
         41: 1,
@@ -315,7 +356,7 @@ def test_hook_inventory_order_provenance_and_commands_are_exact() -> None:
     assert format_hook["files"] == python_scope
     assert format_hook["types"] == ["python"]
 
-    assert secrets_hook["entry"] == ("detect-secrets-hook --baseline .secrets.baseline")
+    assert secrets_hook["entry"] == "python -B -m tools.secret_scan check --"
     assert secrets_hook["types"] == ["text"]
     assert secrets_hook["exclude"] == r"^\.secrets\.baseline$"
 
@@ -339,8 +380,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 30
-    assert sum(len(findings) for findings in results.values()) == 320
+    assert len(results) == 39
+    assert sum(len(findings) for findings in results.values()) == 359
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():
@@ -397,14 +438,14 @@ def test_runtime_synthetic_aws_key_is_detected_without_disclosure_or_residue(
     error_output = io.StringIO()
     git_queries = 0
 
-    def unchanged_baseline_files() -> tuple[()]:
+    def unchanged_baseline_files(*_args: object) -> bytes:
         nonlocal git_queries
         git_queries += 1
-        return ()
+        return b"fixture-index"
 
     monkeypatch.setattr(
-        detect_secrets_git,
-        "get_changed_but_unstaged_files",
+        secret_scan,
+        "_assert_staged",
         unchanged_baseline_files,
     )
 
@@ -417,15 +458,13 @@ def test_runtime_synthetic_aws_key_is_detected_without_disclosure_or_residue(
         )
         assert findings
         with redirect_stdout(output), redirect_stderr(error_output):
-            result = detect_secrets_hook_main(
-                ["--baseline", str(SECRETS_BASELINE), str(synthetic_path)]
-            )
+            result = secret_scan.main(["check", str(synthetic_path)])
         captured = output.getvalue() + error_output.getvalue()
         assert result != 0
         assert synthetic_value not in captured
         assert SECRETS_BASELINE.read_bytes() == baseline_before
         assert load_secrets_baseline()["results"] == baseline_results_before
-        assert git_queries == 1
+        assert git_queries == 2
     finally:
         synthetic_path.unlink(missing_ok=True)
 
@@ -436,6 +475,7 @@ def test_runtime_synthetic_aws_key_is_detected_without_disclosure_or_residue(
 def test_complete_synthetic_value_is_not_committed_in_control_sources() -> None:
     synthetic_value = "".join(SYNTHETIC_MARKER_PARTS)
     source_paths = (
+        REPOSITORY_ROOT / "tools/secret_scan.py",
         Path(__file__),
         REPOSITORY_ROOT / "tests/security/test_evidence_redaction.py",
         PRE_COMMIT_CONFIG,
@@ -449,3 +489,304 @@ def test_reviewed_synthetic_fixtures_are_constructed_only_at_runtime() -> None:
         synthetic_value = separator.join(parts)
         source = (REPOSITORY_ROOT / path).read_text(encoding="utf-8")
         assert synthetic_value not in source
+
+
+@pytest.fixture
+def scanner_repository(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """A disposable index, never the user's index, with the real installed scanner."""
+    root = tmp_path / "scanner-repository"
+    root.mkdir()
+    executable = shutil.which("git")
+    assert executable
+
+    def git(*arguments: str) -> bytes:
+        result = subprocess.run(  # noqa: S603 -- disposable fixture and explicit Git commands
+            [executable, "-C", str(root), *arguments],
+            capture_output=True,
+            check=True,
+            env={**os.environ, "GIT_OPTIONAL_LOCKS": "0"},
+        )
+        return result.stdout
+
+    git("init", "-q")
+    baseline = {
+        "version": "1.5.0",
+        **secret_scan.scanner_configuration(),
+        "results": {},
+        "generated_at": "2026-09-13T00:00:00Z",
+    }
+    path = root / ".secrets.baseline"
+    path.write_text(json.dumps(baseline), encoding="utf-8")
+    git("-c", "core.autocrlf=false", "add", "--", ".secrets.baseline")
+    monkeypatch.setattr(secret_scan, "REPOSITORY", root)
+    return root, baseline, git
+
+
+def test_check_only_scans_nested_and_external_baseline_names(
+    scanner_repository, tmp_path: Path, capsys
+):
+    root, _, git = scanner_repository
+    original = (root / ".secrets.baseline").read_bytes()
+    index = git("ls-files", "--stage", "-z")
+    assert secret_scan.main(["check", ".secrets.baseline"]) == 0
+    synthetic = "".join(SYNTHETIC_MARKER_PARTS)
+    paths = [
+        root / "src/.secrets.baseline",
+        root / "tests/.secrets.baseline",
+        root / "evidence/.secrets.baseline",
+        tmp_path / ".secrets.baseline",
+    ]
+    for path in paths:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"credential={synthetic}\n", encoding="utf-8")
+        assert secret_scan.main(["check", str(path)]) == 1
+        captured = capsys.readouterr()
+        assert synthetic not in captured.out + captured.err
+        assert '"type": "AWS Access Key"' in captured.out
+    assert (root / ".secrets.baseline").read_bytes() == original
+    assert git("ls-files", "--stage", "-z") == index
+
+
+def test_partial_scope_preserves_unscanned_findings_and_complete_scope_detects_missing(
+    scanner_repository,
+):
+    root, baseline, git = scanner_repository
+    baseline["results"] = {
+        "unscanned.txt": [
+            {
+                "type": "AWS Access Key",
+                "filename": "unscanned.txt",
+                "hashed_secret": "a" * 40,
+                "is_verified": False,
+                "line_number": 1,
+            }
+        ]
+    }
+    (root / ".secrets.baseline").write_text(json.dumps(baseline), encoding="utf-8")
+    git("add", "--", ".secrets.baseline")
+    (root / "clean.txt").write_text("ordinary text\n", encoding="utf-8")
+    assert secret_scan.check(root, ["clean.txt"]).passed
+    complete = secret_scan.check(root, [], complete=True)
+    assert complete.missing == 1 and not complete.passed
+
+
+def test_check_rejects_unstaged_baseline_without_changing_index(scanner_repository):
+    root, baseline, git = scanner_repository
+    before = git("ls-files", "--stage", "-z")
+    baseline["generated_at"] = "2026-09-13T01:00:00Z"
+    (root / ".secrets.baseline").write_text(json.dumps(baseline), encoding="utf-8")
+    with pytest.raises(secret_scan.ScanError, match="UNSTAGED"):
+        secret_scan.check(root, [".secrets.baseline"])
+    assert git("ls-files", "--stage", "-z") == before
+
+
+def test_check_preserves_working_crlf_and_distinct_normalized_index(scanner_repository):
+    root, baseline, git = scanner_repository
+    raw = (json.dumps(baseline, indent=2) + "\n").replace("\n", "\r\n").encode()
+    path = root / ".secrets.baseline"
+    (root / ".gitattributes").write_text(".secrets.baseline text eol=lf\n", encoding="utf-8")
+    path.write_bytes(raw)
+    git("add", "--", ".secrets.baseline")
+    assert git("show", ":.secrets.baseline") == raw.replace(b"\r\n", b"\n")
+    assert secret_scan.check(root, [".secrets.baseline"]).passed
+    assert path.read_bytes() == raw
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "../.secrets.baseline",
+        "src/../.secrets.baseline",
+        "./.secrets.baseline.",
+        "./.secrets.baseline ",
+        "src/data:stream",
+        "bad\nname",
+    ],
+)
+def test_scanner_rejects_unsafe_aliases(scanner_repository, name: str):
+    root, _, _ = scanner_repository
+    with pytest.raises((secret_scan.ScanError, OSError)):
+        secret_scan.check(root, [name])
+
+
+@pytest.mark.parametrize("kind", ["symlink", "hardlink", "parent_link"])
+def test_scanner_rejects_physical_baseline_aliases(scanner_repository, kind: str):
+    root, _, _ = scanner_repository
+    nested = root / "nested"
+    nested.mkdir()
+    alias = nested / ".secrets.baseline"
+    if kind == "symlink":
+        alias.symlink_to(root / ".secrets.baseline")
+    elif kind == "hardlink":
+        os.link(root / ".secrets.baseline", alias)
+    else:
+        alias = root / "linked/.secrets.baseline"
+        (root / "linked").symlink_to(root, target_is_directory=True)
+    from tools.platformctl.contracts import ContractError
+
+    with pytest.raises((secret_scan.ScanError, ContractError)):
+        secret_scan.check(root, [str(alias)])
+
+
+def test_real_scanner_offline_verification_keeps_potential_finding(
+    scanner_repository, monkeypatch, capsys
+):
+    root, _, _ = scanner_repository
+    import requests
+    from detect_secrets.plugins.aws import AWSKeyDetector
+
+    synthetic = "".join(SYNTHETIC_MARKER_PARTS)
+    (root / "paired.txt").write_text(
+        "credential=" + synthetic + "\naws_secret_access_key='" + ("x" * 40) + "'\n",
+        encoding="utf-8",
+    )
+    calls = []
+
+    def forbidden(*args, **kwargs):
+        calls.append(True)
+        raise AssertionError("Real transport prohibited")
+
+    monkeypatch.setattr(socket.socket, "connect", forbidden)
+    monkeypatch.setattr(requests.sessions.Session, "send", forbidden)
+    monkeypatch.setattr(AWSKeyDetector, "verify", forbidden)
+    assert secret_scan.main(["check", "paired.txt"]) == 1
+    assert calls == []
+    captured = capsys.readouterr()
+    assert synthetic not in captured.out + captured.err
+    assert "AWS Access Key" in captured.out
+
+
+def test_duplicate_identity_preserves_upstream_first_occurrence(scanner_repository):
+    from detect_secrets.core.potential_secret import PotentialSecret
+
+    root, baseline, git = scanner_repository
+    synthetic = "".join(SYNTHETIC_MARKER_PARTS)
+    row = PotentialSecret("AWS Access Key", "repeated.txt", synthetic, line_number=1).json()
+    baseline["results"] = {"repeated.txt": [row]}
+    (root / ".secrets.baseline").write_text(json.dumps(baseline), encoding="utf-8")
+    git("add", "--", ".secrets.baseline")
+    (root / "repeated.txt").write_text(
+        "credential=" + synthetic + "\ncredential=" + synthetic + "\n", encoding="utf-8"
+    )
+    result = secret_scan.check(root, ["repeated.txt"])
+    assert result.passed
+    assert result.candidate["results"]["repeated.txt"][0] == row
+
+
+def test_metadata_relocation_fails_check_without_mutating_and_maintenance_is_separate(
+    scanner_repository, tmp_path, monkeypatch
+):
+    root, baseline, git = scanner_repository
+    from hashlib import sha256
+
+    from detect_secrets.core.potential_secret import PotentialSecret
+
+    synthetic = "".join(SYNTHETIC_MARKER_PARTS)
+    row = PotentialSecret("AWS Access Key", "relocated.txt", synthetic, line_number=1).json()
+    baseline["results"] = {"relocated.txt": [row]}
+    reference = (json.dumps(baseline, indent=2) + "\n").encode()
+    (root / ".secrets.baseline").write_bytes(reference)
+    git("add", "--", ".secrets.baseline")
+    (root / "relocated.txt").write_text("\ncredential=" + synthetic + "\n", encoding="utf-8")
+    result = secret_scan.check(root, ["relocated.txt"])
+    assert result.relocated == 1 and not result.passed
+    index = git("ls-files", "--stage", "-z")
+    external = tmp_path / "external"
+    external.mkdir()
+    monkeypatch.setattr(secret_scan, "MAINTENANCE_PARENT", external)
+    output = external / "secret-scanning-maintenance-001"
+    result = secret_scan.maintain(root, reference, sha256(reference).hexdigest(), output)
+    assert result.relocated == 1
+    assert (root / ".secrets.baseline").read_bytes() == reference
+    assert git("ls-files", "--stage", "-z") == index
+    assert {p.name for p in output.iterdir()} == {
+        "approved-reference.lf.json",
+        "starting-working.json",
+        "candidate.json",
+        "identities.json",
+    }
+    candidate = json.loads((output / "candidate.json").read_text())
+    assert candidate["results"]["relocated.txt"][0] == {**row, "line_number": 2}
+    from tools.platformctl.contracts import ContractError
+
+    with pytest.raises(ContractError, match="COLLISION"):
+        secret_scan.maintain(root, reference, sha256(reference).hexdigest(), output)
+
+
+def test_check_fails_on_invalid_configuration_and_unreadable_text(scanner_repository):
+    root, baseline, git = scanner_repository
+    (root / "invalid.txt").write_bytes(b"\xff\xfe\x00")
+    with pytest.raises((secret_scan.ScanError, UnicodeError)):
+        secret_scan.check(root, ["invalid.txt"])
+    baseline["filters_used"].append(
+        {"path": "detect_secrets.filters.common.is_baseline_file", "filename": ".secrets.baseline"}
+    )
+    (root / ".secrets.baseline").write_text(json.dumps(baseline), encoding="utf-8")
+    git("add", "--", ".secrets.baseline")
+    with pytest.raises(secret_scan.ScanError, match="CONFIGURATION"):
+        secret_scan.check(root, [".secrets.baseline"])
+
+
+def test_ci_and_hook_share_check_only_adapter_and_strict_typing():
+    workflow = (REPOSITORY_ROOT / ".github/workflows/ci.yml").read_text()
+    assert "python -B -m tools.secret_scan check --all-files" in workflow
+    assert "detect-secrets scan --baseline" not in workflow
+    assert "detect-secrets-hook --baseline" not in PRE_COMMIT_CONFIG.read_text()
+    assert '"tools/secret_scan.py"' in (REPOSITORY_ROOT / "pyproject.toml").read_text()
+
+
+def test_scanner_warning_and_exception_fail_closed_without_disclosure(
+    scanner_repository, monkeypatch, capsys
+):
+    root, _, git = scanner_repository
+    from detect_secrets.core import scan
+    from detect_secrets.core.log import log
+
+    (root / "plain.txt").write_text("ordinary\n", encoding="utf-8")
+    before = (root / ".secrets.baseline").read_bytes()
+    index = git("ls-files", "--stage", "-z")
+    synthetic = "".join(SYNTHETIC_MARKER_PARTS)
+
+    def warning(_name):
+        log.warning(synthetic)
+        return iter(())
+
+    monkeypatch.setattr(scan, "scan_file", warning)
+    assert secret_scan.main(["check", "plain.txt"]) == 1
+    assert synthetic not in capsys.readouterr().out
+
+    def failure(_name):
+        raise RuntimeError(synthetic)
+
+    monkeypatch.setattr(scan, "scan_file", failure)
+    assert secret_scan.main(["check", "plain.txt"]) == 1
+    captured = capsys.readouterr()
+    assert synthetic not in captured.out + captured.err
+    assert (root / ".secrets.baseline").read_bytes() == before
+    assert git("ls-files", "--stage", "-z") == index
+
+
+def test_maintenance_rejects_inventory_or_decision_changes(
+    scanner_repository, tmp_path, monkeypatch
+):
+    from hashlib import sha256
+
+    root, baseline, _ = scanner_repository
+    reference = json.dumps(baseline).encode()
+    baseline["results"] = {
+        "different.txt": [
+            {
+                "filename": "different.txt",
+                "type": "AWS Access Key",
+                "line_number": 1,
+                "hashed_secret": "a" * 40,
+                "is_verified": False,
+            }
+        ]
+    }
+    (root / ".secrets.baseline").write_text(json.dumps(baseline), encoding="utf-8")
+    monkeypatch.setattr(secret_scan, "MAINTENANCE_PARENT", tmp_path)
+    output = tmp_path / "secret-scanning-maintenance-002"
+    with pytest.raises(secret_scan.ScanError, match="REFERENCE_FINDINGS"):
+        secret_scan.maintain(root, reference, sha256(reference).hexdigest(), output)
+    assert not output.exists()

@@ -1,0 +1,111 @@
+{
+  "schema_version": "w5-004.lifecycle.v2",
+  "task_id": "W5-004",
+  "repository": {
+    "branch": "main",
+    "head": "78576879b2c1d13507680872f471345c7b9b6be0",
+    "source_composition_sha256": "d9596bcbbab2953f2aa9398d34a2b87a5f2d8751f298f680f287d1bd5648ddff"
+  },
+  "aws": {
+    "account_id": "526338061652",
+    "region": "ap-southeast-1",
+    "profile": "default",
+    "expected_caller_arn": "arn:aws:iam::526338061652:user/finopsinfra",
+    "principal_class": "IAM user",
+    "environment": "sandbox",
+    "owner_governance_expires_at": "2026-12-09T23:59:59Z"
+  },
+  "terraform": {
+    "version": "1.16.1",
+    "aws_provider_version": "6.55.0",
+    "bootstrap_root": "infra/bootstrap",
+    "platform_root": "infra/environments/sandbox",
+    "bootstrap_backend": "local",
+    "platform_backend": "s3",
+    "platform_backend_configuration": "owner-supplied-external-file"
+  },
+  "lifecycle": {
+    "cycle": "W5-CYCLE-A",
+    "plan_lifetime_minutes": 60,
+    "maximum_resource_lifetime_hours": 24,
+    "generated_resource_lifetime_minutes": 1425,
+    "identity_scope_version": "w5-004.lifecycle-content.v1",
+    "identity_member_count": 385,
+    "dispatch_observation_max_seconds": 60,
+    "native_observation_max_seconds": 900,
+    "pricing_observation_max_seconds": 3600,
+    "execution_requires_v2_review": true,
+    "initial_plan_actions": [
+      "create",
+      "read",
+      "no-op"
+    ],
+    "mutation_actions": [
+      "BOOTSTRAP-APPLY",
+      "PLATFORM-APPLY",
+      "INFRASTRUCTURE-ROLLBACK",
+      "PURGE-SANDBOX",
+      "PLATFORM-DESTROY",
+      "BOOTSTRAP-DESTROY"
+    ],
+    "w6_12_status": "IMPLEMENTATION_REUSE_ONLY_NOT_RUN"
+  },
+  "cost": {
+    "currency": "USD",
+    "lifecycle_test_ceiling": "3.00",
+    "lifecycle_exception": {
+      "amendment_id": "w5-004-cycle-a-total-lifecycle-30",
+      "cycle_id": "W5-CYCLE-A",
+      "account_id": "526338061652",
+      "region": "ap-southeast-1",
+      "environment": "sandbox",
+      "bootstrap_lineage": "c446f9a2-77d4-9954-20fa-523205d86a8a",
+      "platform_lineage": "7465ed2e-a39c-afdd-f172-5792d3ec2f85",
+      "lifecycle_ceiling_usd": "30.00",
+      "accounting_scope": "TOTAL_CYCLE_INCLUDING_INCURRED_AND_RETENTION",
+      "valid_until": "2026-12-09T23:59:59Z"
+    },
+    "monthly_sandbox_ceiling": "60.00",
+    "monthly_exception": {
+      "amendment_id": "w5-004-cycle-a-temporary-mvp-monthly",
+      "cycle_id": "W5-CYCLE-A",
+      "account_id": "526338061652",
+      "region": "ap-southeast-1",
+      "environment": "sandbox",
+      "bootstrap_lineage": "c446f9a2-77d4-9954-20fa-523205d86a8a",
+      "platform_lineage": "7465ed2e-a39c-afdd-f172-5792d3ec2f85",
+      "monthly_treatment": "INFORMATIONAL",
+      "lifecycle_ceiling_usd": "3.00",
+      "valid_until": "2026-12-09T23:59:59Z"
+    },
+    "daily_alert_threshold": "3.00",
+    "alert_destination": "shonarai1988@gmail.com",
+    "alert_owner": "Gyan Prakash Rai",
+    "stop_work_authority": "Gyan Prakash Rai",
+    "infracost_version": "0.10.45",
+    "infracost_executable_sha256": "6a85c7a000eb5fb3e9a01df6a9ed4359580c07f5c7da9d13c1dfbe847bedf600",
+    "asset_attestation": "INDETERMINATE",
+    "unknown_incurred_cost": "INDETERMINATE",
+    "infracost_executable": "E:\\AI\\.tools\\infracost\\0.10.45\\infracost.exe",
+    "infracost_archive_sha256": "7f627fac5cad9b7260e1123c1378d2fb4f308cdc64f78e99d6e69727d9549d06",
+    "infracost_checksum_sidecar_sha256": "4a9668bab905dec316487ef1403e8f1ed59e6bbb897b4a08e521d3039f0aa413",
+    "infracost_license": "Apache-2.0",
+    "pricing_endpoint": "https://pricing.api.infracost.io",
+    "conditional_account_endpoint": "https://dashboard.api.infracost.io",
+    "direct_plan_json_api_upload": false
+  },
+  "external_paths": {
+    "evidence_root": "E:\\AI\\.runtime\\enterprise_ai_platform\\w5-004\\owner-test-01",
+    "temporary_root": "E:\\AI\\.tmp\\enterprise-ai-platform-w5-004\\owner-test-01",
+    "terraform_cache": "E:\\AI\\.terraform-cache\\enterprise-ai-platform-w5-004",
+    "pre_commit_cache": "E:\\AI\\.pre-commit-cache\\enterprise-ai-platform-global"
+  },
+  "governance": {
+    "bedrock_result": "FAIL_ACCEPTED_FOR_INFRASTRUCTURE_ONLY",
+    "w5_002_status": "PASS_APPROVED_AND_CLOSED",
+    "w5_003_status": "PASS_OFFLINE_POLICY_WITH_REAL_PLAN_DEFERRED",
+    "last_known_good_terraform_identity": null,
+    "kms_pending_deletion_days": 7,
+    "retention": "retain-plans-reports-and-state-until-owner-closure"
+  }
+}

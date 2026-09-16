@@ -40,8 +40,8 @@ def test_secret_baseline_contains_only_hashed_reviewed_results_and_no_backup() -
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
     results = baseline["results"]
     assert isinstance(results, dict) and results
-    assert len(results) == 30
-    assert sum(len(findings) for findings in results.values()) == 315
+    assert len(results) == 37
+    assert sum(len(findings) for findings in results.values()) == 357
     for path, findings in results.items():
         assert isinstance(path, str)
         assert isinstance(findings, list) and findings
@@ -62,6 +62,7 @@ def test_secret_baseline_contains_only_hashed_reviewed_results_and_no_backup() -
 def test_complete_synthetic_value_is_not_persisted_in_w1_08_files() -> None:
     synthetic_value = "".join(SYNTHETIC_MARKER_PARTS)
     controlled_paths = (
+        REPOSITORY_ROOT / "tools/secret_scan.py",
         REPOSITORY_ROOT / ".pre-commit-config.yaml",
         REPOSITORY_ROOT / ".secrets.baseline",
         REPOSITORY_ROOT / "tests/security/test_precommit_controls.py",

@@ -6,6 +6,10 @@ import json
 from pathlib import Path
 from typing import cast
 
+from .contracts import ContractError
+from .lifecycle_io import load_lifecycle_config
+from .lifecycle_models import OPERATIONAL_SCHEMA_VERSION
+
 EXPECTED_SCHEMA_VERSION = "1.0"
 EXPECTED_PROJECT = {
     "name": "enterprise-ai-platform",
@@ -440,7 +444,7 @@ EXPECTED_RELEASE_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": ["W4-11"],
 }
-EXPECTED_AWS_IMPLEMENTATION_PATHS = (
+EXPECTED_AWS_IMPLEMENTATION_PATHS: tuple[str, ...] = (
     ".tflint.hcl",
     "infra/bootstrap/variables.tf",
     "infra/bootstrap/outputs.tf",
@@ -503,11 +507,78 @@ EXPECTED_AWS_IMPLEMENTATION_PATHS = (
     "tests/teardown/test_policy_pack_cleanliness.py",
     "infra/environments/sandbox/terraform.tfvars.example",
 )
+EXPECTED_W5_004_IMPLEMENTATION_PATHS = (
+    "configs/lifecycle/w5-004.json",
+    "tools/platformctl/lifecycle_models.py",
+    "tools/platformctl/lifecycle_io.py",
+    "tools/platformctl/terraform_runner.py",
+    "tools/platformctl/policy_runner.py",
+    "tools/platformctl/cost.py",
+    "tools/platformctl/operation_state.py",
+    "tools/platformctl/plan_artifact_producer.py",
+    "tools/platformctl/aws_live.py",
+    "tests/fakes/platform_lifecycle.py",
+    "tests/unit/test_platformctl_plan_identity.py",
+    "tests/unit/test_platformctl_cost.py",
+    "tests/unit/test_platformctl_operation_state.py",
+    "tests/contract/test_w5_004_lifecycle_contract.py",
+    "tests/integration/test_w5_004_lifecycle_composition.py",
+    "tests/feature/test_w5_004_aws_lifecycle.py",
+    "tests/security/test_w5_004_lifecycle_security.py",
+    "tests/rollback/test_w5_004_infrastructure_rollback.py",
+    "tests/teardown/test_w5_004_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "infra/bootstrap/versions.tf",
+    "infra/environments/sandbox/versions.tf",
+    "policies/opa/terraform_plan.rego",
+    "policies/opa/terraform_plan_test.rego",
+    "tools/platformctl/__init__.py",
+    "tools/platformctl/cli.py",
+    "tools/platformctl/contracts.py",
+    "tools/platformctl/aws_inventory.py",
+    "tools/platformctl/bootstrap.py",
+    "tools/platformctl/plan.py",
+    "tools/platformctl/deploy.py",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/rollback.py",
+    "tools/platformctl/destroy.py",
+    "tools/platformctl/verify_clean.py",
+    "tests/unit/test_platformctl.py",
+    "tests/unit/test_platformctl_lifecycle.py",
+    "tests/unit/test_platformctl_verify_clean.py",
+    "tests/contract/test_platformctl_cli_contract.py",
+    "tests/contract/test_terraform_module_contract.py",
+    "tests/integration/test_platformctl_dry_run.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_mvp_001_platformctl.py",
+    "tests/smoke/test_platformctl_help.py",
+    "tests/security/test_platformctl_approval_gates.py",
+    "tests/security/test_repository_security.py",
+    "tests/teardown/test_platformctl_cleanup.py",
+    "tests/teardown/test_terraform_state_boundary.py",
+)
+_W5_004_NEW_AWS_PATHS = tuple(
+    path
+    for path in EXPECTED_W5_004_IMPLEMENTATION_PATHS
+    if path not in EXPECTED_AWS_IMPLEMENTATION_PATHS
+)
+EXPECTED_AWS_IMPLEMENTATION_PATHS = EXPECTED_AWS_IMPLEMENTATION_PATHS + _W5_004_NEW_AWS_PATHS
 EXPECTED_AWS_FEATURE = {
     "id": "AWS-001",
     "implementation_paths": list(EXPECTED_AWS_IMPLEMENTATION_PATHS),
     "status": "In Progress",
-    "linked_tracker_steps": ["W5-02", "W5-03", "W5-04", "W5-05", "W5-06"],
+    "linked_tracker_steps": [
+        "W5-02",
+        "W5-03",
+        "W5-04",
+        "W5-05",
+        "W5-06",
+        "W5-09",
+        "W5-10",
+        "W5-11",
+        "W5-12",
+    ],
 }
 EXPECTED_BEDROCK_IMPLEMENTATION_PATHS = (
     "configs/verification/bedrock-owner-test.json",
@@ -582,6 +653,7 @@ EXPECTED_FEATURES = (
     EXPECTED_GHA_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
+    "tools/secret_scan.py",
     ".pre-commit-config.yaml",
     ".secrets.baseline",
     "requirements-dev.txt",
@@ -595,6 +667,7 @@ EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
 
 REQUIRED_DIRECTORIES = (
     "configs",
+    "configs/lifecycle",
     "configs/eval",
     "configs/rag",
     "configs/rag/versions",
@@ -819,6 +892,15 @@ def validate_repository(root: Path | None = None) -> list[str]:
     for relative_path in REQUIRED_FILES:
         if not (target / relative_path).is_file():
             errors.append(f"missing required file: {relative_path}")
+
+    lifecycle_config = target / "configs/lifecycle/w5-004.json"
+    if lifecycle_config.is_file():
+        try:
+            lifecycle_values = load_lifecycle_config(lifecycle_config)
+            if lifecycle_values["schema_version"] != OPERATIONAL_SCHEMA_VERSION:
+                errors.append("operational lifecycle configuration must use v2")
+        except ContractError as exc:
+            errors.append(f"invalid W5-004 lifecycle configuration: {exc}")
 
     for relative_path in (
         "policies/opa/terraform.rego",

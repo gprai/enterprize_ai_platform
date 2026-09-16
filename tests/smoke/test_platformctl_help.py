@@ -10,16 +10,37 @@ from tools.platformctl.cli import build_parser, main
 
 
 class PlatformCtlSmokeTests(unittest.TestCase):
+    def test_request_options_do_not_enable_execution_by_default(self) -> None:
+        arguments = build_parser().parse_args(
+            [
+                "platform-plan",
+                "--environment",
+                "sandbox",
+                "--target",
+                "platform",
+            ]
+        )
+        self.assertFalse(arguments.execute)
+        self.assertIsNone(arguments.request_file)
+        self.assertIsNone(arguments.request_sha256)
+
     def test_help_is_available(self) -> None:
         help_text = build_parser().format_help()
         self.assertIn("--version", help_text)
         for command in (
-            "bootstrap",
-            "plan",
-            "deploy",
             "validate",
-            "rollback",
-            "destroy",
+            "bootstrap-plan",
+            "bootstrap-apply",
+            "platform-plan",
+            "policy-review",
+            "cost-review",
+            "platform-apply",
+            "aws-verify",
+            "infrastructure-rollback",
+            "destroy-plan",
+            "purge-sandbox",
+            "platform-destroy",
+            "bootstrap-destroy",
             "verify-clean",
         ):
             self.assertIn(command, help_text)

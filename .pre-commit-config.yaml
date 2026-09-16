@@ -15,7 +15,7 @@ repos:
         files: ^(src|tools|tests)/.*\.py$
       - id: detect-secrets-check
         name: Detect secrets check
-        entry: detect-secrets-hook --baseline .secrets.baseline
+        entry: python -B -m tools.secret_scan check --
         language: system
         types: [text]
         exclude: ^\.secrets\.baseline$

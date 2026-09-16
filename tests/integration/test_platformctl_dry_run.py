@@ -18,6 +18,21 @@ ARTIFACT_SHA256 = "a" * 64
 APPROVAL_ID = "approval-w1-004-integration"
 
 
+def test_explicit_execution_without_verified_services_never_runs(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unexpected_execution(*args: object, **kwargs: object) -> None:
+        pytest.fail("Missing request must be rejected before production service construction")
+
+    monkeypatch.setattr("tools.platformctl.plan.production_coordinator", unexpected_execution)
+    code = main(["platform-plan", "--environment", "sandbox", "--target", "platform", "--execute"])
+    assert code == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "VALIDATION ERROR: EXECUTION_REQUEST_AND_HASH_REQUIRED\n"
+
+
 class FrozenClock:
     """Deterministic integration clock."""
 
@@ -31,9 +46,9 @@ def write_deploy_approval(path: Path) -> None:
             {
                 "schema_version": "1.0",
                 "approval_id": APPROVAL_ID,
-                "action": "DEPLOY",
+                "action": "PLATFORM-APPLY",
                 "environment": "sandbox",
-                "aws_account_id": "123456789012",
+                "aws_account_id": "526338061652",
                 "aws_region": "ap-southeast-1",
                 "target": "platform",
                 "artifact_sha256": ARTIFACT_SHA256,
@@ -48,11 +63,11 @@ def write_deploy_approval(path: Path) -> None:
 
 def deploy_arguments(approval_path: Path) -> list[str]:
     return [
-        "deploy",
+        "platform-apply",
         "--environment",
         "sandbox",
         "--aws-account-id",
-        "123456789012",
+        "526338061652",
         "--aws-region",
         "ap-southeast-1",
         "--target",
@@ -62,11 +77,9 @@ def deploy_arguments(approval_path: Path) -> list[str]:
         "--approval-record",
         str(approval_path),
         "--confirmation",
-        f"CONFIRM DEPLOY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID}",
+        f"CONFIRM PLATFORM-APPLY sandbox platform {ARTIFACT_SHA256} {APPROVAL_ID}",
         "--executor",
         "Gyan-Prakash-Rai",
-        "--resource-expires-at",
-        "2026-01-01T12:00:00Z",
     ]
 
 
@@ -97,7 +110,7 @@ def test_default_approval_state_fails_closed(
 def test_plan_is_offline_and_does_not_require_approval(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    result = main(["plan", "--environment", "sandbox", "--target", "platform"])
+    result = main(["platform-plan", "--environment", "sandbox", "--target", "platform"])
     assert result == 0
     assert "Terraform plan was NOT RUN" in capsys.readouterr().out
 

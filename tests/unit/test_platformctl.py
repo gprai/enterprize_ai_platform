@@ -39,6 +39,7 @@ from tools.platformctl.validate import (
     EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
+    EXPECTED_W5_004_IMPLEMENTATION_PATHS,
 )
 
 
@@ -53,7 +54,7 @@ def approved_matrix() -> dict[str, object]:
 
 class PlatformCtlUnitTests(unittest.TestCase):
     def test_version_is_an_explicit_pre_release_version(self) -> None:
-        self.assertEqual("0.1.0", __version__)
+        self.assertEqual("0.2.0", __version__)
 
     def test_parser_exposes_w1_004_lifecycle_subcommands(self) -> None:
         parser = build_parser()
@@ -61,12 +62,19 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertEqual("validate", arguments.command)
         help_text = parser.format_help()
         for command in (
-            "bootstrap",
-            "plan",
-            "deploy",
             "validate",
-            "rollback",
-            "destroy",
+            "bootstrap-plan",
+            "bootstrap-apply",
+            "platform-plan",
+            "policy-review",
+            "cost-review",
+            "platform-apply",
+            "aws-verify",
+            "infrastructure-rollback",
+            "destroy-plan",
+            "purge-sandbox",
+            "platform-destroy",
+            "bootstrap-destroy",
             "verify-clean",
         ):
             self.assertIn(command, help_text)
@@ -396,6 +404,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
     def test_w1_08_security_controls_extend_the_repository_contract(self) -> None:
         self.assertEqual(
             (
+                "tools/secret_scan.py",
                 ".pre-commit-config.yaml",
                 ".secrets.baseline",
                 "requirements-dev.txt",
@@ -411,13 +420,25 @@ class PlatformCtlUnitTests(unittest.TestCase):
         for path in EXPECTED_W1_08_SECURITY_CONTROL_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
-    def test_w5_003_policy_pack_extends_aws_ownership_exactly(self) -> None:
-        self.assertEqual(61, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
-        self.assertEqual(61, len(set(EXPECTED_AWS_IMPLEMENTATION_PATHS)))
+    def test_w5_004_lifecycle_extends_aws_ownership_exactly(self) -> None:
+        self.assertEqual(96, len(EXPECTED_AWS_IMPLEMENTATION_PATHS))
+        self.assertEqual(96, len(set(EXPECTED_AWS_IMPLEMENTATION_PATHS)))
+        self.assertEqual(49, len(EXPECTED_W5_004_IMPLEMENTATION_PATHS))
+        self.assertEqual(49, len(set(EXPECTED_W5_004_IMPLEMENTATION_PATHS)))
         self.assertEqual(5, len(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS))
         self.assertEqual(5, len(set(EXPECTED_BEDROCK_IMPLEMENTATION_PATHS)))
         self.assertEqual(
-            ["W5-02", "W5-03", "W5-04", "W5-05", "W5-06"],
+            [
+                "W5-02",
+                "W5-03",
+                "W5-04",
+                "W5-05",
+                "W5-06",
+                "W5-09",
+                "W5-10",
+                "W5-11",
+                "W5-12",
+            ],
             EXPECTED_FEATURES[7]["linked_tracker_steps"],
         )
         self.assertEqual(["W5-02"], EXPECTED_FEATURES[8]["linked_tracker_steps"])
@@ -427,14 +448,14 @@ class PlatformCtlUnitTests(unittest.TestCase):
             self.assertIn(path, REQUIRED_FILES)
         self.assertEqual(
             (
-                ".checkov.yml",
-                "policies/opa/exceptions.json",
-                "tests/contract/test_policy_exception_contract.py",
-                "tests/feature/test_policy_gate.py",
-                "tests/rollback/test_policy_pack_rollback.py",
-                "tests/security/test_policy_pack.py",
-                "tests/teardown/test_policy_pack_cleanliness.py",
-                "infra/environments/sandbox/terraform.tfvars.example",
+                "tools/platformctl/verify_clean.py",
+                "tests/unit/test_platformctl_verify_clean.py",
+                "tests/contract/test_platformctl_cli_contract.py",
+                "tests/integration/test_platformctl_dry_run.py",
+                "tests/feature/test_mvp_001_platformctl.py",
+                "tests/smoke/test_platformctl_help.py",
+                "tests/security/test_platformctl_approval_gates.py",
+                "tests/security/test_repository_security.py",
             ),
             EXPECTED_AWS_IMPLEMENTATION_PATHS[-8:],
         )
@@ -489,3 +510,14 @@ class PlatformCtlUnitTests(unittest.TestCase):
         assert any("unexpected custom Checkov policy path" in error for error in errors)
         assert any("OPA policy package" in error for error in errors)
         assert any("policy exception schema_version" in error for error in errors)
+
+
+def test_v2_configuration_keeps_historical_application_identity_separate() -> None:
+    from tools.platformctl.lifecycle_io import load_lifecycle_config
+
+    values = load_lifecycle_config(
+        Path(__file__).resolve().parents[2] / "configs/lifecycle/w5-004.json"
+    )
+    assert values["schema_version"] == "w5-004.lifecycle.v2"
+    assert values["lifecycle"]["identity_member_count"] == 385
+    assert "source_composition_sha256" in values["repository"]
