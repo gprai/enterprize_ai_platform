@@ -79,6 +79,28 @@ def agent_settings(valid_settings_values: dict[str, object]) -> Settings:
 
 
 @pytest.fixture
+def export_settings(valid_settings_values: dict[str, object]) -> Settings:
+    """Return the exact W6-002 loopback-sidecar export profile."""
+
+    return Settings(
+        _env_file=None,
+        api_routes_enabled=True,
+        telemetry_enabled=True,
+        telemetry_exporter="otlp_grpc",
+        telemetry_otlp_endpoint="http://127.0.0.1:4317",
+        telemetry_queue_capacity=512,
+        telemetry_batch_size=64,
+        telemetry_export_delay_seconds=1.0,
+        telemetry_export_timeout_seconds=1.0,
+        telemetry_retry_count=0,
+        telemetry_background_workers=1,
+        telemetry_flush_timeout_seconds=2.0,
+        telemetry_shutdown_timeout_seconds=2.0,
+        **valid_settings_values,
+    )
+
+
+@pytest.fixture
 def telemetry_factory(
     valid_settings: Settings,
 ) -> Iterator[Callable[[], InMemoryTelemetryComposition]]:

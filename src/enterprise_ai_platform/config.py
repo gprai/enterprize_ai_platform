@@ -55,18 +55,21 @@ class Settings(BaseSettings):
         max_length=64,
         pattern=r"^[a-z0-9][a-z0-9._-]*$",
     )
-    telemetry_exporter: Literal["none"] = "none"
-    telemetry_otlp_endpoint: None = None
+    telemetry_exporter: Literal["none", "otlp_grpc"] = "none"
+    telemetry_otlp_endpoint: str | None = Field(default=None, max_length=64)
     telemetry_span_capacity: Literal[512] = 512
     telemetry_log_capacity: Literal[512] = 512
-    telemetry_queue_capacity: Literal[0] = 0
+    telemetry_queue_capacity: Literal[0, 512] = 0
+    telemetry_batch_size: Literal[0, 64] = 0
+    telemetry_export_delay_seconds: float = Field(default=0.0, ge=0.0, le=1.0)
+    telemetry_export_timeout_seconds: float = Field(default=0.0, ge=0.0, le=1.0)
     telemetry_retry_count: Literal[0] = 0
-    telemetry_background_workers: Literal[0] = 0
-    telemetry_flush_timeout_seconds: float = Field(default=1.0, ge=1.0, le=1.0)
+    telemetry_background_workers: Literal[0, 1] = 0
+    telemetry_flush_timeout_seconds: float = Field(default=1.0, ge=1.0, le=2.0)
     telemetry_shutdown_timeout_seconds: float = Field(
         default=1.0,
         ge=1.0,
-        le=1.0,
+        le=2.0,
     )
     agent_enabled: bool = False
     agent_mock_write_enabled: bool = False
@@ -129,8 +132,8 @@ class Settings(BaseSettings):
 
     @field_validator("telemetry_otlp_endpoint", mode="before")
     @classmethod
-    def normalize_disabled_telemetry_endpoint(cls, value: object) -> object:
-        """Allow only an absent or blank endpoint in the default-off boundary."""
+    def normalize_telemetry_endpoint(cls, value: object) -> object:
+        """Normalize an optional endpoint before exact profile validation."""
 
         if value is None or (isinstance(value, str) and not value.strip()):
             return None
@@ -183,4 +186,31 @@ class Settings(BaseSettings):
             raise ValueError("agent deadline must remain inside the API deadline")
         if self.telemetry_enabled and not self.api_routes_enabled:
             raise ValueError("enabled telemetry requires the W4 API boundary")
+        disabled_profile = (
+            self.telemetry_otlp_endpoint is None
+            and self.telemetry_queue_capacity == 0
+            and self.telemetry_batch_size == 0
+            and self.telemetry_export_delay_seconds == 0.0
+            and self.telemetry_export_timeout_seconds == 0.0
+            and self.telemetry_retry_count == 0
+            and self.telemetry_background_workers == 0
+            and self.telemetry_flush_timeout_seconds == 1.0
+            and self.telemetry_shutdown_timeout_seconds == 1.0
+        )
+        exporting_profile = (
+            self.telemetry_enabled
+            and self.telemetry_otlp_endpoint == "http://127.0.0.1:4317"
+            and self.telemetry_queue_capacity == 512
+            and self.telemetry_batch_size == 64
+            and self.telemetry_export_delay_seconds == 1.0
+            and self.telemetry_export_timeout_seconds == 1.0
+            and self.telemetry_retry_count == 0
+            and self.telemetry_background_workers == 1
+            and self.telemetry_flush_timeout_seconds == 2.0
+            and self.telemetry_shutdown_timeout_seconds == 2.0
+        )
+        if self.telemetry_exporter == "none" and not disabled_profile:
+            raise ValueError("disabled telemetry export requires the exact zero-worker profile")
+        if self.telemetry_exporter == "otlp_grpc" and not exporting_profile:
+            raise ValueError("otlp_grpc requires the exact approved loopback export profile")
         return self

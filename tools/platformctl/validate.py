@@ -400,12 +400,29 @@ EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS = (
     "tests/feature/test_w2_002_embedder_contract.py",
     "tests/feature/test_w2_003_ingestion_contract.py",
     "tests/integration/test_dependency_contract.py",
+    "configs/observability/otel-collector.aws.yaml",
+    "configs/observability/slo.yaml",
+    "configs/chaos/fis-plan.yaml",
+    "observability/alerts.yml",
+    "observability/dashboards/enterprise-ai-overview.json",
+    "src/enterprise_ai_platform/telemetry/export.py",
+    "src/enterprise_ai_platform/telemetry/slo.py",
+    "tools/w6_002_observability.py",
+    "tests/fakes/observability.py",
+    "tests/unit/test_w6_002_observability.py",
+    "tests/contract/test_w6_002_observability_contract.py",
+    "tests/integration/test_w6_002_telemetry_composition.py",
+    "tests/feature/test_failure_modes.py",
+    "tests/security/test_w6_002_observability_security.py",
+    "tests/rollback/test_w6_002_observability_rollback.py",
+    "tests/teardown/test_w6_002_observability_cleanliness.py",
+    "Makefile",
 )
 EXPECTED_OBSERVABILITY_FEATURE = {
     "id": "OBS-001",
     "implementation_paths": list(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS),
     "status": "In Progress",
-    "linked_tracker_steps": ["W3-09", "W4-08"],
+    "linked_tracker_steps": ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09"],
 }
 EXPECTED_RELEASE_IMPLEMENTATION_PATHS = (
     "configs/releases/versions/w4-known-good-v1.json",
@@ -727,6 +744,7 @@ REQUIRED_DIRECTORIES = (
     "configs/rag",
     "configs/rag/versions",
     "configs/observability",
+    "configs/chaos",
     "configs/releases",
     "configs/releases/versions",
     "configs/verification",
@@ -779,6 +797,8 @@ REQUIRED_DIRECTORIES = (
     "tests/teardown",
     "policies",
     "policies/opa",
+    "observability",
+    "observability/dashboards",
 )
 
 REQUIRED_FILES = (

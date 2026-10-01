@@ -1,0 +1,36 @@
+schema_version: w6-002.fis-plan.v1
+classification: plan-only-not-authorized-for-execution
+owner: Gyan Prakash Rai
+region: ap-southeast-1
+environment: sandbox
+action:
+  id: aws:eks:pod-delete
+  maximum_targets: 1
+  duration_seconds: 300
+targets:
+  cluster_tag: enterprise-ai-sandbox
+  namespace: enterprise-ai-sandbox
+  pod_label: app.kubernetes.io/name=enterprise-ai-api
+required_tags:
+  Project: enterprise-ai-platform
+  Environment: sandbox
+stop_alarms:
+  - enterprise-ai-w6-002-availability-burn
+  - enterprise-ai-w6-002-safety
+abort_conditions:
+  - any_stop_alarm_in_alarm
+  - target_count_exceeds_one
+  - experiment_exceeds_300_seconds
+local_rehearsals:
+  execution: fake-provider-only
+  scenarios:
+    - opensearch_unavailable
+    - opensearch_timeout
+    - bedrock_timeout
+    - bedrock_throttle
+    - exporter_outage
+    - exporter_saturation
+    - readiness_failure
+    - retry_storm
+execution_authority: W6-004-owner-approval-required
+cost_authority: none-in-w6-002

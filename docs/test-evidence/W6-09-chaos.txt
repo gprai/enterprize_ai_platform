@@ -1,0 +1,126 @@
+W6-002 BOUNDED FAILURE-REHEARSAL AND CHAOS-READINESS EVIDENCE
+
+BUSINESS OUTCOME
+W6-002 proves a bounded local failure-response contract and prepares a guarded
+AWS FIS plan for later lifecycle testing. It does not authorize or claim a live
+fault experiment. Live FIS execution is NOT RUN and remains owned by W6-004.
+
+LOCAL OWNER-EXECUTED RESULTS
+- Failure-mode test group: PASS — 2 passed.
+- Exporter outage behavior: PASS — a failing injected sink did not escape into
+  the business flow; the runtime recorded a telemetry export-failure event.
+- Approved rehearsal inventory: PASS — the configuration contains exactly the
+  approved fake-provider scenarios and retains W6-004 execution authority.
+- Rollback contract: PASS — the default profile has no exporter endpoint,
+  queue, or telemetry background worker and uses the null runtime.
+- Teardown cleanliness: PASS — the export worker terminated without residue.
+- Final repository residue: 0.
+- Final external test residue: 0.
+- Staged paths: 0.
+
+APPROVED LOCAL REHEARSAL INVENTORY
+- opensearch_unavailable
+- opensearch_timeout
+- bedrock_timeout
+- bedrock_throttle
+- exporter_outage
+- exporter_saturation
+- readiness_failure
+- retry_storm
+
+The inventory and fake-provider-only boundary were validated. The focused
+W6-002 test directly exercised exporter failure. This record does not claim
+that every listed scenario was executed against a live dependency, AWS service,
+EKS workload, or FIS experiment.
+
+BOUNDED FAILURE BEHAVIOR
+- The application export queue has finite capacity 512 and batch size 64.
+- Export delay and sink timeout are 1 second; flush and worker shutdown are
+  bounded to 2 seconds.
+- Queue saturation drops the oldest telemetry record and records a capacity
+  drop; it does not retry a business operation.
+- Sink failure records a telemetry export failure and does not escape into the
+  business request path.
+- Shutdown stops acceptance, performs bounded flush, joins the worker, and
+  shuts down the sink.
+
+AWS FIS PLAN BOUNDARY
+- Schema: w6-002.fis-plan.v1.
+- Classification: plan-only-not-authorized-for-execution.
+- Region/environment: ap-southeast-1 / sandbox.
+- Proposed action: aws:eks:pod-delete.
+- Maximum targets: 1.
+- Maximum duration: 300 seconds.
+- Required target boundary: enterprise-ai-sandbox cluster and namespace, with
+  the enterprise-ai-api application label and approved project/environment
+  tags.
+- Required stop alarms: enterprise-ai-w6-002-availability-burn and
+  enterprise-ai-w6-002-safety.
+- Abort conditions: any stop alarm in ALARM, more than one target, or duration
+  over 300 seconds.
+- Execution authority: W6-004 owner approval required.
+- Cost authority: none in W6-002.
+
+NOT RUN AND LIMITATIONS
+- Live FIS execution: NOT RUN.
+- Live OpenSearch, Bedrock, collector, CloudWatch, X-Ray, alert destination,
+  application, EKS, and AWS failure injection: NOT RUN.
+- Live readiness degradation/restoration and retry-storm observation: NOT RUN.
+- Operational application, Kubernetes, infrastructure, and cloud rollback:
+  NOT RUN.
+- Live Kubernetes and cloud teardown: NOT RUN.
+- No production resilience, recovery-time, recovery-point, SLO, or cost claim
+  is established.
+
+W6-004 REQUIREMENTS
+Before execution, the owner must approve fresh resource identities and tags,
+the exact experiment template, one-target enforcement, the time window, both
+working stop alarms, abort thresholds, expiry, accountable operator, live alert
+destination, private connectivity, least-privilege identity, and a current cost
+ceiling. W6-004 must then record live health and signal behavior, restoration,
+rollback, complete teardown, native AWS/EKS residue, delayed billing, and final
+cost evidence without converting a partial or aborted experiment to PASS.
+
+FINAL OWNER APPROVAL
+- Prompt/task ID: W6-002.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Approval date and time/timezone: 2026-10-02 01:06:00 SGT.
+- Final status: APPROVED FOR USER TRACKER UPDATE — W6-002 within the bounded
+  local failure-response and plan-only FIS scope.
+- Code review status: APPROVED within the W6-002 local implementation boundary;
+  no live FIS, AWS, EKS, deployment, or production approval is implied.
+- Documentation review status: APPROVED as one of five Column M documents
+  closed together.
+- Owner-executed test status: Local failure-mode tests, rollback contract,
+  worker cleanliness, full regression, quality gates, and native Prometheus
+  rule validation passed as recorded. Historical failures, 7 skips, 4
+  deselections, and the retained warning remain preserved.
+- Accepted warnings, risks, gaps, and limitations: All items in the approved
+  W6-002 Column M manifest are accepted; no additional item is silently
+  accepted. Only exporter failure was directly exercised by the focused
+  failure-mode test; inventory validation is not live execution.
+- NOT RUN and INDETERMINATE: Live FIS, dependency failure injection, readiness
+  restoration, retry-storm observation, AWS/EKS deployment, operational
+  rollback, and cloud teardown remain NOT RUN. Remaining open INDETERMINATE
+  activities: None.
+- Deployment facts: No experiment, collector, application, EKS workload, AWS
+  service, alert destination, or production resource was deployed.
+- Rollback facts: The local default no-exporter/no-worker rollback contract
+  PASS; operational application, Kubernetes, infrastructure, and cloud rollback
+  remain NOT RUN.
+- Teardown and residual-resource facts: Local export-worker shutdown, external
+  test-directory cleanup, and zero-residue checks PASS. Repository and external
+  test residue were 0. Promtool 3.5.0 is intentionally retained. Cloud teardown
+  remains NOT RUN because no W6-002 cloud resource was created.
+- Deferred actions and owner: W6-003 integrated readiness and all W6-004 live
+  failure, rollback, teardown, residue, and cost work remain open. Responsible
+  owner: Gyan Prakash Rai unless separately assigned.
+- Conditions: Preserve every status, warning, limitation, deferral, and retained
+  resource; do not infer real failure injection or production readiness from
+  local, fake, mocked, injected, static, or native-tool evidence; only the owner
+  updates Excel or mutates Git.
+- Next-task handover: The owner may update the W6-002 tracker row. Any FIS or
+  live lifecycle activity requires separate W6-004 approval and evidence.
+- Tracker update responsibility: Owner.

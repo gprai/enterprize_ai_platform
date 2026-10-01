@@ -1,0 +1,134 @@
+{
+  "schema_version": "w6-002.observability-evidence.v1",
+  "prompt_id": "W6-002",
+  "classification": "local-deployment-readiness-not-live-evidence",
+  "source_identity": {
+    "approved_pre_edit_commit": "82e05dd9e7c3de866ee83026a5fe835368cbad4d",
+    "approved_create_count": 16,
+    "approved_update_count": 17,
+    "approved_delete_count": 0,
+    "verified_post_edit_path_count": 35,
+    "tracker_sha256": "66f71dda14e2c67bf41c816a04f813a0c4e16ed0b4314864983656f88946554d",
+    "identity_verification_status": "PASS"
+  },
+  "schemas": {
+    "telemetry": "w4-003.telemetry.v1",
+    "observability": "w6-002.observability.v1",
+    "slo": "w6-002.slo.v1",
+    "fis_plan": "w6-002.fis-plan.v1"
+  },
+  "owner_executed_results": [
+    {"check": "contract_validator", "status": "PASS", "detail": "W6-002 OBSERVABILITY CONTRACT VALID — NOT DEPLOYED"},
+    {"check": "unit", "status": "PASS", "passed": 4},
+    {"check": "contract", "status": "PASS", "passed": 2},
+    {"check": "telemetry_composition", "status": "PASS", "passed": 1},
+    {"check": "failure_modes", "status": "PASS", "passed": 2},
+    {"check": "security", "status": "PASS", "passed": 3},
+    {"check": "rollback_contract", "status": "PASS", "passed": 1},
+    {"check": "teardown_cleanliness", "status": "PASS", "passed": 1},
+    {"check": "w4_telemetry_regression", "status": "PASS", "passed": 50, "warnings": 1},
+    {"check": "platform_and_dependency_regression", "status": "PASS", "passed": 138, "warnings": 1, "subtests_passed": 10},
+    {"check": "prometheus_rule_validation", "status": "PASS", "rules": 13, "tool_version": "3.5.0"},
+    {"check": "ruff_lint", "status": "PASS"},
+    {"check": "ruff_format", "status": "PASS", "files_already_formatted": 316},
+    {"check": "mypy", "status": "PASS", "source_files": 120},
+    {"check": "focused_post_remediation_regression", "status": "PASS", "passed": 64},
+    {"check": "complete_pytest_suite", "status": "PASS", "passed": 2069, "skipped": 7, "deselected": 4, "warnings": 1, "subtests_passed": 10, "elapsed_seconds": 314.67},
+    {"check": "pre_commit_ruff_lint", "status": "PASS"},
+    {"check": "pre_commit_ruff_format", "status": "PASS"},
+    {"check": "pre_commit_detect_secrets", "status": "PASS"},
+    {"check": "external_test_directory_cleanup", "status": "PASS", "removed": 4, "remaining": 0},
+    {"check": "final_zero_residue", "status": "PASS", "repository_residue_count": 0, "external_test_residue_count": 0, "staged_path_count": 0, "tracker_lock_present": false},
+    {"check": "final_path_identity", "status": "PASS", "path_count": 35, "tracker_identity": "MATCH"}
+  ],
+  "historical_results": [
+    {"check": "promtool_discovery", "status": "FAIL", "resolution": "Owner-approved pinned tool installation followed by native validation PASS"},
+    {"check": "ruff_lint_initial", "status": "FAIL", "findings": 5, "resolution": "Bounded remediation and rerun PASS"},
+    {"check": "ruff_format_initial", "status": "FAIL", "files": 2, "resolution": "Bounded formatting remediation and rerun PASS"},
+    {"check": "mypy_initial", "status": "FAIL", "errors": 3, "files": 2, "resolution": "Bounded remediation and rerun PASS"},
+    {"check": "complete_pytest_suite_initial", "status": "FAIL", "passed": 2066, "failed": 3, "skipped": 7, "deselected": 4, "warnings": 1, "subtests_passed": 10, "resolution": "Bounded compatibility remediation, focused rerun PASS, and final complete suite PASS"}
+  ],
+  "promtool": {
+    "version": "3.5.0",
+    "platform": "windows/amd64",
+    "archive_sha256": "b3c2607d1e80a277735fd3cde86432eb1b6843897cb82fb04fbf4c7ffb1d1c36",
+    "executable_sha256": "626674d5a047f2fd862a9c8678596b890a6824c76d31c33bcd6af93c1e3429d9",
+    "retention": "intentionally-retained-owner-approved-tool",
+    "path_change": "NOT RUN",
+    "service_start": "NOT RUN"
+  },
+  "security_privacy": {
+    "content_free_schema": "PASS",
+    "unapproved_content_rejection": "PASS",
+    "credential_and_content_field_scan": "PASS",
+    "low_cardinality_contract": "PASS",
+    "live_private_endpoint_verification": "NOT RUN",
+    "live_pod_identity_verification": "NOT RUN"
+  },
+  "lifecycle": {
+    "local_configuration_validation": "PASS",
+    "local_synthetic_export": "PASS",
+    "prometheus_native_rule_validation": "PASS",
+    "live_aws_export": "NOT RUN",
+    "live_alert_delivery": "NOT RUN",
+    "fis_execution": "NOT RUN",
+    "deployment": "NOT RUN",
+    "local_rollback_contract": "PASS",
+    "operational_rollback": "NOT RUN",
+    "local_worker_teardown": "PASS",
+    "cloud_teardown": "NOT RUN"
+  },
+  "residue": {
+    "repository_residue_count": 0,
+    "external_test_residue_count": 0,
+    "staged_path_count": 0,
+    "tracker_lock_present": false,
+    "retained_resources": ["promtool.exe 3.5.0"],
+    "cloud_resources": "none-created-by-w6-002"
+  },
+  "warnings_risks_gaps": [
+    "The existing Starlette anyio.abc.BlockingPortal deprecation warning remains accepted but unresolved.",
+    "Seven skipped and four deselected tests are not PASS.",
+    "Local and synthetic evidence does not prove AWS, EKS, production, live alert, or live FIS behavior.",
+    "Production traffic does not exist to prove the proposed SLO targets.",
+    "Backup alert ownership, live destination, final retention, private connectivity, IAM, pricing, and cost cap remain W6-004 inputs.",
+    "Local compute and storage costs were not priced."
+  ],
+  "handover": {
+    "W6-003": "Integrate application composition and required readiness, dependency-attempt, and safety metric producers.",
+    "W6-004": "Deploy and validate AWS infrastructure, services, ECR image, EKS identity, application composition, observability, live tests, rollback, complete teardown, and residue and cost verification."
+  },
+  "column_n": {
+    "prompt_id": "W6-002",
+    "final_owner_approval": "APPROVED",
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner and Final Approval Reviewer",
+    "decision": "FINAL APPROVAL AFTER OWNER TEST — APPROVED",
+    "approval_date_time_timezone": "2026-10-02 01:06:00 SGT",
+    "final_status": "APPROVED FOR USER TRACKER UPDATE — W6-002",
+    "code_review_status": "APPROVED within the bounded local deployment-readiness scope; no live or production approval implied",
+    "documentation_review_status": "APPROVED; all five Column M documents closed together",
+    "owner_executed_test_status": "PASS within recorded local and native-tool scopes; historical failures, 7 skips, 4 deselections, and 1 warning preserved",
+    "accepted_warnings_risks_gaps_limitations": "All items in the approved W6-002 Column M manifest are accepted; no additional item is silently accepted",
+    "not_run": [
+      "aws_and_eks_deployment",
+      "live_xray_and_cloudwatch_export",
+      "live_alert_delivery",
+      "live_dependency_validation",
+      "fis_execution",
+      "production_slo_proof",
+      "operational_application_kubernetes_infrastructure_and_cloud_rollback",
+      "live_application_kubernetes_aws_and_cloud_teardown"
+    ],
+    "remaining_open_indeterminate": "None",
+    "deployment_status": "NOT RUN; local configuration and synthetic composition validation only; no W6-002 cloud resource created",
+    "rollback_status": "Local no-exporter/no-worker rollback contract PASS; operational rollback NOT RUN",
+    "teardown_status": "Local worker shutdown, temporary-directory cleanup, and zero-residue verification PASS; cloud teardown NOT RUN",
+    "residual_resource_status": "Repository residue 0; external test residue 0; staged paths 0; tracker lock absent; approved Promtool 3.5.0 intentionally retained",
+    "deferred_actions": "W6-003 integrated readiness and W6-004 full live AWS lifecycle remain open",
+    "responsible_owner": "Gyan Prakash Rai unless another owner is explicitly recorded",
+    "conditions": "Preserve all PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work, and retained-resource facts; infer no production or cloud readiness; only the owner updates Excel and performs Git mutation",
+    "next_task_handover": "Owner may update the W6-002 tracker row; W6-003 and W6-004 require separate approvals and evidence",
+    "tracker_update_responsibility": "Owner"
+  }
+}

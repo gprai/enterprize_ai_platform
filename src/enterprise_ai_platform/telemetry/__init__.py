@@ -1,10 +1,20 @@
-"""Public, content-free telemetry contracts for W4-003."""
+"""Public, content-free telemetry and observability contracts."""
 
+from .export import (
+    BoundedExportQueue,
+    ExportingTelemetryComposition,
+    ExportingTelemetryRuntime,
+    ExportSink,
+    build_exporting_telemetry,
+)
 from .models import (
     METRIC_NAMES,
+    OBSERVABILITY_SCHEMA_VERSION,
     SPAN_NAMES,
     TELEMETRY_SCHEMA_VERSION,
     DropReason,
+    ObservabilityEvidence,
+    ObservabilityEvidenceStatus,
     SafeLogRecord,
     SafeTelemetryAttributes,
     TelemetryEventName,
@@ -21,25 +31,42 @@ from .runtime import (
     InMemoryTelemetryComposition,
     NullTelemetryRuntime,
     OpenTelemetryRuntime,
+    SafeLogSink,
     SafeSpanExporter,
     TelemetryRuntime,
     TelemetryScope,
     build_in_memory_telemetry,
     telemetry_for_application,
 )
+from .slo import (
+    SLO_SCHEMA_VERSION,
+    SLIObservation,
+    SLODefinition,
+    SLOEvaluation,
+    SLOStatus,
+    evaluate_slo,
+)
 
 __all__ = (
     "METRIC_NAMES",
+    "OBSERVABILITY_SCHEMA_VERSION",
     "SPAN_NAMES",
     "TELEMETRY_SCHEMA_VERSION",
     "BoundedInMemoryLogSink",
+    "BoundedExportQueue",
     "BoundedInMemorySpanExporter",
     "DropReason",
+    "ObservabilityEvidence",
+    "ObservabilityEvidenceStatus",
+    "ExportingTelemetryComposition",
+    "ExportingTelemetryRuntime",
+    "ExportSink",
     "EmbeddingTelemetryRecorder",
     "InMemoryTelemetryComposition",
     "NullTelemetryRuntime",
     "OpenTelemetryRuntime",
     "SafeLogRecord",
+    "SafeLogSink",
     "SafeSpanExporter",
     "SafeTelemetryAttributes",
     "TelemetryEventName",
@@ -50,6 +77,13 @@ __all__ = (
     "TelemetrySignal",
     "TelemetryStage",
     "TokenType",
+    "SLO_SCHEMA_VERSION",
+    "SLODefinition",
+    "SLOEvaluation",
+    "SLIObservation",
+    "SLOStatus",
+    "build_exporting_telemetry",
     "build_in_memory_telemetry",
+    "evaluate_slo",
     "telemetry_for_application",
 )

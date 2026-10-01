@@ -351,10 +351,10 @@ class PlatformCtlUnitTests(unittest.TestCase):
         for path in EXPECTED_AGENT_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
-    def test_w4_003_observability_contract_is_exactly_appended(self) -> None:
-        self.assertEqual(32, len(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS))
+    def test_w6_002_observability_contract_is_exactly_appended(self) -> None:
+        self.assertEqual(49, len(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS))
         self.assertEqual(
-            32,
+            49,
             len(set(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS)),
         )
         self.assertEqual(
@@ -367,7 +367,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
             EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS[:4],
         )
         self.assertEqual(
-            ["W3-09", "W4-08"],
+            ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09"],
             EXPECTED_FEATURES[5]["linked_tracker_steps"],
         )
         self.assertIn("configs/observability", REQUIRED_DIRECTORIES)
@@ -375,6 +375,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
             "src/enterprise_ai_platform/telemetry",
             REQUIRED_DIRECTORIES,
         )
+        self.assertIn("configs/chaos", REQUIRED_DIRECTORIES)
+        self.assertIn("observability/dashboards", REQUIRED_DIRECTORIES)
         for path in EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 

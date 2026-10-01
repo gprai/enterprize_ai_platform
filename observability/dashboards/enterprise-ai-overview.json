@@ -1,0 +1,22 @@
+{
+  "annotations": {"list": []},
+  "editable": false,
+  "panels": [
+    {"id": 1, "title": "Eligible request availability", "type": "stat", "targets": [{"expr": "enterprise_ai:availability:ratio30d"}]},
+    {"id": 2, "title": "Request latency p95", "type": "timeseries", "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(enterprise_ai_stage_duration_seconds_bucket{stage=\"api\",operation=\"request\"}[5m])))"}]},
+    {"id": 3, "title": "Request latency p99", "type": "timeseries", "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(enterprise_ai_stage_duration_seconds_bucket{stage=\"api\",operation=\"request\"}[5m])))"}]},
+    {"id": 4, "title": "Retrieval latency p99", "type": "timeseries", "targets": [{"expr": "histogram_quantile(0.99, sum by (le) (rate(enterprise_ai_stage_duration_seconds_bucket{stage=\"retrieval\",operation=\"retrieve\"}[5m])))"}]},
+    {"id": 5, "title": "Telemetry drops", "type": "timeseries", "targets": [{"expr": "sum(rate(enterprise_ai_telemetry_dropped_total[5m])) by (signal, reason)"}]},
+    {"id": 6, "title": "Exporter failures", "type": "timeseries", "targets": [{"expr": "sum(rate(enterprise_ai_telemetry_export_failures_total[5m]))"}]},
+    {"id": 7, "title": "Readiness", "type": "stat", "targets": [{"expr": "min(enterprise_ai_readiness)"}]},
+    {"id": 8, "title": "Safety violations", "type": "stat", "targets": [{"expr": "sum(increase(enterprise_ai_safety_violations_total[30d]))"}]}
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["enterprise-ai", "w6-002", "deployment-readiness"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "title": "Enterprise AI Platform Overview",
+  "uid": "enterprise-ai-w6-002",
+  "version": 1
+}

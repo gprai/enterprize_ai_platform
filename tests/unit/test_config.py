@@ -42,6 +42,9 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.telemetry_span_capacity == 512
     assert settings.telemetry_log_capacity == 512
     assert settings.telemetry_queue_capacity == 0
+    assert settings.telemetry_batch_size == 0
+    assert settings.telemetry_export_delay_seconds == 0.0
+    assert settings.telemetry_export_timeout_seconds == 0.0
     assert settings.telemetry_retry_count == 0
     assert settings.telemetry_background_workers == 0
     assert settings.telemetry_flush_timeout_seconds == 1.0
@@ -70,6 +73,43 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.agent_maximum_serialized_state_bytes == 16_384
     assert settings.agent_maximum_concurrent_runs == 1
     assert settings.agent_queue_capacity == 0
+
+
+def test_w6_002_export_profile_is_exact(
+    export_settings: Settings,
+) -> None:
+    assert export_settings.telemetry_enabled is True
+    assert export_settings.telemetry_exporter == "otlp_grpc"
+    assert export_settings.telemetry_otlp_endpoint == "http://127.0.0.1:4317"
+    assert export_settings.telemetry_queue_capacity == 512
+    assert export_settings.telemetry_batch_size == 64
+    assert export_settings.telemetry_export_delay_seconds == 1.0
+    assert export_settings.telemetry_export_timeout_seconds == 1.0
+    assert export_settings.telemetry_retry_count == 0
+    assert export_settings.telemetry_background_workers == 1
+    assert export_settings.telemetry_flush_timeout_seconds == 2.0
+    assert export_settings.telemetry_shutdown_timeout_seconds == 2.0
+
+
+def test_w6_002_export_profile_rejects_non_loopback_endpoint(
+    valid_settings_values: dict[str, object],
+) -> None:
+    with pytest.raises(ValidationError, match="exact approved loopback"):
+        Settings(
+            _env_file=None,
+            api_routes_enabled=True,
+            telemetry_enabled=True,
+            telemetry_exporter="otlp_grpc",
+            telemetry_otlp_endpoint="https://collector.example.com:4317",
+            telemetry_queue_capacity=512,
+            telemetry_batch_size=64,
+            telemetry_export_delay_seconds=1.0,
+            telemetry_export_timeout_seconds=1.0,
+            telemetry_background_workers=1,
+            telemetry_flush_timeout_seconds=2.0,
+            telemetry_shutdown_timeout_seconds=2.0,
+            **valid_settings_values,
+        )
 
 
 def test_missing_required_values_fail_fast(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -1,4 +1,4 @@
-"""Strict, content-free telemetry schemas for W3-09 and W4-08."""
+"""Strict, content-free telemetry schemas through W6-002."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 TELEMETRY_SCHEMA_VERSION: Final = "w4-003.telemetry.v1"
+OBSERVABILITY_SCHEMA_VERSION: Final = "w6-002.observability.v1"
 MAX_SERVICE_NAME_LENGTH: Final = 64
 MAX_SAFE_CODE_LENGTH: Final = 100
 SPAN_CAPACITY: Final = 512
@@ -91,6 +92,14 @@ class DropReason(StrEnum):
     CAPACITY = "capacity"
     EXPORT_FAILURE = "export_failure"
     INVALID_OBSERVATION = "invalid_observation"
+
+
+class ObservabilityEvidenceStatus(StrEnum):
+    PASS = "PASS"  # noqa: S105 - workflow result, not a credential
+    FAIL = "FAIL"
+    NOT_RUN = "NOT RUN"
+    INDETERMINATE = "INDETERMINATE"
+    NO_DATA = "NO_DATA"
 
 
 APPROVED_TERMINAL_REASONS: Final = frozenset(
@@ -258,6 +267,24 @@ class SafeTelemetryAttributes(TelemetryModel):
 
         values = self.model_dump(mode="json", exclude_none=True)
         return {key: str(value) for key, value in values.items()}
+
+
+class ObservabilityEvidence(TelemetryModel):
+    """Content-free W6-002 evidence and downstream handover record."""
+
+    schema_version: Literal["w6-002.observability.v1"] = OBSERVABILITY_SCHEMA_VERSION
+    prompt_id: Literal["W6-002"] = "W6-002"
+    check_name: str = Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]*$",
+    )
+    status: ObservabilityEvidenceStatus
+    evidence_scope: Literal["local-synthetic", "owner-native-tool"]
+    handover_target: Literal["W6-003", "W6-004"]
+    artifact_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    cloud_activity: Literal["NOT RUN"] = "NOT RUN"
+    deployment_activity: Literal["NOT RUN"] = "NOT RUN"
 
 
 class SafeLogRecord(TelemetryModel):

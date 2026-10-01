@@ -1,4 +1,4 @@
-"""FastAPI application factory with an opt-in W4-001 service boundary."""
+"""FastAPI application factory with explicit API and telemetry composition."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from .api.dependencies import Authenticator, RAGAnswerService, ReadinessProbe
 from .api.routes import register_api_boundary
 from .api.runtime import RequestIdMiddleware
 from .config import Settings
+from .telemetry.export import ExportingTelemetryRuntime
 from .telemetry.runtime import (
     TelemetryRuntime,
     telemetry_for_application,
@@ -39,13 +40,18 @@ def create_app(
     telemetry_runtime: TelemetryRuntime | None = None,
     telemetry_runtime_owned: bool = False,
 ) -> FastAPI:
-    """Create the API after configuration validation, without external clients."""
+    """Create the API after configuration validation, without implicit clients."""
     resolved_settings = settings if settings is not None else Settings()
     api_enabled = resolved_settings.api_routes_enabled
     resolved_telemetry = telemetry_for_application(
         enabled=resolved_settings.telemetry_enabled,
         injected=telemetry_runtime,
     )
+    if resolved_settings.telemetry_exporter == "otlp_grpc" and not isinstance(
+        resolved_telemetry,
+        ExportingTelemetryRuntime,
+    ):
+        raise ValueError("otlp_grpc requires the bounded W6-002 export runtime")
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:

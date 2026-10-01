@@ -2278,12 +2278,12 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "docs/governance/Enterprise_AI_Architecture_6_Week_Execution_Tracker_v1.3.5.xlsx",
         # pragma: allowlist nextline secret
-        "1b1224dbbb1d2f58fbd0c320cd7a7c96a540293c762ae0ccd50709d3036c3da7",
+        "66f71dda14e2c67bf41c816a04f813a0c4e16ed0b4314864983656f88946554d",
     ),
     (
         "feature-matrix.yaml",
         # pragma: allowlist nextline secret
-        "3506392e739b995ae3670e5c869e660739e88c4febd2e396b86b388239e10ed7",
+        "ad7f864b5ecc584de89a22eeba71a9a3e6c0af11a2890a18c6ed64486d5a0155",
     ),
     (
         "infra/bootstrap/main.tf",
@@ -2313,7 +2313,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/feature/test_feature_matrix.py",
         # pragma: allowlist nextline secret
-        "3fa84c972eee6351e764e0b3c6596fecfd65e612b7cf327ed3caa6a6cac79d5c",
+        "617a05f50a4c09166c5e172695eb2435d7a251e6eafac18414397fa4a5befe15",
     ),
     (
         "tests/feature/test_mvp_001_platformctl.py",

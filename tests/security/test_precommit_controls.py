@@ -83,6 +83,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "docs/resource-cleanliness/W5-report.json": {"Hex High Entropy String": 1},
     "docs/resource-cleanliness/W6-final.json": {"Hex High Entropy String": 1},
     "docs/test-evidence/W2-09-retrieval.json": {"Hex High Entropy String": 2},
+    "docs/test-evidence/W6-06-observability.json": {"Hex High Entropy String": 4},
     "src/enterprise_ai_platform/embeddings/sentence_transformer.py": {"Hex High Entropy String": 1},
     "src/enterprise_ai_platform/evaluation/fixtures.py": {"Hex High Entropy String": 3},
     "src/enterprise_ai_platform/rag_rollback/identity.py": {"Hex High Entropy String": 14},
@@ -148,6 +149,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "docs/resource-cleanliness/W5-report.json": {61: 1},
     "docs/resource-cleanliness/W6-final.json": {15: 1},
     "docs/test-evidence/W2-09-retrieval.json": {27: 1, 29: 1},
+    "docs/test-evidence/W6-06-observability.json": {6: 1, 11: 1, 54: 1, 55: 1},
     "src/enterprise_ai_platform/embeddings/sentence_transformer.py": {43: 1},
     "src/enterprise_ai_platform/evaluation/fixtures.py": {35: 1, 36: 1, 62: 1},
     "src/enterprise_ai_platform/rag_rollback/identity.py": {
@@ -380,8 +382,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 39
-    assert sum(len(findings) for findings in results.values()) == 359
+    assert len(results) == 40
+    assert sum(len(findings) for findings in results.values()) == 363
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

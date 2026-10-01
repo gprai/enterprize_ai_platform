@@ -136,6 +136,10 @@ class TelemetryRuntime(Protocol):
     def shutdown(self) -> bool: ...
 
 
+class SafeLogSink(Protocol):
+    def emit(self, record: SafeLogRecord) -> int: ...
+
+
 class NullTelemetryScope:
     def __enter__(self) -> Self:
         return self
@@ -487,6 +491,7 @@ class OpenTelemetryRuntime:
         tracer_provider: TracerProvider,
         meter_provider: MeterProvider,
         log_sink: BoundedInMemoryLogSink,
+        export_sink: SafeLogSink | None = None,
         monotonic: Callable[[], float] = time.monotonic,
         unix_time_ns: Callable[[], int] = time.time_ns,
     ) -> None:
@@ -496,6 +501,7 @@ class OpenTelemetryRuntime:
         self._tracer_provider = tracer_provider
         self._meter_provider = meter_provider
         self._log_sink = log_sink
+        self._export_sink = export_sink
         self.monotonic = monotonic
         self._unix_time_ns = unix_time_ns
         self._lifecycle_lock = threading.Lock()
@@ -657,6 +663,11 @@ class OpenTelemetryRuntime:
             dropped = self._log_sink.emit(record)
             if dropped:
                 self._record_drop(TelemetrySignal.LOG, dropped)
+            if (
+                self._export_sink is not None
+                and event_name is not TelemetryEventName.EXPORT_FAILURE
+            ):
+                self._export_sink.emit(record)
         except Exception:
             self._safe_invalid_observation()
 
@@ -804,6 +815,9 @@ class OpenTelemetryRuntime:
             ),
         )
 
+    def record_export_drop(self, signal: TelemetrySignal, count: int) -> None:
+        self._record_drop(signal, count)
+
     def record_export_failure(self) -> None:
         attributes = SafeTelemetryAttributes(
             stage=TelemetryStage.TELEMETRY,
@@ -856,6 +870,7 @@ def build_in_memory_telemetry(
     monotonic: Callable[[], float] = time.monotonic,
     unix_time_ns: Callable[[], int] = time.time_ns,
     span_exporter: SpanExporter | None = None,
+    export_sink: SafeLogSink | None = None,
 ) -> InMemoryTelemetryComposition:
     """Create an explicit local-only composition with no network exporter."""
 
@@ -876,6 +891,7 @@ def build_in_memory_telemetry(
         tracer_provider=tracer_provider,
         meter_provider=meter_provider,
         log_sink=log_sink,
+        export_sink=export_sink,
         monotonic=monotonic,
         unix_time_ns=unix_time_ns,
     )

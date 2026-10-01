@@ -13,6 +13,7 @@ COSIGN ?= E:/AI/.tools/cosign/3.1.2/cosign.exe
 CHAINCTL ?= E:/AI/.tools/chainctl/0.2.346/chainctl.exe
 UV ?= E:/AI/.tools/uv/0.12.9/uv-x86_64-unknown-linux-gnu/uv
 INFRACOST ?= E:/AI/.tools/infracost/0.10.45/infracost.exe
+PROMTOOL ?= owner-must-supply-promtool-3.5.0
 W5_004_CONFIG = configs/lifecycle/w5-004.json
 W5_004_APPROVAL ?= owner-must-supply-exact-external-approval.json
 W5_004_CONFIRMATION ?= owner-must-supply-exact-typed-confirmation
@@ -38,6 +39,7 @@ W6_001_RELEASE_ROOT ?= owner-must-supply-exact-external-w6-001-release-root
 .PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke terraform-fmt-check terraform-validate-bootstrap terraform-validate-sandbox tflint-bootstrap tflint-sandbox checkov-config checkov-terraform opa-policy-check opa-terraform-policy w5-policy-tests w5-policy-rollback bedrock-owner-dry-run w5-static-tests w5-002-validate-config w5-002-validate-locks w5-002-static w5-002-workflow-contract w5-002-build w5-002-scan w5-002-sbom w5-002-clean-runtime w5-002-reconcile w5-002-rollback-identity w5-002-clean w5-002-verify-clean
 .PHONY: plan-sandbox w5-004-bootstrap-plan w5-004-bootstrap-apply w5-004-platform-plan w5-004-policy-review w5-004-cost-review w5-004-platform-apply w5-004-aws-verify w5-004-infrastructure-rollback w5-004-destroy-plan w5-004-purge-sandbox w5-004-platform-destroy w5-004-bootstrap-destroy w5-004-verify-clean
 .PHONY: w6-001-template-validate w6-001-policy w6-001-checkov w6-001-tests w6-001-release-bind w6-001-release-validate
+.PHONY: w6-002-validate w6-002-promtool w6-002-tests
 
 help:
 	@echo "Available targets include W5-002 supply-chain controls and separately owner-gated W5-004 plan, apply, rollback, destroy, and cleanliness phases."
@@ -271,3 +273,13 @@ w6-001-release-bind:
 
 w6-001-release-validate:
 	$(PYTHON) -B -m tools.w6_001_k8s validate-release --release-root $(W6_001_RELEASE_ROOT) --template-root $(W6_001_TEMPLATE)
+
+w6-002-validate:
+	$(PYTHON) -B -m tools.w6_002_observability validate --root .
+
+# Owner supplies the pinned Prometheus 3.5.0 promtool binary; this target downloads nothing.
+w6-002-promtool:
+	$(PROMTOOL) check rules observability/alerts.yml
+
+w6-002-tests:
+	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/unit/test_w6_002_observability.py tests/contract/test_w6_002_observability_contract.py tests/integration/test_w6_002_telemetry_composition.py tests/feature/test_failure_modes.py tests/security/test_w6_002_observability_security.py tests/rollback/test_w6_002_observability_rollback.py tests/teardown/test_w6_002_observability_cleanliness.py

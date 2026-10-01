@@ -1,0 +1,65 @@
+schema_version: w6-002.slo.v1
+owner: Gyan Prakash Rai
+classification: deployment-readiness-input-not-live-evidence
+window:
+  rolling_days: 30
+  minimum_eligible_events: 100
+  below_minimum_status: NO_DATA
+populations:
+  excluded:
+    - invalid_client_request
+    - policy_denial
+    - planned_maintenance
+  bad:
+    - dependency_failure
+    - dependency_timeout
+  conditional_good:
+    - contractually_correct_insufficient_evidence_abstention
+objectives:
+  availability_ratio: 0.999
+  latency_p95_seconds: 4
+  latency_p99_seconds: 10
+  retrieval_p99_seconds: 0.75
+  grounded_or_correct_abstention_ratio: 0.95
+  recall_at_5: 0.85
+  isolation_ratio: 1.0
+  safety_ratio: 1.0
+error_budget:
+  review_window: 30d
+  release_freeze_when_exhausted: true
+  burn_alerts:
+    fast:
+      factor: 14.4
+      short_window: 5m
+      long_window: 1h
+      minimum_short_window_events: 20
+    slow:
+      factor: 6.0
+      short_window: 30m
+      long_window: 6h
+      minimum_short_window_events: 20
+quality_safety_classification: release-gate-sli-not-prometheus-operational-slo
+alerting:
+  primary_owner: Gyan Prakash Rai
+  backup_owner: null
+  local_destination: synthetic-receiver
+  live_destination: null
+  live_destination_owner: W6-004
+deployment_boundary:
+  owner_task: W6-004
+  private_aws_endpoints_only: true
+  identity: eks-pod-identity-least-privilege
+  static_credentials_allowed: false
+  live_cost_cap_required: true
+  live_retention_approval_required: true
+handover:
+  w6_003_required_metric_producers:
+    - enterprise_ai_readiness
+    - enterprise_ai_dependency_attempts_total
+    - enterprise_ai_safety_violations_total
+  w6_004_required_live_bindings:
+    - aws-xray-traces
+    - cloudwatch-emf-metrics-and-safe-logs
+    - approved-alert-destination
+    - private-endpoint-and-pod-identity
+    - retention-and-cost-cap

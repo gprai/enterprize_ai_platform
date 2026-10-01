@@ -76,6 +76,33 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W6-03 identity evidence](W6-03-identity.txt) — dedicated ServiceAccount and zero unnecessary Kubernetes RBAC grants; EKS Pod Identity, IAM and live caller verification are **NOT RUN**.
 - [W6-04 network evidence](W6-04-network.txt) — locally validated default-deny and DNS-only Kubernetes policies; live network and AWS/VPC enforcement checks are **NOT RUN**.
 - [W6-05 resilience evidence](W6-05-resilience.txt) — locally validated replica, resource, probe, HPA, PDB and immutable rollback contracts; live scaling, rollout, rollback and teardown are **NOT RUN**.
+- [W6-002 observability evidence](W6-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai on 2026-10-02 at 01:06:00 SGT. The record preserves bounded local telemetry export, SLO, alert, failure-response, remediation, and cleanup evidence; live AWS/EKS deployment and lifecycle work remain **NOT RUN**.
+- [W6-002 SLO architecture](../architecture/slo.md) — business objectives, telemetry flow, SLI populations, error budget, alerting, bounded concurrency, security/privacy/cost controls, and W6-003/W6-004 handover boundaries.
+- [W6-06 structured observability evidence](W6-06-observability.json) — content-safe machine-readable W6-002 results, historical failures and remediations, retained Promtool identity, lifecycle truth, and pending Column N fields.
+- [W6-09 failure and chaos-readiness evidence](W6-09-chaos.txt) — locally validated fake-provider failure boundary and plan-only FIS controls; live FIS execution, operational rollback, and cloud teardown remain **NOT RUN**.
+
+The W6-002 records establish local deployment readiness only. They do not prove live export, alert delivery, AWS/EKS integration, production SLO achievement, FIS execution, operational rollback, or cloud teardown. All five W6-002 Column M documents are closed together under Column N.
+
+## W6-002 observability and SLO readiness — Column N closure
+
+- Prompt/task ID: `W6-002`.
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**.
+- Approval date and time/timezone: **2026-10-02 01:06:00 SGT**.
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W6-002**. The five-document Column M manifest is closed together with no partial closure.
+- Code review status: **APPROVED** within the bounded W6-002 local deployment-readiness scope. Live, cloud, FIS, production, and operational lifecycle approval is not implied.
+- Documentation review status: **APPROVED** for [W6-002](W6-002.md), [SLO architecture](../architecture/slo.md), [W6-06 structured observability evidence](W6-06-observability.json), [W6-09 failure and chaos-readiness evidence](W6-09-chaos.txt), and this index.
+- Owner-executed test status: **PASS within the recorded local and native-tool scopes**. The final ordinary suite recorded 2069 passed, 7 skipped, 4 deselected, 1 warning, and 10 subtests passed. Historical failures and bounded passing remediations remain visible.
+- Accepted warnings, risks, evidence gaps, and limitations: **All items recorded in the approved W6-002 Column M manifest are accepted; no additional item is silently accepted.** The warning, skips, deselections, local/synthetic scope, unpriced local costs, unproven SLOs, and absent live identity, connectivity, retention, destination, pricing, and cost evidence remain recorded.
+- NOT RUN and INDETERMINATE activities: AWS/EKS deployment, live X-Ray/CloudWatch export, live alert delivery, live dependency validation, FIS execution, production SLO proof, operational rollback, and cloud teardown remain **NOT RUN**. Historical INDETERMINATE results remain preserved. **Remaining open INDETERMINATE activities: None.**
+- Deployment facts: Local configuration, synthetic composition, native rule, security, and lifecycle-contract validation passed. No collector, dashboard, alert destination, experiment, AWS service, EKS workload, application, or production resource was deployed.
+- Rollback facts: The local default no-exporter/no-worker rollback contract **PASS**. Operational application, Kubernetes, AWS, infrastructure, and cloud rollback remain **NOT RUN**.
+- Teardown, cleanup, and residual-resource facts: Local worker shutdown, external test-directory cleanup, and final zero-residue verification **PASS**. Repository residue, external test residue, and staged paths were 0; the tracker lock was absent. Promtool 3.5.0 is intentionally retained and is not residue. Live application, Kubernetes, AWS, and cloud teardown remain **NOT RUN**; no W6-002 cloud resource was created.
+- Deferred actions and owner: W6-003 integrated application readiness and W6-004 full AWS infrastructure, services, ECR/image, EKS identity, observability, live testing, rollback, complete teardown, residue, and cost verification remain open. Responsible owner: **Gyan Prakash Rai**, unless another owner is explicitly recorded.
+- Conditions: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work, and retained-resource fact; only the owner updates Excel and performs Git mutation; do not infer production or cloud readiness from local, fake, mocked, injected, static, or native-tool evidence.
+- Next-task handover: The owner may update the W6-002 tracker row. W6-003 and W6-004 remain separately governed and require their own approvals and evidence.
+- Tracker update responsibility: **Owner**.
 
 ## W6-001 immutable EKS application template — Column N closure
 

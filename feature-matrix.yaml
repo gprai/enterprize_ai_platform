@@ -362,12 +362,33 @@
         "tests/feature/test_feature_matrix.py",
         "tests/feature/test_w2_002_embedder_contract.py",
         "tests/feature/test_w2_003_ingestion_contract.py",
-        "tests/integration/test_dependency_contract.py"
+        "tests/integration/test_dependency_contract.py",
+        "configs/observability/otel-collector.aws.yaml",
+        "configs/observability/slo.yaml",
+        "configs/chaos/fis-plan.yaml",
+        "observability/alerts.yml",
+        "observability/dashboards/enterprise-ai-overview.json",
+        "src/enterprise_ai_platform/telemetry/export.py",
+        "src/enterprise_ai_platform/telemetry/slo.py",
+        "tools/w6_002_observability.py",
+        "tests/fakes/observability.py",
+        "tests/unit/test_w6_002_observability.py",
+        "tests/contract/test_w6_002_observability_contract.py",
+        "tests/integration/test_w6_002_telemetry_composition.py",
+        "tests/feature/test_failure_modes.py",
+        "tests/security/test_w6_002_observability_security.py",
+        "tests/rollback/test_w6_002_observability_rollback.py",
+        "tests/teardown/test_w6_002_observability_cleanliness.py",
+        "Makefile"
       ],
       "status": "In Progress",
       "linked_tracker_steps": [
         "W3-09",
-        "W4-08"
+        "W4-08",
+        "W6-06",
+        "W6-07",
+        "W6-08",
+        "W6-09"
       ]
     },
     {

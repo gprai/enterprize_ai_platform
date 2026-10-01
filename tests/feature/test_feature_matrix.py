@@ -83,7 +83,7 @@ EXPECTED_OBSERVABILITY_FEATURE = {
     "id": "OBS-001",
     "implementation_paths": list(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS),
     "status": "In Progress",
-    "linked_tracker_steps": ["W3-09", "W4-08"],
+    "linked_tracker_steps": ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09"],
 }
 EXPECTED_RELEASE_FEATURE = {
     "id": "REL-001",
@@ -159,7 +159,10 @@ class FeatureMatrixTests(unittest.TestCase):
             list(EXPECTED_AGENT_LINKED_TRACKER_STEPS),
             features[4]["linked_tracker_steps"],
         )
-        self.assertEqual(["W3-09", "W4-08"], features[5]["linked_tracker_steps"])
+        self.assertEqual(
+            ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09"],
+            features[5]["linked_tracker_steps"],
+        )
         self.assertEqual(["W4-11"], features[6]["linked_tracker_steps"])
         self.assertEqual(
             [
@@ -383,13 +386,13 @@ class FeatureMatrixTests(unittest.TestCase):
             agent_feature["implementation_paths"],
         )
 
-    def test_obs_001_owns_only_w3_09_and_w4_08(self) -> None:
+    def test_obs_001_owns_w4_003_and_w6_002_contracts(self) -> None:
         observability_feature = read_matrix()["features"][5]
 
         self.assertEqual(EXPECTED_OBSERVABILITY_FEATURE, observability_feature)
-        self.assertEqual(32, len(observability_feature["implementation_paths"]))
+        self.assertEqual(49, len(observability_feature["implementation_paths"]))
         self.assertEqual(
-            32,
+            49,
             len(set(observability_feature["implementation_paths"])),
         )
         self.assertNotIn(
@@ -399,6 +402,14 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertNotIn(
             "tests/feature/test_api_load_smoke.py",
             observability_feature["implementation_paths"],
+        )
+        self.assertEqual(
+            ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09"],
+            observability_feature["linked_tracker_steps"],
+        )
+        self.assertEqual(
+            "configs/observability/otel-collector.aws.yaml",
+            observability_feature["implementation_paths"][32],
         )
 
     def test_rel_001_owns_only_w4_11_and_exact_column_l_paths(self) -> None:
