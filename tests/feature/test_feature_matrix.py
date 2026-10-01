@@ -6,6 +6,7 @@ import unittest
 from copy import deepcopy
 from pathlib import Path
 
+from tools.platformctl import validate as platform_validate
 from tools.platformctl.cli import validate_feature_matrix
 from tools.platformctl.validate import (
     EXPECTED_AGENT_IMPLEMENTATION_PATHS,
@@ -114,6 +115,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_AWS_FEATURE,
                 EXPECTED_BEDROCK_FEATURE,
                 EXPECTED_GHA_FEATURE,
+                platform_validate.EXPECTED_EKS_FEATURE,
             ],
             matrix["features"],
         )
@@ -133,6 +135,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "AWS-001",
                 "BED-001",
                 "GHA-001",
+                "EKS-001",
             ],
             [feature["id"] for feature in features],
         )
@@ -201,6 +204,7 @@ class FeatureMatrixTests(unittest.TestCase):
             aws_feature,
             bedrock_feature,
             gha_feature,
+            eks_feature,
         ) = features
 
         self.assertEqual(
@@ -215,6 +219,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "AWS-001",
                 "BED-001",
                 "GHA-001",
+                "EKS-001",
             ],
             [item["id"] for item in features],
         )
@@ -457,8 +462,11 @@ class FeatureMatrixTests(unittest.TestCase):
 
     def test_w5_002_ci_feature_owns_only_the_exact_phase_a_manifest(self) -> None:
         gha_feature = read_matrix()["features"][9]
+        eks_feature = read_matrix()["features"][10]
 
         self.assertEqual(EXPECTED_GHA_FEATURE, gha_feature)
+        self.assertEqual(platform_validate.EXPECTED_EKS_FEATURE, eks_feature)
+        self.assertEqual(platform_validate.EXPECTED_EKS_FEATURE, eks_feature)
         self.assertEqual(39, len(EXPECTED_GHA_IMPLEMENTATION_PATHS))
         self.assertEqual(39, len(set(EXPECTED_GHA_IMPLEMENTATION_PATHS)))
         self.assertEqual(

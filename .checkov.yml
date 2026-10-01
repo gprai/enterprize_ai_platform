@@ -1,5 +1,6 @@
 framework:
   - terraform
+  - kubernetes
 skip-download: true
 skip-results-upload: true
 download-external-modules: false

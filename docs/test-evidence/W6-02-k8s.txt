@@ -1,0 +1,107 @@
+W6-02 — KUBERNETES SOURCE TEMPLATE AND IMMUTABLE RELEASE EVIDENCE
+
+FINAL LOCAL RESULT: PASS
+ARTIFACT CLASSIFICATION: SOURCE TEMPLATE VALID — NOT DEPLOYABLE
+COLUMN N FINAL OWNER APPROVAL: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS OUTCOME
+
+The repository contains a bounded Kubernetes source template that can be
+reviewed locally but cannot be mistaken for a deployable release. A separate,
+owner-approved W6-01 evidence package must bind an ECR repository to an exact
+sha256 digest before a release package can be created.
+
+SOURCE INVENTORY
+
+PASS — 8 Kubernetes source files:
+- configmap.yaml
+- deployment.yaml
+- hpa.yaml
+- kustomization.yaml
+- networkpolicy.yaml
+- pdb.yaml
+- service.yaml
+- serviceaccount.yaml
+
+PASS — YAML parse: 8 files and 9 YAML documents.
+PASS — deterministic render: 8 Kubernetes objects.
+PASS — exact source sentinel count: 1.
+PASS — final rendered source hash observed by the owner:
+226374fa774d485c46f8d44a0111cd7e82206801faeadd3db6fb36e8b2e60ba7
+
+The nine documents produce eight rendered objects because kustomize consumes
+kustomization.yaml as configuration rather than emitting it as a Kubernetes
+object. networkpolicy.yaml contains two objects.
+
+SOURCE AND RELEASE BOUNDARY
+
+The only source image is:
+enterprise-ai.invalid/w6-001:OWNER_BINDING_REQUIRED
+
+It is an intentionally invalid sentinel, not a real image. The Deployment is
+labelled as a w6-001 source template with deployable=false. Template validation
+returns SOURCE TEMPLATE VALID — NOT DEPLOYABLE.
+
+Release binding requires a closed evidence schema, an approved ECR repository,
+an exact lowercase sha256 digest, matching source/OCI/scanner/SBOM/provenance/
+composition/operation/owner identities, a bounded expiry and a new external
+output directory. The release renderer writes canonical manifests,
+rendered.json, release-binding.json and release-hashes.json. A successful
+release check returns IMMUTABLE RELEASE PACKAGE VALID — NOT DEPLOYED. No
+mutable-tag release, cluster apply interface, AWS client, registry client or
+network client exists in the binder.
+
+VALIDATED KUBERNETES CONTROLS
+
+PASS — namespace is enterprise-ai-sandbox.
+PASS — Deployment replicas, rolling-update limits and revision retention are bounded.
+PASS — imagePullPolicy is Always.
+PASS — container and pod security contexts are restrictive.
+PASS — CPU, memory and ephemeral-storage requests and limits are present.
+PASS — startup, liveness and readiness HTTP probes are bounded.
+PASS — Service is internal ClusterIP on port 8000 and targets named port http.
+PASS — HPA and PodDisruptionBudget objects target the application.
+PASS — default-deny and DNS-only NetworkPolicy objects are present.
+PASS — unit, contract, integration, feature, security, rollback and teardown-cleanliness tests passed in the owner-executed sequence.
+PASS — Kubernetes OPA policy tests passed 10/10.
+PASS — Kubernetes Checkov passed 92 checks with 0 failures and 1 documented source-template skip.
+
+The single Checkov skip is CKV_K8S_43 for the intentionally invalid source
+sentinel. Release validation independently requires an immutable digest.
+
+LIVE AND EXTERNAL ACTIVITIES
+
+Kubernetes server-side dry-run: NOT RUN
+EKS application deployment: NOT RUN
+Live pod scheduling and health verification: NOT RUN
+Live service routing: NOT RUN
+Live release-package generation using W6-01 evidence: NOT RUN
+
+LIMITATION
+
+Local parsing, rendering, policy checks and automated tests prove the source
+contract only. They do not prove API-server admission, cluster compatibility,
+image availability, pod readiness, service reachability or production fitness.
+
+COLUMN N FINAL OWNER APPROVAL
+
+FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+Prompt/task ID: W6-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-10-01 16:00:00 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W6-001. The Kubernetes source-template evidence is closed; the artifact remains SOURCE TEMPLATE VALID — NOT DEPLOYABLE.
+Code review status: APPROVED within the bounded W6-001 source-template and immutable-release-contract scope; no deployment or production readiness is approved.
+Documentation review status: APPROVED as one of all six Column M manifest documents closed together with no partial closure.
+Owner-executed test status: PASS. The Kubernetes parse, deterministic render, automated contracts, OPA and Checkov results remain exactly as recorded, including the documented source-sentinel Checkov skip.
+Accepted warnings, risks, evidence gaps and scope limitations: All items recorded in the approved W6-001 Column M manifest are accepted; no additional item is silently accepted. The invalid sentinel, absent W6-01 release evidence, static/local scope and lack of API-server or live-cluster proof remain limitations.
+NOT RUN and INDETERMINATE activities: Kubernetes server-side dry-run, EKS deployment, live pod scheduling/health/service routing and real release-package generation remain NOT RUN and are not converted to PASS. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+Deployment facts: Docker/image build, registry/AWS/EKS access, release binding and local/cloud application deployment were NOT RUN. No service, image or cloud resource was deployed.
+Rollback facts: Local immutable rollback-contract tests PASS; operational Kubernetes/application/cloud rollback remains NOT RUN.
+Teardown and residual-resource facts: Local cleanliness and final zero-residue checks PASS; live Kubernetes/cloud teardown remains NOT RUN. No generated release package remains, approved source files and evidence are retained, and cloud resources/residuals are none.
+Deferred actions and owners: Real W6-01 release binding, server-side dry-run, deployment and live validation remain open. Responsible owner: Gyan Prakash Rai, unless another owner is explicitly recorded for an individual action.
+Conditions attached to approval: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource fact; only the owner updates Excel and performs Git mutation; do not infer production or cloud readiness from local/static evidence.
+Next-task handover: The owner may update the W6-001 tracker row. Any release binding, cluster action, deployment, rollback or teardown requires separate governed approval.
+Tracker update responsibility: Owner

@@ -1,0 +1,92 @@
+W6-05 — APPLICATION RESILIENCE AND ROLLBACK-READINESS EVIDENCE
+
+FINAL LOCAL RESULT: PASS
+LIVE RESILIENCE RESULT: NOT RUN
+COLUMN N FINAL OWNER APPROVAL: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS OUTCOME
+
+The source template encodes bounded capacity, health, scaling, disruption and
+rolling-update expectations. Local tests verify those contracts and immutable
+rollback identity handling without claiming live EKS behavior.
+
+TESTED CONFIGURATION
+
+Deployment replicas: 2
+CPU request: 500m
+CPU limit: 1000m
+Memory request: 1Gi
+Memory limit: 2Gi
+Ephemeral-storage request: 256Mi
+Ephemeral-storage limit: 1Gi
+HPA minimum replicas: 2
+HPA maximum replicas: 4
+HPA CPU utilization target: 70
+PodDisruptionBudget minimum available: 1
+Rolling-update maxSurge: 1
+Rolling-update maxUnavailable: 0
+Progress deadline: 300 seconds
+Revision history limit: 3
+Termination grace period: 30 seconds
+
+HEALTH CONTRACTS
+
+PASS — startup probe: GET /health on named port http; period 5 seconds, timeout 2 seconds, failure threshold 24.
+PASS — liveness probe: GET /health/live on named port http; period 10 seconds, timeout 2 seconds, failure threshold 3.
+PASS — readiness probe: GET /health/ready on named port http; period 5 seconds, timeout 2 seconds, failure threshold 3.
+
+LOCAL ROLLBACK AND CLEANLINESS EVIDENCE
+
+PASS — rollback-contract tests passed 5 tests.
+PASS — an exact previous lowercase sha256 digest is accepted when all evidence identities agree.
+PASS — mutable, shortened and uppercase digest forms are rejected.
+PASS — kubectl rollout undo is not treated as the approved rollback contract.
+PASS — teardown-cleanliness tests passed 3 tests.
+PASS — template validation creates no generated repository output.
+PASS — no release-binding.json, release-hashes.json, rendered.json or release-package directory is committed.
+PASS — the binder does not delete, repair or overwrite a colliding output directory.
+
+These are local contract and cleanliness results. They are not operational
+rollback or teardown results.
+
+LIVE VERIFICATION
+
+Live metrics availability: NOT RUN
+Live HPA scaling: NOT RUN
+Live disruption or eviction: NOT RUN
+Live PodDisruptionBudget enforcement: NOT RUN
+Live rollout: NOT RUN
+Live rollback: NOT RUN
+Live capacity or scheduling validation: NOT RUN
+Live probe behavior: NOT RUN
+Live teardown: NOT RUN
+
+LIMITATION
+
+Static configuration does not prove that nodes have sufficient capacity, the
+metrics pipeline is available, probes match a deployed application, scaling
+meets demand, disruption budgets are enforceable, or rollback restores service.
+Those outcomes require separately approved cluster activity and evidence.
+
+COLUMN N FINAL OWNER APPROVAL
+
+FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+Prompt/task ID: W6-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-10-01 16:00:00 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W6-001. The local resilience and rollback-readiness evidence is closed; live resilience is not established.
+Code review status: APPROVED within the bounded replica, resource, probe, HPA, PDB, rollout and immutable rollback-contract scope; no live operational outcome is approved.
+Documentation review status: APPROVED as one of all six Column M manifest documents closed together with no partial closure.
+Owner-executed test status: PASS for recorded local resilience, rollback-contract and cleanliness checks.
+Accepted warnings, risks, evidence gaps and scope limitations: All items recorded in the approved W6-001 Column M manifest are accepted; no additional item is silently accepted. Metrics, scheduling capacity, probe behavior, scaling, disruption, rollout, rollback and teardown remain unproven in a live cluster.
+NOT RUN and INDETERMINATE activities: Live metrics, HPA scaling, disruption/eviction, PDB enforcement, rollout, rollback, scheduling/capacity, probes and teardown remain NOT RUN and are not converted to PASS. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+Deployment facts: No local application, EKS or cloud deployment occurred; the resilience configuration was not exercised against a running workload.
+Rollback facts: Five local immutable rollback-contract tests PASS; operational Kubernetes/application/infrastructure/cloud rollback remains NOT RUN. Contract testing is not an executed rollback.
+Teardown and residual-resource facts: Three local teardown-cleanliness tests and final zero-residue checks PASS; live Kubernetes/application/cloud teardown remains NOT RUN. No generated release artifacts or cloud residuals remain; approved source and documentation are retained.
+Deferred actions and owners: Metrics, capacity, live probes, scaling, disruption, rollout, rollback and teardown evidence remain open. Responsible owner: Gyan Prakash Rai, unless another owner is explicitly recorded for an individual action.
+Conditions attached to approval: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource fact; only the owner updates Excel and performs Git mutation; do not infer operational resilience from static/local tests.
+Next-task handover: The owner may update the W6-001 tracker row. All live resilience and lifecycle work requires separate governed approval.
+Tracker update responsibility: Owner

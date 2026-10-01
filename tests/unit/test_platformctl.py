@@ -8,6 +8,8 @@ from copy import deepcopy
 from pathlib import Path
 
 from tools.platformctl import __version__
+
+# EKS-001 repository-path validation is exercised by tests/unit/test_w6_001_k8s.py.
 from tools.platformctl.cli import (
     EXPECTED_FEATURE,
     EXPECTED_FEATURES,
@@ -94,6 +96,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "AWS-001",
                 "BED-001",
                 "GHA-001",
+                "EKS-001",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )

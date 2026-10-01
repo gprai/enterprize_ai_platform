@@ -583,6 +583,55 @@
         "W5-07",
         "W5-08"
       ]
+    },
+    {
+      "id": "EKS-001",
+      "implementation_paths": [
+        "deploy/k8s/kustomization.yaml",
+        "deploy/k8s/deployment.yaml",
+        "deploy/k8s/service.yaml",
+        "deploy/k8s/serviceaccount.yaml",
+        "deploy/k8s/configmap.yaml",
+        "deploy/k8s/networkpolicy.yaml",
+        "deploy/k8s/hpa.yaml",
+        "deploy/k8s/pdb.yaml",
+        "tools/w6_001_k8s.py",
+        "policies/opa/kubernetes.rego",
+        "policies/opa/kubernetes_test.rego",
+        "tests/unit/test_w6_001_k8s.py",
+        "tests/contract/test_w6_001_k8s_contract.py",
+        "tests/integration/test_w6_001_kubernetes_composition.py",
+        "tests/feature/test_w6_001_eks.py",
+        "tests/security/test_w6_001_kubernetes_security.py",
+        "tests/rollback/test_w6_001_kubernetes_rollback.py",
+        "tests/teardown/test_w6_001_kubernetes_cleanliness.py",
+        "Makefile",
+        ".github/workflows/ci.yml",
+        ".checkov.yml",
+        "pyproject.toml",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/integration/test_w5_002_ci_composition.py",
+        "tests/security/test_policy_pack.py",
+        "tests/integration/test_dependency_contract.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W6-02",
+        "W6-03",
+        "W6-04",
+        "W6-05"
+      ],
+      "control_contract": {
+        "artifact": "source template only; exact sentinel is never deployable",
+        "security": "non-root, read-only root, dropped capabilities, RuntimeDefault seccomp, default-deny network",
+        "rollback": "owner-supplied exact previous immutable digest with post-rollback verification",
+        "teardown": "owner-executed workload and AWS residue verification",
+        "cost": "no cloud-spend authority; separate W6 approval required",
+        "owner_execution": "release binding, server-side dry-run, deployment, rollback and teardown require separate owner authorization"
+      }
     }
   ]
 }

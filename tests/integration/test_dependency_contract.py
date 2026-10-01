@@ -203,7 +203,7 @@ def test_w5_checkov_configuration_is_offline_and_cli_only() -> None:
     config = yaml.safe_load(CHECKOV_CONFIG.read_text(encoding="utf-8"))
 
     assert config == {
-        "framework": ["terraform"],
+        "framework": ["terraform", "kubernetes"],
         "skip-download": True,
         "skip-results-upload": True,
         "download-external-modules": False,

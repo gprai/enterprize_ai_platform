@@ -640,6 +640,60 @@ EXPECTED_GHA_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": ["W5-07", "W5-08"],
 }
+EXPECTED_EKS_IMPLEMENTATION_PATHS = (
+    "deploy/k8s/kustomization.yaml",
+    "deploy/k8s/deployment.yaml",
+    "deploy/k8s/service.yaml",
+    "deploy/k8s/serviceaccount.yaml",
+    "deploy/k8s/configmap.yaml",
+    "deploy/k8s/networkpolicy.yaml",
+    "deploy/k8s/hpa.yaml",
+    "deploy/k8s/pdb.yaml",
+    "tools/w6_001_k8s.py",
+    "policies/opa/kubernetes.rego",
+    "policies/opa/kubernetes_test.rego",
+    "tests/unit/test_w6_001_k8s.py",
+    "tests/contract/test_w6_001_k8s_contract.py",
+    "tests/integration/test_w6_001_kubernetes_composition.py",
+    "tests/feature/test_w6_001_eks.py",
+    "tests/security/test_w6_001_kubernetes_security.py",
+    "tests/rollback/test_w6_001_kubernetes_rollback.py",
+    "tests/teardown/test_w6_001_kubernetes_cleanliness.py",
+    "Makefile",
+    ".github/workflows/ci.yml",
+    ".checkov.yml",
+    "pyproject.toml",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/integration/test_w5_002_ci_composition.py",
+    "tests/security/test_policy_pack.py",
+    "tests/integration/test_dependency_contract.py",
+)
+EXPECTED_EKS_FEATURE = {
+    "id": "EKS-001",
+    "implementation_paths": list(EXPECTED_EKS_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W6-02", "W6-03", "W6-04", "W6-05"],
+    "control_contract": {
+        "artifact": "source template only; exact sentinel is never deployable",
+        "security": (
+            "non-root, read-only root, dropped capabilities, RuntimeDefault seccomp, "
+            "default-deny network"
+        ),
+        "rollback": (
+            "owner-supplied exact previous immutable digest with post-rollback verification"
+        ),
+        "teardown": "owner-executed workload and AWS residue verification",
+        "cost": "no cloud-spend authority; separate W6 approval required",
+        "owner_execution": (
+            "release binding, server-side dry-run, deployment, rollback and teardown require "
+            "separate owner authorization"
+        ),
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -651,6 +705,7 @@ EXPECTED_FEATURES = (
     EXPECTED_AWS_FEATURE,
     EXPECTED_BEDROCK_FEATURE,
     EXPECTED_GHA_FEATURE,
+    EXPECTED_EKS_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -795,6 +850,7 @@ REQUIRED_FILES = (
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
+    *EXPECTED_EKS_IMPLEMENTATION_PATHS[:18],
 )
 
 
@@ -844,7 +900,7 @@ def validate_feature_matrix(data: object) -> list[str]:
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
             "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001, "
-            "REL-001, AWS-001, BED-001, GHA-001"
+            "REL-001, AWS-001, BED-001, GHA-001, EKS-001"
         )
 
     return errors

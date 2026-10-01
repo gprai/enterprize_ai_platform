@@ -71,6 +71,32 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W5-004 teardown plan](../deployment-records/W5-destroy-plan.md) — platform-first and bootstrap-last destruction sequence, exact plan identities, and retained KMS tails.
 - [W5-004 resource cleanliness](../resource-cleanliness/W5-report.json) — machine-readable project-scoped absence findings, expected `PendingDeletion` keys, and deferred billing/KMS checks.
 - [W6-12 future final-cleanliness handover](../resource-cleanliness/W6-final.json) — **NOT RUN**; reusable W5 handover only, requiring wholly fresh Week 6 plans, evidence, approvals, and discovery.
+- [W6-001 immutable EKS application evidence](W6-001.md) — local implementation and `TEST-001` **PASS**; the artifact remains **SOURCE TEMPLATE VALID — NOT DEPLOYABLE** and Column N documentation closure is **APPROVED**.
+- [W6-02 Kubernetes evidence](W6-02-k8s.txt) — eight source files, nine YAML documents, eight rendered objects and the two-stage immutable release boundary; server-side dry-run and live deployment are **NOT RUN**.
+- [W6-03 identity evidence](W6-03-identity.txt) — dedicated ServiceAccount and zero unnecessary Kubernetes RBAC grants; EKS Pod Identity, IAM and live caller verification are **NOT RUN**.
+- [W6-04 network evidence](W6-04-network.txt) — locally validated default-deny and DNS-only Kubernetes policies; live network and AWS/VPC enforcement checks are **NOT RUN**.
+- [W6-05 resilience evidence](W6-05-resilience.txt) — locally validated replica, resource, probe, HPA, PDB and immutable rollback contracts; live scaling, rollout, rollback and teardown are **NOT RUN**.
+
+## W6-001 immutable EKS application template — Column N closure
+
+- Prompt/task ID: `W6-001`.
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**.
+- Approval date and time/timezone: **2026-10-01 16:00:00 SGT**.
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W6-001**. The six-document Column M manifest is closed together with no partial closure.
+- Code review status: **APPROVED within the bounded W6-001 implementation and owner-executed local evidence scope**. The artifact remains **SOURCE TEMPLATE VALID — NOT DEPLOYABLE**; no release, deployment or production readiness is approved.
+- Documentation review status: **APPROVED** for [W6-001](W6-001.md), [W6-02](W6-02-k8s.txt), [W6-03](W6-03-identity.txt), [W6-04](W6-04-network.txt), [W6-05](W6-05-resilience.txt) and this index.
+- Owner-executed test status: **PASS** — 2052 passed, 7 skipped and 4 deselected, with one retained dependency deprecation warning. Historical failures and separately passing remediation reruns remain visible in W6-001 evidence.
+- Accepted warnings, risks, evidence gaps and scope limitations: **All items recorded in the approved W6-001 Column M manifest are accepted; no additional item is silently accepted.** The warning, skips, source-sentinel exception, local/static scope, absent W6-01 release evidence, unpriced local costs and lack of live/production proof remain recorded.
+- NOT RUN and INDETERMINATE activities: Every recorded live or external activity remains **NOT RUN** and none is converted to PASS. Historical INDETERMINATE results remain preserved. **Remaining open INDETERMINATE activities: None.**
+- Deployment facts: Docker/image build, AWS/ECR/EKS access, server-side dry-run, real release binding, deployable-package generation, local application deployment, cloud deployment and live verification were **NOT RUN**. No service, image or cloud resource was deployed.
+- Rollback facts: Local immutable rollback-contract tests **PASS**; operational Kubernetes, application, infrastructure and cloud rollback remain **NOT RUN**.
+- Teardown, cleanup and residual-resource facts: Local teardown-cleanliness and final zero-residue checks **PASS**; live Kubernetes, application and cloud teardown remain **NOT RUN**. No cloud teardown PASS is claimed. No generated release package remains; approved source and evidence are retained; cloud resources and cloud residuals are none.
+- Deferred actions and owners: W6-002, W6-003, real W6-01 image binding, live cluster lifecycle evidence and recorded W5 KMS-tail/delayed-billing follow-up remain open. Responsible owner: **Gyan Prakash Rai**, unless another owner is explicitly recorded for an individual action.
+- Conditions attached to approval: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource fact; only the owner updates Excel and performs Git mutation; do not infer production or cloud readiness from local, fake, mocked, injected or static evidence.
+- Next-task handover: The owner may update the W6-001 tracker row. This closure authorizes no release binding, deployment, rollback, teardown or subsequent prompt.
+- Tracker update responsibility: **Owner**.
 
 ## W5-004 reviewed deploy, rollback, teardown and orphan scan — Column N closure
 

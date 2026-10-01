@@ -1,0 +1,72 @@
+W6-04 — KUBERNETES NETWORK-BOUNDARY EVIDENCE
+
+FINAL LOCAL RESULT: PASS
+LIVE NETWORK RESULT: NOT RUN
+COLUMN N FINAL OWNER APPROVAL: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS OUTCOME
+
+The source template starts from deny-by-default pod networking and adds only a
+bounded DNS exception. This reduces accidental connectivity in a compatible
+cluster, while keeping live enforcement claims separate from static evidence.
+
+LOCAL TEMPLATE EVIDENCE
+
+PASS — enterprise-ai-default-deny selects all pods in enterprise-ai-sandbox.
+PASS — the policy declares both Ingress and Egress with no allow rules.
+PASS — enterprise-ai-dns-egress selects only app.kubernetes.io/name=enterprise-ai-api.
+PASS — DNS egress is limited to kube-system pods labelled k8s-app=kube-dns.
+PASS — DNS ports are UDP 53 and TCP 53 only.
+PASS — unrestricted 0.0.0.0/0 egress is rejected by automated security tests.
+PASS — the internal Service type is ClusterIP.
+PASS — the Service selector is app.kubernetes.io/name=enterprise-ai-api.
+PASS — the Service exposes TCP port 8000 and targets named port http.
+PASS — local OPA, Checkov and automated security checks completed successfully.
+
+NETWORKPOLICY VERSUS AWS/VPC ENFORCEMENT
+
+Kubernetes NetworkPolicy expresses desired pod-level traffic controls. Actual
+enforcement depends on the target cluster's networking implementation and its
+configuration. It does not replace VPC routing, security groups, network ACLs,
+private endpoints, NAT controls, DNS architecture or service-specific resource
+policies. No FQDN allow policy or live AWS endpoint rule is claimed.
+
+LIVE VERIFICATION
+
+Live ingress verification: NOT RUN
+Live DNS-flow verification: NOT RUN
+Live allowed-egress verification: NOT RUN
+Live denied-egress verification: NOT RUN
+AWS endpoint enforcement proof: NOT RUN
+Security-group enforcement proof: NOT RUN
+Route, NAT or network-ACL enforcement proof: NOT RUN
+FQDN enforcement proof: NOT RUN
+
+LIMITATION
+
+Static parsing and policy tests prove manifest intent, not runtime isolation.
+No claim is made that an EKS CNI enforced these policies or that an application
+successfully reached any required AWS service.
+
+COLUMN N FINAL OWNER APPROVAL
+
+FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+Prompt/task ID: W6-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-10-01 16:00:00 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W6-001. The local network-policy evidence is closed; runtime isolation is not established.
+Code review status: APPROVED within the bounded default-deny, DNS-egress and internal-Service source-template scope; no live network enforcement is approved.
+Documentation review status: APPROVED as one of all six Column M manifest documents closed together with no partial closure.
+Owner-executed test status: PASS for the recorded local parsing, security, OPA and Checkov controls.
+Accepted warnings, risks, evidence gaps and scope limitations: All items recorded in the approved W6-001 Column M manifest are accepted; no additional item is silently accepted. Cluster-CNI enforcement, AWS/VPC controls, required service reachability and FQDN enforcement remain unproven.
+NOT RUN and INDETERMINATE activities: Live ingress, DNS, allowed/denied egress, endpoint, security-group, route, NAT, network-ACL and FQDN checks remain NOT RUN and are not converted to PASS. Historical INDETERMINATE results remain preserved. Remaining open INDETERMINATE activities: None.
+Deployment facts: No local application, EKS or cloud deployment occurred and no live network path was exercised.
+Rollback facts: Local immutable rollback-contract tests PASS at the W6-001 task level; network, application and cloud rollback remain NOT RUN.
+Teardown and residual-resource facts: Local cleanliness and zero-residue checks PASS; live network/cloud teardown remains NOT RUN. No cloud network resource or cloud residual is evidenced; approved source and documentation remain retained.
+Deferred actions and owners: Cluster policy enforcement and every AWS/VPC and live-flow check remain open. Responsible owner: Gyan Prakash Rai, unless another owner is explicitly recorded for an individual action.
+Conditions attached to approval: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource fact; only the owner updates Excel and performs Git mutation; do not infer runtime isolation or cloud readiness from static policy evidence.
+Next-task handover: The owner may update the W6-001 tracker row. Live network validation, deployment, rollback and teardown require separate governed approval.
+Tracker update responsibility: Owner

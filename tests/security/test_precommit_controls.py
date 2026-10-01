@@ -182,7 +182,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     },
     "tests/feature/test_local_retrieval.py": {46: 1},
     "tests/integration/test_sentence_transformer_embedder.py": {111: 1},
-    "tests/integration/test_w5_002_ci_composition.py": {82: 1},
+    "tests/integration/test_w5_002_ci_composition.py": {84: 1},
     "tests/security/test_w5_004_lifecycle_security.py": {390: 1, 391: 1},
     "tests/teardown/test_w2_004_retrieval_cleanliness.py": {29: 1},
     "tests/teardown/test_w3_002_evaluation_cleanliness.py": {17: 1},

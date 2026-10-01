@@ -191,7 +191,7 @@ def test_checkov_configuration_is_exactly_offline_without_global_skips() -> None
     config = yaml.safe_load(CHECKOV_CONFIG.read_text(encoding="utf-8"))
 
     assert config == {
-        "framework": ["terraform"],
+        "framework": ["terraform", "kubernetes"],
         "skip-download": True,
         "skip-results-upload": True,
         "download-external-modules": False,

@@ -1,0 +1,77 @@
+W6-03 — WORKLOAD IDENTITY AND KUBERNETES RBAC EVIDENCE
+
+FINAL LOCAL RESULT: PASS
+LIVE IDENTITY RESULT: NOT RUN
+COLUMN N FINAL OWNER APPROVAL: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+BUSINESS OUTCOME
+
+The Kubernetes source template identifies a dedicated runtime identity while
+avoiding unnecessary Kubernetes API permissions and embedded AWS credentials.
+Live AWS authorization remains owner-controlled and unproven.
+
+LOCAL TEMPLATE EVIDENCE
+
+PASS — ServiceAccount name: enterprise-ai-runtime.
+PASS — ServiceAccount namespace: enterprise-ai-sandbox.
+PASS — ServiceAccount automountServiceAccountToken: false.
+PASS — Deployment serviceAccountName: enterprise-ai-runtime.
+PASS — Deployment automountServiceAccountToken: false.
+PASS — Kubernetes Role objects: 0.
+PASS — Kubernetes RoleBinding objects: 0.
+PASS — Kubernetes ClusterRole objects: 0.
+PASS — Kubernetes ClusterRoleBinding objects: 0.
+PASS — no static AWS access key, secret key, session token or credential-shaped environment value is embedded in the template.
+
+The absence of Kubernetes RBAC grants is deliberate: the application contract
+does not require direct Kubernetes API access. Disabling automatic token
+mounting reduces unnecessary credential exposure. These controls do not by
+themselves establish AWS authorization.
+
+INTENDED AWS BOUNDARY
+
+The approved design selects EKS Pod Identity for separately governed AWS role
+association. The source template does not name or invent an AWS account, IAM
+role, trust policy, Region or Pod Identity association. Those values require
+owner-approved live evidence and must agree with the W6-01 release identity.
+
+LIVE VERIFICATION
+
+EKS Pod Identity agent/add-on verification: NOT RUN
+IAM role and trust-policy verification: NOT RUN
+Pod Identity association verification: NOT RUN
+Live pod AWS caller-identity verification: NOT RUN
+Live least-privilege allow/deny verification: NOT RUN
+
+AWS account, IAM role, trust policy, Region and association identity:
+INDETERMINATE — no live evidence was supplied.
+
+LIMITATION
+
+Local static evidence proves the Kubernetes-side least-privilege posture only.
+It does not prove installation of the Pod Identity agent, correct IAM trust,
+association to the ServiceAccount, credential delivery, AWS API authorization
+or denial of out-of-scope actions.
+
+COLUMN N FINAL OWNER APPROVAL
+
+FINAL APPROVAL AFTER OWNER TEST — APPROVED
+
+Prompt/task ID: W6-001
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner and Final Approval Reviewer
+Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED
+Approval date and time/timezone: 2026-10-01 16:00:00 SGT
+Final status: APPROVED FOR USER TRACKER UPDATE — W6-001. The local Kubernetes identity-boundary evidence is closed; live AWS identity remains unverified.
+Code review status: APPROVED within the bounded ServiceAccount, token-mount and zero-Kubernetes-RBAC implementation scope; no live AWS authorization is approved.
+Documentation review status: APPROVED as one of all six Column M manifest documents closed together with no partial closure.
+Owner-executed test status: PASS for the recorded local/static identity and security contracts.
+Accepted warnings, risks, evidence gaps and scope limitations: All items recorded in the approved W6-001 Column M manifest are accepted; no additional item is silently accepted. The absence of live Pod Identity, IAM trust, association and caller proof remains an accepted evidence gap, not a PASS.
+NOT RUN and INDETERMINATE activities: Pod Identity agent/add-on, IAM role/trust, association, live caller identity and live allow/deny checks remain NOT RUN and are not converted to PASS. The recorded AWS account, role, Region and association facts remain historically INDETERMINATE because live verification was not run. Remaining open INDETERMINATE activities: None; the corresponding future activities are explicitly deferred and NOT RUN.
+Deployment facts: No local application, EKS or cloud deployment occurred; no pod used live AWS credentials and no cloud resource was deployed.
+Rollback facts: Local immutable rollback-contract tests PASS at the W6-001 task level; identity, application and cloud rollback remain NOT RUN.
+Teardown and residual-resource facts: Local cleanliness and zero-residue checks PASS; live identity teardown and cloud teardown remain NOT RUN. No cloud identity resource or cloud residual is evidenced; approved source and documentation remain retained.
+Deferred actions and owners: Pod Identity installation verification, IAM trust review, association, live caller identity and least-privilege allow/deny proof remain open. Responsible owner: Gyan Prakash Rai, unless another owner is explicitly recorded for an individual action.
+Conditions attached to approval: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource fact; only the owner updates Excel and performs Git mutation; do not infer live AWS authorization from static Kubernetes evidence.
+Next-task handover: The owner may update the W6-001 tracker row. All live identity work requires separate governed approval and evidence.
+Tracker update responsibility: Owner

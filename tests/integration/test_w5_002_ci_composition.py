@@ -17,7 +17,9 @@ def test_config_helper_makefile_and_feature_matrix_share_one_v2_contract() -> No
     matrix = json.loads((ROOT / "feature-matrix.yaml").read_text(encoding="utf-8"))
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
-    assert matrix["features"][-1] == EXPECTED_GHA_FEATURE
+    assert (
+        next(item for item in matrix["features"] if item["id"] == "GHA-001") == EXPECTED_GHA_FEATURE
+    )
     assert config["reports"] == list(w5_002_ci.REPORT_PATHS)
     assert config["schema_version"] == w5_002_ci.CONFIG_SCHEMA
     for target in (
@@ -106,3 +108,13 @@ def test_helper_source_has_no_external_process_or_network_client() -> None:
     prohibited = ("subprocess", "socket", "urllib.request", "boto3", "docker.from_env")
 
     assert not any(token in source for token in prohibited)
+
+
+def test_w6_001_ci_extension_is_offline_and_source_template_only() -> None:
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+
+    assert "-m tools.w6_001_k8s validate-template --template-root deploy/k8s" in workflow
+    assert "deploy/k8s --framework kubernetes" in workflow
+    assert "policies/opa/kubernetes.rego policies/opa/kubernetes_test.rego" in workflow
+    for prohibited in ("bind-release", "kubectl", "aws eks", "aws ecr", "docker push"):
+        assert prohibited not in workflow
