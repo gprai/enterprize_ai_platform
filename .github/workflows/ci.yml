@@ -42,6 +42,8 @@ jobs:
         run: python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
       - name: Validate the non-deployable W6-001 source template
         run: python -B -m tools.w6_001_k8s validate-template --template-root deploy/k8s
+      - name: Validate the local-only W6-003 readiness contract
+        run: python -B -m tools.w6_003_readiness validate-config --root . --config configs/readiness/w6-003.yaml
       - name: Run bounded quality and secret gates
         shell: bash
         run: |
@@ -108,7 +110,8 @@ jobs:
           "$CHECKOV" --config-file .checkov.yml -d infra --framework terraform
           "$CHECKOV" --config-file .checkov.yml -d deploy/k8s --framework kubernetes
           opa check --strict policies/opa
-          opa test policies/opa/terraform_plan.rego policies/opa/terraform_plan_test.rego --verbose
+          opa test policies/opa/terraform_plan.rego policies/opa/terraform_plan_test.rego \
+            policies/opa/exceptions.json --verbose
           opa test policies/opa/kubernetes.rego policies/opa/kubernetes_test.rego --verbose
           actionlint .github/workflows/ci.yml .github/workflows/plan-sandbox.yml \
             .github/workflows/security-scan.yml

@@ -19,7 +19,29 @@
   "features": [
     {
       "id": "MVP-001",
-      "status": "Not Started",
+      "implementation_paths": [
+        "configs/readiness/w6-003.yaml",
+        "tools/w6_003_readiness.py",
+        "tests/fakes/readiness.py",
+        "tests/unit/test_w6_003_readiness.py",
+        "tests/contract/test_w6_003_readiness_contract.py",
+        "tests/integration/test_w6_003_platform_composition.py",
+        "tests/feature/test_w6_003_integrated_readiness.py",
+        "tests/smoke/test_w6_003_local_smoke.py",
+        "tests/security/test_w6_003_readiness_security.py",
+        "tests/rollback/test_w6_003_local_rollback.py",
+        "tests/teardown/test_w6_003_readiness_cleanliness.py",
+        "Makefile",
+        "pyproject.toml",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/integration/test_dependency_contract.py",
+        ".github/workflows/ci.yml",
+        "tests/integration/test_w5_002_ci_composition.py"
+      ],
+      "status": "In Progress",
       "linked_tracker_steps": [
         "W1-03",
         "W1-04",

@@ -116,5 +116,24 @@ def test_w6_001_ci_extension_is_offline_and_source_template_only() -> None:
     assert "-m tools.w6_001_k8s validate-template --template-root deploy/k8s" in workflow
     assert "deploy/k8s --framework kubernetes" in workflow
     assert "policies/opa/kubernetes.rego policies/opa/kubernetes_test.rego" in workflow
+    assert "policies/opa/exceptions.json --verbose" in workflow
     for prohibited in ("bind-release", "kubectl", "aws eks", "aws ecr", "docker push"):
+        assert prohibited not in workflow
+
+
+def test_w6_003_ci_extension_validates_only_the_local_readiness_contract() -> None:
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+
+    assert (
+        "-m tools.w6_003_readiness validate-config --root . --config configs/readiness/w6-003.yaml"
+        in workflow
+    )
+    for prohibited in (
+        "validate-evidence",
+        "w6-004-readiness-manifest.json",
+        "kubectl",
+        "aws eks",
+        "aws ecr",
+        "docker push",
+    ):
         assert prohibited not in workflow

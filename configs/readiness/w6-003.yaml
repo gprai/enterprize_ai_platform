@@ -1,0 +1,117 @@
+schema_version: w6-003.readiness-config.v1
+classification: local-integrated-readiness-only-not-deployed
+owner: Gyan Prakash Rai
+approved_source_baseline: ad943842cd0448a0d3db991707a1c2f1181a79c7
+execution:
+  provider_mode: deterministic-in-memory
+  network_activity: prohibited
+  subprocess_activity: prohibited
+  docker_activity: prohibited
+  cloud_activity: NOT RUN
+evidence:
+  allowed_output_root: 'E:\AI\.runtime\enterprise_ai_platform\w6-003\owner-test-01'
+  temporary_root: 'E:\AI\.tmp\enterprise-ai-platform-w6-003\owner-test-01'
+  validity_hours: 24
+  retained_files:
+    - local-proof.json
+    - local-rollback-rehearsal.json
+    - w6-004-readiness-manifest.json
+schemas:
+  local_proof: w6-003.local-proof.v1
+  local_rollback: w6-003.local-rollback.v1
+  known_good_application: w6-003.known-good-application.v1
+  known_good_infrastructure: w6-003.known-good-infrastructure.v1
+  handover: w6-003.w6-004-handover.v1
+evidence_statuses:
+  - PASS
+  - FAIL
+  - NOT RUN
+  - INDETERMINATE
+  - NO_DATA
+historical_cloud_target:
+  classification: historical-proposed-not-approved-for-w6-004
+  aws_account_id: '526338061652'
+  aws_region: ap-southeast-1
+known_good:
+  application:
+    deployable_identity_status: MISSING
+    ecr_repository_uri: null
+    registry_digest: null
+    release_binding_status: NOT RUN
+    promotion_mode: w6-004-stage-a
+  infrastructure:
+    deployable_identity_status: MISSING
+    backend_identity: null
+    state_lineage: null
+    state_serial: null
+    saved_plan_sha256: null
+    policy_status: NOT RUN
+    cost_status: NOT RUN
+    promotion_mode: w6-004-stage-a
+lifecycle:
+  - bootstrap/state
+  - network/security
+  - data/services
+  - ECR/image
+  - EKS/identity
+  - application composition
+  - observability
+  - live tests
+  - rollback
+  - complete teardown
+  - residue/cost verification
+owner_decisions:
+  - deterministic in-memory providers only
+  - no Docker, Qdrant, telemetry service, Kubernetes or cloud-service startup
+  - retain only the three approved W6-003 evidence files until W6-004 closure
+  - evidence expires after 24 hours
+  - W6-004 Stage A establishes the first live known-good identities
+  - historical AWS account and Region require W6-004 reapproval
+  - preserve historical warnings, limitations and NOT RUN activities
+  - MVP-001 remains In Progress until W6-004 completion
+limitations:
+  - W5 Bedrock live verification limitations remain open
+  - W5 cost coverage remains accepted risk and not current W6 approval
+  - W5 KMS pending-deletion follow-up requires fresh native verification
+  - W5 delayed billing reconciliation remains open
+  - W6-001 source template is valid but not deployable
+  - W6-001 Stage B immutable release binding is NOT RUN
+  - W6-002 cloud exporters, live alerts and FIS execution are NOT RUN
+  - local and injected evidence does not prove cloud or production readiness
+not_run_activities:
+  - ECR publication and registry-returned digest verification
+  - W6-001 Stage B immutable release binding
+  - AWS infrastructure creation
+  - EKS server-side validation and deployment
+  - live OpenSearch and Bedrock integration
+  - live CloudWatch and X-Ray integration
+  - live FIS execution
+  - cloud rollback and complete teardown
+  - native residue and delayed-cost verification
+stop_conditions:
+  - handover manifest absent, expired or changed
+  - nested evidence hash mismatch
+  - mandatory local gate not PASS
+  - owner cloud target, profile, expiry or cost approval absent
+  - fresh Terraform plan and matching current state absent
+  - ECR registry-returned immutable digest absent
+  - W6-001 Stage B immutable release binding absent
+  - policy, security, pricing, rollback or teardown coverage incomplete
+  - rollback target is not an independently verified immutable identity
+required_repository_paths:
+  - src/enterprise_ai_platform/app.py
+  - src/enterprise_ai_platform/api/dependencies.py
+  - src/enterprise_ai_platform/retrieval/service.py
+  - src/enterprise_ai_platform/rag/service.py
+  - src/enterprise_ai_platform/guardrails/policy.py
+  - src/enterprise_ai_platform/agent/controller.py
+  - src/enterprise_ai_platform/evaluation/evaluator.py
+  - src/enterprise_ai_platform/telemetry/runtime.py
+  - src/enterprise_ai_platform/release_rollback/service.py
+  - configs/releases/versions/w4-known-good-v1.json
+  - configs/releases/versions/w4-synthetic-regression-v1.json
+  - tools/w6_001_k8s.py
+  - tools/w6_002_observability.py
+  - configs/readiness/w6-003.yaml
+  - tools/w6_003_readiness.py
+

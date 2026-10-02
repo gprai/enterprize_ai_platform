@@ -42,6 +42,7 @@ from tools.platformctl.validate import (
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
     EXPECTED_W5_004_IMPLEMENTATION_PATHS,
+    EXPECTED_W6_003_IMPLEMENTATION_PATHS,
 )
 
 
@@ -101,6 +102,17 @@ class PlatformCtlUnitTests(unittest.TestCase):
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
         self.assertEqual([], validate_feature_matrix(approved_matrix()))
+
+    def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:
+        self.assertEqual(20, len(EXPECTED_W6_003_IMPLEMENTATION_PATHS))
+        self.assertEqual(20, len(set(EXPECTED_W6_003_IMPLEMENTATION_PATHS)))
+        self.assertEqual("In Progress", EXPECTED_FEATURES[0]["status"])
+        self.assertEqual(
+            list(EXPECTED_W6_003_IMPLEMENTATION_PATHS),
+            EXPECTED_FEATURES[0]["implementation_paths"],
+        )
+        for path in EXPECTED_W6_003_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
 
     def test_unapproved_status_is_rejected(self) -> None:
         matrix = approved_matrix()

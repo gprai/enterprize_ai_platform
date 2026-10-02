@@ -1,0 +1,127 @@
+W6-13 W6-004 FAIL-CLOSED HANDOVER EVIDENCE
+
+HANDOVER DECISION
+W6-004 entry decision: BLOCKED_PENDING_W6_004_STAGE_A.
+
+The W6-003 handover proves local pre-deployment composition only. Stage A must
+establish the first independently verified live known-good application and
+infrastructure identities. Stage B may then perform the W6-001 immutable
+release binding against the registry-returned digest.
+
+RETAINED EVIDENCE INVENTORY
+Root: E:\AI\.runtime\enterprise_ai_platform\w6-003\owner-test-01
+
+1. local-proof.json
+   SHA-256: 981d76adc4cb89e72efff59324614fb7da4158725038f0c53db566b3e81c0185
+   Bytes: 4138
+2. local-rollback-rehearsal.json
+   SHA-256: cddc988df130b3ec4e9e1158d95d7c1e899e3c2fb0515f69185cdea75f0f565b
+   Bytes: 763
+3. w6-004-readiness-manifest.json
+   SHA-256: 0abec9a23de6e20aadf57d93efeaab637a03da38b820c0dd870fcf275b753ba3
+   Bytes: 4610
+
+Generated: 2026-10-02T06:44:56Z.
+Expires: 2026-10-03T06:44:56Z / 2026-10-03 14:44:56 SGT.
+Exactly these three external evidence files remain intentionally retained until
+W6-004 closure. Documentation neither changes nor extends their expiry.
+
+IMMUTABLE IDENTITIES
+- W6-003 source composition:
+  a85d7718eae66cf179d3bd26c7742ca71b4635153c46c66acdf7cb9a70bf3433.
+- Configuration:
+  0463847e3e7ded0f6748c61ce6ed7e72aa351b81b3761dc93c42ea03c3d46a32.
+- API: e32c7811d68daa630da3c6a7931fcadd62a49f2c61e57e2579c4d12250d95553.
+- RAG: 7581eb91b96f8e7d5124bc3f9998d8c0d1cdc3b4ea6bf2a85d0b285d83783e47.
+- Agent: 3e59d39be65fd65db4bdf7de17b0784bacc8a0b5fa7bfcc46f18b24e7b4db572.
+- Telemetry:
+  9ea9013aac2db79e8c65b3838b8a4ccb25bf419c8129057da29bc3cb0e6ec242.
+- Terraform composition:
+  414e29b9561412ec00e9ef116c958a92c7035cbd46d75546dc97e033f9e1e642.
+- Provider lock:
+  9b0470598479b3d5b593f1c9f8d40d866a1e68b6bbaca9ffb8e7f784c381d0fc.
+
+MISSING LIVE KNOWN-GOOD FACTS
+- Current application known-good status: MISSING.
+- Current live ECR immutable digest: Absent.
+- W6-001 Stage B release binding: NOT RUN.
+- Current live infrastructure known-good status: MISSING.
+- Backend identity: Absent.
+- State lineage and serial: Absent.
+- Saved plan: Absent.
+- Live policy status: NOT RUN.
+- Live cost status: NOT RUN.
+
+REQUIRED W6-004 LIFECYCLE
+bootstrap/state
+→ network/security
+→ data/services
+→ ECR/image
+→ EKS/identity
+→ application composition
+→ observability
+→ live tests
+→ rollback
+→ complete teardown
+→ residue/cost verification
+
+FAIL-CLOSED STOP REASONS
+- Handover manifest absent, expired or changed.
+- Nested evidence hash mismatch.
+- Mandatory local gate not PASS.
+- Owner cloud target, profile, expiry or cost approval absent.
+- Fresh Terraform plan and matching current state absent.
+- ECR registry-returned immutable digest absent.
+- W6-001 Stage B immutable release binding absent.
+- Policy, security, pricing, rollback or teardown coverage incomplete.
+- Rollback target is not an independently verified immutable identity.
+
+OPEN RISKS AND LIMITATIONS
+Historical AWS account and Region values remain historical or proposed until
+the owner reapproves them for W6-004. W5 cost limitations, KMS
+pending-deletion follow-up and delayed billing reconciliation remain open.
+W6-001 source-template readiness and W6-002 local observability readiness do
+not establish deployment. Evidence expiry blocks W6-004 consumption unless a
+freshly authorized evidence cycle is completed.
+
+FINAL OWNER APPROVAL
+- Prompt/task ID: W6-003 / W6-13 pre-deployment portion.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Approval date and time/timezone: 2026-10-02 15:24:00 SGT.
+- Final status: APPROVED FOR USER TRACKER UPDATE — W6-003 for the immutable
+  pre-deployment handover; W6-004 entry remains
+  BLOCKED_PENDING_W6_004_STAGE_A.
+- Code review status: APPROVED within the bounded W6-003 local implementation;
+  the handover grants no cloud or lifecycle execution authority.
+- Documentation review status: APPROVED as one of five Column M documents
+  closed together with no partial closure.
+- Owner-executed test status: local identities, nested evidence, expiry,
+  lifecycle and fail-closed controls PASS as recorded. Historical failures and
+  NOT RUN activities remain preserved.
+- Accepted warnings, risks, gaps and limitations: all items in the approved
+  W6-003 Column M manifest are accepted; no additional item is silently
+  accepted. Evidence expiry, missing live known-good identities, W5 cost and
+  KMS follow-up, delayed billing and local-only proof remain open.
+- NOT RUN and INDETERMINATE: ECR publication, W6-001 Stage B, AWS
+  infrastructure, EKS validation/deployment, live services/observability/FIS,
+  cloud rollback, complete teardown and native residue/cost verification remain
+  NOT RUN. Historical INDETERMINATE results remain preserved; remaining open
+  INDETERMINATE activities: None.
+- Deployment facts: no application, image, EKS workload or AWS infrastructure
+  was deployed; application and infrastructure known-good statuses remain
+  MISSING.
+- Rollback facts: deterministic local rollback PASS as separately recorded;
+  no live immutable rollback target exists and cloud rollback remains NOT RUN.
+- Teardown and residual-resource facts: local cleanup and zero-residue checks
+  PASS; complete AWS teardown remains NOT RUN. Exactly three external evidence
+  files remain intentionally retained until W6-004 closure.
+- Deferred actions and owner: W6-004 Stage A and the full live lifecycle remain
+  open. Responsible owner: Gyan Prakash Rai unless separately assigned.
+- Conditions: preserve every status, warning, risk, limitation, expiry and
+  deferral; never consume changed or expired evidence; infer no production or
+  cloud readiness; only the owner updates Excel or mutates Git.
+- Next-task handover: execute no W6-004 work until fresh owner approval and all
+  fail-closed entry conditions are satisfied.
+- Tracker update responsibility: Owner.

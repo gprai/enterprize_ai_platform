@@ -210,6 +210,20 @@ def test_w6_002_uses_injected_export_and_owner_supplied_promtool() -> None:
     assert "$(PROMTOOL) check rules observability/alerts.yml" in makefile
 
 
+def test_w6_003_adds_no_dependency_and_exposes_only_local_validation() -> None:
+    makefile = MAKEFILE.read_text(encoding="utf-8")
+    pyproject = (REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+    assert "tools/w6_003_readiness.py" in pyproject
+    assert "w6-003-validate:" in makefile
+    assert "w6-003-source-identity:" in makefile
+    assert "w6-003-tests:" in makefile
+    assert "w6-003-evidence-validate:" in makefile
+    section = makefile.split("w6-003-validate:", maxsplit=1)[1]
+    for prohibited in ("docker ", "kubectl", "aws ", "terraform apply", "terraform destroy"):
+        assert prohibited not in section
+
+
 def test_w5_checkov_configuration_is_offline_and_cli_only() -> None:
     config = yaml.safe_load(CHECKOV_CONFIG.read_text(encoding="utf-8"))
 
@@ -243,6 +257,7 @@ def test_w5_policy_tools_use_exact_approved_external_executables() -> None:
 def test_w5_policy_data_and_package_are_local_repository_inputs() -> None:
     policy = OPA_POLICY.read_text(encoding="utf-8")
     exception_data = OPA_EXCEPTIONS.read_text(encoding="utf-8")
+    makefile = MAKEFILE.read_text(encoding="utf-8")
 
     assert "package enterprise_ai.terraform.plan" in policy.splitlines()
     assert "http.send" not in policy
@@ -250,6 +265,10 @@ def test_w5_policy_data_and_package_are_local_repository_inputs() -> None:
     assert "registry_exceptions := data.exceptions" in policy
     assert "object.get(data" not in policy
     assert '"schema_version": "w5-003.policy-exceptions.v1"' in exception_data
+    assert (
+        "policies/opa/terraform_plan.rego policies/opa/terraform_plan_test.rego "
+        "policies/opa/exceptions.json --verbose"
+    ) in makefile
     assert not (REPOSITORY_ROOT / "policies/opa/terraform.rego").exists()
     assert not (REPOSITORY_ROOT / "policies/opa/terraform_test.rego").exists()
 

@@ -1,0 +1,91 @@
+W6-11 DETERMINISTIC LOCAL ROLLBACK EVIDENCE
+
+BUSINESS OUTCOME
+The local rehearsal proves that a deterministic application-release candidate
+with an expected regression can be rejected and the historical W4 known-good
+application identity restored. It does not prove Kubernetes, Terraform,
+service or cloud rollback.
+
+REHEARSAL RESULTS
+- Evidence schema: w6-003.local-rollback.v1.
+- Historical known-good release: w4-known-good-v1.
+- Synthetic regression candidate: w4-synthetic-regression-v1.
+- Rollback trigger: expected-local-regression.
+- Candidate status: FAIL.
+- Local known-good restoration: PASS.
+- Restored historical W4 application identity:
+  2bd002d111dbfae4390254d077acafd0623f42fac945f608a32bf685b3053b14.
+- Post-restoration smoke: PASS.
+- Post-restoration security: PASS.
+- Post-restoration evaluation: PASS.
+- Local cleanup: PASS.
+- Local residue: PASS.
+- Deterministic elapsed contract value: 1.0 seconds.
+
+The 1.0-second value is deterministic local contract evidence, not measured
+live cloud rollback timing and not a production recovery-time claim.
+
+ROLLBACK AND TEARDOWN STATUS
+- EKS rollback: NOT RUN.
+- Terraform rollback: NOT RUN.
+- Cloud service rollback: NOT RUN.
+- Complete AWS teardown: NOT RUN.
+
+Rollback restores an independently verified prior state after a failed or
+unacceptable candidate. Teardown removes the deployed workload and its owned
+infrastructure and then verifies residue and cost. A successful rollback does
+not establish teardown, and cleanup of local test or Terraform runtime files
+does not establish cloud teardown.
+
+Destroyed W5 state cannot be restored as a current rollback target. Consumed,
+historical or state-mismatched Terraform plans are ineligible because they do
+not prove the present configuration, backend, state lineage, state serial,
+provider lock, policy decision, cost boundary or immutable application digest.
+W6-004 Stage A must first establish new live known-good identities.
+
+RETAINED EVIDENCE
+- File: local-rollback-rehearsal.json.
+- SHA-256:
+  cddc988df130b3ec4e9e1158d95d7c1e899e3c2fb0515f69185cdea75f0f565b.
+- Bytes: 763.
+- Generated: 2026-10-02T06:44:56Z.
+- Expires: 2026-10-03T06:44:56Z / 2026-10-03 14:44:56 SGT.
+
+FINAL OWNER APPROVAL
+- Prompt/task ID: W6-003 / W6-11 local portion.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Approval date and time/timezone: 2026-10-02 15:24:00 SGT.
+- Final status: APPROVED FOR USER TRACKER UPDATE — W6-003 within the local
+  deterministic rollback scope.
+- Code review status: APPROVED within the bounded W6-003 local implementation;
+  the 1.0-second deterministic value is not approved as live recovery timing.
+- Documentation review status: APPROVED as one of five Column M documents
+  closed together with no partial closure.
+- Owner-executed test status: synthetic candidate FAIL; known-good restoration,
+  smoke, security, evaluation, cleanup and residue PASS. These distinct results
+  are preserved without conversion.
+- Accepted warnings, risks, gaps and limitations: all items in the approved
+  W6-003 Column M manifest are accepted; no additional item is silently
+  accepted. No live rollback target or timing was established.
+- NOT RUN and INDETERMINATE: EKS, Terraform, service, infrastructure and cloud
+  rollback, plus complete AWS teardown, remain NOT RUN. Historical
+  INDETERMINATE results remain preserved; remaining open INDETERMINATE
+  activities: None.
+- Deployment facts: no application, Kubernetes workload or cloud resource was
+  deployed by this rehearsal.
+- Rollback facts: deterministic local restoration to the historical W4
+  known-good identity PASS; every operational/cloud rollback remains NOT RUN.
+- Teardown and residual-resource facts: local cleanup and residue checks PASS;
+  complete AWS teardown and native cloud residue/cost verification remain NOT
+  RUN. Retained evidence is intentionally preserved, not residue.
+- Deferred actions and owner: W6-004 must establish new live known-good targets
+  and execute the separately approved lifecycle. Responsible owner: Gyan
+  Prakash Rai unless separately assigned.
+- Conditions: preserve the candidate FAIL, each local PASS, every NOT RUN,
+  warning and limitation; infer no operational rollback or production
+  readiness; only the owner updates Excel or mutates Git.
+- Next-task handover: BLOCKED_PENDING_W6_004_STAGE_A pending fresh evidence and
+  separate approval.
+- Tracker update responsibility: Owner.

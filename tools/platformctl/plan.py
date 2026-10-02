@@ -2273,17 +2273,17 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         ".secrets.baseline",
         # pragma: allowlist nextline secret
-        "2820eb79c3826b7391fb181f1dced84e0f58a3022817654adb3aedfb7d2c927b",
+        "4fbc64d2ecae2978aa47e98c72a4a03e8f9a8ae0e0e04cadd126d7eca1b68453",
     ),
     (
         "docs/governance/Enterprise_AI_Architecture_6_Week_Execution_Tracker_v1.3.5.xlsx",
         # pragma: allowlist nextline secret
-        "66f71dda14e2c67bf41c816a04f813a0c4e16ed0b4314864983656f88946554d",
+        "051504b1acf394d0dc268e3bf4a3487af95b7de5fb6fe0f98b1a5da960b30ccf",
     ),
     (
         "feature-matrix.yaml",
         # pragma: allowlist nextline secret
-        "ad7f864b5ecc584de89a22eeba71a9a3e6c0af11a2890a18c6ed64486d5a0155",
+        "3df730b73588e773ddbc81a4f961a25c0ec0c17fe0f186cd391424f6b5095256",
     ),
     (
         "infra/bootstrap/main.tf",
@@ -2313,7 +2313,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/feature/test_feature_matrix.py",
         # pragma: allowlist nextline secret
-        "617a05f50a4c09166c5e172695eb2435d7a251e6eafac18414397fa4a5befe15",
+        "e352af31e94c8ec70d1662f713fb1aac2859efa86005b5edb20b207d6bb8224a",
     ),
     (
         "tests/feature/test_mvp_001_platformctl.py",
@@ -2323,7 +2323,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_precommit_controls.py",
         # pragma: allowlist nextline secret
-        "4fdd3c5132117259cd91748ccc61734a9345deb845b186c172e6f861189718a8",
+        "ebce36d282bc574c839e3536ab1fff595abfd2c5082118dcfb402d3ca8e27b52",
     ),
     (
         "tests/security/test_repository_security.py",
@@ -2348,7 +2348,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/teardown/test_w1_08_cleanliness.py",
         # pragma: allowlist nextline secret
-        "4fd98ef6f939d721a973c0d24701396ba0a35bb939c10c529865705871d4ef1d",
+        "4917d4ebd96ad9c9c5394da427f71bd1873c1f8765e566bc8865ae19c259e4d2",
     ),
     (
         "tools/platformctl/__init__.py",

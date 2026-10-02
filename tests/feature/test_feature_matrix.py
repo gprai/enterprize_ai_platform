@@ -29,6 +29,7 @@ from tools.platformctl.validate import (
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
+    EXPECTED_W6_003_IMPLEMENTATION_PATHS,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -52,7 +53,8 @@ EXPECTED_STATUSES = [
 ]
 EXPECTED_MVP_FEATURE = {
     "id": "MVP-001",
-    "status": "Not Started",
+    "implementation_paths": list(EXPECTED_W6_003_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
     "linked_tracker_steps": ["W1-03", "W1-04", "W1-07"],
 }
 EXPECTED_RAG_FEATURE = {
@@ -192,6 +194,15 @@ class FeatureMatrixTests(unittest.TestCase):
             },
         ]
         self.assertTrue(validate_feature_matrix(matrix))
+
+    def test_w6_003_paths_are_owned_once_by_in_progress_mvp(self) -> None:
+        matrix = read_matrix()
+        mvp = matrix["features"][0]
+
+        self.assertEqual(EXPECTED_MVP_FEATURE, mvp)
+        self.assertEqual(20, len(mvp["implementation_paths"]))
+        self.assertEqual(20, len(set(mvp["implementation_paths"])))
+        self.assertNotIn("Done", [feature["status"] for feature in matrix["features"]])
 
     def test_cumulative_rag_contract_is_owned_only_by_rag_001(self) -> None:
         matrix = read_matrix()

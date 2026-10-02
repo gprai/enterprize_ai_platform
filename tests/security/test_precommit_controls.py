@@ -73,8 +73,10 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tools/platformctl/cost.py": {"Hex High Entropy String": 3},
     "tools/platformctl/lifecycle_io.py": {"Hex High Entropy String": 5},
     "tools/platformctl/policy_runner.py": {"Hex High Entropy String": 20},
+    "tools/w6_003_readiness.py": {"Hex High Entropy String": 1},
     "configs/ci/w5-002.json": {"Hex High Entropy String": 12},
     "configs/eval/baselines/w3-002-v1.json": {"Hex High Entropy String": 6},
+    "configs/readiness/w6-003.yaml": {"Hex High Entropy String": 1},
     "configs/rag/versions/w3-002-v1.json": {"Hex High Entropy String": 14},
     "configs/rag/versions/w3-004-synthetic-regression-v1.json": {"Hex High Entropy String": 14},
     "configs/releases/versions/w4-known-good-v1.json": {"Hex High Entropy String": 101},
@@ -111,6 +113,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/ci/w5-002.json": {1: 12},
     "configs/eval/baselines/w3-002-v1.json": {1: 6},
     "configs/lifecycle/w5-004.json": {6: 1, 7: 1, 86: 1, 90: 1, 91: 1},
+    "configs/readiness/w6-003.yaml": {4: 1},
     "configs/rag/versions/w3-002-v1.json": {
         6: 1,
         9: 1,
@@ -248,6 +251,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         542: 1,
         952: 1,
     },
+    "tools/w6_003_readiness.py": {23: 1},
 }
 EXPECTED_BASELINE_FINDING_KEYS = {
     "type",
@@ -382,8 +386,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 40
-    assert sum(len(findings) for findings in results.values()) == 363
+    assert len(results) == 42
+    assert sum(len(findings) for findings in results.values()) == 365
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

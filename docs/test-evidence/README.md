@@ -80,6 +80,61 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W6-002 SLO architecture](../architecture/slo.md) — business objectives, telemetry flow, SLI populations, error budget, alerting, bounded concurrency, security/privacy/cost controls, and W6-003/W6-004 handover boundaries.
 - [W6-06 structured observability evidence](W6-06-observability.json) — content-safe machine-readable W6-002 results, historical failures and remediations, retained Promtool identity, lifecycle truth, and pending Column N fields.
 - [W6-09 failure and chaos-readiness evidence](W6-09-chaos.txt) — locally validated fake-provider failure boundary and plan-only FIS controls; live FIS execution, operational rollback, and cloud teardown remain **NOT RUN**.
+- [W6-003 consolidated evidence](W6-003.md) — deterministic local owner testing **PASS** with final classification **W6-003 INTEGRATED READINESS CONTRACT VALID — NOT DEPLOYED**; final Column N owner approval is **PENDING**.
+- [W6-10 integrated-readiness evidence](W6-10-integrated-readiness.txt) — local platform, SRE, policy, infrastructure, Kubernetes, supply-chain and quality gates passed; complete pytest recorded **2088 passed, 7 skipped, 4 deselected, 1 warning**.
+- [W6-11 local-rollback evidence](W6-11-local-rollback.txt) — synthetic candidate **FAIL**, deterministic historical W4 known-good restoration **PASS**; EKS, Terraform and cloud rollback remain **NOT RUN**.
+- [W6-13 W6-004 handover evidence](W6-13-w6-004-handover.txt) — exactly three external evidence files retained, repository residue 0, live AWS/ECR/EKS and live deployment/rollback/teardown **NOT RUN**, and W6-004 entry `BLOCKED_PENDING_W6_004_STAGE_A`.
+
+The W6-003 records prove deterministic local pre-deployment readiness only.
+They do not prove live AWS, ECR, EKS, OpenSearch, Bedrock, observability, FIS,
+deployment, operational rollback, complete cloud teardown or production
+readiness. Column N final owner approval is **PENDING**.
+
+## Final Owner Approval — W6-003
+
+- Prompt/task ID: `W6-003`.
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**.
+- Approval date and time/timezone: **2026-10-02 15:24:00 SGT**.
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W6-003** within the
+  deterministic local pre-deployment scope.
+- Code review status: **APPROVED** within the bounded W6-003 implementation;
+  no live, cloud, deployment or production approval is implied.
+- Documentation review status: **APPROVED**; this index and all four W6-003
+  evidence records are closed together with no partial closure.
+- Owner-executed test status: deterministic local owner testing **PASS** as
+  recorded; 2088 passed, 7 skipped, 4 deselected and 1 warning. Historical
+  failures and the NOT RUN command-selection attempt remain preserved.
+- Accepted warnings, risks, gaps and limitations: **All items recorded in the
+  approved W6-003 Column M manifest are accepted; no additional item is
+  silently accepted.** The Starlette deprecation warning, Terraform
+  filesystem-mirror warning, Checkov skips, local/injected evidence boundary,
+  absent live identities, evidence expiry, W5 cost limitations, KMS follow-up
+  and delayed billing reconciliation remain open.
+- NOT RUN and INDETERMINATE: live AWS, ECR, EKS, OpenSearch, Bedrock,
+  CloudWatch, X-Ray and FIS activity; W6-001 Stage B binding; live deployment;
+  EKS, Terraform, service and cloud rollback; complete AWS teardown; native
+  residue and delayed-cost verification remain **NOT RUN**. Minimum live SLO
+  population is **NO_DATA**. Historical INDETERMINATE results remain
+  preserved. **Remaining open INDETERMINATE activities: None.**
+- Deployment facts: no application, image, Kubernetes workload, AWS service or
+  cloud infrastructure was deployed by W6-003.
+- Rollback facts: deterministic local candidate rejection and historical W4
+  known-good restoration **PASS**; EKS, Terraform, service and cloud rollback
+  remain **NOT RUN**.
+- Teardown and residual-resource facts: local test and Terraform runtime
+  cleanup and repository zero-residue verification **PASS**. Complete AWS
+  teardown remains **NOT RUN**. Exactly three approved external evidence files
+  remain intentionally retained until W6-004 closure.
+- Deferred actions and owner: W6-004 Stage A and the full live AWS lifecycle
+  remain open. Responsible owner: Gyan Prakash Rai unless separately assigned.
+- Conditions: preserve every PASS, FAIL, NOT RUN, INDETERMINATE, NO_DATA,
+  warning, risk, limitation, deferral and residual-resource fact; infer no
+  cloud or production readiness; only the owner updates Excel or mutates Git.
+- Next-task handover: `BLOCKED_PENDING_W6_004_STAGE_A`, subject to fresh,
+  unexpired evidence and separate approval.
+- Tracker update responsibility: **Owner**.
 
 The W6-002 records establish local deployment readiness only. They do not prove live export, alert delivery, AWS/EKS integration, production SLO achievement, FIS execution, operational rollback, or cloud teardown. All five W6-002 Column M documents are closed together under Column N.
 
