@@ -132,6 +132,15 @@ class _HclLiteralReader:
             raise ContractError("PLAN_ARTIFACT_HCL_STRUCTURE_INVALID")
         self.offset += len(token)
 
+    def _mapping_key(self) -> str:
+        self._space()
+        if self.offset < len(self.text) and self.text[self.offset] == '"':
+            value = self._value()
+            if not isinstance(value, str) or not value:
+                raise ContractError("PLAN_ARTIFACT_HCL_IDENTIFIER_INVALID")
+            return value
+        return self._identifier()
+
     def _value(self) -> object:
         self._space()
         if self.offset >= len(self.text):
@@ -161,7 +170,7 @@ class _HclLiteralReader:
                 if self.offset < len(self.text) and self.text[self.offset] == "}":
                     self.offset += 1
                     return mapping_values
-                key = self._identifier()
+                key = self._mapping_key()
                 if key in mapping_values:
                     raise ContractError("PLAN_ARTIFACT_HCL_DUPLICATE_KEY")
                 self._expect("=")

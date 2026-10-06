@@ -30,6 +30,7 @@ from tools.platformctl.validate import (
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
     EXPECTED_W6_003_IMPLEMENTATION_PATHS,
+    EXPECTED_W6_004_IMPLEMENTATION_PATHS,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -182,6 +183,10 @@ class FeatureMatrixTests(unittest.TestCase):
         )
         self.assertEqual(["W5-02"], features[8]["linked_tracker_steps"])
         self.assertEqual(["W5-07", "W5-08"], features[9]["linked_tracker_steps"])
+        self.assertEqual(
+            ["W6-02", "W6-03", "W6-04", "W6-05", "W6-004"],
+            features[10]["linked_tracker_steps"],
+        )
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -248,6 +253,9 @@ class FeatureMatrixTests(unittest.TestCase):
             rag_feature["implementation_paths"],
         )
         self.assertEqual("AGENT-001", agent_feature["id"])
+        self.assertTrue(
+            set(EXPECTED_W6_004_IMPLEMENTATION_PATHS).issubset(eks_feature["implementation_paths"])
+        )
         self.assertEqual(
             [
                 "W3-01",

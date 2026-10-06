@@ -63,7 +63,9 @@ jobs:
           python -m pip --version | grep -F "pip 26.2.1"
           python -m pip check
       - name: Revalidate the v2 contract before requesting registry OIDC
-        run: python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
+        run: |
+          python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
+          python -B -m tools.platformctl w6-004-validate-source --config configs/lifecycle/w6-004.json
       - name: Authenticate to Chainguard with the pull-only GitHub identity
         uses: chainguard-dev/setup-chainctl@be0acd273acf04bfdf91f51198327e719f6af978
         with:

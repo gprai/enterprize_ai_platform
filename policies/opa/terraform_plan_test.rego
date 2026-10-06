@@ -2,6 +2,49 @@ package enterprise_ai.terraform.plan
 
 import rego.v1
 
+test_w6_004_resource_types_are_explicitly_supported if {
+	every resource_type in {
+		"aws_eks_cluster", "aws_eks_node_group", "aws_eks_addon",
+		"aws_eks_pod_identity_association", "aws_fis_experiment_template",
+		"aws_cloudwatch_metric_alarm", "aws_sns_topic",
+	} {
+		resource_type in supported_aws_resource_types
+	}
+}
+
+test_w6_004_private_endpoint_inventory_is_exact if {
+	approved_endpoint_services == {
+		"com.amazonaws.ap-southeast-1.s3",
+		"com.amazonaws.ap-southeast-1.dynamodb",
+		"com.amazonaws.ap-southeast-1.ecr.api",
+		"com.amazonaws.ap-southeast-1.ecr.dkr",
+		"com.amazonaws.ap-southeast-1.eks",
+		"com.amazonaws.ap-southeast-1.eks-auth",
+		"com.amazonaws.ap-southeast-1.sts",
+		"com.amazonaws.ap-southeast-1.logs",
+		"com.amazonaws.ap-southeast-1.monitoring",
+		"com.amazonaws.ap-southeast-1.ec2",
+		"com.amazonaws.ap-southeast-1.xray",
+		"com.amazonaws.ap-southeast-1.kms",
+		"com.amazonaws.ap-southeast-1.secretsmanager",
+		"com.amazonaws.ap-southeast-1.bedrock-runtime",
+	}
+	platform_interface_endpoint_addresses == {
+		`module.network.aws_vpc_endpoint.interface["Bedrock Runtime"]`,
+		`module.network.aws_vpc_endpoint.interface["CloudWatch Logs"]`,
+		`module.network.aws_vpc_endpoint.interface["CloudWatch Monitoring"]`,
+		`module.network.aws_vpc_endpoint.interface["EC2"]`,
+		`module.network.aws_vpc_endpoint.interface["ECR API"]`,
+		`module.network.aws_vpc_endpoint.interface["ECR DKR"]`,
+		`module.network.aws_vpc_endpoint.interface["EKS"]`,
+		`module.network.aws_vpc_endpoint.interface["EKS Auth"]`,
+		`module.network.aws_vpc_endpoint.interface["KMS"]`,
+		`module.network.aws_vpc_endpoint.interface["STS"]`,
+		`module.network.aws_vpc_endpoint.interface["Secrets Manager"]`,
+		`module.network.aws_vpc_endpoint.interface["X-Ray"]`,
+	}
+}
+
 approved_tags := {
 	"Project": "enterprise-ai-platform",
 	"Environment": "sandbox",
@@ -40,6 +83,68 @@ owner_expiry_gate := {
 		},
 		"after_unknown": {"id": true, "output": true},
 		"after_sensitive": {},
+	},
+}
+
+w6_004_runtime_gate := {
+	"address": "terraform_data.w6_004_runtime_gate[0]",
+	"type": "terraform_data",
+	"change": {
+		"actions": ["create"],
+		"before": null,
+		"before_sensitive": {},
+		"after": {
+			"input": {
+				"approval_issued_at": "2026-09-04T00:00:00Z",
+				"deployment_start": "2026-09-04T00:00:00Z",
+				"approval_expires_at": "2026-09-04T08:00:00Z",
+			},
+			"store": null,
+			"triggers_replace": null,
+		},
+		"after_sensitive": {"input": {}, "output": {}},
+		"after_unknown": {"id": true, "input": {}, "output": true},
+	},
+}
+
+w6_004_node_attachment := {
+	"address": `module.eks[0].aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"]`,
+	"type": "aws_iam_role_policy_attachment",
+	"change": {
+		"actions": ["create"],
+		"before": null,
+		"before_sensitive": {},
+		"after": {
+			"policy_arn": "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+			"role": "enterprise-ai-sandbox-node",
+		},
+		"after_sensitive": {},
+		"after_unknown": {"id": true},
+	},
+}
+
+w6_004_alert_subscription := {
+	"address": `module.observability[0].aws_sns_topic_subscription.email["vayunetrix.aws.dev@zohomail.com"]`,
+	"type": "aws_sns_topic_subscription",
+	"change": {
+		"actions": ["create"],
+		"before": null,
+		"before_sensitive": {},
+		"after": {
+			"confirmation_timeout_in_minutes": 1,
+			"delivery_policy": null,
+			"endpoint": "vayunetrix.aws.dev@zohomail.com",
+			"endpoint_auto_confirms": false,
+			"filter_policy": null,
+			"protocol": "email",
+			"raw_message_delivery": false,
+			"redrive_policy": null,
+			"region": "ap-southeast-1",
+			"replay_policy": null,
+			"subscription_role_arn": null,
+		},
+		"after_sensitive": {},
+		"after_unknown": {"arn": true, "confirmation_was_authenticated": true, "filter_policy_scope": true, "id": true, "owner_id": true, "pending_confirmation": true, "topic_arn": true},
 	},
 }
 
@@ -1050,6 +1155,45 @@ test_exact_owner_expiry_gate_is_allowed if {
 	count(findings_for(plan_with_changes([safe_anchor, owner_expiry_gate]))) == 0
 }
 
+test_w6_004_runtime_gate_is_exactly_allowed if {
+	valid_w6_004_runtime_gate_change(w6_004_runtime_gate)
+
+	invalid := object.union(w6_004_runtime_gate, {
+		"change": object.union(w6_004_runtime_gate.change, {
+			"after": object.union(w6_004_runtime_gate.change.after, {
+				"input": object.union(w6_004_runtime_gate.change.after.input, {
+					"approval_expires_at": "2026-09-05T00:00:01Z",
+				}),
+			}),
+		}),
+	})
+	not valid_w6_004_runtime_gate_change(invalid)
+}
+
+test_w6_004_node_attachment_is_exactly_allowed if {
+	valid_w6_004_node_policy_attachment(w6_004_node_attachment)
+	invalid := object.union(w6_004_node_attachment, {
+		"change": object.union(w6_004_node_attachment.change, {
+			"after": object.union(w6_004_node_attachment.change.after, {
+				"policy_arn": "arn:aws:iam::aws:policy/AdministratorAccess",
+			}),
+		}),
+	})
+	not valid_w6_004_node_policy_attachment(invalid)
+}
+
+test_w6_004_alert_subscription_is_exactly_allowed if {
+	valid_w6_004_alert_subscription(w6_004_alert_subscription)
+	invalid := object.union(w6_004_alert_subscription, {
+		"change": object.union(w6_004_alert_subscription.change, {
+			"after": object.union(w6_004_alert_subscription.change.after, {
+				"protocol": "sms",
+			}),
+		}),
+	})
+	not valid_w6_004_alert_subscription(invalid)
+}
+
 test_other_terraform_data_resource_fails_closed if {
 	invalid := object.union(owner_expiry_gate, {"address": "terraform_data.unapproved"})
 	policy_ids_for(plan_with_changes([invalid])) == {"W5-PLAN-001"}
@@ -2024,6 +2168,18 @@ test_production_decision_accepts_exact_initial_profile if {
 	object.keys(result) == {"schema_version", "allow", "findings"}
 }
 
+test_production_decision_accepts_owner_approved_eight_hour_validity if {
+	operation := object.union(v2_operation, {
+		"resource_expires_at": "2026-09-04T08:00:00Z",
+		"expires_at": "2026-09-04T08:00:00Z",
+	})
+	context := object.union(approved_context, {"operation": operation})
+	plan := object.union(approved_plan, {"evaluation_context": context})
+	result := decision with input as plan
+	result.allow == true
+	result.findings == []
+}
+
 test_production_decision_rejects_missing_duplicate_or_altered_rules if {
 	every rules in [[], [v2_operation.rules[0], v2_operation.rules[0]], [object.union(v2_operation.rules[0], {"address": "aws_other.unapproved"})]] {
 		operation := object.union(v2_operation, {"rules": rules})
@@ -2035,7 +2191,11 @@ test_production_decision_rejects_missing_duplicate_or_altered_rules if {
 }
 
 test_production_decision_rejects_expiry_and_replacement_drift if {
-	every patch in [{"resource_expires_at": "2026-09-05T00:00:00Z"}, {"expires_at": "2026-09-03T00:00:00Z"}] {
+		every patch in [
+			{"resource_expires_at": "2026-09-05T00:00:01Z"},
+			{"resource_expires_at": "2026-09-04T00:00:00Z"},
+			{"expires_at": "2026-09-03T00:00:00Z"},
+		] {
 		context := object.union(approved_context, {"operation": object.union(v2_operation, patch)})
 		result := decision with input as object.union(approved_plan, {"evaluation_context": context})
 		result.allow == false

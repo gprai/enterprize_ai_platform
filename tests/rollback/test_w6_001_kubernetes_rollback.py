@@ -15,11 +15,11 @@ def test_rollback_requires_an_exact_previous_digest(tmp_path: Path) -> None:
     binding["digest"] = previous
     for field in ("oci_identity", "trivy", "grype", "provenance", "image_composition_identity"):
         binding[field]["image_digest"] = previous  # type: ignore[index]
-    image = w6_001_k8s.validate_release_binding(
+    images = w6_001_k8s.validate_release_binding(
         binding,
         source_template_sha256=binding["source_identity"]["template_sha256"],  # type: ignore[index]
     )
-    assert image.endswith("@" + previous)
+    assert images[0].endswith("@" + previous)
 
 
 @pytest.mark.parametrize("previous", ["latest", "sha256:short", "sha256:" + "D" * 64])

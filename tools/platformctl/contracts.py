@@ -1494,3 +1494,18 @@ def authorize_mutation(
     )
     context.revalidate(package.action, package.artifact.sha256, consumed=False)
     return context
+
+
+# W6-004 extends the lifecycle only through separately bound owner evidence.
+W6_004_MAX_GOVERNANCE_LIFETIME = timedelta(hours=24)
+W6_004_MAX_MUTATION_WINDOW = timedelta(hours=8)
+
+
+def validate_w6_004_window(issued_at: datetime, expires_at: datetime) -> None:
+    """Reject invalid or over-broad W6-004 approval windows."""
+
+    if issued_at.tzinfo is None or expires_at.tzinfo is None:
+        raise ApprovalError("W6_004_WINDOW_TIMEZONE_REQUIRED")
+    duration = expires_at - issued_at
+    if duration <= timedelta(0) or duration > W6_004_MAX_GOVERNANCE_LIFETIME:
+        raise ApprovalError("W6_004_APPROVAL_WINDOW_INVALID")

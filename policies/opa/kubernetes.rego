@@ -3,6 +3,7 @@ package enterprise_ai.kubernetes.w6_001
 import rego.v1
 
 sentinel := "enterprise-ai.invalid/w6-001:OWNER_BINDING_REQUIRED"
+collector_sentinel := "enterprise-ai.invalid/w6-004-otel:OWNER_BINDING_REQUIRED"
 namespace := "enterprise-ai-sandbox"
 approved_repository := "enterprise-ai/sandbox/api"
 
@@ -22,16 +23,23 @@ valid_context if {
 
 deny contains "object namespace differs" if {
   some object in input.objects
+  object.kind != "Namespace"
   object.metadata.namespace != namespace
+}
+
+deny contains "Namespace identity differs" if {
+  some object in input.objects
+  object.kind == "Namespace"
+  object.metadata.name != namespace
 }
 
 deny contains "unexpected Kubernetes kind" if {
   some object in input.objects
-  not object.kind in {"Deployment", "Service", "ServiceAccount", "ConfigMap", "NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget"}
+  not object.kind in {"Namespace", "Deployment", "Service", "ServiceAccount", "ConfigMap", "NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget", "Role", "RoleBinding"}
 }
 
 deny contains "object inventory differs" if {
-  count(input.objects) != 8
+  count(input.objects) != 16
 }
 
 deny contains "object inventory differs" if {
@@ -43,15 +51,27 @@ deny contains "object inventory differs" if {
 }
 
 deny contains "object inventory differs" if {
-  count([object | some object in input.objects; object.kind == "ServiceAccount"]) != 1
+  count([object | some object in input.objects; object.kind == "ServiceAccount"]) != 3
+}
+
+deny contains "FIS service account differs" if {
+  count([object | some object in input.objects; object.kind == "ServiceAccount"; object.metadata.name == "fis-experiment"; object.automountServiceAccountToken == true]) != 1
 }
 
 deny contains "object inventory differs" if {
-  count([object | some object in input.objects; object.kind == "ConfigMap"]) != 1
+  count([object | some object in input.objects; object.kind == "Role"]) != 1
 }
 
 deny contains "object inventory differs" if {
-  count([object | some object in input.objects; object.kind == "NetworkPolicy"]) != 2
+  count([object | some object in input.objects; object.kind == "RoleBinding"]) != 1
+}
+
+deny contains "object inventory differs" if {
+  count([object | some object in input.objects; object.kind == "ConfigMap"]) != 2
+}
+
+deny contains "object inventory differs" if {
+  count([object | some object in input.objects; object.kind == "NetworkPolicy"]) != 4
 }
 
 deny contains "object inventory differs" if {
@@ -76,15 +96,40 @@ deployment := object if {
 }
 
 container := deployment.spec.template.spec.containers[0]
+collector := deployment.spec.template.spec.containers[1]
+
+deny contains "container inventory differs" if {
+  count(deployment.spec.template.spec.containers) != 2
+}
 
 deny contains "source template requires exact sentinel" if {
   input.artifact_type == "w6-001-source-template"
   container.image != sentinel
 }
 
+deny contains "source template requires exact collector sentinel" if {
+  input.artifact_type == "w6-001-source-template"
+  collector.image != collector_sentinel
+}
+
 deny contains "source sentinel is forbidden in a release package" if {
   input.artifact_type == "w6-001-release-package"
   container.image == sentinel
+}
+
+deny contains "collector sentinel is forbidden in a release package" if {
+  input.artifact_type == "w6-001-release-package"
+  collector.image == collector_sentinel
+}
+
+deny contains "release collector image is not the approved immutable ECR identity" if {
+  input.artifact_type == "w6-001-release-package"
+  not regex.match(sprintf(`^%s\.dkr\.ecr\.%s\.amazonaws\.com/enterprise-ai/sandbox/otel-collector@sha256:[0-9a-f]{64}$`, [input.binding.aws_account_id, input.binding.aws_region]), collector.image)
+}
+
+deny contains "release collector digest differs from evidence" if {
+  input.artifact_type == "w6-001-release-package"
+  not endswith(collector.image, sprintf("@%s", [input.binding.collector.digest]))
 }
 
 deny contains "release image is not the approved immutable ECR identity" if {
@@ -127,6 +172,15 @@ complete_release_evidence if {
   time.parse_rfc3339_ns(input.binding.expires_at) > time.parse_rfc3339_ns(input.review_time)
   input.binding.output_private == true
   input.binding.operation_consumed == false
+  input.binding.collector.digest == input.binding.collector.oci_identity.image_digest
+  input.binding.collector.digest == input.binding.collector.trivy.image_digest
+  input.binding.collector.digest == input.binding.collector.grype.image_digest
+  input.binding.collector.digest == input.binding.collector.provenance.image_digest
+  input.binding.collector.digest == input.binding.collector.image_composition_identity.image_digest
+  input.binding.collector.trivy.result == "PASS"
+  input.binding.collector.grype.result == "PASS"
+  regex.match(`^[0-9a-f]{64}$`, input.binding.collector.spdx_sbom_sha256)
+  regex.match(`^[0-9a-f]{64}$`, input.binding.collector.cyclonedx_sbom_sha256)
 }
 
 deny contains "default service account is prohibited" if {
@@ -166,6 +220,22 @@ deny contains "all Linux capabilities must be dropped" if {
 
 deny contains "image pull policy must be Always" if {
   container.imagePullPolicy != "Always"
+}
+
+deny contains "collector image pull policy must be Always" if {
+  collector.imagePullPolicy != "Always"
+}
+
+deny contains "collector privilege boundary differs" if {
+  collector.securityContext.allowPrivilegeEscalation != false
+}
+
+deny contains "collector privilege boundary differs" if {
+  collector.securityContext.readOnlyRootFilesystem != true
+}
+
+deny contains "collector privilege boundary differs" if {
+  collector.securityContext.capabilities.drop != ["ALL"]
 }
 
 deny contains "host namespace is prohibited" if {
@@ -256,13 +326,46 @@ deny contains "default deny is missing" if {
 deny contains "unapproved ingress is present" if {
   some resource in input.objects
   resource.kind == "NetworkPolicy"
-  resource.metadata.name != "enterprise-ai-default-deny"
+  not resource.metadata.name in {"enterprise-ai-default-deny", "enterprise-ai-api-ingress"}
   object.get(resource.spec, "ingress", []) != []
 }
 
-deny contains "Kubernetes API permission is prohibited" if {
-  some object in input.objects
-  object.kind in {"Role", "ClusterRole", "RoleBinding", "ClusterRoleBinding"}
+deny contains "private AWS egress boundary differs" if {
+  some resource in input.objects
+  resource.kind == "NetworkPolicy"
+  resource.metadata.name == "enterprise-ai-private-aws-egress"
+  resource.spec.egress != [{"to": [{"ipBlock": {"cidr": "10.60.0.0/16"}}], "ports": [{"protocol": "TCP", "port": 443}]}]
+}
+
+deny contains "FIS role differs" if {
+  role := [object | some object in input.objects; object.kind == "Role"][0]
+  role.metadata.name != "fis-pod-delete"
+}
+
+deny contains "FIS role differs" if {
+  role := [object | some object in input.objects; object.kind == "Role"][0]
+  role.rules != [
+    {"apiGroups": [""], "resources": ["configmaps"], "verbs": ["get", "create", "patch", "delete"]},
+    {"apiGroups": [""], "resources": ["pods"], "verbs": ["create", "list", "get", "delete", "deletecollection"]},
+  ]
+}
+
+deny contains "FIS role binding differs" if {
+  binding := [object | some object in input.objects; object.kind == "RoleBinding"][0]
+  binding.metadata.name != "fis-pod-delete"
+}
+
+deny contains "FIS role binding differs" if {
+  binding := [object | some object in input.objects; object.kind == "RoleBinding"][0]
+  binding.roleRef != {"apiGroup": "rbac.authorization.k8s.io", "kind": "Role", "name": "fis-pod-delete"}
+}
+
+deny contains "FIS role binding differs" if {
+  binding := [object | some object in input.objects; object.kind == "RoleBinding"][0]
+  binding.subjects != [
+    {"kind": "ServiceAccount", "name": "fis-experiment", "namespace": namespace},
+    {"apiGroup": "rbac.authorization.k8s.io", "kind": "User", "name": "fis-experiment"},
+  ]
 }
 
 deny contains "plaintext Secret is prohibited" if {

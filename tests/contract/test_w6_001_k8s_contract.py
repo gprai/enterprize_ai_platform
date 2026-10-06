@@ -26,7 +26,7 @@ def test_exact_source_inventory_and_object_inventory() -> None:
 def test_kustomization_is_bounded_and_contains_no_apply_interface() -> None:
     text = (ROOT / "deploy/k8s/kustomization.yaml").read_text(encoding="utf-8")
     assert "namespace: enterprise-ai-sandbox" in text
-    assert text.count("  - ") == 7
+    assert text.count("  - ") == 9
     assert "kubectl" not in text
     assert "helm" not in text.casefold()
 
@@ -51,6 +51,8 @@ def test_release_binding_schema_is_closed() -> None:
         "expires_at",
         "allowed_output_root",
         "output_root",
+        "collector",
+        "runtime",
     }
 
 
@@ -73,4 +75,10 @@ def test_tool_has_no_cluster_registry_or_aws_client() -> None:
 def test_feature_contract_is_json_compatible() -> None:
     matrix = json.loads((ROOT / "feature-matrix.yaml").read_text(encoding="utf-8"))
     feature = next(item for item in matrix["features"] if item["id"] == "EKS-001")
-    assert feature["linked_tracker_steps"] == ["W6-02", "W6-03", "W6-04", "W6-05"]
+    assert feature["linked_tracker_steps"] == [
+        "W6-02",
+        "W6-03",
+        "W6-04",
+        "W6-05",
+        "W6-004",
+    ]

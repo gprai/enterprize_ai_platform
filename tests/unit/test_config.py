@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -135,6 +137,51 @@ def test_blank_optional_qdrant_key_becomes_none(
 ) -> None:
     settings = Settings(_env_file=None, **valid_settings_values)
     assert settings.qdrant_api_key is None
+
+
+def test_sandbox_auth_signing_key_can_be_loaded_from_the_approved_file(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    valid_settings_values: dict[str, object],
+) -> None:
+    from enterprise_ai_platform import config
+
+    secret_path = tmp_path / "sandbox-auth-signing-key"
+    secret_path.write_text("s" * 32, encoding="utf-8")
+    monkeypatch.setattr(config, "SANDBOX_AUTH_SIGNING_KEY_FILE_PATH", secret_path)
+    values = dict(valid_settings_values)
+    values.update(
+        sandbox_auth_enabled=True,
+        sandbox_auth_issuer="enterprise-ai-sandbox",
+        sandbox_auth_audience="enterprise-ai-api",
+        sandbox_auth_tenant_id="synthetic-sandbox-tenant",
+        sandbox_auth_signing_key_file=secret_path,
+    )
+
+    settings = Settings(_env_file=None, **values)
+
+    assert settings.sandbox_auth_signing_key is not None
+    assert settings.sandbox_auth_signing_key.get_secret_value() == "s" * 32
+
+
+def test_sandbox_auth_signing_key_rejects_two_delivery_sources(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    valid_settings_values: dict[str, object],
+) -> None:
+    from enterprise_ai_platform import config
+
+    secret_path = tmp_path / "sandbox-auth-signing-key"
+    secret_path.write_text("s" * 32, encoding="utf-8")
+    monkeypatch.setattr(config, "SANDBOX_AUTH_SIGNING_KEY_FILE_PATH", secret_path)
+    values = dict(valid_settings_values)
+    values.update(
+        sandbox_auth_signing_key="d" * 32,
+        sandbox_auth_signing_key_file=secret_path,
+    )
+
+    with pytest.raises(ValidationError, match="exactly one delivery source"):
+        Settings(_env_file=None, **values)
 
 
 def test_fake_mode_accepts_blank_model_and_region(

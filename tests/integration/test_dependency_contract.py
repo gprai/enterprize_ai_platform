@@ -28,6 +28,7 @@ EXPECTED_RUNTIME_PACKAGES = {
     "langgraph",
     "opensearch-py",
     "opentelemetry-api",
+    "opentelemetry-exporter-otlp-proto-grpc",
     "opentelemetry-sdk",
     "presidio-analyzer",
     "presidio-anonymizer",
@@ -191,21 +192,19 @@ def test_opentelemetry_dependencies_are_minimal_and_exactly_bounded() -> None:
 
     assert "opentelemetry-api>=1.44,<1.45" in runtime_lines
     assert "opentelemetry-sdk>=1.44,<1.45" in runtime_lines
+    assert "opentelemetry-exporter-otlp-proto-grpc>=1.44,<1.45" in runtime_lines
     assert not any(
         package_name(line).startswith("opentelemetry-instrumentation") for line in runtime_lines
     )
-    assert not any(
-        package_name(line).startswith("opentelemetry-exporter") for line in runtime_lines
-    )
+    assert {
+        package_name(line)
+        for line in runtime_lines
+        if package_name(line).startswith("opentelemetry-exporter")
+    } == {"opentelemetry-exporter-otlp-proto-grpc"}
 
 
 def test_w6_002_uses_injected_export_and_owner_supplied_promtool() -> None:
     makefile = MAKEFILE.read_text(encoding="utf-8")
-    runtime_lines = requirement_lines(RUNTIME_REQUIREMENTS)
-
-    assert not any(
-        package_name(line).startswith("opentelemetry-exporter") for line in runtime_lines
-    )
     assert "PROMTOOL ?= owner-must-supply-promtool-3.5.0" in makefile
     assert "$(PROMTOOL) check rules observability/alerts.yml" in makefile
 

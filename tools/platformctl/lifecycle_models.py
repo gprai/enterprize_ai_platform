@@ -1165,3 +1165,38 @@ class DiagnosticReport:
     billing_requests: int
     recovery_eligibility: str = "NOT_ESTABLISHED"
     mutation_started: bool = False
+
+
+class W6004Stage(StrEnum):
+    BOOTSTRAP_STATE = "bootstrap_state"
+    NETWORK_SECURITY = "network_security"
+    DATA_SERVICES = "data_services"
+    ECR_IMAGE = "ecr_image"
+    EKS_IDENTITY = "eks_identity"
+    APPLICATION_COMPOSITION = "application_composition"
+    OBSERVABILITY = "observability"
+    LIVE_TESTS = "live_tests"
+    ROLLBACK = "rollback"
+    COMPLETE_TEARDOWN = "complete_teardown"
+    RESIDUE_COST_VERIFICATION = "residue_cost_verification"
+
+
+class W6004EvidenceStatus(StrEnum):
+    PASS = "PASS"  # noqa: S105 - evidence status, not a credential
+    FAIL = "FAIL"
+    NOT_RUN = "NOT RUN"
+    INDETERMINATE = "INDETERMINATE"
+
+
+@dataclass(frozen=True)
+class W6004StageEvidence:
+    schema_version: str
+    operation_id: str
+    stage: W6004Stage
+    status: W6004EvidenceStatus
+    source_sha256: str
+    artifact_sha256: str
+    started_at: str
+    completed_at: str
+    warnings: tuple[str, ...] = ()
+    residuals: tuple[str, ...] = ()

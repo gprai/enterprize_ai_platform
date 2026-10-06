@@ -99,7 +99,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "a94aea6543fd08b4504bb9ea89962b0d74b7daf6c83b54245f6123362a85c60a",
+        "efa249b7d4f836a2724f6d2b664fce0930a5a0107b0728f2e7b76bd083f1a160",
     ),
     (
         "infra/modules/ecr/main.tf",
@@ -113,7 +113,7 @@ PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
 PLATFORM_OPENSEARCH_LOG_SOURCE_SHA256 = (
     (
         "infra/modules/opensearch/main.tf",
-        "e1376dbdee97055ea315a266d8e99d0287acef70a8de0f21e4b542f41734bc4b",
+        "23d678d628f28a8680a5d9369766308d2d306ed1a6c736caad152fc056f97d71",
     ),
 )
 PLATFORM_GATEWAY_ENDPOINTS = frozenset(
@@ -126,14 +126,62 @@ PLATFORM_INTERFACE_ENDPOINTS = frozenset(
     {
         'module.network.aws_vpc_endpoint.interface["Bedrock Runtime"]',
         'module.network.aws_vpc_endpoint.interface["CloudWatch Logs"]',
+        'module.network.aws_vpc_endpoint.interface["CloudWatch Monitoring"]',
+        'module.network.aws_vpc_endpoint.interface["EC2"]',
         'module.network.aws_vpc_endpoint.interface["ECR API"]',
         'module.network.aws_vpc_endpoint.interface["ECR DKR"]',
         'module.network.aws_vpc_endpoint.interface["EKS"]',
+        'module.network.aws_vpc_endpoint.interface["EKS Auth"]',
         'module.network.aws_vpc_endpoint.interface["KMS"]',
         'module.network.aws_vpc_endpoint.interface["STS"]',
         'module.network.aws_vpc_endpoint.interface["Secrets Manager"]',
+        'module.network.aws_vpc_endpoint.interface["X-Ray"]',
     }
 )
+PLATFORM_EKS_CLUSTER_ADDRESS = "module.eks[0].aws_eks_cluster.this"
+PLATFORM_EKS_NODE_GROUP_ADDRESS = "module.eks[0].aws_eks_node_group.application"
+PLATFORM_ALERT_TOPIC_ADDRESS = "module.observability[0].aws_sns_topic.alerts"
+PLATFORM_EKS_SOURCE_SHA256 = (
+    (
+        "infra/modules/eks/main.tf",
+        "f263c57faf93b40395d877c572116b9ee674a2a925ac33766f5de72fb24f5d50",
+    ),
+)
+PLATFORM_OBSERVABILITY_SOURCE_SHA256 = (
+    (
+        "infra/modules/observability/main.tf",
+        "d2506b815e7adce11ae26969680a49c534169ebd3755842744a4bbac16f6abcf",
+    ),
+)
+PLATFORM_ENDPOINT_POLICY_BINDINGS = {
+    **{
+        f'module.network.aws_vpc_endpoint.gateway["{name}"]': (
+            f'module.network.data.aws_iam_policy_document.gateway_endpoint["{name}"]',
+            f"ExactSandboxAccount{name.replace(' ', '').replace('-', '')}",
+        )
+        for name in ("DynamoDB", "S3")
+    },
+    **{
+        f'module.network.aws_vpc_endpoint.interface["{name}"]': (
+            f'module.network.data.aws_iam_policy_document.interface_endpoint["{name}"]',
+            f"ExactSandboxAccount{name.replace(' ', '').replace('-', '')}",
+        )
+        for name in (
+            "Bedrock Runtime",
+            "CloudWatch Logs",
+            "CloudWatch Monitoring",
+            "EC2",
+            "ECR API",
+            "ECR DKR",
+            "EKS",
+            "EKS Auth",
+            "KMS",
+            "STS",
+            "Secrets Manager",
+            "X-Ray",
+        )
+    },
+}
 PLATFORM_POLICY_DOCUMENT_BINDINGS = {
     ("module.iam.aws_iam_role_policy.ingestion", "policy"): (
         "aws_iam_role_policy",
@@ -156,7 +204,11 @@ PLATFORM_POLICY_DOCUMENT_BINDINGS = {
                 "RuntimeReadPlatformObjects",
                 "RuntimeListPlatformBucket",
                 "RuntimeUsePlatformKey",
-                "RuntimeOpenSearchDataPlane",
+                "RuntimeOpenSearchHealthRead",
+                "RuntimeOpenSearchExactIndexQuery",
+                "RuntimeWriteSafeApplicationLogs",
+                "RuntimeWriteBoundedMetrics",
+                "RuntimeWriteXRayTelemetry",
             }
         ),
     ),
@@ -209,6 +261,24 @@ PLATFORM_POLICY_DOCUMENT_BINDINGS = {
         "module.opensearch.data.aws_iam_policy_document.log_delivery",
         frozenset({"ExactOpenSearchLogDelivery"}),
     ),
+    ("module.eks.aws_iam_role.cluster", "assume_role_policy"): (
+        "aws_iam_role",
+        "module.eks[0].data.aws_iam_policy_document.cluster_assume",
+        frozenset({"ExactEKSClusterServiceTrust"}),
+    ),
+    ("module.eks.aws_iam_role.node", "assume_role_policy"): (
+        "aws_iam_role",
+        "module.eks[0].data.aws_iam_policy_document.node_assume",
+        frozenset({"ExactEKSNodeServiceTrust"}),
+    ),
+    **{
+        (address, "policy"): (
+            "aws_vpc_endpoint",
+            policy_address,
+            frozenset({sid}),
+        )
+        for address, (policy_address, sid) in PLATFORM_ENDPOINT_POLICY_BINDINGS.items()
+    },
 }
 PLATFORM_POLICY_DOCUMENT_EXPRESSION_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
@@ -280,31 +350,56 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
     ),
 }
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
+    "module.iam.data.aws_iam_policy_document.runtime": (
+        "infra/modules/iam/main.tf",
+        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
+    ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
         "infra/modules/iam/main.tf",
-        "23b0e6ac5221fd7d90ab06112229ffa8354d3756b5bbe524d498991701fbae5a",
+        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
         "infra/modules/iam/main.tf",
-        "23b0e6ac5221fd7d90ab06112229ffa8354d3756b5bbe524d498991701fbae5a",
+        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
         "infra/modules/iam/main.tf",
-        "23b0e6ac5221fd7d90ab06112229ffa8354d3756b5bbe524d498991701fbae5a",
+        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
         "infra/modules/iam/main.tf",
-        "23b0e6ac5221fd7d90ab06112229ffa8354d3756b5bbe524d498991701fbae5a",
+        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
     ),
     "module.opensearch.data.aws_iam_policy_document.domain_access": (
         "infra/modules/opensearch/main.tf",
-        "e1376dbdee97055ea315a266d8e99d0287acef70a8de0f21e4b542f41734bc4b",
+        "23d678d628f28a8680a5d9369766308d2d306ed1a6c736caad152fc056f97d71",
     ),
     "module.opensearch.data.aws_iam_policy_document.log_delivery": (
         "infra/modules/opensearch/main.tf",
-        "e1376dbdee97055ea315a266d8e99d0287acef70a8de0f21e4b542f41734bc4b",
+        "23d678d628f28a8680a5d9369766308d2d306ed1a6c736caad152fc056f97d71",
     ),
+    "module.eks[0].data.aws_iam_policy_document.cluster_assume": (
+        "infra/modules/eks/main.tf",
+        "f263c57faf93b40395d877c572116b9ee674a2a925ac33766f5de72fb24f5d50",
+    ),
+    "module.eks[0].data.aws_iam_policy_document.node_assume": (
+        "infra/modules/eks/main.tf",
+        "f263c57faf93b40395d877c572116b9ee674a2a925ac33766f5de72fb24f5d50",
+    ),
+    **{
+        policy_address: (
+            "infra/modules/network/main.tf",
+            "81b8e9044cc8e7492bacade01a766affddfc012ff283f567e05b18cd402f5dbc",
+        )
+        for policy_address, _sid in PLATFORM_ENDPOINT_POLICY_BINDINGS.values()
+    },
 }
+SOURCE_PROTECTED_POLICY_DOCUMENTS = frozenset(
+    {
+        "module.iam.data.aws_iam_policy_document.runtime",
+        "module.opensearch.data.aws_iam_policy_document.domain_access",
+    }
+)
 _INSTANCE_SELECTOR = re.compile(r"\[[^\]]+\]")
 _RESOURCE_REFERENCE = re.compile(r"^(data\.)?(aws_[a-z0-9_]+\.[A-Za-z0-9_-]+)")
 SENSITIVE_PLAN_KEYS = frozenset(
@@ -747,7 +842,9 @@ def _policy_document_binding(
     if not isinstance(address, str) or not isinstance(resource_type, str):
         return None
     base_address = _instance_base_address(address)
-    approved = PLATFORM_POLICY_DOCUMENT_BINDINGS.get((base_address, field_path))
+    approved = PLATFORM_POLICY_DOCUMENT_BINDINGS.get(
+        (address, field_path)
+    ) or PLATFORM_POLICY_DOCUMENT_BINDINGS.get((base_address, field_path))
     if approved is None or resource_type != approved[0]:
         return None
     policy_address = approved[1]
@@ -761,7 +858,7 @@ def _policy_document_binding(
     if configuration is None or policy_configuration is None:
         return None
     actual_sources = _configured_expression_sources(raw, configuration, field_path)
-    if actual_sources != {policy_address}:
+    if actual_sources != {_instance_base_address(policy_address)}:
         return None
     consumer_change = _resource_change(raw, address, resource_type)
     if consumer_change is None:
@@ -779,11 +876,17 @@ def _policy_document_binding(
     statements = policy_expressions.get("statement")
     if not isinstance(statements, list) or len(statements) != len(approved[2]):
         return None
-    if _constant_strings_for_key(policy_expressions, "sid") != set(approved[2]):
+    endpoint_policy_addresses = {
+        address for address, _sid in PLATFORM_ENDPOINT_POLICY_BINDINGS.values()
+    }
+    if policy_address not in endpoint_policy_addresses and _constant_strings_for_key(
+        policy_expressions, "sid"
+    ) != set(approved[2]):
         return None
     expected_expression_sha256 = PLATFORM_POLICY_DOCUMENT_EXPRESSION_SHA256.get(policy_address)
     if (
         expected_expression_sha256 is not None
+        and policy_address not in SOURCE_PROTECTED_POLICY_DOCUMENTS
         and sha256_bytes(canonical_json_bytes(policy_expressions)) != expected_expression_sha256
     ):
         return None
@@ -824,7 +927,10 @@ def _policy_document_binding(
     expected_planned_input_sha256 = PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256.get(
         policy_address
     )
-    if expected_planned_input_sha256 is not None:
+    if (
+        expected_planned_input_sha256 is not None
+        and policy_address not in SOURCE_PROTECTED_POLICY_DOCUMENTS
+    ):
         if not isinstance(planned_after, dict):
             return None
         planned_inputs = {
@@ -888,6 +994,29 @@ def _provider_computed_unknown(
         ):
             return None
         relationship = "interface-endpoint-provider-default-policy"
+    elif address == PLATFORM_EKS_CLUSTER_ADDRESS and field_path == "vpc_config[].vpc_id":
+        if not _source_files_match(PLATFORM_EKS_SOURCE_SHA256):
+            return None
+        subnet_sources = _configured_expression_sources(
+            raw, configuration, "vpc_config[].subnet_ids"
+        )
+        if subnet_sources != {_instance_base_address(PLATFORM_SUBNET_ADDRESSES[0])}:
+            return None
+        sources = (PLATFORM_VPC_ADDRESS, *PLATFORM_SUBNET_ADDRESSES)
+        if not _managed_sources_exist(raw, sources):
+            return None
+        relationship = "eks-vpc-derived-from-private-subnets"
+    elif address == PLATFORM_ALERT_TOPIC_ADDRESS and field_path == "policy":
+        after = body.get("after")
+        if (
+            not _source_files_match(PLATFORM_OBSERVABILITY_SOURCE_SHA256)
+            or not isinstance(after, dict)
+            or after.get("name") != "enterprise-ai-sandbox-alerts"
+            or after.get("kms_master_key_id") != "alias/aws/sns"
+            or "policy" in expressions
+        ):
+            return None
+        relationship = "sns-provider-default-policy"
     elif (
         address == "module.opensearch.aws_opensearch_domain.this"
         and field_path == "vpc_options[].vpc_id"
@@ -971,6 +1100,16 @@ def _resource_reference_binding(
     elif address in PLATFORM_INTERFACE_ENDPOINTS and field_path == "security_group_ids":
         sources = (PLATFORM_ENDPOINT_SECURITY_GROUP_ADDRESS,)
         relationship = "network-endpoint-security-group-reference"
+    elif address == PLATFORM_EKS_CLUSTER_ADDRESS:
+        if field_path == "encryption_config[].provider[].key_arn":
+            sources = (PLATFORM_KMS_ADDRESS,)
+            relationship = "platform-kms-key-reference"
+        elif field_path == "vpc_config[].subnet_ids":
+            sources = PLATFORM_SUBNET_ADDRESSES
+            relationship = "network-private-subnets-reference"
+    elif address == PLATFORM_EKS_NODE_GROUP_ADDRESS and field_path == "subnet_ids":
+        sources = PLATFORM_SUBNET_ADDRESSES
+        relationship = "network-private-subnets-reference"
     elif (
         address.startswith("module.opensearch.aws_cloudwatch_log_group.this[")
         and field_path == "kms_key_id"
@@ -1009,6 +1148,10 @@ def _resource_reference_binding(
         relationship = "platform-kms-key-reference"
 
     if sources is None or relationship is None:
+        return None
+    if address in {PLATFORM_EKS_CLUSTER_ADDRESS, PLATFORM_EKS_NODE_GROUP_ADDRESS} and not (
+        _source_files_match(PLATFORM_EKS_SOURCE_SHA256)
+    ):
         return None
     if relationship == "opensearch-log-groups-reference":
         sources_match = True
@@ -1357,6 +1500,43 @@ def _expiry_tag_reconciliation(before: object, after: object) -> str | None:
     return current
 
 
+def _admin_trust_expiry_reconciliation(
+    before: object,
+    after: object,
+    *,
+    previous_expiry: str,
+    current_expiry: str,
+) -> bool:
+    """Accept only the approved expiry change in the administrator trust policy."""
+    normalized: list[object] = []
+    for document, expected_expiry in (
+        (before, previous_expiry),
+        (after, current_expiry),
+    ):
+        candidate = deepcopy(document)
+        if not isinstance(candidate, dict):
+            return False
+        statements = candidate.get("Statement")
+        if not isinstance(statements, list) or len(statements) != 1:
+            return False
+        statement = statements[0]
+        if (
+            not isinstance(statement, dict)
+            or statement.get("Sid") != "TimeBoundExactSandboxAdministrator"
+        ):
+            return False
+        condition = statement.get("Condition")
+        date_less_than = condition.get("DateLessThan") if isinstance(condition, dict) else None
+        if (
+            not isinstance(date_less_than, dict)
+            or date_less_than.get("aws:CurrentTime") != expected_expiry
+        ):
+            return False
+        date_less_than["aws:CurrentTime"] = "OWNER_APPROVED_EXPIRY"
+        normalized.append(candidate)
+    return normalized[0] == normalized[1]
+
+
 def _existing_opensearch_admin_role_is_exact(
     role_body: Mapping[str, object],
     master_user_arn: str,
@@ -1385,26 +1565,37 @@ def _existing_opensearch_admin_role_is_exact(
         canonical_after = policy_semantic_value(after_policy)
     except ContractError:
         return False
-    if canonical_before != canonical_after:
-        return False
-    before = {**before, "assume_role_policy": canonical_before}
-    after = {**after, "assume_role_policy": canonical_after}
-
     actions = role_body.get("actions")
     if actions == ["no-op"]:
-        return before == after
+        return canonical_before == canonical_after and before == after
     if actions != ["update"]:
-        return False
-    if {key: value for key, value in before.items() if key not in {"tags", "tags_all"}} != {
-        key: value for key, value in after.items() if key not in {"tags", "tags_all"}
-    }:
         return False
     tags_expiry = _expiry_tag_reconciliation(before.get("tags"), after.get("tags"))
     tags_all_expiry = _expiry_tag_reconciliation(
         before.get("tags_all"),
         after.get("tags_all"),
     )
-    return tags_expiry is not None and tags_expiry == tags_all_expiry
+    previous_expiry = cast(dict[str, object], before.get("tags", {})).get("ExpiresAt")
+    if (
+        not isinstance(previous_expiry, str)
+        or tags_expiry is None
+        or tags_expiry != tags_all_expiry
+        or (
+            canonical_before != canonical_after
+            and not _admin_trust_expiry_reconciliation(
+                canonical_before,
+                canonical_after,
+                previous_expiry=previous_expiry,
+                current_expiry=tags_expiry,
+            )
+        )
+    ):
+        return False
+    before = {**before, "assume_role_policy": canonical_after}
+    after = {**after, "assume_role_policy": canonical_after}
+    return {key: value for key, value in before.items() if key not in {"tags", "tags_all"}} == {
+        key: value for key, value in after.items() if key not in {"tags", "tags_all"}
+    }
 
 
 def _opensearch_omitted_password_sensitivity(
@@ -1431,7 +1622,12 @@ def _opensearch_omitted_password_sensitivity(
         or advanced.get("internal_user_database_enabled") is not False
     ):
         return None
-    if master.get("master_user_name") is not None or master.get("master_user_password") is not None:
+    if master.get("master_user_name") not in (None, "") or master.get(
+        "master_user_password"
+    ) not in (
+        None,
+        "",
+    ):
         return None
 
     after_unknown = body.get("after_unknown", {})
@@ -1641,10 +1837,26 @@ def _normalized_unknowns(
                 ValueKind.REFERENCE if derived_reference is not None else ValueKind.COMPUTED
             )
 
+        exact_policy_key = (cast(str, item["address"]), field_path)
+        base_policy_key = (base_address, field_path)
+        configuration = _configuration_resource(
+            raw,
+            cast(str, item["address"]),
+            cast(str, item["type"]),
+        )
+        configured_policy_sources = (
+            _configured_expression_sources(raw, configuration, field_path)
+            if configuration is not None
+            else None
+        )
         if (
-            base_address,
-            field_path,
-        ) in PLATFORM_POLICY_DOCUMENT_BINDINGS and policy_binding is None:
+            (
+                exact_policy_key in PLATFORM_POLICY_DOCUMENT_BINDINGS
+                or base_policy_key in PLATFORM_POLICY_DOCUMENT_BINDINGS
+            )
+            and configured_policy_sources
+            and policy_binding is None
+        ):
             raise ContractError("Terraform policy-document relationship is malformed")
 
         if accepted_kind in {ValueKind.REFERENCE, ValueKind.COMPUTED}:
@@ -1697,7 +1909,7 @@ def _contains_non_null_master_password(raw: Mapping[str, object]) -> bool:
     def contains(value: object) -> bool:
         if isinstance(value, dict):
             return any(
-                (key == "master_user_password" and child is not None) or contains(child)
+                (key == "master_user_password" and child not in (None, "")) or contains(child)
                 for key, child in value.items()
             )
         if isinstance(value, list):

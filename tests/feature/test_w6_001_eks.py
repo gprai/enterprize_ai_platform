@@ -14,7 +14,13 @@ def test_eks_001_source_template_is_valid_but_not_deployable() -> None:
 
 def test_eks_001_uses_approved_namespace_identity_service_and_port() -> None:
     documents, _ = w6_001_k8s.load_template(ROOT / "deploy/k8s")
-    assert {item["metadata"]["namespace"] for item in documents} == {"enterprise-ai-sandbox"}
+    assert {item["metadata"]["namespace"] for item in documents if item["kind"] != "Namespace"} == {
+        "enterprise-ai-sandbox"
+    }
+    assert (
+        next(item for item in documents if item["kind"] == "Namespace")["metadata"]["name"]
+        == "enterprise-ai-sandbox"
+    )
     service = next(item for item in documents if item["kind"] == "Service")
     deployment = next(item for item in documents if item["kind"] == "Deployment")
     assert service["spec"]["type"] == "ClusterIP"
@@ -28,7 +34,6 @@ def test_eks_001_has_no_public_or_stateful_resource() -> None:
         "Ingress",
         "Gateway",
         "Secret",
-        "Namespace",
         "PersistentVolume",
         "PersistentVolumeClaim",
         "StatefulSet",

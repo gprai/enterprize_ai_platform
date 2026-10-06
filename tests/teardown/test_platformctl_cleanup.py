@@ -33,7 +33,7 @@ def test_terraform_control_roots_have_empty_explicit_backend_contracts() -> None
     )
     assert combined.count('provider "aws"') == 2
     assert combined.count('resource "terraform_data" "owner_expiry_gate"') == 2
-    assert combined.count('module "') == 7
+    assert combined.count('module "') == 9
     assert combined.count('backend "local" {}') == 1
     assert combined.count('backend "s3" {}') == 1
     assert "bucket =" not in versions_only

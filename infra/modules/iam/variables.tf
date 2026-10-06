@@ -66,6 +66,10 @@ variable "ingestion_service_account" {
   type = string
 }
 
+variable "eks_cluster_name" {
+  type = string
+}
+
 variable "tags" {
   type = map(string)
 }

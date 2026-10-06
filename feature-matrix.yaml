@@ -658,22 +658,52 @@
         "tests/feature/test_feature_matrix.py",
         "tests/integration/test_w5_002_ci_composition.py",
         "tests/security/test_policy_pack.py",
-        "tests/integration/test_dependency_contract.py"
+        "tests/integration/test_dependency_contract.py",
+        "configs/lifecycle/w6-004.json",
+        "requirements.txt",
+        "requirements-runtime.lock",
+        "requirements-ci.lock",
+        "infra/modules/eks/main.tf",
+        "infra/modules/eks/variables.tf",
+        "infra/modules/eks/outputs.tf",
+        "infra/modules/observability/main.tf",
+        "infra/modules/observability/variables.tf",
+        "infra/modules/observability/outputs.tf",
+        "deploy/k8s/namespace.yaml",
+        "deploy/k8s/otel-collector-configmap.yaml",
+        "src/enterprise_ai_platform/api/aws_composition.py",
+        "src/enterprise_ai_platform/api/sandbox_auth.py",
+        "tools/platformctl/image_lifecycle.py",
+        "tools/platformctl/kubernetes_lifecycle.py",
+        "tools/platformctl/live_validation.py",
+        "tests/fakes/w6_004_lifecycle.py",
+        "tests/fixtures/w6_004/provider-computed-shapes.json",
+        "tests/fixtures/w6_004/partial-apply-inventory.json",
+        "tests/fixtures/w6_004/native-resource-inventory.json",
+        "tests/unit/test_w6_004_lifecycle.py",
+        "tests/contract/test_w6_004_lifecycle_contract.py",
+        "tests/integration/test_w6_004_platform_composition.py",
+        "tests/feature/test_w6_004_full_lifecycle.py",
+        "tests/smoke/test_w6_004_live_smoke.py",
+        "tests/security/test_w6_004_lifecycle_security.py",
+        "tests/rollback/test_w6_004_full_rollback.py",
+        "tests/teardown/test_w6_004_cleanliness.py"
       ],
       "status": "In Progress",
       "linked_tracker_steps": [
         "W6-02",
         "W6-03",
         "W6-04",
-        "W6-05"
+        "W6-05",
+        "W6-004"
       ],
       "control_contract": {
-        "artifact": "source template only; exact sentinel is never deployable",
-        "security": "non-root, read-only root, dropped capabilities, RuntimeDefault seccomp, default-deny network",
-        "rollback": "owner-supplied exact previous immutable digest with post-rollback verification",
-        "teardown": "owner-executed workload and AWS residue verification",
-        "cost": "no cloud-spend authority; separate W6 approval required",
-        "owner_execution": "release binding, server-side dry-run, deployment, rollback and teardown require separate owner authorization"
+        "artifact": "two-image immutable release package; source sentinels are never deployable",
+        "security": "private EKS, Pod Identity, non-root containers, default-deny network and bounded egress",
+        "rollback": "verified application digest and distinct saved infrastructure restore plan",
+        "teardown": "owner-executed full AWS, Kubernetes, KMS-tail and cost-residue verification",
+        "cost": "owner-bound lifecycle cap and per-stage stop limits required before execution",
+        "owner_execution": "all build, cloud, deployment, rollback and teardown commands remain owner-executed"
       }
     }
   ]

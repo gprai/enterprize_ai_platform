@@ -1,0 +1,113 @@
+{
+  "schema_version": "w6-004.source-contract.v1",
+  "task_id": "W6-004",
+  "classification": "SOURCE CONTRACT VALID - NOT EXECUTABLE",
+  "account_id": "526338061652",
+  "region": "ap-southeast-1",
+  "environment": "sandbox",
+  "historical_authorization_failure": "AUTHORIZATION FAILURE OBSERVED — ROOT CAUSE UNRESOLVED",
+  "validity_hours": 24,
+  "maximum_mutation_hours": 8,
+  "evidence_root": "E:/AI/.runtime/enterprise_ai_platform/w6-004/owner-test-01",
+  "temporary_root": "E:/AI/.tmp/enterprise-ai-platform-w6-004/owner-test-01",
+  "lifecycle_order": [
+    "bootstrap_state",
+    "network_security",
+    "data_services",
+    "ecr_image",
+    "eks_identity",
+    "application_composition",
+    "observability",
+    "live_tests",
+    "application_rollback",
+    "infrastructure_rollback",
+    "complete_teardown",
+    "residue_cost_verification"
+  ],
+  "network": {
+    "vpc_cidr": "10.60.0.0/16",
+    "private_subnet_cidrs": ["10.60.10.0/24", "10.60.11.0/24"],
+    "nat_gateway": false,
+    "public_application_ingress": false,
+    "endpoint_services": [
+      "s3", "dynamodb", "ecr.api", "ecr.dkr", "eks", "eks-auth", "sts",
+      "ec2", "kms", "secretsmanager", "logs", "monitoring", "xray", "bedrock-runtime"
+    ]
+  },
+  "data": {
+    "classifications": ["PUBLIC", "INTERNAL"],
+    "customer_data_allowed": false,
+    "synthetic_only": true
+  },
+  "eks": {
+    "private_nodes": true,
+    "node_group": {"minimum": 2, "desired": 2, "maximum": 3, "capacity_type": "ON_DEMAND"},
+    "required_addons": ["vpc-cni", "coredns", "kube-proxy", "eks-pod-identity-agent", "metrics-server"]
+  },
+  "image_gate": {
+    "critical_findings": 0,
+    "high_findings_require_owner_waiver": true,
+    "required_sboms": ["SPDX", "CycloneDX"],
+    "provenance_required": true,
+    "registry_digest_required": true,
+    "signature_required": false
+  },
+  "observability": {
+    "otlp_ingress": "pod-local-grpc-4317",
+    "trace_destination": "AWS X-Ray",
+    "metric_log_destination": "CloudWatch",
+    "retention_days": 14
+  },
+  "rollback": {
+    "application": "verified-known-good-digest",
+    "infrastructure": "distinct-saved-restore-plan",
+    "safe_regression_required": true
+  },
+  "teardown": {
+    "order": ["kubernetes", "platform", "versioned_state_objects", "bootstrap"],
+    "remove_project_ecr_images": true,
+    "remove_synthetic_s3_objects": true,
+    "remove_opensearch_indexes": true,
+    "shared_resources_excluded": true
+  },
+  "expected_residuals": [
+    "final_evidence",
+    "shared_external_service_linked_roles",
+    "kms_keys_pending_deletion",
+    "delayed_billing_records"
+  ],
+  "owner_bindings": {
+    "aws_cli_profile": "OWNER_BINDING_REQUIRED",
+    "federated_principal_arn": "OWNER_BINDING_REQUIRED",
+    "administrator_role_arn": "OWNER_BINDING_REQUIRED",
+    "owner_api_cidr": "OWNER_BINDING_REQUIRED",
+    "deployment_start": "OWNER_BINDING_REQUIRED",
+    "approval_issued_at": "OWNER_BINDING_REQUIRED",
+    "approval_expires_at": "OWNER_BINDING_REQUIRED",
+    "cost_ceiling_usd": "OWNER_BINDING_REQUIRED",
+    "stage_stop_limits_usd": "OWNER_BINDING_REQUIRED",
+    "eks_kubernetes_version": "OWNER_BINDING_REQUIRED",
+    "eks_node_instance_types": "OWNER_BINDING_REQUIRED",
+    "addon_versions": "OWNER_BINDING_REQUIRED",
+    "metrics_server_image": "OWNER_BINDING_REQUIRED",
+    "otel_collector_image": "OWNER_BINDING_REQUIRED",
+    "kubectl_version": "OWNER_BINDING_REQUIRED",
+    "kustomize_version": "OWNER_BINDING_REQUIRED",
+    "bedrock_inference_profile": "OWNER_BINDING_REQUIRED",
+    "bedrock_model_id": "OWNER_BINDING_REQUIRED",
+    "alert_recipients": "OWNER_BINDING_REQUIRED",
+    "trivy_version": "OWNER_BINDING_REQUIRED",
+    "trivy_database_sha256": "OWNER_BINDING_REQUIRED",
+    "grype_version": "OWNER_BINDING_REQUIRED",
+    "grype_database_sha256": "OWNER_BINDING_REQUIRED",
+    "application_image_digest": "OWNER_BINDING_REQUIRED",
+    "collector_image_digest": "OWNER_BINDING_REQUIRED",
+    "known_good_application_digest": "OWNER_BINDING_REQUIRED",
+    "known_good_infrastructure_identity": "OWNER_BINDING_REQUIRED",
+    "bootstrap_state_lineage": "OWNER_BINDING_REQUIRED",
+    "bootstrap_state_serial": "OWNER_BINDING_REQUIRED",
+    "platform_state_lineage": "OWNER_BINDING_REQUIRED",
+    "platform_state_serial": "OWNER_BINDING_REQUIRED",
+    "plan_policy_cost_approval_hashes": "OWNER_BINDING_REQUIRED"
+  }
+}

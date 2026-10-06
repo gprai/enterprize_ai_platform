@@ -23,9 +23,17 @@ template_input := {
           "startupProbe": {"httpGet": {"path": "/health"}},
           "livenessProbe": {"httpGet": {"path": "/health/live"}},
           "readinessProbe": {"httpGet": {"path": "/health/ready"}}
+        }, {
+          "image": "enterprise-ai.invalid/w6-004-otel:OWNER_BINDING_REQUIRED",
+          "imagePullPolicy": "Always",
+          "securityContext": {"allowPrivilegeEscalation": false, "readOnlyRootFilesystem": true, "capabilities": {"drop": ["ALL"]}}
         }]
       }}
     }
+  }, {
+    "apiVersion": "v1",
+    "kind": "Namespace",
+    "metadata": {"name": "enterprise-ai-sandbox"}
   }, {
     "apiVersion": "v1",
     "kind": "Service",
@@ -37,8 +45,48 @@ template_input := {
     "metadata": {"name": "enterprise-ai-runtime", "namespace": "enterprise-ai-sandbox"}
   }, {
     "apiVersion": "v1",
+    "kind": "ServiceAccount",
+    "metadata": {"name": "enterprise-ai-ingestion", "namespace": "enterprise-ai-sandbox"}
+  }, {
+    "apiVersion": "v1",
+    "kind": "ServiceAccount",
+    "metadata": {"name": "fis-experiment", "namespace": "enterprise-ai-sandbox"},
+    "automountServiceAccountToken": true
+  }, {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "Role",
+    "metadata": {"name": "fis-pod-delete", "namespace": "enterprise-ai-sandbox"},
+    "rules": [
+      {"apiGroups": [""], "resources": ["configmaps"], "verbs": ["get", "create", "patch", "delete"]},
+      {"apiGroups": [""], "resources": ["pods"], "verbs": ["create", "list", "get", "delete", "deletecollection"]}
+    ]
+  }, {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "RoleBinding",
+    "metadata": {"name": "fis-pod-delete", "namespace": "enterprise-ai-sandbox"},
+    "subjects": [
+      {"kind": "ServiceAccount", "name": "fis-experiment", "namespace": "enterprise-ai-sandbox"},
+      {"apiGroup": "rbac.authorization.k8s.io", "kind": "User", "name": "fis-experiment"}
+    ],
+    "roleRef": {"apiGroup": "rbac.authorization.k8s.io", "kind": "Role", "name": "fis-pod-delete"}
+  }, {
+    "apiVersion": "v1",
     "kind": "ConfigMap",
     "metadata": {"name": "enterprise-ai-runtime", "namespace": "enterprise-ai-sandbox"}
+  }, {
+    "apiVersion": "v1",
+    "kind": "ConfigMap",
+    "metadata": {"name": "enterprise-ai-otel-collector", "namespace": "enterprise-ai-sandbox"}
+  }, {
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "NetworkPolicy",
+    "metadata": {"name": "enterprise-ai-api-ingress", "namespace": "enterprise-ai-sandbox"},
+    "spec": {"podSelector": {"matchLabels": {"app.kubernetes.io/name": "enterprise-ai-api"}}, "policyTypes": ["Ingress"], "ingress": []}
+  }, {
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "NetworkPolicy",
+    "metadata": {"name": "enterprise-ai-private-aws-egress", "namespace": "enterprise-ai-sandbox"},
+    "spec": {"podSelector": {"matchLabels": {"app.kubernetes.io/name": "enterprise-ai-api"}}, "policyTypes": ["Egress"], "egress": [{"to": [{"ipBlock": {"cidr": "10.60.0.0/16"}}], "ports": [{"protocol": "TCP", "port": 443}]}]}
   }, {
     "apiVersion": "networking.k8s.io/v1",
     "kind": "NetworkPolicy",
@@ -63,6 +111,7 @@ template_input := {
 }
 
 release_digest := "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+collector_digest := "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
 release_binding := {
   "aws_account_id": "526338061652",
@@ -83,7 +132,17 @@ release_binding := {
   },
   "expires_at": "2027-01-01T00:00:00Z",
   "output_private": true,
-  "operation_consumed": false
+  "operation_consumed": false,
+  "collector": {
+    "digest": collector_digest,
+    "oci_identity": {"image_digest": collector_digest, "sha256": "1111111111111111111111111111111111111111111111111111111111111111"},
+    "trivy": {"image_digest": collector_digest, "report_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "result": "PASS"},
+    "grype": {"image_digest": collector_digest, "report_sha256": "3333333333333333333333333333333333333333333333333333333333333333", "result": "PASS"},
+    "spdx_sbom_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+    "cyclonedx_sbom_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+    "provenance": {"image_digest": collector_digest, "sha256": "6666666666666666666666666666666666666666666666666666666666666666"},
+    "image_composition_identity": {"image_digest": collector_digest, "sha256": "7777777777777777777777777777777777777777777777777777777777777777"}
+  }
 }
 
 release_input := object.union(template_input, {
@@ -91,11 +150,18 @@ release_input := object.union(template_input, {
   "deployable": true,
   "review_time": "2026-10-01T00:00:00Z",
   "binding": release_binding,
-  "objects": json.patch(template_input.objects, [{
-    "op": "replace",
-    "path": "/0/spec/template/spec/containers/0/image",
-    "value": sprintf("526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/enterprise-ai/sandbox/api@%s", [release_digest])
-  }])
+  "objects": json.patch(template_input.objects, [
+    {
+      "op": "replace",
+      "path": "/0/spec/template/spec/containers/0/image",
+      "value": sprintf("526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/enterprise-ai/sandbox/api@%s", [release_digest])
+    },
+    {
+      "op": "replace",
+      "path": "/0/spec/template/spec/containers/1/image",
+      "value": sprintf("526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/enterprise-ai/sandbox/otel-collector@%s", [collector_digest])
+    }
+  ])
 })
 
 test_template_context_accepts_exact_sentinel if {

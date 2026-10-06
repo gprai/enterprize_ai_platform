@@ -128,6 +128,10 @@ def test_w6_003_ci_extension_validates_only_the_local_readiness_contract() -> No
         "-m tools.w6_003_readiness validate-config --root . --config configs/readiness/w6-003.yaml"
         in workflow
     )
+    assert (
+        "-m tools.platformctl w6-004-validate-source --config configs/lifecycle/w6-004.json"
+        in workflow
+    )
     for prohibited in (
         "validate-evidence",
         "w6-004-readiness-manifest.json",

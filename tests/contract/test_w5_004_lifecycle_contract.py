@@ -49,6 +49,9 @@ def test_v2_records_reject_contract_drift(change: str) -> None:
 COMMANDS = {
     "prepare-plan-owner-envelope",
     "validate",
+    "w6-004-validate-source",
+    "w6-004-validate-evidence",
+    "w6-004-validate-runtime",
     "bootstrap-plan",
     "bootstrap-apply",
     "platform-plan",

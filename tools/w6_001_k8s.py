@@ -10,23 +10,34 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
+from urllib.parse import urlsplit
 
 import yaml  # type: ignore[import-untyped]
 
 from tools.platformctl.contracts import ContractError
 from tools.platformctl.lifecycle_io import reserve_operation_directory, verify_private_directory
 
-SENTINEL = "enterprise-ai.invalid/w6-001:OWNER_BINDING_REQUIRED"
+APP_SENTINEL = "enterprise-ai.invalid/w6-001:OWNER_BINDING_REQUIRED"
+COLLECTOR_SENTINEL = "enterprise-ai.invalid/w6-004-otel:OWNER_BINDING_REQUIRED"
+OPENSEARCH_SENTINEL = "https://OWNER_BINDING_REQUIRED"
+BEDROCK_SENTINEL = "OWNER_BINDING_REQUIRED"
+SENTINEL = APP_SENTINEL
 NAMESPACE = "enterprise-ai-sandbox"
 SERVICE_ACCOUNT = "enterprise-ai-runtime"
+INGESTION_SERVICE_ACCOUNT = "enterprise-ai-ingestion"
+FIS_SERVICE_ACCOUNT = "fis-experiment"
+FIS_ROLE = "fis-pod-delete"
 APP_NAME = "enterprise-ai-api"
 REPOSITORY_NAME = "enterprise-ai/sandbox/api"
+COLLECTOR_REPOSITORY_NAME = "enterprise-ai/sandbox/otel-collector"
 TEMPLATE_STATUS = "SOURCE TEMPLATE VALID — NOT DEPLOYABLE"
 RELEASE_STATUS = "IMMUTABLE RELEASE PACKAGE VALID — NOT DEPLOYED"
 TEMPLATE_FILES = (
     "kustomization.yaml",
+    "namespace.yaml",
     "serviceaccount.yaml",
     "configmap.yaml",
+    "otel-collector-configmap.yaml",
     "deployment.yaml",
     "service.yaml",
     "networkpolicy.yaml",
@@ -34,12 +45,20 @@ TEMPLATE_FILES = (
     "pdb.yaml",
 )
 EXPECTED_OBJECTS = {
+    ("v1", "Namespace", NAMESPACE),
     ("apps/v1", "Deployment", APP_NAME),
     ("v1", "Service", APP_NAME),
     ("v1", "ServiceAccount", SERVICE_ACCOUNT),
+    ("v1", "ServiceAccount", INGESTION_SERVICE_ACCOUNT),
+    ("v1", "ServiceAccount", FIS_SERVICE_ACCOUNT),
+    ("rbac.authorization.k8s.io/v1", "Role", FIS_ROLE),
+    ("rbac.authorization.k8s.io/v1", "RoleBinding", FIS_ROLE),
     ("v1", "ConfigMap", "enterprise-ai-runtime"),
+    ("v1", "ConfigMap", "enterprise-ai-otel-collector"),
     ("networking.k8s.io/v1", "NetworkPolicy", "enterprise-ai-default-deny"),
     ("networking.k8s.io/v1", "NetworkPolicy", "enterprise-ai-dns-egress"),
+    ("networking.k8s.io/v1", "NetworkPolicy", "enterprise-ai-api-ingress"),
+    ("networking.k8s.io/v1", "NetworkPolicy", "enterprise-ai-private-aws-egress"),
     ("autoscaling/v2", "HorizontalPodAutoscaler", APP_NAME),
     ("policy/v1", "PodDisruptionBudget", APP_NAME),
 }
@@ -62,6 +81,8 @@ RELEASE_KEYS = {
     "expires_at",
     "allowed_output_root",
     "output_root",
+    "collector",
+    "runtime",
 }
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -195,7 +216,9 @@ def _objects_by_kind(documents: Iterable[dict[str, object]]) -> dict[str, list[d
         namespace = metadata.get("namespace")
         if not all(isinstance(value, str) and value for value in (api_version, kind, name)):
             raise W6001Error("every object requires apiVersion, kind, and metadata.name")
-        if namespace != NAMESPACE:
+        if kind == "Namespace" and namespace is not None:
+            raise W6001Error("Namespace object must not declare metadata.namespace")
+        if kind != "Namespace" and namespace != NAMESPACE:
             raise W6001Error(f"every object must use namespace {NAMESPACE}")
         identity = cast(tuple[str, str, str], (api_version, kind, name))
         if identity in identities:
@@ -210,7 +233,7 @@ def _objects_by_kind(documents: Iterable[dict[str, object]]) -> dict[str, list[d
     return result
 
 
-def _validate_deployment(deployment: dict[str, object], *, template_mode: bool) -> str:
+def _validate_deployment(deployment: dict[str, object], *, template_mode: bool) -> tuple[str, str]:
     metadata = _metadata(deployment)
     labels = _mapping(metadata.get("labels"), "Deployment metadata.labels")
     expected_artifact = "w6-001-source-template" if template_mode else "w6-001-release-package"
@@ -250,21 +273,23 @@ def _validate_deployment(deployment: dict[str, object], *, template_mode: bool) 
         "runAsNonRoot": True,
         "runAsUser": 65532,
         "runAsGroup": 65532,
+        "fsGroup": 65532,
+        "fsGroupChangePolicy": "OnRootMismatch",
         "seccompProfile": {"type": "RuntimeDefault"},
     }:
         raise W6001Error("pod security context differs")
     containers = _list(pod_spec.get("containers"), "containers")
-    if len(containers) != 1 or "initContainers" in pod_spec:
-        raise W6001Error("exactly one container and no init container are permitted")
+    if len(containers) != 2 or "initContainers" in pod_spec:
+        raise W6001Error("exactly the api and telemetry sidecar containers are permitted")
     container = _mapping(containers[0], "container")
     if container.get("name") != "api" or not isinstance(container.get("image"), str):
         raise W6001Error("approved api container and image are required")
     image = cast(str, container["image"])
     if container.get("imagePullPolicy") != "Always":
         raise W6001Error("container imagePullPolicy must be Always")
-    if template_mode and image != SENTINEL:
+    if template_mode and image != APP_SENTINEL:
         raise W6001Error("template mode requires the exact reserved sentinel")
-    if not template_mode and (image == SENTINEL or not ECR_RE.match(image.split("@", 1)[0])):
+    if not template_mode and (image == APP_SENTINEL or not ECR_RE.match(image.split("@", 1)[0])):
         raise W6001Error("release mode requires an immutable ECR image")
     if not template_mode:
         parts = image.split("@", 1)
@@ -278,6 +303,24 @@ def _validate_deployment(deployment: dict[str, object], *, template_mode: bool) 
         raise W6001Error("root filesystem must be read-only")
     if capabilities != {"drop": ["ALL"]} or container_security.get("privileged") is True:
         raise W6001Error("all capabilities must be dropped and privileged mode prohibited")
+    if container.get("envFrom") != [{"configMapRef": {"name": "enterprise-ai-runtime"}}]:
+        raise W6001Error("runtime configuration source differs")
+    if container.get("env") != [
+        {
+            "name": "ENTERPRISE_AI_SANDBOX_AUTH_SIGNING_KEY_FILE",
+            "value": "/var/run/secrets/enterprise-ai/sandbox-auth-signing-key",
+        }
+    ]:
+        raise W6001Error("sandbox auth secret must use the approved mounted file")
+    if container.get("volumeMounts") != [
+        {"name": "tmp", "mountPath": "/tmp"},  # noqa: S108 - fixed container mount
+        {
+            "name": "sandbox-auth-signing-key",
+            "mountPath": "/var/run/secrets/enterprise-ai",
+            "readOnly": True,
+        },
+    ]:
+        raise W6001Error("api volume mounts differ")
     resources = _mapping(container.get("resources"), "resources")
     if resources != {
         "requests": {"cpu": "500m", "memory": "1Gi", "ephemeral-storage": "256Mi"},
@@ -299,10 +342,53 @@ def _validate_deployment(deployment: dict[str, object], *, template_mode: bool) 
             for field in ("periodSeconds", "timeoutSeconds", "failureThreshold")
         ):
             raise W6001Error(f"{key} timing must be bounded")
+    collector = _mapping(containers[1], "collector container")
+    collector_image = collector.get("image")
+    if collector.get("name") != "otel-collector" or not isinstance(collector_image, str):
+        raise W6001Error("approved telemetry sidecar and image are required")
+    if collector.get("imagePullPolicy") != "Always":
+        raise W6001Error("collector imagePullPolicy must be Always")
+    if template_mode and collector_image != COLLECTOR_SENTINEL:
+        raise W6001Error("template mode requires the exact collector sentinel")
+    if not template_mode:
+        collector_parts = collector_image.split("@", 1)
+        collector_match = (
+            ECR_RE.fullmatch(collector_parts[0]) if len(collector_parts) == 2 else None
+        )
+        if (
+            collector_match is None
+            or collector_match.group("repository") != COLLECTOR_REPOSITORY_NAME
+            or not DIGEST_RE.fullmatch(collector_parts[1])
+        ):
+            raise W6001Error("release mode requires an immutable collector ECR image")
+    collector_security = _mapping(collector.get("securityContext"), "collector securityContext")
+    if collector_security != {
+        "allowPrivilegeEscalation": False,
+        "readOnlyRootFilesystem": True,
+        "capabilities": {"drop": ["ALL"]},
+    }:
+        raise W6001Error("collector security context differs")
     volumes = _list(pod_spec.get("volumes"), "volumes")
-    if volumes != [{"name": "tmp", "emptyDir": {"sizeLimit": "256Mi"}}]:
-        raise W6001Error("only the bounded /tmp emptyDir is permitted")
-    return image
+    if volumes != [
+        {"name": "tmp", "emptyDir": {"sizeLimit": "256Mi"}},
+        {"name": "otel-config", "configMap": {"name": "enterprise-ai-otel-collector"}},
+        {"name": "otel-tmp", "emptyDir": {"sizeLimit": "64Mi"}},
+        {
+            "name": "sandbox-auth-signing-key",
+            "secret": {
+                "secretName": "enterprise-ai-runtime-secrets",  # pragma: allowlist secret
+                "defaultMode": 288,
+                "items": [
+                    {
+                        "key": "sandbox-auth-signing-key",
+                        "path": "sandbox-auth-signing-key",
+                    }
+                ],
+            },
+        },
+    ]:
+        raise W6001Error("bounded workload volumes differ")
+    return image, collector_image
 
 
 def _validate_service(service: dict[str, object]) -> None:
@@ -362,29 +448,116 @@ def _validate_network(policies: list[dict[str, object]]) -> None:
             raise W6001Error("unrestricted egress is prohibited")
     if rendered.count('"port": 53') != 2 or "kube-dns" not in rendered:
         raise W6001Error("DNS egress must be bounded to verified DNS pods")
+    private_egress = _mapping(
+        by_name["enterprise-ai-private-aws-egress"].get("spec"),
+        "private AWS egress policy",
+    )
+    private_rendered = json.dumps(private_egress, sort_keys=True)
+    if "10.60.0.0/16" not in private_rendered or private_rendered.count('"port": 443') != 1:
+        raise W6001Error("AWS egress must be bounded to the sandbox VPC over TLS")
+    ingress = _mapping(by_name["enterprise-ai-api-ingress"].get("spec"), "API ingress")
+    ingress_rendered = json.dumps(ingress, sort_keys=True)
+    if NAMESPACE not in ingress_rendered or ingress_rendered.count('"port": 8000') != 1:
+        raise W6001Error("API ingress must be namespace-local on port 8000")
 
 
-def validate_documents(documents: list[dict[str, object]], *, template_mode: bool) -> str:
+def _validate_namespace(namespace: dict[str, object]) -> None:
+    metadata = _metadata(namespace)
+    if metadata != {
+        "name": NAMESPACE,
+        "labels": {
+            "kubernetes.io/metadata.name": NAMESPACE,
+            "pod-security.kubernetes.io/enforce": "restricted",
+            "pod-security.kubernetes.io/audit": "restricted",
+            "pod-security.kubernetes.io/warn": "restricted",
+        },
+    }:
+        raise W6001Error("Namespace identity or restricted pod-security labels differ")
+
+
+def validate_documents(
+    documents: list[dict[str, object]], *, template_mode: bool
+) -> tuple[str, str]:
     objects = _objects_by_kind(documents)
+    _validate_namespace(objects["Namespace"][0])
     image = _validate_deployment(objects["Deployment"][0], template_mode=template_mode)
     _validate_service(objects["Service"][0])
     _validate_scaling(objects["HorizontalPodAutoscaler"][0], objects["PodDisruptionBudget"][0])
     _validate_network(objects["NetworkPolicy"])
-    service_account = objects["ServiceAccount"][0]
-    if service_account.get("automountServiceAccountToken") is not False:
+    service_accounts = {
+        _mapping(item.get("metadata"), "ServiceAccount metadata").get("name"): item
+        for item in objects["ServiceAccount"]
+    }
+    if set(service_accounts) != {SERVICE_ACCOUNT, INGESTION_SERVICE_ACCOUNT, FIS_SERVICE_ACCOUNT}:
+        raise W6001Error("runtime, ingestion, and FIS ServiceAccounts are required")
+    if any(
+        service_accounts[name].get("automountServiceAccountToken") is not False
+        for name in (SERVICE_ACCOUNT, INGESTION_SERVICE_ACCOUNT)
+    ):
         raise W6001Error("ServiceAccount token automount must be disabled")
-    config = _mapping(objects["ConfigMap"][0].get("data"), "ConfigMap data")
-    if config != {}:
-        raise W6001Error("ConfigMap contains unknown or missing settings")
+    if service_accounts[FIS_SERVICE_ACCOUNT].get("automountServiceAccountToken") is not True:
+        raise W6001Error("FIS ServiceAccount token automount must be enabled")
+    fis_role = objects["Role"]
+    fis_binding = objects["RoleBinding"]
+    if len(fis_role) != 1 or len(fis_binding) != 1:
+        raise W6001Error("exactly one FIS Role and RoleBinding are required")
+    role_rules = _list(fis_role[0].get("rules"), "FIS Role rules")
+    if role_rules != [
+        {
+            "apiGroups": [""],
+            "resources": ["configmaps"],
+            "verbs": ["get", "create", "patch", "delete"],
+        },
+        {
+            "apiGroups": [""],
+            "resources": ["pods"],
+            "verbs": ["create", "list", "get", "delete", "deletecollection"],
+        },
+    ]:
+        raise W6001Error("FIS Role permissions differ")
+    binding = fis_binding[0]
+    if binding.get("roleRef") != {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "Role",
+        "name": FIS_ROLE,
+    }:
+        raise W6001Error("FIS RoleBinding roleRef differs")
+    if binding.get("subjects") != [
+        {"kind": "ServiceAccount", "name": FIS_SERVICE_ACCOUNT, "namespace": NAMESPACE},
+        {"apiGroup": "rbac.authorization.k8s.io", "kind": "User", "name": FIS_SERVICE_ACCOUNT},
+    ]:
+        raise W6001Error("FIS RoleBinding subjects differ")
+    configs = [_mapping(item.get("data"), "ConfigMap data") for item in objects["ConfigMap"]]
+    config = {key: value for item in configs for key, value in item.items()}
     sensitive = re.compile(r"(?i)(secret|password|token|credential|private.?key|access.?key)")
     if any(sensitive.search(key) or sensitive.search(str(value)) for key, value in config.items()):
         raise W6001Error("ConfigMap contains credential-like content")
+    opensearch_endpoint = config.get("ENTERPRISE_AI_OPENSEARCH_URL")
+    bedrock_profile = config.get("ENTERPRISE_AI_LLM_MODEL_ID")
+    if template_mode:
+        if opensearch_endpoint != OPENSEARCH_SENTINEL or bedrock_profile != BEDROCK_SENTINEL:
+            raise W6001Error("source template requires exact runtime sentinels")
+    else:
+        if not isinstance(opensearch_endpoint, str) or not isinstance(bedrock_profile, str):
+            raise W6001Error("release runtime bindings are missing")
+        parsed_endpoint = urlsplit(opensearch_endpoint)
+        if (
+            parsed_endpoint.scheme != "https"
+            or parsed_endpoint.hostname is None
+            or not parsed_endpoint.hostname.endswith(".ap-southeast-1.es.amazonaws.com")
+            or parsed_endpoint.path not in {"", "/"}
+            or bedrock_profile == BEDROCK_SENTINEL
+            or not bedrock_profile.strip()
+        ):
+            raise W6001Error("release runtime bindings are malformed")
     serialized = json.dumps(documents, sort_keys=True)
     if template_mode:
-        if serialized.count(SENTINEL) != 1:
-            raise W6001Error("source template must contain exactly one sentinel")
-    elif SENTINEL in serialized:
-        raise W6001Error("release package must not contain the source sentinel")
+        if serialized.count(APP_SENTINEL) != 1 or serialized.count(COLLECTOR_SENTINEL) != 1:
+            raise W6001Error("source template must contain both exact image sentinels once")
+    elif APP_SENTINEL in serialized or COLLECTOR_SENTINEL in serialized:
+        raise W6001Error("release package must not contain source sentinels")
+    elif "OWNER_BINDING_REQUIRED" in serialized:
+        raise W6001Error("release package retains an owner-binding sentinel")
     return image
 
 
@@ -415,10 +588,10 @@ def validate_release_binding(
     *,
     source_template_sha256: str,
     now: datetime | None = None,
-) -> str:
+) -> tuple[str, str]:
     if set(binding) != RELEASE_KEYS:
-        raise W6001Error("release binding fields must exactly match the v1 schema")
-    if binding.get("schema_version") != "w6-001.release-binding.v1":
+        raise W6001Error("release binding fields must exactly match the v2 schema")
+    if binding.get("schema_version") != "w6-004.release-binding.v2":
         raise W6001Error("release binding schema version differs")
     repository = binding.get("ecr_repository_uri")
     digest = binding.get("digest")
@@ -477,31 +650,111 @@ def validate_release_binding(
     operation_identity = cast(str, binding["w6_01_operation_identity"])
     if output_root.parent != allowed_output_root or output_root.name != operation_identity:
         raise W6001Error("output_root must be the single-use W6-01 operation directory")
-    return f"{repository}@{digest}"
+    collector = _mapping(binding.get("collector"), "collector")
+    collector_keys = {
+        "ecr_repository_uri",
+        "digest",
+        "oci_identity",
+        "trivy",
+        "grype",
+        "spdx_sbom_sha256",
+        "cyclonedx_sbom_sha256",
+        "provenance",
+        "image_composition_identity",
+    }
+    if set(collector) != collector_keys:
+        raise W6001Error("collector fields differ")
+    collector_repository = collector.get("ecr_repository_uri")
+    collector_digest = collector.get("digest")
+    if not isinstance(collector_repository, str) or not isinstance(collector_digest, str):
+        raise W6001Error("collector repository URI and digest are required")
+    collector_match = ECR_RE.fullmatch(collector_repository)
+    if (
+        collector_match is None
+        or collector_match.group("repository") != COLLECTOR_REPOSITORY_NAME
+        or collector_match.group("account") != account
+        or collector_match.group("region") != region
+    ):
+        raise W6001Error("collector ECR authority differs")
+    if not DIGEST_RE.fullmatch(collector_digest) or collector_digest == "sha256:" + "0" * 64:
+        raise W6001Error("collector digest must be exact lowercase sha256")
+    _identity(collector.get("oci_identity"), "collector.oci_identity", collector_digest)
+    for scanner in ("trivy", "grype"):
+        record = _mapping(collector.get(scanner), f"collector.{scanner}")
+        if set(record) != {"image_digest", "report_sha256", "result"}:
+            raise W6001Error(f"collector.{scanner} fields differ")
+        if record.get("image_digest") != collector_digest or record.get("result") != "PASS":
+            raise W6001Error(f"collector.{scanner} result or image identity mismatch")
+        _sha_field(record.get("report_sha256"), f"collector.{scanner}.report_sha256")
+    for field in ("spdx_sbom_sha256", "cyclonedx_sbom_sha256"):
+        _sha_field(collector.get(field), f"collector.{field}")
+    _identity(collector.get("provenance"), "collector.provenance", collector_digest)
+    _identity(
+        collector.get("image_composition_identity"),
+        "collector.image_composition_identity",
+        collector_digest,
+    )
+    runtime = _mapping(binding.get("runtime"), "runtime")
+    if set(runtime) != {
+        "opensearch_endpoint",
+        "bedrock_model_id",
+        "bedrock_inference_profile",
+        "embedding_snapshot_sha256",
+    }:
+        raise W6001Error("runtime fields differ")
+    endpoint = runtime.get("opensearch_endpoint")
+    model_id = runtime.get("bedrock_model_id")
+    inference_profile = runtime.get("bedrock_inference_profile")
+    if not all(
+        isinstance(item, str) and item.strip() for item in (endpoint, model_id, inference_profile)
+    ):
+        raise W6001Error("runtime endpoint and Bedrock identities are required")
+    parsed_endpoint = urlsplit(cast(str, endpoint))
+    if (
+        parsed_endpoint.scheme != "https"
+        or parsed_endpoint.hostname is None
+        or not parsed_endpoint.hostname.endswith(".ap-southeast-1.es.amazonaws.com")
+        or parsed_endpoint.path not in {"", "/"}
+        or BEDROCK_SENTINEL in {model_id, inference_profile}
+    ):
+        raise W6001Error("runtime endpoint or Bedrock identity differs")
+    _sha_field(runtime.get("embedding_snapshot_sha256"), "runtime.embedding_snapshot_sha256")
+    return f"{repository}@{digest}", f"{collector_repository}@{collector_digest}"
 
 
 def build_release_files(
     payloads: dict[str, bytes],
     binding: dict[str, object],
-    image: str,
+    images: tuple[str, str],
     *,
     binding_input_sha256: str | None = None,
 ) -> dict[str, bytes]:
     files: dict[str, bytes] = {}
     rendered_documents: list[dict[str, object]] = []
-    occurrences = 0
+    app_occurrences = 0
+    collector_occurrences = 0
+    app_image, collector_image = images
+    runtime = _mapping(binding.get("runtime"), "runtime")
+    opensearch_endpoint = cast(str, runtime["opensearch_endpoint"])
+    bedrock_profile = cast(str, runtime["bedrock_inference_profile"])
     for name, payload in payloads.items():
-        count = payload.count(SENTINEL.encode())
-        occurrences += count
-        replaced = payload.replace(SENTINEL.encode(), image.encode())
+        app_occurrences += payload.count(APP_SENTINEL.encode())
+        collector_occurrences += payload.count(COLLECTOR_SENTINEL.encode())
+        replaced = payload.replace(APP_SENTINEL.encode(), app_image.encode())
+        replaced = replaced.replace(COLLECTOR_SENTINEL.encode(), collector_image.encode())
+        if name == "configmap.yaml":
+            replaced = replaced.replace(OPENSEARCH_SENTINEL.encode(), opensearch_endpoint.encode())
+            replaced = replaced.replace(
+                b"ENTERPRISE_AI_LLM_MODEL_ID: OWNER_BINDING_REQUIRED",
+                f"ENTERPRISE_AI_LLM_MODEL_ID: {bedrock_profile}".encode(),
+            )
         if name == "deployment.yaml":
             replaced = replaced.replace(b"w6-001-source-template", b"w6-001-release-package")
             replaced = replaced.replace(b'deployable: "false"', b'deployable: "true"')
             replaced = replaced.replace(
                 b"  annotations:\n"
-                b"    checkov.io/skip1: CKV_K8S_43=The sole image is the approved "
-                b"non-deployable source sentinel; release validation requires an immutable "
-                b"digest.\n",
+                b"    checkov.io/skip1: CKV_K8S_43=Both images are non-deployable source "
+                b"sentinels; release validation requires immutable digests.\n",
                 b"",
             )
         files[name] = replaced
@@ -510,8 +763,8 @@ def build_release_files(
             rendered_documents.extend(
                 cast(dict[str, object], item) for item in parsed if item is not None
             )
-    if occurrences != 1:
-        raise W6001Error("release binding must replace exactly one reserved sentinel")
+    if app_occurrences != 1 or collector_occurrences != 1:
+        raise W6001Error("release binding must replace both reserved sentinels exactly once")
     rendered_documents.sort(
         key=lambda item: (
             str(item.get("apiVersion")),
@@ -524,7 +777,7 @@ def build_release_files(
     hashes = {name: _sha256(payload) for name, payload in sorted(files.items())}
     files["release-hashes.json"] = _canonical_json(
         {
-            "schema_version": "w6-001.release-hashes.v1",
+            "schema_version": "w6-004.release-hashes.v2",
             "binding_input_sha256": binding_input_sha256 or _sha256(_canonical_json(binding)),
             "source_template_files": {
                 name: _sha256(payload) for name, payload in sorted(payloads.items())
@@ -539,7 +792,7 @@ def bind_release(template_root: Path, binding_path: Path, repository_root: Path)
     documents, payloads = load_template(template_root)
     validate_documents(documents, template_mode=True)
     binding = _strict_json(binding_path)
-    image = validate_release_binding(binding, source_template_sha256=template_identity(payloads))
+    images = validate_release_binding(binding, source_template_sha256=template_identity(payloads))
     output_root = Path(cast(str, binding["output_root"]))
     allowed_root = Path(cast(str, binding["allowed_output_root"]))
     repository = repository_root.resolve(strict=False)
@@ -551,7 +804,7 @@ def bind_release(template_root: Path, binding_path: Path, repository_root: Path)
     release_files = build_release_files(
         payloads,
         binding,
-        image,
+        images,
         binding_input_sha256=_sha256(binding_path.read_bytes()),
     )
     reserve_operation_directory(output_root, allowed_root, repository_root)
@@ -579,7 +832,7 @@ def validate_release(
 ) -> str:
     verify_private_directory(release_root)
     documents, payloads = load_template(release_root)
-    image = validate_documents(documents, template_mode=False)
+    images = validate_documents(documents, template_mode=False)
     binding = _strict_json(binding_path or release_root / "release-binding.json")
     source_identity = _mapping(binding.get("source_identity"), "source_identity")
     source_hash = source_identity.get("template_sha256")
@@ -588,9 +841,21 @@ def validate_release(
     _, source_payloads = load_template(template_root)
     if template_identity(source_payloads) != source_hash:
         raise W6001Error("changed source-template identity")
-    expected_image = validate_release_binding(binding, source_template_sha256=source_hash)
-    if image != expected_image:
-        raise W6001Error("release image does not match binding")
+    expected_images = validate_release_binding(binding, source_template_sha256=source_hash)
+    if images != expected_images:
+        raise W6001Error("release images do not match binding")
+    runtime = _mapping(binding.get("runtime"), "runtime")
+    config_document = next(
+        item
+        for item in documents
+        if item.get("kind") == "ConfigMap"
+        and _metadata(item).get("name") == "enterprise-ai-runtime"
+    )
+    config_data = _mapping(config_document.get("data"), "runtime ConfigMap data")
+    if config_data.get("ENTERPRISE_AI_OPENSEARCH_URL") != runtime.get(
+        "opensearch_endpoint"
+    ) or config_data.get("ENTERPRISE_AI_LLM_MODEL_ID") != runtime.get("bedrock_inference_profile"):
+        raise W6001Error("release runtime bindings do not match the binding contract")
     hashes_path = release_root / "release-hashes.json"
     hashes = _strict_json(hashes_path)
     if set(hashes) != {
@@ -600,7 +865,7 @@ def validate_release(
         "output_files",
     }:
         raise W6001Error("release hash fields differ")
-    if hashes.get("schema_version") != "w6-001.release-hashes.v1":
+    if hashes.get("schema_version") != "w6-004.release-hashes.v2":
         raise W6001Error("release hash schema differs")
     recorded = _mapping(hashes.get("output_files"), "release hashes")
     expected_names = set(TEMPLATE_FILES) | {"rendered.json", "release-binding.json"}
@@ -625,8 +890,9 @@ def validate_release(
     )
     if (release_root / "rendered.json").read_bytes() != _canonical_json(canonical_documents):
         raise W6001Error("canonical render differs from the release manifests")
-    if SENTINEL.encode() in b"".join(payloads.values()):
-        raise W6001Error("release package retains the sentinel")
+    joined = b"".join(payloads.values())
+    if APP_SENTINEL.encode() in joined or COLLECTOR_SENTINEL.encode() in joined:
+        raise W6001Error("release package retains a sentinel")
     return RELEASE_STATUS
 
 

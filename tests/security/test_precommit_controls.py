@@ -72,7 +72,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tests/unit/test_platformctl_plan_identity.py": {"Hex High Entropy String": 1},
     "tools/platformctl/cost.py": {"Hex High Entropy String": 3},
     "tools/platformctl/lifecycle_io.py": {"Hex High Entropy String": 5},
-    "tools/platformctl/policy_runner.py": {"Hex High Entropy String": 20},
+    "tools/platformctl/policy_runner.py": {"Hex High Entropy String": 23},
     "tools/w6_003_readiness.py": {"Hex High Entropy String": 1},
     "configs/ci/w5-002.json": {"Hex High Entropy String": 12},
     "configs/eval/baselines/w3-002-v1.json": {"Hex High Entropy String": 6},
@@ -188,7 +188,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "tests/feature/test_local_retrieval.py": {46: 1},
     "tests/integration/test_sentence_transformer_embedder.py": {111: 1},
     "tests/integration/test_w5_002_ci_composition.py": {84: 1},
-    "tests/security/test_w5_004_lifecycle_security.py": {390: 1, 391: 1},
+    "tests/security/test_w5_004_lifecycle_security.py": {391: 1, 392: 1},
     "tests/teardown/test_w2_004_retrieval_cleanliness.py": {29: 1},
     "tests/teardown/test_w3_002_evaluation_cleanliness.py": {17: 1},
     "tests/teardown/test_w3_003_guardrails_cleanliness.py": {11: 1, 12: 1, 15: 1},
@@ -208,7 +208,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "tests/unit/test_prompt_template.py": {35: 1},
     "tests/unit/test_retrieval_service.py": {142: 1},
     "tools/bedrock_owner_verify.py": {71: 1},
-    "tools/platformctl/aws_inventory.py": {39: 1},
+    "tools/platformctl/aws_inventory.py": {61: 1},
     "tools/platformctl/cost.py": {46: 1, 48: 1, 51: 1},
     "tools/platformctl/lifecycle_io.py": {28: 1, 1010: 1, 1036: 1, 1038: 1, 1069: 1},
     "tools/platformctl/policy_runner.py": {
@@ -216,22 +216,25 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         106: 1,
         110: 1,
         116: 1,
-        215: 1,
-        218: 1,
-        221: 1,
-        224: 1,
-        227: 1,
-        230: 1,
-        236: 1,
-        252: 1,
-        261: 1,
-        264: 1,
-        267: 1,
-        270: 1,
-        274: 1,
-        275: 1,
-        279: 1,
+        147: 1,
+        153: 1,
         285: 1,
+        288: 1,
+        291: 1,
+        294: 1,
+        297: 1,
+        300: 1,
+        306: 1,
+        322: 1,
+        331: 1,
+        334: 1,
+        337: 1,
+        340: 1,
+        344: 1,
+        345: 1,
+        349: 1,
+        355: 1,
+        392: 1,
     },
     "tools/w5_002_ci.py": {
         37: 1,
@@ -387,7 +390,7 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     results = baseline["results"]
     assert isinstance(results, dict)
     assert len(results) == 42
-    assert sum(len(findings) for findings in results.values()) == 365
+    assert sum(len(findings) for findings in results.values()) == 368
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

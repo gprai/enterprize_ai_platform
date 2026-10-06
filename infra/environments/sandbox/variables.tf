@@ -111,16 +111,107 @@ variable "vpc_endpoint_services" {
     condition = var.vpc_endpoint_services == tolist([
       "S3",
       "DynamoDB",
-      "ECR API/DKR",
+      "ECR API",
+      "ECR DKR",
       "EKS",
+      "EKS Auth",
       "STS",
+      "EC2",
       "CloudWatch Logs",
+      "CloudWatch Monitoring",
+      "X-Ray",
       "KMS",
       "Secrets Manager",
       "Bedrock Runtime",
     ])
     error_message = "vpc_endpoint_services must match the exact approved ordered labels."
   }
+}
+
+variable "w6_004_enabled" {
+  type        = bool
+  description = "Owner switch set true only in a separately approved bound deployment input."
+  default     = false
+}
+
+variable "administrator_role_arn" {
+  type        = string
+  description = "Fresh short-lived SSO/federated administrator role; static IAM users are prohibited."
+  validation {
+    condition = (
+      var.administrator_role_arn == "OWNER_BINDING_REQUIRED" ||
+      can(regex("^arn:aws:iam::526338061652:role/", var.administrator_role_arn))
+    )
+    error_message = "administrator_role_arn must be the source sentinel or an approved account role ARN."
+  }
+}
+
+variable "approval_expires_at" {
+  type        = string
+  description = "Owner-supplied UTC expiry, no more than 24 hours after approval."
+}
+
+variable "approval_issued_at" {
+  type        = string
+  description = "Owner-supplied UTC approval issue time."
+}
+
+variable "deployment_start" {
+  type        = string
+  description = "Owner-supplied UTC start of the bounded mutation window."
+}
+
+variable "owner_api_cidr" {
+  type        = string
+  description = "Owner's exact temporary IPv4 /32 for the EKS public API endpoint."
+  validation {
+    condition = (
+      var.owner_api_cidr == "OWNER_BINDING_REQUIRED" ||
+      can(regex("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}/32$", var.owner_api_cidr))
+    )
+    error_message = "owner_api_cidr must be the source sentinel or an exact IPv4 /32."
+  }
+}
+
+variable "eks_kubernetes_version" {
+  type        = string
+  description = "Owner-bound supported EKS Kubernetes version."
+}
+
+variable "eks_node_instance_types" {
+  type        = list(string)
+  description = "Owner-bound on-demand node instance types after quota and cost discovery."
+}
+
+variable "eks_addon_versions" {
+  type        = map(string)
+  description = "Owner-bound compatible versions for the four EKS managed add-ons."
+}
+
+variable "metrics_server_image" {
+  type        = string
+  description = "Owner-bound immutable Metrics Server image."
+}
+
+variable "otel_collector_image" {
+  type        = string
+  description = "Owner-bound immutable OpenTelemetry collector image."
+}
+
+variable "alert_email_endpoints" {
+  type        = list(string)
+  description = "Owner-approved primary and backup alert recipients."
+  default     = []
+}
+
+variable "w6_004_cost_ceiling_usd" {
+  type        = string
+  description = "Owner-bound total lifecycle cost cap represented as a decimal string."
+}
+
+variable "w6_004_stage_stop_limits_usd" {
+  type        = map(string)
+  description = "Owner-bound per-stage cost stop limits represented as decimal strings."
 }
 
 variable "allow_public_ingress" {
@@ -282,10 +373,13 @@ variable "github_allowed_ref" {
 
 variable "bedrock_model_id" {
   type        = string
-  description = "Exact Global Cross-Region inference-profile ID."
+  description = "Owner-bound Bedrock inference-profile ID after current discovery."
   validation {
-    condition     = var.bedrock_model_id == "global.amazon.nova-2-lite-v1:0"
-    error_message = "bedrock_model_id must equal global.amazon.nova-2-lite-v1:0."
+    condition = (
+      var.bedrock_model_id == "OWNER_BINDING_REQUIRED" ||
+      can(regex("^[A-Za-z0-9][A-Za-z0-9._:-]{2,255}$", var.bedrock_model_id))
+    )
+    error_message = "bedrock_model_id must remain the source sentinel or a validated inference-profile ID."
   }
 }
 

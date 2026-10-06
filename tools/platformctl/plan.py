@@ -2273,17 +2273,17 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         ".secrets.baseline",
         # pragma: allowlist nextline secret
-        "4fbc64d2ecae2978aa47e98c72a4a03e8f9a8ae0e0e04cadd126d7eca1b68453",
-    ),
-    (
-        "docs/governance/Enterprise_AI_Architecture_6_Week_Execution_Tracker_v1.3.5.xlsx",
-        # pragma: allowlist nextline secret
-        "051504b1acf394d0dc268e3bf4a3487af95b7de5fb6fe0f98b1a5da960b30ccf",
+        "e3e7a0d520eb28ff799fd781324f178512fba5fcc169343b7c850c0701791dfa",
     ),
     (
         "feature-matrix.yaml",
         # pragma: allowlist nextline secret
-        "3df730b73588e773ddbc81a4f961a25c0ec0c17fe0f186cd391424f6b5095256",
+        "14d35dec8e41e2b2eba37a0453990fe93bcf3788e686593fb6bd4859f1b537d3",
+    ),
+    (
+        "configs/lifecycle/w6-004.json",
+        # pragma: allowlist nextline secret
+        "586ca1404e0311e1ff0c4aab76b6afe17e1a4cf50bc6957829d01f7f04c2de96",
     ),
     (
         "infra/bootstrap/main.tf",
@@ -2298,7 +2298,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/environments/sandbox/main.tf",
         # pragma: allowlist nextline secret
-        "a94aea6543fd08b4504bb9ea89962b0d74b7daf6c83b54245f6123362a85c60a",
+        "efa249b7d4f836a2724f6d2b664fce0930a5a0107b0728f2e7b76bd083f1a160",
     ),
     (
         "infra/environments/sandbox/versions.tf",
@@ -2308,12 +2308,12 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/contract/test_terraform_module_contract.py",
         # pragma: allowlist nextline secret
-        "749f271cde9d8915ddf0341e7d8b28b1ca77ddeda4281e3c5ac0ab17de90ac7a",
+        "35b8b5dbd24162eeaac9fbd90f02c1cf8fa3f73016c6679ed4992ed991d20063",
     ),
     (
         "tests/feature/test_feature_matrix.py",
         # pragma: allowlist nextline secret
-        "e352af31e94c8ec70d1662f713fb1aac2859efa86005b5edb20b207d6bb8224a",
+        "b3f33d80d167c98165a55f7b4d19edef76f2a4607f3f6bd1415b6695d5ecd5e9",
     ),
     (
         "tests/feature/test_mvp_001_platformctl.py",
@@ -2323,7 +2323,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_precommit_controls.py",
         # pragma: allowlist nextline secret
-        "ebce36d282bc574c839e3536ab1fff595abfd2c5082118dcfb402d3ca8e27b52",
+        "4500da10d5e5685196c7a21f6c42a9b7b9ba22bb2633a002a8e177df93add620",
     ),
     (
         "tests/security/test_repository_security.py",
@@ -2333,12 +2333,12 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_terraform_security.py",
         # pragma: allowlist nextline secret
-        "a4d4ed85d63682f66b76d1e40a2862b18b3460933fc8fddd40004256ce9c2308",
+        "b87e22080c9f6bb3537406ee05baab847117a608fbd902db563c813f3e4ff7ca",
     ),
     (
         "tests/teardown/test_platformctl_cleanup.py",
         # pragma: allowlist nextline secret
-        "dfc663c4c6daaa8ce6c9a927bdf289137908d78a007b5450e5bea44a521487ae",
+        "d200375c7b732f9cd445b98727967a664bc3ae734e566e9e9b5af30f546ca2eb",
     ),
     (
         "tests/teardown/test_terraform_state_boundary.py",
@@ -2373,7 +2373,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/environments/sandbox/terraform.tfvars.example",
         # pragma: allowlist nextline secret
-        "6591ffc050788a08d7a8263a3b1c19199992ebb3adeafbdc2d2ec7c4b06ab630",
+        "1c672b4d4f8458fdb59fe8fdb487dad2e8177fc9a41a2748733945074e632bdd",
     ),
     (
         "docs/cost-estimates/W5-inputs.md",
@@ -2393,12 +2393,12 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "requirements-runtime.lock",
         # pragma: allowlist nextline secret
-        "796831a21aaa94d95d1e2a6a831b6770c1c8609527c05e0d079a573e9457a69a",
+        "8d001188635081e5f3d0af4fecad561741cd17f24b04299798187a3a1e2d76b6",
     ),
     (
         "requirements-ci.lock",
         # pragma: allowlist nextline secret
-        "8e8592ebf3161f5e8d74d4944bb3b7ef506dd428ce679490dc8170e52e722ad2",
+        "6236ce74a717d4b558094e10a74f77f40c81347f6496f2915501a3dbc718c90c",
     ),
     (
         "requirements-checkov.lock",

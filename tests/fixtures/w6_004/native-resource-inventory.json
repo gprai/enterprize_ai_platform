@@ -1,0 +1,9 @@
+{
+  "schema_version": "w6-004.native-resource-inventory.v1",
+  "classification": "fixture-only",
+  "account_id": "526338061652",
+  "region": "ap-southeast-1",
+  "resources": [],
+  "kms_pending_deletion": [],
+  "billing_records_delayed": true
+}

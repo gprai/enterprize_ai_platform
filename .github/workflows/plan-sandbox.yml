@@ -68,6 +68,7 @@ jobs:
           test "$GITHUB_REF" = "refs/heads/main"
           test "$(git rev-parse HEAD)" = "${{ inputs.source_commit }}"
           python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
+          python -B -m tools.platformctl w6-004-validate-source --config configs/lifecycle/w6-004.json
       - name: Assume only the approved sandbox role through OIDC
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
         with:

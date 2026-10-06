@@ -40,10 +40,11 @@ def test_make_ci_checkov_and_opa_have_offline_w6_consumers() -> None:
     )
 
 
-def test_template_contains_exactly_one_non_deployable_sentinel() -> None:
+def test_template_contains_exactly_two_non_deployable_image_sentinels() -> None:
     combined = b"".join(
         (ROOT / "deploy/k8s" / name).read_bytes() for name in w6_001_k8s.TEMPLATE_FILES
     )
     assert combined.count(w6_001_k8s.SENTINEL.encode()) == 1
+    assert combined.count(w6_001_k8s.COLLECTOR_SENTINEL.encode()) == 1
     assert b"w6-001-source-template" in combined
     assert b'deployable: "false"' in combined

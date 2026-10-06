@@ -66,3 +66,17 @@ def apply_approved_infrastructure_rollback(
         saved_plan=saved_plan,
         execution_context=execution_context,
     )
+
+
+def validate_w6_004_known_good_identity(
+    *, current_digest: str, regression_digest: str, known_good_digest: str
+) -> None:
+    """Require a distinct regression and exact immutable rollback target."""
+
+    from .image_lifecycle import DIGEST, ImageLifecycleError
+
+    values = (current_digest, regression_digest, known_good_digest)
+    if any(DIGEST.fullmatch(value) is None for value in values):
+        raise ImageLifecycleError("rollback identities must be immutable digests")
+    if current_digest != known_good_digest or regression_digest == known_good_digest:
+        raise ImageLifecycleError("known-good and safe-regression identities differ incorrectly")

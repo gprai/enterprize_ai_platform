@@ -34,9 +34,73 @@ resource "terraform_data" "owner_expiry_gate" {
   }
 }
 
+resource "terraform_data" "w6_004_runtime_gate" {
+  count = var.w6_004_enabled ? 1 : 0
+
+  input = {
+    approval_issued_at  = var.approval_issued_at
+    approval_expires_at = var.approval_expires_at
+    deployment_start    = var.deployment_start
+  }
+
+  lifecycle {
+    precondition {
+      condition = (
+        var.administrator_role_arn != "OWNER_BINDING_REQUIRED" &&
+        !can(regex("(?i)finopsinfra", var.administrator_role_arn)) &&
+        var.owner_api_cidr != "OWNER_BINDING_REQUIRED" &&
+        var.eks_kubernetes_version != "OWNER_BINDING_REQUIRED" &&
+        length(var.eks_node_instance_types) == 1 &&
+        alltrue([for item in var.eks_node_instance_types : item != "OWNER_BINDING_REQUIRED"]) &&
+        keys(var.eks_addon_versions) == tolist([
+          "coredns",
+          "eks-pod-identity-agent",
+          "kube-proxy",
+          "vpc-cni",
+        ]) &&
+        alltrue([for version in values(var.eks_addon_versions) : version != "OWNER_BINDING_REQUIRED"]) &&
+        can(regex("@sha256:[0-9a-f]{64}$", var.metrics_server_image)) &&
+        can(regex("@sha256:[0-9a-f]{64}$", var.otel_collector_image)) &&
+        var.bedrock_model_id != "OWNER_BINDING_REQUIRED" &&
+        length(var.alert_email_endpoints) == 2 &&
+        length(toset(var.alert_email_endpoints)) == 2 &&
+        try(tonumber(var.w6_004_cost_ceiling_usd) > 0, false) &&
+        keys(var.w6_004_stage_stop_limits_usd) == tolist([
+          "bootstrap",
+          "eks",
+          "image",
+          "observability",
+          "opensearch",
+          "platform",
+          "resilience",
+          "teardown",
+        ]) &&
+        alltrue([
+          for limit in values(var.w6_004_stage_stop_limits_usd) :
+          try(tonumber(limit) > 0, false)
+        ]) &&
+        var.mandatory_tags["ExpiresAt"] == var.approval_expires_at
+      )
+      error_message = "W6-004 owner-bound identities, images, recipients and cost limits must be fully supplied before planning."
+    }
+    precondition {
+      condition = try(
+        timecmp(var.approval_expires_at, var.approval_issued_at) > 0 &&
+        timecmp(var.approval_expires_at, timeadd(var.approval_issued_at, "24h")) <= 0 &&
+        timecmp(var.deployment_start, var.approval_issued_at) >= 0 &&
+        timecmp(var.deployment_start, var.approval_expires_at) < 0 &&
+        timecmp(var.approval_expires_at, timeadd(var.deployment_start, "8h")) <= 0,
+        false
+      )
+      error_message = "W6-004 approval and mutation timestamps must be valid UTC values within the 24-hour and 8-hour limits."
+    }
+  }
+}
+
 module "network" {
   source = "../../modules/network"
 
+  aws_account_id        = var.aws_account_id
   aws_region            = var.aws_region
   vpc_cidr              = var.vpc_cidr
   private_subnet_cidrs  = var.private_subnet_cidrs
@@ -98,11 +162,12 @@ module "iam" {
   github_environment             = var.github_environment
   github_oidc_role_name          = var.github_oidc_role_name
   github_allowed_ref             = var.github_allowed_ref
-  external_administrator_arn     = "arn:aws:iam::526338061652:user/finopsinfra"
-  administrator_trust_expires_at = "2026-09-30T15:59:59Z"
+  external_administrator_arn     = var.administrator_role_arn
+  administrator_trust_expires_at = var.approval_expires_at
   eks_namespace                  = "enterprise-ai-sandbox"
   runtime_service_account        = "enterprise-ai-runtime"
   ingestion_service_account      = "enterprise-ai-ingestion"
+  eks_cluster_name               = "enterprise-ai-sandbox"
   tags                           = var.mandatory_tags
 }
 
@@ -135,4 +200,46 @@ module "ecr" {
   kms_key_arn          = module.kms.key_arn
   tags                 = var.mandatory_tags
   depends_on           = [terraform_data.owner_expiry_gate]
+}
+
+module "eks" {
+  count  = var.w6_004_enabled ? 1 : 0
+  source = "../../modules/eks"
+
+  cluster_name              = "enterprise-ai-sandbox"
+  kubernetes_version        = var.eks_kubernetes_version
+  subnet_ids                = module.network.private_subnet_ids
+  kms_key_arn               = module.kms.key_arn
+  administrator_role_arn    = var.administrator_role_arn
+  deployment_role_arn       = module.iam.github_oidc_role_arn
+  resilience_role_arn       = module.iam.fis_role_arn
+  public_access_cidrs       = [var.owner_api_cidr]
+  node_instance_types       = var.eks_node_instance_types
+  node_minimum              = 2
+  node_desired              = 2
+  node_maximum              = 3
+  addon_versions            = var.eks_addon_versions
+  metrics_server_image      = var.metrics_server_image
+  runtime_role_arn          = module.iam.runtime_role_arn
+  ingestion_role_arn        = module.iam.ingestion_role_arn
+  namespace                 = "enterprise-ai-sandbox"
+  runtime_service_account   = "enterprise-ai-runtime"
+  ingestion_service_account = "enterprise-ai-ingestion"
+  tags                      = var.mandatory_tags
+  depends_on                = [terraform_data.w6_004_runtime_gate]
+}
+
+module "observability" {
+  count  = var.w6_004_enabled ? 1 : 0
+  source = "../../modules/observability"
+
+  name                  = "enterprise-ai-sandbox"
+  aws_region            = var.aws_region
+  retention_days        = 14
+  alert_email_endpoints = var.alert_email_endpoints
+  fis_role_arn          = module.iam.fis_role_arn
+  cluster_arn           = module.eks[0].cluster_arn
+  namespace             = "enterprise-ai-sandbox"
+  fis_service_account   = "fis-experiment"
+  tags                  = var.mandatory_tags
 }

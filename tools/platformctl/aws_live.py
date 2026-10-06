@@ -64,6 +64,9 @@ from .lifecycle_models import (
 )
 from .operation_state import OperationLedger
 
+W6_004_MAX_NATIVE_DISCOVERY_REQUESTS = 160
+W6_004_MAX_BILLING_REQUESTS = 6
+
 
 def fetch_public_charging_pages() -> tuple[list[dict[str, object]], int, float]:
     """Explicit anonymous transport adapter; bodies stay in the calling process only.

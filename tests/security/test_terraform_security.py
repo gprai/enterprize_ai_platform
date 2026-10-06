@@ -18,6 +18,10 @@ EXPECTED_CHECKOV_SKIPS = {
     ("infra/modules/kms/main.tf", "CKV_AWS_109"),
     ("infra/modules/kms/main.tf", "CKV_AWS_111"),
     ("infra/modules/kms/main.tf", "CKV_AWS_356"),
+    ("infra/modules/eks/main.tf", "CKV_AWS_39"),
+    ("infra/modules/iam/main.tf", "CKV_AWS_111"),
+    ("infra/modules/iam/main.tf", "CKV_AWS_355"),
+    ("infra/modules/observability/main.tf", "CKV_AWS_158"),
     ("infra/modules/network/main.tf", "CKV2_AWS_11"),
     ("infra/modules/opensearch/main.tf", "CKV_AWS_318"),
     ("infra/modules/opensearch/main.tf", "CKV_AWS_338"),
@@ -41,25 +45,36 @@ def test_prohibited_action_wildcards_and_permissions_are_absent() -> None:
         '"kms:ReEncrypt*"',
         '"es:ESHttp*"',
         '"logs:*"',
-        "ecr:GetAuthorizationToken",
         "servicequotas:",
         "iam:List",
         "iam:Describe",
     ):
         assert prohibited not in source
+    network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
+    assert source.count('"ecr:GetAuthorizationToken"') == 2
+    assert network.count('"ecr:GetAuthorizationToken"') == 2
+    assert '"ECR API" = [' in network
+    assert '"ECR DKR" = [' in network
 
 
 def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     source = terraform_source()
-    assert source.count('resources = ["*"]') == 7
-    assert source.count('identifiers = ["*"]') == 2
+    assert source.count('resources = ["*"]') == 11
+    assert source.count('identifiers = ["*"]') == 5
+    network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
+    assert network.count('identifiers = ["*"]') == 3
+    assert network.count('variable = "aws:PrincipalAccount"') == 2
+    assert network.count("values   = [var.aws_account_id]") == 2
+    assert 'sid       = "AllowEcrLayerDownloads"' in network
+    assert 'actions   = ["s3:GetObject"]' in network
+    assert 'resources = ["arn:aws:s3:::prod-${var.aws_region}-starport-layer-bucket/*"]' in network
     assert (
         "arn:aws:s3:::enterprise-ai-platform-sbx-tfstate-526338061652-ap-southeast-1/*"
         not in source
     )
     assert '"${local.state_bucket_arn}/*"' in source
     assert '"${local.platform_bucket_arn}/*"' in source
-    assert '"${local.opensearch_domain_arn}/*"' in source
+    assert '"${local.domain_arn}/*"' in source
 
 
 def test_dynamodb_create_grant_is_exactly_account_and_service_bounded() -> None:

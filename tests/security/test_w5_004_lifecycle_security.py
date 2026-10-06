@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
@@ -1544,6 +1545,73 @@ def test_existing_noop_opensearch_role_omitted_password_marker_is_normalized() -
     context = cast(dict[str, object], normalized["evaluation_context"])
     binding = cast(list[dict[str, object]], context["provider_sensitive_nulls"])[0]
     assert binding["relationship"] == "omitted-null-password-with-existing-admin-role"
+
+
+def test_existing_opensearch_empty_password_placeholder_is_normalized() -> None:
+    raw = opensearch_existing_role_omitted_password_plan()
+    domain_body = change_body(resource_changes(raw)[1])
+    after = cast(dict[str, object], domain_body["after"])
+    advanced = cast(list[dict[str, object]], after["advanced_security_options"])[0]
+    master = cast(list[dict[str, object]], advanced["master_user_options"])[0]
+    master["master_user_password"] = ""
+    domain_body["actions"] = ["update"]
+    domain_body["before"] = deepcopy(after)
+    domain_body["before_sensitive"] = deepcopy(domain_body["after_sensitive"])
+
+    normalized = normalize_plan(raw, evaluation_time="2026-09-08T00:00:00Z")
+
+    changes = cast(list[dict[str, object]], normalized["resource_changes"])
+    domain = cast(dict[str, object], changes[1]["change"])
+    normalized_after = cast(dict[str, object], domain["after"])
+    normalized_before = cast(dict[str, object], domain["before"])
+    for value in (normalized_before, normalized_after):
+        advanced = cast(list[dict[str, object]], value["advanced_security_options"])[0]
+        master = cast(list[dict[str, object]], advanced["master_user_options"])[0]
+        assert "master_user_password" not in master
+
+
+def test_existing_opensearch_admin_trust_expiry_reconciliation_is_normalized() -> None:
+    raw = opensearch_existing_role_omitted_password_plan()
+    changes = resource_changes(raw)
+    role_body = change_body(changes[0])
+    domain_body = change_body(changes[1])
+    before_role = cast(dict[str, object], role_body["before"])
+    after_role = cast(dict[str, object], role_body["after"])
+    previous_expiry = cast(dict[str, object], before_role["tags"])["ExpiresAt"]
+    current_expiry = cast(dict[str, object], after_role["tags"])["ExpiresAt"]
+
+    def trust(expiry: object) -> str:
+        return json.dumps(
+            {
+                "Statement": [
+                    {
+                        "Action": "sts:AssumeRole",
+                        "Condition": {"DateLessThan": {"aws:CurrentTime": expiry}},
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "arn:aws:iam::123456789012:role/owner"},
+                        "Sid": "TimeBoundExactSandboxAdministrator",
+                    }
+                ],
+                "Version": "2012-10-17",
+            }
+        )
+
+    before_role["assume_role_policy"] = trust(previous_expiry)
+    after_role["assume_role_policy"] = trust(current_expiry)
+    after_domain = cast(dict[str, object], domain_body["after"])
+    advanced = cast(list[dict[str, object]], after_domain["advanced_security_options"])[0]
+    master = cast(list[dict[str, object]], advanced["master_user_options"])[0]
+    master["master_user_name"] = ""
+    master["master_user_password"] = ""
+    domain_body["before"] = deepcopy(after_domain)
+    domain_body["before_sensitive"] = deepcopy(domain_body["after_sensitive"])
+    domain_body["actions"] = ["update"]
+
+    normalized = normalize_plan(raw, evaluation_time="2026-09-08T00:00:00Z")
+
+    context = cast(dict[str, object], normalized["evaluation_context"])
+    assert len(cast(list[object], context["provider_sensitive_before_nulls"])) == 1
+    assert len(cast(list[object], context["provider_sensitive_nulls"])) == 1
 
 
 @pytest.mark.parametrize(

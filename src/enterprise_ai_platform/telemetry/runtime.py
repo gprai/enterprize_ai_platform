@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import threading
 import time
 from collections import deque
@@ -10,7 +11,7 @@ from collections.abc import Callable, Sequence
 from contextvars import ContextVar, Token
 from dataclasses import dataclass
 from types import TracebackType
-from typing import TYPE_CHECKING, Literal, Protocol, Self
+from typing import TYPE_CHECKING, Any, Literal, Protocol, Self
 from uuid import UUID
 
 from opentelemetry import trace
@@ -20,6 +21,7 @@ from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
 from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
     SimpleSpanProcessor,
     SpanExporter,
     SpanExportResult,
@@ -837,10 +839,12 @@ class OpenTelemetryRuntime:
             try:
                 trace_ok = self._tracer_provider.force_flush(timeout_millis=1000)
                 metric_ok = self._meter_provider.force_flush(timeout_millis=1000)
+                sink_flush = getattr(self._export_sink, "force_flush", None)
+                log_ok = True if sink_flush is None else bool(sink_flush())
             except Exception:
                 self._safe_export_failure()
                 return False
-            return bool(trace_ok and metric_ok)
+            return bool(trace_ok and metric_ok and log_ok)
 
     def shutdown(self) -> bool:
         with self._lifecycle_lock:
@@ -850,6 +854,9 @@ class OpenTelemetryRuntime:
         try:
             self._tracer_provider.shutdown()
             self._meter_provider.shutdown()
+            sink_shutdown = getattr(self._export_sink, "shutdown", None)
+            if sink_shutdown is not None:
+                sink_shutdown()
         except Exception:
             self._safe_export_failure()
             return False
@@ -862,6 +869,128 @@ class InMemoryTelemetryComposition:
     span_exporter: SpanExporter
     metric_reader: InMemoryMetricReader
     log_sink: BoundedInMemoryLogSink
+
+
+class _OTLPSafeLogSink:
+    """Emit only schema-validated, content-free records through OTLP logs."""
+
+    def __init__(self, handler: logging.Handler, provider: Any) -> None:
+        self._handler = handler
+        self._provider = provider
+        self._lock = threading.Lock()
+        self._shutdown = False
+
+    def emit(self, record: SafeLogRecord) -> int:
+        with self._lock:
+            if self._shutdown:
+                return 1
+        python_record = logging.LogRecord(
+            name="enterprise_ai_platform.telemetry",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg=record.event_name.value,
+            args=(),
+            exc_info=None,
+        )
+        for key, value in record.model_dump(mode="json", exclude_none=True).items():
+            if key not in {"event_name", "service_name", "schema_version"}:
+                setattr(python_record, f"enterprise_ai_{key}", value)
+        self._handler.emit(python_record)
+        return 0
+
+    def force_flush(self) -> bool:
+        return bool(self._provider.force_flush(timeout_millis=1000))
+
+    def shutdown(self) -> None:
+        with self._lock:
+            if self._shutdown:
+                return
+            self._shutdown = True
+        self._handler.close()
+        self._provider.shutdown()
+
+
+class OTLPTelemetryRuntime(OpenTelemetryRuntime):
+    """Marker runtime for the bounded pod-local OTLP composition."""
+
+
+@dataclass(frozen=True, slots=True)
+class OTLPTelemetryComposition:
+    runtime: OTLPTelemetryRuntime
+    log_sink: _OTLPSafeLogSink
+
+
+def build_otlp_telemetry(*, settings: Settings) -> OTLPTelemetryComposition:
+    """Build bounded trace, metric and safe-log exporters for the loopback sidecar."""
+
+    if (
+        settings.telemetry_exporter != "otlp_grpc"
+        or settings.telemetry_otlp_endpoint != "http://127.0.0.1:4317"
+    ):
+        raise ValueError("OTLP telemetry requires the exact approved loopback profile")
+
+    from opentelemetry.exporter.otlp.proto.grpc._log_exporter import (  # type: ignore[import-not-found]
+        OTLPLogExporter,
+    )
+    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (  # type: ignore[import-not-found]
+        OTLPMetricExporter,
+    )
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (  # type: ignore[import-not-found]
+        OTLPSpanExporter,
+    )
+    from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+    from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+    from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+
+    resource = Resource(
+        attributes={
+            "service.name": settings.telemetry_service_name,
+            "service.version": __version__,
+            "deployment.environment.name": settings.environment,
+        }
+    )
+    endpoint = settings.telemetry_otlp_endpoint
+    tracer_provider = TracerProvider(resource=resource)
+    span_exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True, timeout=1.0)
+    tracer_provider.add_span_processor(
+        BatchSpanProcessor(
+            span_exporter,
+            max_queue_size=512,
+            schedule_delay_millis=1000,
+            max_export_batch_size=64,
+            export_timeout_millis=1000,
+        )
+    )
+    metric_reader = PeriodicExportingMetricReader(
+        OTLPMetricExporter(endpoint=endpoint, insecure=True, timeout=1.0),
+        export_interval_millis=1000,
+        export_timeout_millis=1000,
+    )
+    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
+    logger_provider = LoggerProvider(resource=resource, shutdown_on_exit=False)
+    logger_provider.add_log_record_processor(
+        BatchLogRecordProcessor(
+            OTLPLogExporter(endpoint=endpoint, insecure=True, timeout=1.0),
+            max_queue_size=512,
+            schedule_delay_millis=1000,
+            max_export_batch_size=64,
+            export_timeout_millis=1000,
+        )
+    )
+    log_sink = _OTLPSafeLogSink(
+        LoggingHandler(level=logging.INFO, logger_provider=logger_provider),
+        logger_provider,
+    )
+    local_log_sink = BoundedInMemoryLogSink()
+    runtime = OTLPTelemetryRuntime(
+        service_name=settings.telemetry_service_name,
+        tracer_provider=tracer_provider,
+        meter_provider=meter_provider,
+        log_sink=local_log_sink,
+        export_sink=log_sink,
+    )
+    return OTLPTelemetryComposition(runtime=runtime, log_sink=log_sink)
 
 
 def build_in_memory_telemetry(

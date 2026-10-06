@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: enterprise-ai-otel-collector
+  namespace: enterprise-ai-sandbox
+data:
+  collector.yaml: |
+    extensions:
+      health_check:
+        endpoint: 127.0.0.1:13133
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 127.0.0.1:4317
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 128
+        spike_limit_mib: 32
+      batch:
+        send_batch_size: 64
+        timeout: 1s
+    exporters:
+      awsxray:
+        region: ap-southeast-1
+        timeout: 1s
+        sending_queue:
+          enabled: true
+          queue_size: 512
+          num_consumers: 1
+        retry_on_failure:
+          enabled: true
+          initial_interval: 1s
+          max_interval: 5s
+          max_elapsed_time: 30s
+      awsemf:
+        region: ap-southeast-1
+        namespace: EnterpriseAI/Sandbox
+        log_group_name: /aws/enterprise-ai-platform/sandbox/application
+        log_retention: 14
+        timeout: 1s
+        sending_queue:
+          enabled: true
+          queue_size: 512
+          num_consumers: 1
+        retry_on_failure:
+          enabled: true
+          initial_interval: 1s
+          max_interval: 5s
+          max_elapsed_time: 30s
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [awsxray]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [awsemf]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [awsemf]

@@ -59,7 +59,6 @@ data "aws_iam_policy_document" "domain_access" {
     principals {
       type = "AWS"
       identifiers = [
-        var.runtime_role_arn,
         var.ingestion_role_arn,
         var.administrator_role_arn,
       ]

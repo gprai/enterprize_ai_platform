@@ -69,4 +69,4 @@ def test_only_the_digest_check_has_a_source_template_skip() -> None:
 
     assert deployment.count("checkov.io/skip") == 1
     assert "CKV_K8S_43" in deployment
-    assert "non-deployable source sentinel" in deployment
+    assert "non-deployable source sentinels" in deployment

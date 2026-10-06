@@ -66,3 +66,11 @@ def apply_approved_platform_plan(
         saved_plan=saved_plan,
         execution_context=execution_context,
     )
+
+
+def validate_w6_004_stage_order(stages: tuple[str, ...]) -> None:
+    """Validate complete lifecycle ordering without executing any stage."""
+
+    from .live_validation import validate_stage_sequence
+
+    validate_stage_sequence(stages)

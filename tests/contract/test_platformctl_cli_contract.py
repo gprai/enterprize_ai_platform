@@ -36,6 +36,9 @@ def test_cli_exposes_exact_approved_commands() -> None:
         "platform-destroy",
         "bootstrap-destroy",
         "verify-clean",
+        "w6-004-validate-source",
+        "w6-004-validate-evidence",
+        "w6-004-validate-runtime",
     }
 
 

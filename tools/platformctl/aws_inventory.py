@@ -7,6 +7,28 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
+# W6-004 adds these project-owned live lifecycle surfaces while preserving the
+# existing W5 inventory contracts and shared service-linked-role exclusions.
+W6_004_NATIVE_SERVICES = (
+    "cloudformation",
+    "cloudwatch",
+    "cost-explorer",
+    "dynamodb",
+    "ec2",
+    "ecr",
+    "eks",
+    "fis",
+    "iam",
+    "kms",
+    "logs",
+    "opensearch",
+    "s3",
+    "secretsmanager",
+    "sns",
+    "sts",
+    "xray",
+)
+
 PUBLIC_CHARGING_PAGES = (
     "https://aws.amazon.com/privatelink/pricing/",
     "https://aws.amazon.com/opensearch-service/pricing/",
@@ -1030,7 +1052,7 @@ def diagnostic_policy_templates(scope: str) -> dict[str, object]:
             "ExactSandboxRoleDataPlaneAccess",
             http,
             [domain + "/*"],
-            {"AWS": [runtime, ingestion, administrator]},
+            {"AWS": [ingestion, administrator]},
         )
     )
     return result

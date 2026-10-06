@@ -3,9 +3,10 @@
 #
 # WARNING: This file must never contain credentials, access keys, secret keys,
 # session tokens, passwords, private keys, GitHub tokens, or live role sessions.
-# It is an inert input example only. No Terraform variable declarations consume
-# these values yet, and this file authorizes no Terraform, AWS, GitHub, network,
-# deployment, rollback, or teardown activity.
+# It is an inert source example only. Terraform declares these inputs, but all
+# unresolved live W6-004 values remain owner-binding sentinels and this file
+# authorizes no Terraform, AWS, GitHub, network, deployment, rollback, or
+# teardown activity.
 #
 # Account purpose: personal learning sandbox; sandbox/non-production only.
 # Human access: short-lived federated AWS IAM Identity Center/SSO access.
@@ -44,10 +45,15 @@ egress_mode = "private_endpoints_only"
 vpc_endpoint_services = [
   "S3",
   "DynamoDB",
-  "ECR API/DKR",
+  "ECR API",
+  "ECR DKR",
   "EKS",
+  "EKS Auth",
   "STS",
+  "EC2",
   "CloudWatch Logs",
+  "CloudWatch Monitoring",
+  "X-Ray",
   "KMS",
   "Secrets Manager",
   "Bedrock Runtime",
@@ -82,6 +88,27 @@ daily_budget_alert_usd = 3
 
 max_paid_evaluation_usd = 5
 
+# W6-004 source bindings. This checked-in example remains non-executable.
+w6_004_enabled                 = false
+administrator_role_arn         = "OWNER_BINDING_REQUIRED"
+approval_expires_at            = "OWNER_BINDING_REQUIRED"
+approval_issued_at             = "OWNER_BINDING_REQUIRED"
+deployment_start               = "OWNER_BINDING_REQUIRED"
+owner_api_cidr                 = "OWNER_BINDING_REQUIRED"
+eks_kubernetes_version         = "OWNER_BINDING_REQUIRED"
+eks_node_instance_types        = ["OWNER_BINDING_REQUIRED"]
+eks_addon_versions             = {
+  "vpc-cni"                = "OWNER_BINDING_REQUIRED"
+  coredns                  = "OWNER_BINDING_REQUIRED"
+  "kube-proxy"            = "OWNER_BINDING_REQUIRED"
+  "eks-pod-identity-agent" = "OWNER_BINDING_REQUIRED"
+}
+metrics_server_image           = "OWNER_BINDING_REQUIRED"
+otel_collector_image           = "OWNER_BINDING_REQUIRED"
+alert_email_endpoints           = []
+w6_004_cost_ceiling_usd         = "OWNER_BINDING_REQUIRED"
+w6_004_stage_stop_limits_usd    = { all = "OWNER_BINDING_REQUIRED" }
+
 kms_deletion_window_days = 7
 
 kms_follow_up_owner = "Gyan Prakash Rai"
@@ -99,7 +126,7 @@ github_allowed_ref = "refs/heads/main"
 # Converse runtime target for the owner-selected Amazon Nova 2 Lite candidate.
 # The underlying model identity is documented only in W5-inputs.md. The
 # owner-recorded lifecycle status is Active.
-bedrock_model_id = "global.amazon.nova-2-lite-v1:0"
+bedrock_model_id = "OWNER_BINDING_REQUIRED"
 
 bedrock_region = "ap-southeast-1"
 

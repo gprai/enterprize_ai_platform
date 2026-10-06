@@ -43,6 +43,14 @@ from .lifecycle_models import (
     MutationEnvelope,
     ReviewPackage,
 )
+from .live_validation import (
+    SCHEMA_FIELDS,
+    W6004Error,
+    load_strict_json,
+    validate_evidence_record,
+    validate_runtime_bindings,
+    validate_source_contract,
+)
 from .validate import (
     EXPECTED_FEATURE,
     EXPECTED_FEATURES,
@@ -253,6 +261,27 @@ def build_parser() -> argparse.ArgumentParser:
     subcommands = parser.add_subparsers(dest="command")
 
     subcommands.add_parser("validate", help="validate the approved repository contract read-only")
+    w6_004_source = subcommands.add_parser(
+        "w6-004-validate-source",
+        help="validate the inert W6-004 source contract without AWS or mutation",
+    )
+    w6_004_source.add_argument(
+        "--config",
+        type=Path,
+        default=Path("configs/lifecycle/w6-004.json"),
+    )
+    w6_004_evidence = subcommands.add_parser(
+        "w6-004-validate-evidence",
+        help="validate one closed W6-004 evidence record without mutation",
+    )
+    w6_004_evidence.add_argument("--evidence", type=Path, required=True)
+    w6_004_evidence.add_argument("--schema", choices=sorted(SCHEMA_FIELDS), required=True)
+    w6_004_evidence.add_argument("--consumed-approval", action="append", default=[])
+    w6_004_runtime = subcommands.add_parser(
+        "w6-004-validate-runtime",
+        help="validate owner-bound W6-004 runtime inputs without AWS or mutation",
+    )
+    w6_004_runtime.add_argument("--bindings", type=Path, required=True)
     envelope_parser = subcommands.add_parser(
         "prepare-plan-owner-envelope",
         help="construct fresh typed owner inputs without Terraform, AWS, or network access",
@@ -352,6 +381,34 @@ def main(
     effective_inventory = inventory_provider or UnavailableAwsInventoryProvider()
 
     try:
+        if arguments.command == "w6-004-validate-source":
+            try:
+                print(validate_source_contract(arguments.config))
+            except W6004Error as exc:
+                print(f"W6-004 SOURCE VALIDATION FAILED: {exc}", file=sys.stderr)
+                return 1
+            return 0
+        if arguments.command == "w6-004-validate-evidence":
+            try:
+                value = load_strict_json(arguments.evidence)
+                validated = validate_evidence_record(
+                    value,
+                    expected_schema=arguments.schema,
+                    consumed_approvals=tuple(arguments.consumed_approval),
+                )
+            except W6004Error as exc:
+                print(f"W6-004 EVIDENCE VALIDATION FAILED: {exc}", file=sys.stderr)
+                return 1
+            print(f"W6-004 EVIDENCE VALID: {validated['schema_version']}")
+            return 0
+        if arguments.command == "w6-004-validate-runtime":
+            try:
+                validate_runtime_bindings(load_strict_json(arguments.bindings))
+            except W6004Error as exc:
+                print(f"W6-004 RUNTIME VALIDATION FAILED: {exc}", file=sys.stderr)
+                return 1
+            print("W6-004 OWNER RUNTIME BINDINGS VALID - NO MUTATION EXECUTED")
+            return 0
         if arguments.command == "prepare-plan-owner-envelope":
             repository = repository_root()
             configuration = load_lifecycle_config(repository / "configs/lifecycle/w5-004.json")
@@ -590,17 +647,22 @@ def main(
             payload = request_path_bound.read_bytes()
             if sha256_bytes(payload) != request_hash:
                 raise ContractError("EXECUTION_REQUEST_HASH_MISMATCH")
-            value = decode_json_strict(payload)
-            if not isinstance(value, dict):
+            request_value = decode_json_strict(payload)
+            if not isinstance(request_value, dict):
                 raise ContractError("EXECUTION_REQUEST_OBJECT_REQUIRED")
-            diagnostic = value.get("schema_version") == DIAGNOSTIC_SCHEMA_VERSION
+            diagnostic = request_value.get("schema_version") == DIAGNOSTIC_SCHEMA_VERSION
             if diagnostic != bool(getattr(arguments, "diagnostic", False)) or (
                 diagnostic and arguments.command != "aws-verify"
             ):
                 raise ContractError("DIAGNOSTIC_COMMAND_SCHEMA_MISMATCH")
-            if "environment" in value and value["environment"] != arguments.environment:
+            if (
+                "environment" in request_value
+                and request_value["environment"] != arguments.environment
+            ):
                 raise ContractError("CLI_REQUEST_ENVIRONMENT_MISMATCH")
-            if "target" in value and value["target"] != getattr(arguments, "target", None):
+            if "target" in request_value and request_value["target"] != getattr(
+                arguments, "target", None
+            ):
                 raise ContractError("CLI_REQUEST_TARGET_MISMATCH")
             _validate_cli_mutation_binding(arguments, payload, external, repository)
             if execution_services is None:

@@ -4,7 +4,7 @@ metadata:
   name: enterprise-ai-api
   namespace: enterprise-ai-sandbox
   annotations:
-    checkov.io/skip1: CKV_K8S_43=The sole image is the approved non-deployable source sentinel; release validation requires an immutable digest.
+    checkov.io/skip1: CKV_K8S_43=Both images are non-deployable source sentinels; release validation requires immutable digests.
   labels:
     app.kubernetes.io/name: enterprise-ai-api
     app.kubernetes.io/part-of: enterprise-ai-platform
@@ -35,6 +35,8 @@ spec:
         runAsNonRoot: true
         runAsUser: 65532
         runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -48,6 +50,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: enterprise-ai-runtime
+          env:
+            - name: ENTERPRISE_AI_SANDBOX_AUTH_SIGNING_KEY_FILE
+              value: /var/run/secrets/enterprise-ai/sandbox-auth-signing-key
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -87,7 +92,67 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: sandbox-auth-signing-key
+              mountPath: /var/run/secrets/enterprise-ai
+              readOnly: true
+        - name: otel-collector
+          image: enterprise-ai.invalid/w6-004-otel:OWNER_BINDING_REQUIRED
+          imagePullPolicy: Always
+          args:
+            - --config=/etc/otelcol/collector.yaml
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+              ephemeral-storage: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          volumeMounts:
+            - name: otel-config
+              mountPath: /etc/otelcol
+              readOnly: true
+            - name: otel-tmp
+              mountPath: /tmp
       volumes:
         - name: tmp
           emptyDir:
             sizeLimit: 256Mi
+        - name: otel-config
+          configMap:
+            name: enterprise-ai-otel-collector
+        - name: otel-tmp
+          emptyDir:
+            sizeLimit: 64Mi
+        - name: sandbox-auth-signing-key
+          secret:
+            secretName: enterprise-ai-runtime-secrets # pragma: allowlist secret
+            defaultMode: 0440
+            items:
+              - key: sandbox-auth-signing-key
+                path: sandbox-auth-signing-key

@@ -421,3 +421,17 @@ def apply_approved_destroy_plan(
         saved_plan=saved_plan,
         execution_context=execution_context,
     )
+
+
+def validate_w6_004_final_residue(actual: tuple[str, ...]) -> None:
+    """Accept only approved asynchronous or external residual classes."""
+
+    from .live_validation import validate_residue
+
+    expected = (
+        "final_evidence",
+        "shared_external_service_linked_roles",
+        "kms_keys_pending_deletion",
+        "delayed_billing_records",
+    )
+    validate_residue(actual, expected)

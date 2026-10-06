@@ -1,0 +1,8 @@
+{
+  "schema_version": "w6-004.provider-computed-shapes.v1",
+  "allowed_unknown_paths": [
+    "module.eks.aws_eks_cluster.this.endpoint",
+    "module.eks.aws_eks_cluster.this.certificate_authority",
+    "module.eks.aws_eks_node_group.application.resources"
+  ]
+}

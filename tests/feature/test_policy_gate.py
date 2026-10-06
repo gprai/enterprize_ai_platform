@@ -1495,7 +1495,17 @@ def test_exact_real_plan_policy_document_relationship_satisfies_input_contract(
 
 @pytest.mark.parametrize(
     "endpoint_name",
-    ("Bedrock Runtime", "CloudWatch Logs", "ECR API", "ECR DKR", "Secrets Manager"),
+    (
+        "Bedrock Runtime",
+        "CloudWatch Logs",
+        "CloudWatch Monitoring",
+        "EC2",
+        "ECR API",
+        "ECR DKR",
+        "EKS Auth",
+        "Secrets Manager",
+        "X-Ray",
+    ),
 )
 def test_allowlisted_interface_endpoint_addresses_with_spaces_are_valid_plan_input(
     tmp_path: Path,
@@ -1743,7 +1753,7 @@ def test_current_terraform_checkov_baseline_is_exact() -> None:
 
     assert completed.returncode == 0, combined
     assert counts is not None, "Checkov did not emit the required complete scan counts"
-    assert tuple(map(int, counts.groups())) == (226, 0, 20)
+    assert tuple(map(int, counts.groups())) == (325, 0, 25)
 
 
 def test_production_decision_requires_one_defined_consistent_value() -> None:

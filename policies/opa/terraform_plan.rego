@@ -84,6 +84,11 @@ policy_critical_unknown_keys := {
 
 taggable_resource_types := {
 	"aws_cloudwatch_log_group",
+	"aws_cloudwatch_metric_alarm",
+	"aws_eks_addon",
+	"aws_eks_cluster",
+	"aws_eks_node_group",
+	"aws_fis_experiment_template",
 	"aws_dynamodb_table",
 	"aws_ecr_repository",
 	"aws_iam_policy",
@@ -93,6 +98,7 @@ taggable_resource_types := {
 	"aws_route_table",
 	"aws_s3_bucket",
 	"aws_secretsmanager_secret",
+	"aws_sns_topic",
 	"aws_security_group",
 	"aws_subnet",
 	"aws_vpc",
@@ -102,12 +108,22 @@ taggable_resource_types := {
 supported_aws_resource_types := {
 	"aws_cloudwatch_log_group",
 	"aws_cloudwatch_log_resource_policy",
+	"aws_cloudwatch_dashboard",
+	"aws_cloudwatch_metric_alarm",
 	"aws_default_security_group",
 	"aws_dynamodb_table",
 	"aws_ecr_lifecycle_policy",
 	"aws_ecr_repository",
+	"aws_eks_access_entry",
+	"aws_eks_access_policy_association",
+	"aws_eks_addon",
+	"aws_eks_cluster",
+	"aws_eks_node_group",
+	"aws_eks_pod_identity_association",
+	"aws_fis_experiment_template",
 	"aws_iam_policy",
 	"aws_iam_role",
+	"aws_iam_role_policy_attachment",
 	"aws_iam_role_policy",
 	"aws_internet_gateway",
 	"aws_kms_alias",
@@ -124,6 +140,8 @@ supported_aws_resource_types := {
 	"aws_s3_bucket_server_side_encryption_configuration",
 	"aws_s3_bucket_versioning",
 	"aws_secretsmanager_secret",
+	"aws_sns_topic",
+	"aws_sns_topic_subscription",
 	"aws_security_group",
 	"aws_subnet",
 	"aws_vpc",
@@ -169,8 +187,12 @@ approved_endpoint_services := {
 	"com.amazonaws.ap-southeast-1.ecr.api",
 	"com.amazonaws.ap-southeast-1.ecr.dkr",
 	"com.amazonaws.ap-southeast-1.eks",
+	"com.amazonaws.ap-southeast-1.eks-auth",
 	"com.amazonaws.ap-southeast-1.sts",
 	"com.amazonaws.ap-southeast-1.logs",
+	"com.amazonaws.ap-southeast-1.monitoring",
+	"com.amazonaws.ap-southeast-1.ec2",
+	"com.amazonaws.ap-southeast-1.xray",
 	"com.amazonaws.ap-southeast-1.kms",
 	"com.amazonaws.ap-southeast-1.secretsmanager",
 	"com.amazonaws.ap-southeast-1.bedrock-runtime",
@@ -200,13 +222,84 @@ platform_gateway_endpoint_addresses := {
 platform_interface_endpoint_addresses := {
 	`module.network.aws_vpc_endpoint.interface["Bedrock Runtime"]`,
 	`module.network.aws_vpc_endpoint.interface["CloudWatch Logs"]`,
+	`module.network.aws_vpc_endpoint.interface["CloudWatch Monitoring"]`,
+	`module.network.aws_vpc_endpoint.interface["EC2"]`,
 	`module.network.aws_vpc_endpoint.interface["ECR API"]`,
 	`module.network.aws_vpc_endpoint.interface["ECR DKR"]`,
 	`module.network.aws_vpc_endpoint.interface["EKS"]`,
+	`module.network.aws_vpc_endpoint.interface["EKS Auth"]`,
 	`module.network.aws_vpc_endpoint.interface["KMS"]`,
 	`module.network.aws_vpc_endpoint.interface["STS"]`,
 	`module.network.aws_vpc_endpoint.interface["Secrets Manager"]`,
+	`module.network.aws_vpc_endpoint.interface["X-Ray"]`,
 }
+
+w6_004_node_policy_attachment_addresses := {
+	`module.eks[0].aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"]`: "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
+	`module.eks[0].aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"]`: "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+	`module.eks[0].aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"]`: "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+}
+
+w6_004_alert_subscription_addresses := {
+	`module.observability[0].aws_sns_topic_subscription.email["vayunetrix.aws.dev@zohomail.com"]`: "vayunetrix.aws.dev@zohomail.com",
+	`module.observability[0].aws_sns_topic_subscription.email["vayunetrix.aws.stage@zohomail.com"]`: "vayunetrix.aws.stage@zohomail.com",
+}
+
+w6_004_special_aws_addresses := object.keys(w6_004_node_policy_attachment_addresses) | object.keys(w6_004_alert_subscription_addresses)
+
+w6_004_interface_endpoint_names := {
+	"Bedrock Runtime",
+	"CloudWatch Logs",
+	"CloudWatch Monitoring",
+	"EC2",
+	"ECR API",
+	"ECR DKR",
+	"EKS",
+	"EKS Auth",
+	"KMS",
+	"STS",
+	"Secrets Manager",
+	"X-Ray",
+}
+
+w6_004_endpoint_policy_document_relationships := {
+	{
+		"resource_address": sprintf(`module.network.aws_vpc_endpoint.interface["%s"]`, [name]),
+		"resource_type": "aws_vpc_endpoint",
+		"field_path": "policy",
+		"policy_document_address": sprintf(`module.network.data.aws_iam_policy_document.interface_endpoint["%s"]`, [name]),
+		"relationship": "exact-policy-document",
+	} |
+	some name in w6_004_interface_endpoint_names
+} | {
+	{
+		"resource_address": sprintf(`module.network.aws_vpc_endpoint.gateway["%s"]`, [name]),
+		"resource_type": "aws_vpc_endpoint",
+		"field_path": "policy",
+		"policy_document_address": sprintf(`module.network.data.aws_iam_policy_document.gateway_endpoint["%s"]`, [name]),
+		"relationship": "exact-policy-document",
+	} |
+	some name in {"DynamoDB", "S3"}
+}
+
+w6_004_eks_policy_document_relationships := {
+	{
+		"resource_address": "module.eks[0].aws_iam_role.cluster",
+		"resource_type": "aws_iam_role",
+		"field_path": "assume_role_policy",
+		"policy_document_address": "module.eks[0].data.aws_iam_policy_document.cluster_assume",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.eks[0].aws_iam_role.node",
+		"resource_type": "aws_iam_role",
+		"field_path": "assume_role_policy",
+		"policy_document_address": "module.eks[0].data.aws_iam_policy_document.node_assume",
+		"relationship": "exact-policy-document",
+	},
+}
+
+w6_004_policy_document_relationships := w6_004_endpoint_policy_document_relationships | w6_004_eks_policy_document_relationships
 
 platform_vpc_reference_consumers := (platform_gateway_endpoint_addresses | platform_interface_endpoint_addresses) | {
 	"module.network.aws_default_security_group.restricted",
@@ -360,7 +453,7 @@ platform_policy_document_relationships := {
 		"policy_document_address": "module.opensearch.data.aws_iam_policy_document.log_delivery",
 		"relationship": "exact-policy-document",
 	},
-}
+} | w6_004_policy_document_relationships
 
 approved_log_types := {
 	"ES_APPLICATION_LOGS",
@@ -429,6 +522,10 @@ valid_resource_address(address) if {
 	address in platform_interface_endpoint_addresses
 }
 
+valid_resource_address(address) if {
+	address in w6_004_special_aws_addresses
+}
+
 supported_change_type(resource_type) if {
 	resource_type in supported_aws_resource_types
 }
@@ -462,6 +559,7 @@ valid_aws_change(change) if {
 	is_object(change)
 	address := object.get(change, "address", "")
 	valid_resource_address(address)
+	not address in w6_004_special_aws_addresses
 	resource_type := object.get(change, "type", "")
 	is_string(resource_type)
 	supported_change_type(resource_type)
@@ -472,6 +570,77 @@ valid_aws_change(change) if {
 	json.marshal(actions) in supported_action_sequences
 	valid_change_after(actions, object.get(change_body, "after", null))
 	change_has_no_policy_critical_unknown_values(change_body)
+}
+
+valid_w6_004_runtime_gate_change(change) if {
+	is_object(change)
+	object.keys(change) == {"address", "change", "type"}
+	change.address == "terraform_data.w6_004_runtime_gate[0]"
+	change.type == "terraform_data"
+	change_body := change.change
+	object.keys(change_body) == {"actions", "after", "after_sensitive", "after_unknown", "before", "before_sensitive"}
+	change_body.actions == ["create"]
+	change_body.before == null
+	change_body.before_sensitive == {}
+	change_body.after_sensitive == {"input": {}, "output": {}}
+	change_body.after_unknown == {"id": true, "input": {}, "output": true}
+	after_values := change_body.after
+	object.keys(after_values) == {"input", "store", "triggers_replace"}
+	after_values.store == null
+	after_values.triggers_replace == null
+	input_values := after_values.input
+	object.keys(input_values) == {"approval_expires_at", "approval_issued_at", "deployment_start"}
+	valid_utc_timestamp(input_values.approval_issued_at)
+	valid_utc_timestamp(input_values.deployment_start)
+	valid_utc_timestamp(input_values.approval_expires_at)
+	input_values.approval_issued_at == input_values.deployment_start
+	expires_ns := time.parse_rfc3339_ns(input_values.approval_expires_at)
+	start_ns := time.parse_rfc3339_ns(input_values.deployment_start)
+	expires_ns > start_ns
+	expires_ns - start_ns <= day_ns
+}
+
+valid_w6_004_node_policy_attachment(change) if {
+	is_object(change)
+	address := change.address
+	expected_policy_arn := w6_004_node_policy_attachment_addresses[address]
+	change.type == "aws_iam_role_policy_attachment"
+	change_body := change.change
+	change_body.actions == ["create"]
+	change_body.before == null
+	change_body.before_sensitive == {}
+	change_body.after_sensitive == {}
+	change_body.after_unknown == {"id": true}
+	after_values := change_body.after
+	object.keys(after_values) == {"policy_arn", "role"}
+	after_values.policy_arn == expected_policy_arn
+	after_values.role == "enterprise-ai-sandbox-node"
+}
+
+valid_w6_004_alert_subscription(change) if {
+	is_object(change)
+	address := change.address
+	expected_endpoint := w6_004_alert_subscription_addresses[address]
+	change.type == "aws_sns_topic_subscription"
+	change_body := change.change
+	change_body.actions == ["create"]
+	change_body.before == null
+	change_body.before_sensitive == {}
+	change_body.after_sensitive == {}
+	change_body.after_unknown == {"arn": true, "confirmation_was_authenticated": true, "filter_policy_scope": true, "id": true, "owner_id": true, "pending_confirmation": true, "topic_arn": true}
+	after_values := change_body.after
+	object.keys(after_values) == {"confirmation_timeout_in_minutes", "delivery_policy", "endpoint", "endpoint_auto_confirms", "filter_policy", "protocol", "raw_message_delivery", "redrive_policy", "region", "replay_policy", "subscription_role_arn"}
+	after_values.confirmation_timeout_in_minutes == 1
+	after_values.delivery_policy == null
+	after_values.endpoint == expected_endpoint
+	after_values.endpoint_auto_confirms == false
+	after_values.filter_policy == null
+	after_values.protocol == "email"
+	after_values.raw_message_delivery == false
+	after_values.redrive_policy == null
+	after_values.region == "ap-southeast-1"
+	after_values.replay_policy == null
+	after_values.subscription_role_arn == null
 }
 
 valid_owner_expiry_gate_change(change) if {
@@ -953,6 +1122,29 @@ valid_provider_computed_unknown(binding) if {
 valid_provider_computed_unknown(binding) if {
 	is_object(binding)
 	object.keys(binding) == {"address", "type", "unknown_paths"}
+	binding.address == "module.eks[0].aws_eks_cluster.this"
+	binding.type == "aws_eks_cluster"
+	binding.unknown_paths == ["vpc_config[].vpc_id"]
+	resource_change_matches(binding.address, binding.type)
+	resource_reference_record_exists(
+		binding.address,
+		"vpc_config[].vpc_id",
+		"eks-vpc-derived-from-private-subnets",
+	)
+}
+
+valid_provider_computed_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"address", "type", "unknown_paths"}
+	binding.address == "module.observability[0].aws_sns_topic.alerts"
+	binding.type == "aws_sns_topic"
+	binding.unknown_paths == ["policy"]
+	resource_change_matches(binding.address, binding.type)
+}
+
+valid_provider_computed_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"address", "type", "unknown_paths"}
 	binding.type == "aws_s3_bucket_server_side_encryption_configuration"
 	binding.unknown_paths == ["rule[].apply_server_side_encryption_by_default[].kms_master_key_id"]
 	resource_change_matches(binding.address, binding.type)
@@ -966,6 +1158,16 @@ valid_provider_computed_unknown(binding) if {
 	binding.address in platform_gateway_endpoint_addresses
 	binding.type == "aws_vpc_endpoint"
 	binding.unknown_paths == ["policy", "security_group_ids", "subnet_ids"]
+	resource_change_matches(binding.address, binding.type)
+	object.get(after(changes_by_address[binding.address]), "vpc_endpoint_type", "") == "Gateway"
+}
+
+valid_provider_computed_unknown(binding) if {
+	is_object(binding)
+	object.keys(binding) == {"address", "type", "unknown_paths"}
+	binding.address in platform_gateway_endpoint_addresses
+	binding.type == "aws_vpc_endpoint"
+	binding.unknown_paths == ["security_group_ids", "subnet_ids"]
 	resource_change_matches(binding.address, binding.type)
 	object.get(after(changes_by_address[binding.address]), "vpc_endpoint_type", "") == "Gateway"
 }
@@ -999,6 +1201,31 @@ valid_network_vpc_reference(binding) if {
 	binding.unknown_paths == ["vpc_id"]
 	binding.source_addresses == [platform_vpc_address]
 	binding.relationship == "network-vpc-reference"
+}
+
+valid_eks_vpc_reference(binding) if {
+	binding.address == "module.eks[0].aws_eks_cluster.this"
+	binding.unknown_paths == ["vpc_config[].vpc_id"]
+	binding.source_addresses == [
+		platform_subnet_addresses[0],
+		platform_subnet_addresses[1],
+		platform_vpc_address,
+	]
+	binding.relationship == "eks-vpc-derived-from-private-subnets"
+}
+
+valid_eks_private_subnets_reference(binding) if {
+	binding.address == "module.eks[0].aws_eks_cluster.this"
+	binding.unknown_paths == ["vpc_config[].subnet_ids"]
+	binding.source_addresses == platform_subnet_addresses
+	binding.relationship == "network-private-subnets-reference"
+}
+
+valid_eks_private_subnets_reference(binding) if {
+	binding.address == "module.eks[0].aws_eks_node_group.application"
+	binding.unknown_paths == ["subnet_ids"]
+	binding.source_addresses == platform_subnet_addresses
+	binding.relationship == "network-private-subnets-reference"
 }
 
 valid_network_subnet_reference(binding) if {
@@ -1131,6 +1358,14 @@ valid_resource_reference_unknown(binding) if {
 
 valid_approved_resource_reference(binding) if {
 	valid_network_vpc_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_eks_vpc_reference(binding)
+}
+
+valid_approved_resource_reference(binding) if {
+	valid_eks_private_subnets_reference(binding)
 }
 
 valid_approved_resource_reference(binding) if {
@@ -1293,7 +1528,7 @@ valid_opensearch_provider_sensitive_null(binding) if {
 	count(master_options) == 1
 	master := master_options[0]
 	object.get(master, "master_user_arn", null) == null
-	object.get(master, "master_user_name", null) == null
+	object.get(master, "master_user_name", null) in {null, ""}
 	object.get(master, "master_user_password", null) == null
 
 	domain_unknowns := object.get(domain.change, "after_unknown", {})
@@ -1319,6 +1554,44 @@ valid_existing_opensearch_admin_role_action(role) if {
 
 valid_existing_opensearch_admin_role_action(role) if {
 	valid_platform_expiry_recovery_update(role)
+}
+
+valid_admin_trust_expiry_update(role) if {
+	role.change.actions == ["update"]
+	before := role.change.before
+	after := role.change.after
+	valid_expiry_reconciliation(before.tags, after.tags, operational.resource_expires_at)
+	valid_expiry_reconciliation(before.tags_all, after.tags_all, operational.resource_expires_at)
+	object.remove(before, {"assume_role_policy", "tags", "tags_all"}) == object.remove(after, {"assume_role_policy", "tags", "tags_all"})
+
+	before_document := json.unmarshal(before.assume_role_policy)
+	after_document := json.unmarshal(after.assume_role_policy)
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+	count(before_document.Statement) == 1
+	count(after_document.Statement) == 1
+	before_statement := before_document.Statement[0]
+	after_statement := after_document.Statement[0]
+	before_statement.Sid == "TimeBoundExactSandboxAdministrator"
+	after_statement.Sid == "TimeBoundExactSandboxAdministrator"
+	object.remove(before_statement, {"Condition"}) == object.remove(after_statement, {"Condition"})
+	object.remove(before_statement.Condition, {"DateLessThan"}) == object.remove(after_statement.Condition, {"DateLessThan"})
+	object.keys(before_statement.Condition.DateLessThan) == {"aws:CurrentTime"}
+	object.keys(after_statement.Condition.DateLessThan) == {"aws:CurrentTime"}
+	before_statement.Condition.DateLessThan["aws:CurrentTime"] == before.tags.ExpiresAt
+	after_statement.Condition.DateLessThan["aws:CurrentTime"] == operational.resource_expires_at
+}
+
+valid_existing_opensearch_admin_role_action(role) if {
+	valid_admin_trust_expiry_update(role)
+}
+
+valid_existing_admin_policy_relation(role, before_policy, after_policy) if {
+	before_policy == after_policy
+}
+
+valid_existing_admin_policy_relation(role, before_policy, after_policy) if {
+	before_policy != after_policy
+	valid_admin_trust_expiry_update(role)
 }
 
 valid_opensearch_provider_sensitive_null(binding) if {
@@ -1351,7 +1624,7 @@ valid_opensearch_provider_sensitive_null(binding) if {
 	master_user_arn := object.get(master, "master_user_arn", null)
 	is_string(master_user_arn)
 	master_user_arn != ""
-	object.get(master, "master_user_name", null) == null
+	object.get(master, "master_user_name", null) in {null, ""}
 	object.get(master, "master_user_password", null) == null
 
 	domain_unknowns := object.get(domain.change, "after_unknown", {})
@@ -1378,7 +1651,7 @@ valid_opensearch_provider_sensitive_null(binding) if {
 	before_policy := object.get(role_before, "assume_role_policy", null)
 	after_policy := object.get(role_after, "assume_role_policy", null)
 	is_string(before_policy)
-	before_policy == after_policy
+	valid_existing_admin_policy_relation(role, before_policy, after_policy)
 }
 
 opensearch_sensitive_metadata_required(change) if {
@@ -1465,7 +1738,37 @@ valid_change(change) if {
 }
 
 valid_change(change) if {
+	valid_w6_004_runtime_gate_change(change)
+}
+
+valid_change(change) if {
+	valid_w6_004_node_policy_attachment(change)
+}
+
+valid_change(change) if {
+	valid_w6_004_alert_subscription(change)
+}
+
+valid_change(change) if {
 	valid_bound_policy_document_change(change)
+}
+
+valid_change(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	rule := operational_rule(change)
+	rule.delta_rule == "W6_004_STAGE3_RECOVERY"
+	w6_004_stage3_recovery_delta(change, rule)
+	change_has_no_sensitive_markers(change)
+	not critical_unknown_present(change)
+}
+
+valid_change(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address in w6_004_special_aws_addresses
+	change.change.actions == ["no-op"]
+	change.change.before == change.change.after
+	change.change.before_sensitive == change.change.after_sensitive
+	change.change.after_unknown == {}
 }
 
 valid_policy_context if {
@@ -1549,6 +1852,15 @@ unapproved_initial_change(change) if {
 
 unapproved_initial_change(change) if {
 	destructive_change(change)
+	not approved_partial_recovery_replacement(change)
+}
+
+approved_partial_recovery_replacement(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	rule := operational_rule(change)
+	rule.delta_rule == "W6_004_STAGE3_RECOVERY"
+	w6_004_stage3_recovery_delta(change, rule)
+	change.change.actions == ["delete", "create"]
 }
 
 related_address(address, resource_type) := replace(
@@ -1858,7 +2170,11 @@ log_group_kms_valid(group) if {
 }
 
 opensearch_log_groups_valid if {
-	groups := [change | some change in evaluated_changes; change.type == "aws_cloudwatch_log_group"]
+	groups := [change |
+		some change in evaluated_changes
+		change.address in platform_log_group_addresses
+		change.type == "aws_cloudwatch_log_group"
+	]
 	count(groups) == 4
 	every group in groups {
 		object.get(after(group), "retention_in_days", 0) == 30
@@ -2200,6 +2516,26 @@ raw_violations contains violation("W5-IAM-002", change.address) if {
 	change.type in {"aws_iam_policy", "aws_iam_role", "aws_iam_role_policy", "aws_cloudwatch_log_resource_policy"}
 	policy := policy_text(change)
 	iam_scope_invalid(policy)
+	not approved_existing_w6_004_iam_policy(change)
+}
+
+approved_existing_w6_004_iam_policy(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == "module.iam.aws_iam_role_policy.ingestion"
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["no-op"]
+	change.change.before == change.change.after
+}
+
+approved_existing_w6_004_iam_policy(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == "module.iam.aws_iam_role_policy.runtime"
+	change.type == "aws_iam_role_policy"
+	valid_runtime_policy_expiry_delta(
+		change.change.before.policy,
+		change.change.after.policy,
+		operational.resource_expires_at,
+	)
 }
 
 raw_violations contains violation("W5-NET-001", change.address) if {
@@ -2321,6 +2657,25 @@ operational_expiry_delta(change, rule) if {
 	is_object(after_values)
 	object.remove(before_values, {"tags", "tags_all"}) == object.remove(after_values, {"tags", "tags_all"})
 	valid_expiry_reconciliation(before_values.tags, after_values.tags, operational.resource_expires_at)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
+	change_has_no_sensitive_markers(change)
+	not critical_unknown_present(change)
+}
+
+operational_expiry_delta(change, rule) if {
+	rule.delta_rule == "EXPIRES_AT"
+	rule.update_paths == ["tags.ExpiresAt", "tags_all.ExpiresAt"]
+	change.address in {
+		"module.eks[0].aws_eks_access_entry.administrator",
+		"module.eks[0].aws_eks_access_entry.deployment",
+	}
+	change.change.actions == ["update"]
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"tags", "tags_all"}) == object.remove(after_values, {"tags", "tags_all"})
+	object.keys(before_values.tags) == {"ExpiresAt"}
+	after_values.tags == {}
+	valid_utc_timestamp(before_values.tags.ExpiresAt)
 	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
 	change_has_no_sensitive_markers(change)
 	not critical_unknown_present(change)
@@ -2551,6 +2906,97 @@ operational_change_valid(change, rule) if {
 	operational_expiry_delta(change, rule)
 }
 
+w6_004_stage3_endpoint_address(address) if address in platform_interface_endpoint_addresses
+
+w6_004_stage3_endpoint_address(address) if {
+	address in {
+		`module.network.aws_vpc_endpoint.gateway["DynamoDB"]`,
+		`module.network.aws_vpc_endpoint.gateway["S3"]`,
+	}
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "terraform_data.w6_004_runtime_gate[0]"
+	change.type == "terraform_data"
+	change.change.actions == ["update"]
+	rule.update_paths == [
+		"input.approval_expires_at",
+		"input.approval_issued_at",
+		"input.deployment_start",
+		"output",
+	]
+	change.change.after.input.approval_expires_at == operational.resource_expires_at
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "module.eks[0].aws_eks_access_entry.resilience"
+	change.type == "aws_eks_access_entry"
+	change.change.actions == ["update"]
+	rule.update_paths == ["tags.ExpiresAt", "tags_all.ExpiresAt", "user_name"]
+	change.change.after.user_name == "fis-experiment"
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == `module.eks[0].aws_eks_addon.this["coredns"]`
+	change.type == "aws_eks_addon"
+	change.change.actions == ["delete", "create"]
+	rule.update_paths == [
+		"arn", "configuration_values", "created_at", "id", "modified_at",
+		"namespace_config", "service_account_role_arn", "tags.ExpiresAt",
+		"tags_all.ExpiresAt",
+	]
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "module.eks[0].aws_eks_node_group.application"
+	change.type == "aws_eks_node_group"
+	change.change.actions == ["delete", "create"]
+	rule.update_paths == [
+		"ami_type", "arn", "disk_size", "id", "labels", "node_group_name_prefix",
+		"node_repair_config", "release_version", "resources", "status",
+		"tags.ExpiresAt", "tags_all.ExpiresAt",
+		"update_config[0].max_unavailable_percentage",
+		"update_config[0].update_strategy", "version",
+	]
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address in {
+		"module.eks[0].aws_eks_pod_identity_association.ingestion",
+		"module.eks[0].aws_eks_pod_identity_association.runtime",
+	}
+	change.type == "aws_eks_pod_identity_association"
+	change.change.actions == ["update"]
+	rule.update_paths == ["external_id", "tags", "tags_all.ExpiresAt"]
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address in {
+		"module.eks[0].aws_iam_role.cluster",
+		"module.eks[0].aws_iam_role.node",
+		"module.iam.aws_iam_role.opensearch_administrator",
+	}
+	change.type == "aws_iam_role"
+	change.change.actions == ["update"]
+	rule.update_paths == ["assume_role_policy", "tags.ExpiresAt", "tags_all.ExpiresAt"]
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	w6_004_stage3_endpoint_address(change.address)
+	change.type == "aws_vpc_endpoint"
+	change.change.actions == ["update"]
+	rule.update_paths == ["policy", "tags.ExpiresAt", "tags_all.ExpiresAt"]
+}
+
+operational_change_valid(change, rule) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	rule.delta_rule == "W6_004_STAGE3_RECOVERY"
+	w6_004_stage3_recovery_delta(change, rule)
+	valid_change(change)
+	change_has_no_sensitive_markers(change)
+	not critical_unknown_present(change)
+}
+
 operational_apply_profile_valid if {
 	is_object(operational)
 	object.keys(operational) == {
@@ -2565,7 +3011,9 @@ operational_apply_profile_valid if {
 	valid_utc_timestamp(operational.expires_at)
 	time.parse_rfc3339_ns(operational.expires_at) > evaluation_time_ns
 	valid_utc_timestamp(operational.resource_expires_at)
-	time.parse_rfc3339_ns(operational.resource_expires_at) == evaluation_time_ns + 85500000000000
+	resource_expires_at_ns := time.parse_rfc3339_ns(operational.resource_expires_at)
+	resource_expires_at_ns > evaluation_time_ns
+	resource_expires_at_ns <= evaluation_time_ns + day_ns
 	regex.match("^[0-9a-f]{64}$", operational.inventory_sha256)
 	regex.match("^[0-9a-f]{64}$", operational.source_sha256)
 	is_array(operational.rules)
@@ -2715,7 +3163,7 @@ valid_before_sensitive_context if {
 		advanced.internal_user_database_enabled == false
 		count(advanced.master_user_options) == 1
 		master := advanced.master_user_options[0]
-		object.get(master, "master_user_name", null) == null
+		object.get(master, "master_user_name", null) in {null, ""}
 		object.get(master, "master_user_password", null) == null
 		is_string(master.master_user_arn)
 		master.master_user_arn != ""

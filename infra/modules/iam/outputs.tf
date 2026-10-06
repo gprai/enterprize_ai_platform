@@ -12,5 +12,10 @@ output "opensearch_administrator_role_arn" {
 
 output "github_oidc_role_arn" {
   value       = aws_iam_role.github_oidc.arn
-  description = "Trust-only role; no permissions policy is attached by W5-001."
+  description = "Environment-protected CI/CD deployment role scoped to the exact sandbox cluster."
+}
+
+output "fis_role_arn" {
+  value       = aws_iam_role.fis.arn
+  description = "Role used only by an owner-approved bounded FIS experiment."
 }

@@ -9,6 +9,7 @@ from typing import cast
 from .contracts import ContractError
 from .lifecycle_io import load_lifecycle_config
 from .lifecycle_models import OPERATIONAL_SCHEMA_VERSION
+from .live_validation import W6004Error, validate_source_contract
 
 EXPECTED_SCHEMA_VERSION = "1.0"
 EXPECTED_PROJECT = {
@@ -680,7 +681,7 @@ EXPECTED_GHA_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": ["W5-07", "W5-08"],
 }
-EXPECTED_EKS_IMPLEMENTATION_PATHS = (
+EXPECTED_EKS_IMPLEMENTATION_PATHS: tuple[str, ...] = (
     "deploy/k8s/kustomization.yaml",
     "deploy/k8s/deployment.yaml",
     "deploy/k8s/service.yaml",
@@ -711,25 +712,56 @@ EXPECTED_EKS_IMPLEMENTATION_PATHS = (
     "tests/security/test_policy_pack.py",
     "tests/integration/test_dependency_contract.py",
 )
+EXPECTED_W6_004_IMPLEMENTATION_PATHS = (
+    "configs/lifecycle/w6-004.json",
+    "requirements.txt",
+    "requirements-runtime.lock",
+    "requirements-ci.lock",
+    "infra/modules/eks/main.tf",
+    "infra/modules/eks/variables.tf",
+    "infra/modules/eks/outputs.tf",
+    "infra/modules/observability/main.tf",
+    "infra/modules/observability/variables.tf",
+    "infra/modules/observability/outputs.tf",
+    "deploy/k8s/namespace.yaml",
+    "deploy/k8s/otel-collector-configmap.yaml",
+    "src/enterprise_ai_platform/api/aws_composition.py",
+    "src/enterprise_ai_platform/api/sandbox_auth.py",
+    "tools/platformctl/image_lifecycle.py",
+    "tools/platformctl/kubernetes_lifecycle.py",
+    "tools/platformctl/live_validation.py",
+    "tests/fakes/w6_004_lifecycle.py",
+    "tests/fixtures/w6_004/provider-computed-shapes.json",
+    "tests/fixtures/w6_004/partial-apply-inventory.json",
+    "tests/fixtures/w6_004/native-resource-inventory.json",
+    "tests/unit/test_w6_004_lifecycle.py",
+    "tests/contract/test_w6_004_lifecycle_contract.py",
+    "tests/integration/test_w6_004_platform_composition.py",
+    "tests/feature/test_w6_004_full_lifecycle.py",
+    "tests/smoke/test_w6_004_live_smoke.py",
+    "tests/security/test_w6_004_lifecycle_security.py",
+    "tests/rollback/test_w6_004_full_rollback.py",
+    "tests/teardown/test_w6_004_cleanliness.py",
+)
+EXPECTED_EKS_IMPLEMENTATION_PATHS = (
+    EXPECTED_EKS_IMPLEMENTATION_PATHS + EXPECTED_W6_004_IMPLEMENTATION_PATHS
+)
 EXPECTED_EKS_FEATURE = {
     "id": "EKS-001",
     "implementation_paths": list(EXPECTED_EKS_IMPLEMENTATION_PATHS),
     "status": "In Progress",
-    "linked_tracker_steps": ["W6-02", "W6-03", "W6-04", "W6-05"],
+    "linked_tracker_steps": ["W6-02", "W6-03", "W6-04", "W6-05", "W6-004"],
     "control_contract": {
-        "artifact": "source template only; exact sentinel is never deployable",
+        "artifact": "two-image immutable release package; source sentinels are never deployable",
         "security": (
-            "non-root, read-only root, dropped capabilities, RuntimeDefault seccomp, "
-            "default-deny network"
+            "private EKS, Pod Identity, non-root containers, default-deny network "
+            "and bounded egress"
         ),
-        "rollback": (
-            "owner-supplied exact previous immutable digest with post-rollback verification"
-        ),
-        "teardown": "owner-executed workload and AWS residue verification",
-        "cost": "no cloud-spend authority; separate W6 approval required",
+        "rollback": "verified application digest and distinct saved infrastructure restore plan",
+        "teardown": "owner-executed full AWS, Kubernetes, KMS-tail and cost-residue verification",
+        "cost": "owner-bound lifecycle cap and per-stage stop limits required before execution",
         "owner_execution": (
-            "release binding, server-side dry-run, deployment, rollback and teardown require "
-            "separate owner authorization"
+            "all build, cloud, deployment, rollback and teardown commands remain owner-executed"
         ),
     },
 }
@@ -892,6 +924,7 @@ REQUIRED_FILES = (
     *EXPECTED_GHA_IMPLEMENTATION_PATHS,
     *EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     *EXPECTED_W6_003_IMPLEMENTATION_PATHS,
+    *EXPECTED_W6_004_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1002,6 +1035,13 @@ def validate_repository(root: Path | None = None) -> list[str]:
                 errors.append("operational lifecycle configuration must use v2")
         except ContractError as exc:
             errors.append(f"invalid W5-004 lifecycle configuration: {exc}")
+
+    w6_004_config = target / "configs/lifecycle/w6-004.json"
+    if w6_004_config.is_file():
+        try:
+            validate_source_contract(w6_004_config)
+        except W6004Error as exc:
+            errors.append(f"invalid W6-004 lifecycle source contract: {exc}")
 
     for relative_path in (
         "policies/opa/terraform.rego",

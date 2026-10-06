@@ -32,3 +32,18 @@ output "ecr_repository_arn" {
   value       = module.ecr.repository_arn
   description = "Encrypted sandbox ECR repository ARN."
 }
+
+output "eks_cluster_arn" {
+  value       = var.w6_004_enabled ? module.eks[0].cluster_arn : null
+  description = "W6-004 EKS cluster ARN when owner-bound deployment is enabled."
+}
+
+output "alert_topic_arn" {
+  value       = var.w6_004_enabled ? module.observability[0].alert_topic_arn : null
+  description = "W6-004 live alert topic ARN."
+}
+
+output "metrics_server_image" {
+  value       = var.w6_004_enabled ? module.eks[0].metrics_server_image : null
+  description = "Owner-bound immutable Metrics Server artifact for the Kubernetes stage."
+}

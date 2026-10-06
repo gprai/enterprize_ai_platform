@@ -354,3 +354,12 @@ def _verify_kms_retention(
         or entry.cost_bearing is not False
     ):
         raise ContractError("POST_VERIFY_KMS_SCHEDULE_MISMATCH_OR_OVERDUE")
+
+
+def verify_w6_004_cleanliness(residual_classes: tuple[str, ...]) -> str:
+    """Classify final W6-004 residue without discovery or deletion."""
+
+    from .destroy import validate_w6_004_final_residue
+
+    validate_w6_004_final_residue(residual_classes)
+    return "W6-004 CLEANLINESS CONTRACT SATISFIED - NATIVE DISCOVERY REQUIRED"

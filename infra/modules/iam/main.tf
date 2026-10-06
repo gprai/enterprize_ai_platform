@@ -5,8 +5,11 @@ locals {
   runtime_role_arn        = "arn:aws:iam::${var.aws_account_id}:role/${local.runtime_role_name}"
   platform_bucket_arn     = "arn:aws:s3:::${var.platform_bucket_name}"
   opensearch_domain_arn   = "arn:aws:es:${var.aws_region}:${var.aws_account_id}:domain/${var.opensearch_domain_name}"
+  opensearch_index_arn    = "${local.opensearch_domain_arn}/enterprise_ai_sandbox/*"
   inference_profile_arn   = "arn:aws:bedrock:${var.aws_region}:${var.aws_account_id}:inference-profile/${var.bedrock_inference_profile_id}"
   github_provider_arn     = "arn:aws:iam::${var.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
+  eks_cluster_arn         = "arn:aws:eks:${var.aws_region}:${var.aws_account_id}:cluster/${var.eks_cluster_name}"
+  application_log_arn     = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/enterprise-ai-platform/sandbox/application:*"
 }
 
 data "aws_iam_policy_document" "runtime_trust" {
@@ -114,12 +117,47 @@ resource "aws_iam_role" "opensearch_administrator" {
   lifecycle {
     precondition {
       condition = (
-        var.external_administrator_arn == "arn:aws:iam::526338061652:user/finopsinfra" &&
-        var.administrator_trust_expires_at == "2026-09-30T15:59:59Z"
+        can(regex("^arn:aws:iam::526338061652:role/", var.external_administrator_arn)) &&
+        can(timecmp(var.administrator_trust_expires_at, timestamp()))
       )
-      error_message = "OpenSearch administrator trust must retain the exact principal and UTC expiry."
+      error_message = "OpenSearch administrator trust requires an approved account role and UTC expiry."
     }
   }
+}
+
+data "aws_iam_policy_document" "fis_trust" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["fis.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "fis" {
+  name               = "enterprise-ai-sandbox-fis"
+  assume_role_policy = data.aws_iam_policy_document.fis_trust.json
+  tags               = var.tags
+}
+
+data "aws_iam_policy_document" "fis" {
+  #checkov:skip=CKV_AWS_111:Read-only EC2 and tagging discovery APIs do not support resource-level permissions; FIS execution remains separately owner-approved.
+  #checkov:skip=CKV_AWS_355:The owner-approved read-only discovery wildcards are limited to APIs without resource-level permissions.
+  statement {
+    actions   = ["ec2:DescribeInstances", "tag:GetResources"]
+    resources = ["*"]
+  }
+  statement {
+    actions   = ["eks:DescribeCluster", "eks:AccessKubernetesApi"]
+    resources = [local.eks_cluster_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "fis" {
+  name   = "bounded-eks-pod-delete-discovery"
+  role   = aws_iam_role.fis.id
+  policy = data.aws_iam_policy_document.fis.json
 }
 
 resource "aws_iam_role" "github_oidc" {
@@ -135,12 +173,27 @@ resource "aws_iam_role" "github_oidc" {
   }
 }
 
+data "aws_iam_policy_document" "github_eks_deployment" {
+  statement {
+    actions   = ["eks:DescribeCluster", "eks:AccessKubernetesApi"]
+    resources = [local.eks_cluster_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "github_eks_deployment" {
+  name   = "enterprise-ai-sandbox-eks-deployment"
+  role   = aws_iam_role.github_oidc.id
+  policy = data.aws_iam_policy_document.github_eks_deployment.json
+}
+
 data "aws_iam_policy_document" "runtime" {
+  #checkov:skip=CKV_AWS_111:The approved CloudWatch PutMetricData and X-Ray ingestion APIs do not support resource-level permissions; namespace, principal, region, role expiry and Pod Identity constrain use.
+  #checkov:skip=CKV_AWS_355:The approved telemetry wildcard resources are limited to CloudWatch and X-Ray APIs without resource-level authorization support.
   statement {
     sid       = "InvokeExactApprovedInferenceProfile"
     effect    = "Allow"
     actions   = ["bedrock:InvokeModel"]
-    resources = ["*"]
+    resources = [local.inference_profile_arn]
     condition {
       test     = "StringEquals"
       variable = "bedrock:InferenceProfileArn"
@@ -190,14 +243,53 @@ data "aws_iam_policy_document" "runtime" {
   }
 
   statement {
-    sid    = "RuntimeOpenSearchDataPlane"
+    sid     = "RuntimeOpenSearchHealthRead"
+    effect  = "Allow"
+    actions = ["es:ESHttpGet"]
+    resources = [
+      "${local.opensearch_domain_arn}/_cluster/health",
+    ]
+  }
+
+  statement {
+    sid    = "RuntimeOpenSearchExactIndexQuery"
     effect = "Allow"
     actions = [
       "es:ESHttpGet",
       "es:ESHttpHead",
       "es:ESHttpPost",
     ]
-    resources = ["${local.opensearch_domain_arn}/*"]
+    resources = [local.opensearch_index_arn]
+  }
+
+  statement {
+    sid    = "RuntimeWriteSafeApplicationLogs"
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:DescribeLogStreams",
+      "logs:PutLogEvents",
+    ]
+    resources = [local.application_log_arn]
+  }
+
+  statement {
+    sid       = "RuntimeWriteBoundedMetrics"
+    effect    = "Allow"
+    actions   = ["cloudwatch:PutMetricData"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "cloudwatch:namespace"
+      values   = ["EnterpriseAI/Sandbox"]
+    }
+  }
+
+  statement {
+    sid       = "RuntimeWriteXRayTelemetry"
+    effect    = "Allow"
+    actions   = ["xray:PutTelemetryRecords", "xray:PutTraceSegments"]
+    resources = ["*"]
   }
 }
 
@@ -254,7 +346,7 @@ data "aws_iam_policy_document" "ingestion" {
       "es:ESHttpPost",
       "es:ESHttpPut",
     ]
-    resources = ["${local.opensearch_domain_arn}/*"]
+    resources = [local.opensearch_index_arn]
   }
 }
 

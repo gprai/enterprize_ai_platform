@@ -14,13 +14,14 @@ from tools import w6_001_k8s
 ROOT = Path(__file__).resolve().parents[2]
 TEMPLATE_ROOT = ROOT / "deploy/k8s"
 DIGEST = "sha256:" + "a" * 64
+COLLECTOR_DIGEST = "sha256:" + "d" * 64
 SHA = "b" * 64
 
 
 def valid_binding(output_root: Path, allowed_root: Path) -> dict[str, object]:
     _, payloads = w6_001_k8s.load_template(TEMPLATE_ROOT)
     return {
-        "schema_version": "w6-001.release-binding.v1",
+        "schema_version": "w6-004.release-binding.v2",
         "ecr_repository_uri": (
             "526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/enterprise-ai/sandbox/api"
         ),
@@ -43,6 +44,39 @@ def valid_binding(output_root: Path, allowed_root: Path) -> dict[str, object]:
         "expires_at": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
         "allowed_output_root": str(allowed_root.resolve()),
         "output_root": str(output_root.resolve()),
+        "collector": {
+            "ecr_repository_uri": (
+                "526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/"
+                "enterprise-ai/sandbox/otel-collector"
+            ),
+            "digest": COLLECTOR_DIGEST,
+            "oci_identity": {"image_digest": COLLECTOR_DIGEST, "sha256": SHA},
+            "trivy": {
+                "image_digest": COLLECTOR_DIGEST,
+                "report_sha256": SHA,
+                "result": "PASS",
+            },
+            "grype": {
+                "image_digest": COLLECTOR_DIGEST,
+                "report_sha256": SHA,
+                "result": "PASS",
+            },
+            "spdx_sbom_sha256": SHA,
+            "cyclonedx_sbom_sha256": SHA,
+            "provenance": {"image_digest": COLLECTOR_DIGEST, "sha256": SHA},
+            "image_composition_identity": {
+                "image_digest": COLLECTOR_DIGEST,
+                "sha256": SHA,
+            },
+        },
+        "runtime": {
+            "opensearch_endpoint": (
+                "https://search-enterprise-ai-sandbox.example.ap-southeast-1.es.amazonaws.com"
+            ),
+            "bedrock_model_id": "global.amazon.nova-2-lite-v1:0",
+            "bedrock_inference_profile": "global.amazon.nova-2-lite-v1:0",
+            "embedding_snapshot_sha256": SHA,
+        },
     }
 
 
@@ -84,11 +118,11 @@ def test_every_other_unresolved_image_is_rejected(image: str) -> None:
         w6_001_k8s.validate_documents(documents, template_mode=True)
 
 
-def test_secondary_container_and_multiple_sentinels_are_rejected() -> None:
+def test_third_container_and_multiple_sentinels_are_rejected() -> None:
     documents = copy.deepcopy(template_documents())
     containers = deployment(documents)["spec"]["template"]["spec"]["containers"]  # type: ignore[index]
     containers.append(copy.deepcopy(containers[0]))
-    with pytest.raises(w6_001_k8s.W6001Error, match="exactly one container"):
+    with pytest.raises(w6_001_k8s.W6001Error, match="exactly the api and telemetry"):
         w6_001_k8s.validate_documents(documents, template_mode=True)
 
 
@@ -177,17 +211,21 @@ def test_canonical_binding_is_deterministic_and_does_not_mutate_template(tmp_pat
     documents, payloads = w6_001_k8s.load_template(TEMPLATE_ROOT)
     before = dict(payloads)
     binding = valid_binding(tmp_path / "operation", tmp_path)
-    image = w6_001_k8s.validate_release_binding(
+    images = w6_001_k8s.validate_release_binding(
         binding, source_template_sha256=w6_001_k8s.template_identity(payloads)
     )
-    first = w6_001_k8s.build_release_files(payloads, binding, image)
-    second = w6_001_k8s.build_release_files(payloads, binding, image)
+    first = w6_001_k8s.build_release_files(payloads, binding, images)
+    second = w6_001_k8s.build_release_files(payloads, binding, images)
     assert first == second
     assert payloads == before
     assert json.loads(first["release-binding.json"]) == binding
     assert isinstance(json.loads(first["rendered.json"]), list)
     assert w6_001_k8s.SENTINEL not in first["deployment.yaml"].decode()
-    assert w6_001_k8s.validate_documents(documents, template_mode=True) == w6_001_k8s.SENTINEL
+    assert w6_001_k8s.COLLECTOR_SENTINEL not in first["deployment.yaml"].decode()
+    assert w6_001_k8s.validate_documents(documents, template_mode=True) == (
+        w6_001_k8s.APP_SENTINEL,
+        w6_001_k8s.COLLECTOR_SENTINEL,
+    )
 
 
 def test_manifest_security_scaling_and_probe_contracts_fail_closed() -> None:

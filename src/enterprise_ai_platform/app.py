@@ -11,12 +11,15 @@ from pydantic import BaseModel
 
 from . import __version__
 from .agent.contracts import AgentController
+from .api.aws_composition import AWSRuntimeComposition, compose_aws_runtime
 from .api.dependencies import Authenticator, RAGAnswerService, ReadinessProbe
 from .api.routes import register_api_boundary
 from .api.runtime import RequestIdMiddleware
+from .api.sandbox_auth import SandboxTokenAuthenticator
 from .config import Settings
 from .telemetry.export import ExportingTelemetryRuntime
 from .telemetry.runtime import (
+    OTLPTelemetryRuntime,
     TelemetryRuntime,
     telemetry_for_application,
 )
@@ -42,6 +45,31 @@ def create_app(
 ) -> FastAPI:
     """Create the API after configuration validation, without implicit clients."""
     resolved_settings = settings if settings is not None else Settings()
+    aws_runtime: AWSRuntimeComposition | None = None
+    if resolved_settings.aws_composition_enabled:
+        if any(
+            dependency is not None
+            for dependency in (rag_service, readiness_probe, telemetry_runtime)
+        ):
+            raise ValueError("AWS composition cannot be mixed with injected provider wiring")
+        aws_runtime = compose_aws_runtime(resolved_settings)
+        rag_service = aws_runtime.rag_service
+        readiness_probe = aws_runtime.readiness_probe
+        telemetry_runtime = aws_runtime.telemetry
+        telemetry_runtime_owned = True
+    if authenticator is None and resolved_settings.sandbox_auth_enabled:
+        signing_key = resolved_settings.sandbox_auth_signing_key
+        issuer = resolved_settings.sandbox_auth_issuer
+        audience = resolved_settings.sandbox_auth_audience
+        tenant_id = resolved_settings.sandbox_auth_tenant_id
+        if signing_key is None or issuer is None or audience is None or tenant_id is None:
+            raise ValueError("enabled sandbox authentication configuration is incomplete")
+        authenticator = SandboxTokenAuthenticator(
+            signing_key=signing_key.get_secret_value(),
+            issuer=issuer,
+            audience=audience,
+            tenant_id=tenant_id,
+        )
     api_enabled = resolved_settings.api_routes_enabled
     resolved_telemetry = telemetry_for_application(
         enabled=resolved_settings.telemetry_enabled,
@@ -49,7 +77,7 @@ def create_app(
     )
     if resolved_settings.telemetry_exporter == "otlp_grpc" and not isinstance(
         resolved_telemetry,
-        ExportingTelemetryRuntime,
+        ExportingTelemetryRuntime | OTLPTelemetryRuntime,
     ):
         raise ValueError("otlp_grpc requires the bounded W6-002 export runtime")
 
@@ -59,6 +87,8 @@ def create_app(
         try:
             yield
         finally:
+            if aws_runtime is not None:
+                await aws_runtime.close()
             if telemetry_runtime_owned:
                 resolved_telemetry.force_flush()
                 resolved_telemetry.shutdown()
