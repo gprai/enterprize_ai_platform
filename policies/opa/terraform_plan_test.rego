@@ -2760,3 +2760,81 @@ test_r5_rejects_runtime_opensearch_write_access if {
 	])
 	not valid_runtime_opensearch_policy_addition(before, after)
 }
+
+r7_sts_policy(actions) := json.marshal({
+	"Statement": [{
+		"Action": actions,
+		"Condition": {
+			"StringEquals": {
+				"aws:PrincipalAccount": "526338061652",
+			},
+		},
+		"Effect": "Allow",
+		"Principal": {"AWS": "*"},
+		"Resource": "*",
+		"Sid": "ExactSandboxAccountSTS",
+	}],
+	"Version": "2012-10-17",
+})
+
+r7_sts_policy_change(after_actions) := normalized_update(
+	`module.network.aws_vpc_endpoint.interface["STS"]`,
+	"aws_vpc_endpoint",
+	{"policy": r7_sts_policy("sts:AssumeRole")},
+	{"policy": r7_sts_policy(after_actions)},
+)
+
+r7_sts_policy_rule := r5_recovery_rule(
+	`module.network.aws_vpc_endpoint.interface["STS"]`,
+	"aws_vpc_endpoint",
+	["update"],
+	["policy"],
+)
+
+test_r7_accepts_exact_sts_get_caller_identity_addition if {
+	change := r7_sts_policy_change([
+		"sts:GetCallerIdentity",
+		"sts:AssumeRole",
+	])
+	w6_004_stage3_recovery_delta(change, r7_sts_policy_rule)
+}
+
+test_r7_rejects_unapproved_sts_action if {
+	change := r7_sts_policy_change([
+		"sts:GetCallerIdentity",
+		"sts:AssumeRole",
+		"sts:*",
+	])
+	not w6_004_stage3_recovery_delta(change, r7_sts_policy_rule)
+}
+
+test_r7_rejects_sts_policy_non_action_change if {
+	change := r7_sts_policy_change([
+		"sts:GetCallerIdentity",
+		"sts:AssumeRole",
+	])
+	modified_after := object.union(change.change.after, {
+		"policy": json.marshal({
+			"Statement": [{
+				"Action": [
+					"sts:GetCallerIdentity",
+					"sts:AssumeRole",
+				],
+				"Condition": {
+					"StringEquals": {
+						"aws:PrincipalAccount": "000000000000",
+					},
+				},
+				"Effect": "Allow",
+				"Principal": {"AWS": "*"},
+				"Resource": "*",
+				"Sid": "ExactSandboxAccountSTS",
+			}],
+			"Version": "2012-10-17",
+		}),
+	})
+	modified := object.union(change, {
+		"change": object.union(change.change, {"after": modified_after}),
+	})
+	not w6_004_stage3_recovery_delta(modified, r7_sts_policy_rule)
+}

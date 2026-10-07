@@ -3030,6 +3030,30 @@ w6_004_stage3_recovery_delta(change, rule) if {
 	rule.update_paths == ["assume_role_policy", "tags.ExpiresAt", "tags_all.ExpiresAt"]
 }
 
+valid_sts_endpoint_policy_only_repair(change) if {
+	before_document := json.unmarshal(change.change.before.policy)
+	after_document := json.unmarshal(change.change.after.policy)
+
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+	count(before_document.Statement) == 1
+	count(after_document.Statement) == 1
+
+	before_statement := before_document.Statement[0]
+	after_statement := after_document.Statement[0]
+
+	object.remove(before_statement, {"Action"}) == object.remove(after_statement, {"Action"})
+	exact_string_value_or_members(before_statement.Action, {"sts:AssumeRole"})
+	exact_string_members(after_statement.Action, {"sts:AssumeRole", "sts:GetCallerIdentity"})
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == `module.network.aws_vpc_endpoint.interface["STS"]`
+	change.type == "aws_vpc_endpoint"
+	change.change.actions == ["update"]
+	rule.update_paths == ["policy"]
+	valid_sts_endpoint_policy_only_repair(change)
+}
+
 w6_004_stage3_recovery_delta(change, rule) if {
 	w6_004_stage3_endpoint_address(change.address)
 	change.type == "aws_vpc_endpoint"

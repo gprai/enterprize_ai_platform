@@ -54,7 +54,7 @@ locals {
     ]
     EKS        = ["eks:AccessKubernetesApi", "eks:DescribeCluster"]
     "EKS Auth" = ["eks-auth:AssumeRoleForPodIdentity"]
-    STS        = ["sts:AssumeRole"]
+    STS        = ["sts:AssumeRole", "sts:GetCallerIdentity"]
     EC2 = [
       "ec2:AssignPrivateIpAddresses",
       "ec2:AttachNetworkInterface",

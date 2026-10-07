@@ -105,6 +105,7 @@ def test_exact_44_key_tfvars_schema_is_preserved_without_az_key() -> None:
     assert "availability_zones == tolist([" in network_variables
     assert "vpc_endpoint_services == tolist([" in network_main
     assert '"ec2:ModifyNetworkInterfaceAttribute",' in network_main
+    assert '["sts:AssumeRole", "sts:GetCallerIdentity"]' in network_main
 
 
 def test_only_approved_contract_inputs_suppress_tflint_unused_declarations() -> None:
