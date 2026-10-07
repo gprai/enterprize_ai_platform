@@ -67,6 +67,7 @@ locals {
       "ec2:DescribeSubnets",
       "ec2:DescribeTags",
       "ec2:DetachNetworkInterface",
+      "ec2:ModifyNetworkInterfaceAttribute",
       "ec2:UnassignPrivateIpAddresses",
     ]
     "CloudWatch Logs"       = ["logs:CreateLogStream", "logs:DescribeLogStreams", "logs:PutLogEvents"]
