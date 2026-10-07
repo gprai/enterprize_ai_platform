@@ -17,6 +17,7 @@ from tools.platformctl.lifecycle_io import canonical_json_bytes
 from tools.platformctl.lifecycle_models import Outcome
 from tools.platformctl.operation_state import OperationLedger
 from tools.platformctl.policy_runner import (
+    PLATFORM_POLICY_DOCUMENT_BINDINGS,
     PLATFORM_POLICY_DOCUMENT_CALL_EXPRESSION_SHA256,
     PLATFORM_POLICY_DOCUMENT_EXPRESSION_SHA256,
     PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256,
@@ -1758,6 +1759,13 @@ def test_exact_platform_policy_document_relationship_is_normalized(
         PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256,
         full_document_address,
         frozenset({sha256(canonical_json_bytes({})).hexdigest()}),
+    )
+    binding_key = (full_resource_address, field_path)
+    binding = PLATFORM_POLICY_DOCUMENT_BINDINGS[binding_key]
+    monkeypatch.setitem(
+        PLATFORM_POLICY_DOCUMENT_BINDINGS,
+        binding_key,
+        (binding[0], binding[1], frozenset({sid})),
     )
 
     normalized = normalize_plan(raw, evaluation_time="2026-09-08T00:00:00Z")

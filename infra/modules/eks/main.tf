@@ -151,6 +151,7 @@ resource "aws_eks_addon" "this" {
   addon_version               = each.value
   resolve_conflicts_on_create = "NONE"
   resolve_conflicts_on_update = "PRESERVE"
+  configuration_values        = each.key == "vpc-cni" ? jsonencode({ enableNetworkPolicy = "true" }) : null
   tags                        = var.tags
 }
 

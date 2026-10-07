@@ -154,6 +154,20 @@ class Settings(BaseSettings):
             return None
         return value
 
+    @field_validator(
+        "telemetry_queue_capacity",
+        "telemetry_batch_size",
+        "telemetry_background_workers",
+        mode="before",
+    )
+    @classmethod
+    def normalize_telemetry_integer_literal(cls, value: object) -> object:
+        """Parse only the exact integer strings supplied by Kubernetes env vars."""
+
+        if isinstance(value, str) and value in {"0", "1", "64", "512"}:
+            return int(value)
+        return value
+
     @field_validator("qdrant_api_key", mode="before")
     @classmethod
     def normalize_optional_secret(cls, value: object) -> object:

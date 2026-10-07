@@ -13,8 +13,23 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_private_network_and_immutable_images_are_mandatory() -> None:
     policy = (ROOT / "deploy/k8s/networkpolicy.yaml").read_text(encoding="utf-8")
     assert "10.60.0.0/16" in policy
+    assert "169.254.170.23/32" in policy
     assert "0.0.0.0/0" not in policy
     assert validate_kubernetes_evidence(kubernetes_evidence())["status"] == "PASS"
+
+
+def test_vpc_cni_enforces_network_policy() -> None:
+    eks = (ROOT / "infra/modules/eks/main.tf").read_text(encoding="utf-8")
+    assert 'each.key == "vpc-cni" ? jsonencode({ enableNetworkPolicy = "true" }) : null' in eks
+
+
+def test_resource_expiry_can_outlive_mutation_but_not_governance() -> None:
+    sandbox = (ROOT / "infra/environments/sandbox/main.tf").read_text(encoding="utf-8")
+    assert 'timecmp(var.mandatory_tags["ExpiresAt"], var.approval_expires_at) >= 0' in sandbox
+    assert 'timeadd(var.approval_issued_at, "24h")' in sandbox
+    assert 'timeadd(var.deployment_start, "24h")' in sandbox
+    assert 'timeadd(var.deployment_start, "8h")' not in sandbox
+    assert 'var.mandatory_tags["ExpiresAt"] == var.approval_expires_at' not in sandbox
 
 
 def test_sandbox_auth_secret_is_mounted_as_a_read_only_file() -> None:
@@ -54,12 +69,22 @@ def test_runtime_and_ingestion_identity_permissions_remain_separate() -> None:
     assert '"es:ESHttpPut"' in ingestion
 
 
-def test_opensearch_resource_policy_does_not_restore_runtime_write_access() -> None:
+def test_opensearch_resource_policy_grants_runtime_only_exact_read_paths() -> None:
     text = (ROOT / "infra/modules/opensearch/main.tf").read_text(encoding="utf-8")
     domain_access = text.split('data "aws_iam_policy_document" "domain_access" {', 1)[1].split(
         'resource "aws_opensearch_domain" "this"', 1
     )[0]
-    assert "var.runtime_role_arn" not in domain_access
+    assert 'sid    = "RuntimeExactReadAccess"' in domain_access
+    runtime = domain_access.split('sid    = "RuntimeExactReadAccess"', 1)[1]
+    assert "var.runtime_role_arn" in runtime
+    assert '"es:ESHttpGet"' in runtime
+    assert '"es:ESHttpHead"' in runtime
+    assert '"es:ESHttpPost"' in runtime
+    assert '"es:ESHttpDelete"' not in runtime
+    assert '"es:ESHttpPatch"' not in runtime
+    assert '"es:ESHttpPut"' not in runtime
+    assert '"${local.domain_arn}/_cluster/health"' in runtime
+    assert '"${local.domain_arn}/enterprise_ai_sandbox/*"' in runtime
     assert "var.ingestion_role_arn" in domain_access
     assert "var.administrator_role_arn" in domain_access
 

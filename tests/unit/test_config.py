@@ -93,6 +93,63 @@ def test_w6_002_export_profile_is_exact(
     assert export_settings.telemetry_shutdown_timeout_seconds == 2.0
 
 
+def test_w6_002_export_profile_accepts_exact_kubernetes_environment_strings(
+    valid_settings_values: dict[str, object],
+) -> None:
+    settings = Settings(
+        _env_file=None,
+        api_routes_enabled=True,
+        telemetry_enabled=True,
+        telemetry_exporter="otlp_grpc",
+        telemetry_otlp_endpoint="http://127.0.0.1:4317",
+        telemetry_queue_capacity="512",  # type: ignore[arg-type]
+        telemetry_batch_size="64",  # type: ignore[arg-type]
+        telemetry_export_delay_seconds="1.0",  # type: ignore[arg-type]
+        telemetry_export_timeout_seconds="1.0",  # type: ignore[arg-type]
+        telemetry_background_workers="1",  # type: ignore[arg-type]
+        telemetry_flush_timeout_seconds="2.0",  # type: ignore[arg-type]
+        telemetry_shutdown_timeout_seconds="2.0",  # type: ignore[arg-type]
+        **valid_settings_values,
+    )
+
+    assert settings.telemetry_queue_capacity == 512
+    assert settings.telemetry_batch_size == 64
+    assert settings.telemetry_background_workers == 1
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("telemetry_queue_capacity", "0512"),
+        ("telemetry_batch_size", " 64"),
+        ("telemetry_background_workers", "true"),
+    ],
+)
+def test_telemetry_integer_literals_reject_noncanonical_environment_strings(
+    field: str,
+    value: str,
+    valid_settings_values: dict[str, object],
+) -> None:
+    values = dict(valid_settings_values)
+    values.update(
+        api_routes_enabled=True,
+        telemetry_enabled=True,
+        telemetry_exporter="otlp_grpc",
+        telemetry_otlp_endpoint="http://127.0.0.1:4317",
+        telemetry_queue_capacity="512",
+        telemetry_batch_size="64",
+        telemetry_export_delay_seconds="1.0",
+        telemetry_export_timeout_seconds="1.0",
+        telemetry_background_workers="1",
+        telemetry_flush_timeout_seconds="2.0",
+        telemetry_shutdown_timeout_seconds="2.0",
+    )
+    values[field] = value
+
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, **values)
+
+
 def test_w6_002_export_profile_rejects_non_loopback_endpoint(
     valid_settings_values: dict[str, object],
 ) -> None:

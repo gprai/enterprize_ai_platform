@@ -60,6 +60,8 @@ def validate(root: Path) -> str:
             raise W6002Error(f"missing W6-002 artifact: {relative_path}")
 
     collector = _load_yaml(root / REQUIRED_PATHS[0])
+    if collector["extensions"]["health_check"] != {"endpoint": "0.0.0.0:13133"}:
+        raise W6002Error("collector health endpoint must be reachable by kubelet probes")
     grpc = collector["receivers"]["otlp"]["protocols"]["grpc"]
     limiter = collector["processors"]["memory_limiter"]
     batch = collector["processors"]["batch"]
@@ -69,23 +71,25 @@ def validate(root: Path) -> str:
         raise W6002Error("collector memory limit differs")
     if batch != {"send_batch_size": 64, "timeout": "1s"}:
         raise W6002Error("collector batch differs")
-    for exporter in ("awsxray", "awsemf"):
-        values = collector["exporters"][exporter]
-        if values["region"] != "ap-southeast-1" or values["timeout"] != "1s":
-            raise W6002Error(f"{exporter} region or timeout differs")
-        if values["sending_queue"] != {
-            "enabled": True,
-            "queue_size": 512,
-            "num_consumers": 1,
-        }:
-            raise W6002Error(f"{exporter} queue differs")
-        if values["retry_on_failure"] != {
-            "enabled": True,
-            "initial_interval": "1s",
-            "max_interval": "5s",
-            "max_elapsed_time": "30s",
-        }:
-            raise W6002Error(f"{exporter} retry differs")
+    exporters = collector["exporters"]
+    if exporters["awsxray"] != {"region": "ap-southeast-1", "max_retries": 1}:
+        raise W6002Error("awsxray configuration differs")
+    if exporters["awsemf"] != {
+        "region": "ap-southeast-1",
+        "namespace": "EnterpriseAI/Sandbox",
+        "log_group_name": "/aws/enterprise-ai-platform/sandbox/application",
+        "log_retention": 14,
+        "max_retries": 1,
+    }:
+        raise W6002Error("awsemf configuration differs")
+    if exporters["awscloudwatchlogs"] != {
+        "region": "ap-southeast-1",
+        "log_group_name": "/aws/enterprise-ai-platform/sandbox/application",
+        "log_stream_name": "enterprise-ai-api",
+    }:
+        raise W6002Error("awscloudwatchlogs configuration differs")
+    if collector["service"]["pipelines"]["logs"]["exporters"] != ["awscloudwatchlogs"]:
+        raise W6002Error("logs must use the log-capable CloudWatch exporter")
 
     slo = _load_yaml(root / REQUIRED_PATHS[1])
     if slo["schema_version"] != "w6-002.slo.v1" or slo["owner"] != "Gyan Prakash Rai":

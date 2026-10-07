@@ -56,6 +56,11 @@ def test_release_binding_schema_is_closed() -> None:
     }
 
 
+def test_collector_authority_is_the_existing_private_repository() -> None:
+    assert w6_001_k8s.COLLECTOR_REPOSITORY_NAME == "enterprise-ai/sandbox/api"
+    assert w6_001_k8s.COLLECTOR_REPOSITORY_NAME == w6_001_k8s.REPOSITORY_NAME
+
+
 def test_tool_has_no_cluster_registry_or_aws_client() -> None:
     source = (ROOT / "tools/w6_001_k8s.py").read_text(encoding="utf-8")
     prohibited = (

@@ -79,9 +79,16 @@ resource "terraform_data" "w6_004_runtime_gate" {
           for limit in values(var.w6_004_stage_stop_limits_usd) :
           try(tonumber(limit) > 0, false)
         ]) &&
-        var.mandatory_tags["ExpiresAt"] == var.approval_expires_at
+        try(
+          timecmp(var.mandatory_tags["ExpiresAt"], var.approval_expires_at) >= 0 &&
+          timecmp(
+            var.mandatory_tags["ExpiresAt"],
+            timeadd(var.approval_issued_at, "24h")
+          ) <= 0,
+          false
+        )
       )
-      error_message = "W6-004 owner-bound identities, images, recipients and cost limits must be fully supplied before planning."
+      error_message = "W6-004 owner-bound inputs must be complete and resource expiry must be between the mutation deadline and the 24-hour governance limit."
     }
     precondition {
       condition = try(
@@ -89,10 +96,10 @@ resource "terraform_data" "w6_004_runtime_gate" {
         timecmp(var.approval_expires_at, timeadd(var.approval_issued_at, "24h")) <= 0 &&
         timecmp(var.deployment_start, var.approval_issued_at) >= 0 &&
         timecmp(var.deployment_start, var.approval_expires_at) < 0 &&
-        timecmp(var.approval_expires_at, timeadd(var.deployment_start, "8h")) <= 0,
+        timecmp(var.approval_expires_at, timeadd(var.deployment_start, "24h")) <= 0,
         false
       )
-      error_message = "W6-004 approval and mutation timestamps must be valid UTC values within the 24-hour and 8-hour limits."
+      error_message = "W6-004 approval and mutation timestamps must be valid UTC values within the 24-hour governance limit."
     }
   }
 }

@@ -90,6 +90,11 @@ template_input := {
   }, {
     "apiVersion": "networking.k8s.io/v1",
     "kind": "NetworkPolicy",
+    "metadata": {"name": "enterprise-ai-pod-identity-egress", "namespace": "enterprise-ai-sandbox"},
+    "spec": {"podSelector": {"matchLabels": {"app.kubernetes.io/name": "enterprise-ai-api"}}, "policyTypes": ["Egress"], "egress": [{"to": [{"ipBlock": {"cidr": "169.254.170.23/32"}}], "ports": [{"protocol": "TCP", "port": 80}]}]}
+  }, {
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "NetworkPolicy",
     "metadata": {"name": "enterprise-ai-default-deny", "namespace": "enterprise-ai-sandbox"},
     "spec": {"podSelector": {}, "policyTypes": ["Ingress", "Egress"]}
   }, {

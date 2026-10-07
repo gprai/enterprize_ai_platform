@@ -71,7 +71,7 @@ deny contains "object inventory differs" if {
 }
 
 deny contains "object inventory differs" if {
-  count([object | some object in input.objects; object.kind == "NetworkPolicy"]) != 4
+  count([object | some object in input.objects; object.kind == "NetworkPolicy"]) != 5
 }
 
 deny contains "object inventory differs" if {
@@ -335,6 +335,27 @@ deny contains "private AWS egress boundary differs" if {
   resource.kind == "NetworkPolicy"
   resource.metadata.name == "enterprise-ai-private-aws-egress"
   resource.spec.egress != [{"to": [{"ipBlock": {"cidr": "10.60.0.0/16"}}], "ports": [{"protocol": "TCP", "port": 443}]}]
+}
+
+deny contains "Pod Identity egress boundary differs" if {
+  some resource in input.objects
+  resource.kind == "NetworkPolicy"
+  resource.metadata.name == "enterprise-ai-pod-identity-egress"
+  resource.spec.podSelector != {"matchLabels": {"app.kubernetes.io/name": "enterprise-ai-api"}}
+}
+
+deny contains "Pod Identity egress boundary differs" if {
+  some resource in input.objects
+  resource.kind == "NetworkPolicy"
+  resource.metadata.name == "enterprise-ai-pod-identity-egress"
+  resource.spec.policyTypes != ["Egress"]
+}
+
+deny contains "Pod Identity egress boundary differs" if {
+  some resource in input.objects
+  resource.kind == "NetworkPolicy"
+  resource.metadata.name == "enterprise-ai-pod-identity-egress"
+  resource.spec.egress != [{"to": [{"ipBlock": {"cidr": "169.254.170.23/32"}}], "ports": [{"protocol": "TCP", "port": 80}]}]
 }
 
 deny contains "FIS role differs" if {

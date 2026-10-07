@@ -29,7 +29,7 @@ FIS_SERVICE_ACCOUNT = "fis-experiment"
 FIS_ROLE = "fis-pod-delete"
 APP_NAME = "enterprise-ai-api"
 REPOSITORY_NAME = "enterprise-ai/sandbox/api"
-COLLECTOR_REPOSITORY_NAME = "enterprise-ai/sandbox/otel-collector"
+COLLECTOR_REPOSITORY_NAME = REPOSITORY_NAME
 TEMPLATE_STATUS = "SOURCE TEMPLATE VALID — NOT DEPLOYABLE"
 RELEASE_STATUS = "IMMUTABLE RELEASE PACKAGE VALID — NOT DEPLOYED"
 TEMPLATE_FILES = (
@@ -59,6 +59,7 @@ EXPECTED_OBJECTS = {
     ("networking.k8s.io/v1", "NetworkPolicy", "enterprise-ai-dns-egress"),
     ("networking.k8s.io/v1", "NetworkPolicy", "enterprise-ai-api-ingress"),
     ("networking.k8s.io/v1", "NetworkPolicy", "enterprise-ai-private-aws-egress"),
+    ("networking.k8s.io/v1", "NetworkPolicy", "enterprise-ai-pod-identity-egress"),
     ("autoscaling/v2", "HorizontalPodAutoscaler", APP_NAME),
     ("policy/v1", "PodDisruptionBudget", APP_NAME),
 }
@@ -360,7 +361,7 @@ def _validate_deployment(deployment: dict[str, object], *, template_mode: bool) 
             or collector_match.group("repository") != COLLECTOR_REPOSITORY_NAME
             or not DIGEST_RE.fullmatch(collector_parts[1])
         ):
-            raise W6001Error("release mode requires an immutable collector ECR image")
+            raise W6001Error("release mode requires the approved immutable private collector image")
     collector_security = _mapping(collector.get("securityContext"), "collector securityContext")
     if collector_security != {
         "allowPrivilegeEscalation": False,
@@ -455,6 +456,22 @@ def _validate_network(policies: list[dict[str, object]]) -> None:
     private_rendered = json.dumps(private_egress, sort_keys=True)
     if "10.60.0.0/16" not in private_rendered or private_rendered.count('"port": 443') != 1:
         raise W6001Error("AWS egress must be bounded to the sandbox VPC over TLS")
+    pod_identity = _mapping(
+        by_name["enterprise-ai-pod-identity-egress"].get("spec"),
+        "Pod Identity egress policy",
+    )
+    expected_pod_identity = {
+        "podSelector": {"matchLabels": {"app.kubernetes.io/name": APP_NAME}},
+        "policyTypes": ["Egress"],
+        "egress": [
+            {
+                "to": [{"ipBlock": {"cidr": "169.254.170.23/32"}}],
+                "ports": [{"protocol": "TCP", "port": 80}],
+            }
+        ],
+    }
+    if pod_identity != expected_pod_identity:
+        raise W6001Error("Pod Identity egress must be bounded to the credential endpoint")
     ingress = _mapping(by_name["enterprise-ai-api-ingress"].get("spec"), "API ingress")
     ingress_rendered = json.dumps(ingress, sort_keys=True)
     if NAMESPACE not in ingress_rendered or ingress_rendered.count('"port": 8000') != 1:
@@ -675,7 +692,7 @@ def validate_release_binding(
         or collector_match.group("account") != account
         or collector_match.group("region") != region
     ):
-        raise W6001Error("collector ECR authority differs")
+        raise W6001Error("collector private ECR authority differs")
     if not DIGEST_RE.fullmatch(collector_digest) or collector_digest == "sha256:" + "0" * 64:
         raise W6001Error("collector digest must be exact lowercase sha256")
     _identity(collector.get("oci_identity"), "collector.oci_identity", collector_digest)

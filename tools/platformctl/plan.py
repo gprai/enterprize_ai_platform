@@ -2273,7 +2273,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         ".secrets.baseline",
         # pragma: allowlist nextline secret
-        "e3e7a0d520eb28ff799fd781324f178512fba5fcc169343b7c850c0701791dfa",
+        "a5d274776f4a71c2d3dbc6b2655f220ac1b04727d2a6df5ec5af68fc1179b4b5",
     ),
     (
         "feature-matrix.yaml",
@@ -2298,7 +2298,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/environments/sandbox/main.tf",
         # pragma: allowlist nextline secret
-        "efa249b7d4f836a2724f6d2b664fce0930a5a0107b0728f2e7b76bd083f1a160",
+        "ee1c3d7c27331e7c9be1acfbe876de1573475ed54620365c62c99417994a9d75",
     ),
     (
         "infra/environments/sandbox/versions.tf",
@@ -2323,7 +2323,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_precommit_controls.py",
         # pragma: allowlist nextline secret
-        "4500da10d5e5685196c7a21f6c42a9b7b9ba22bb2633a002a8e177df93add620",
+        "cbe6a2894c8e4c3ffb1aa9549af1264040c4144b2955220e8540070d5a319f52",
     ),
     (
         "tests/security/test_repository_security.py",
@@ -2333,7 +2333,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_terraform_security.py",
         # pragma: allowlist nextline secret
-        "b87e22080c9f6bb3537406ee05baab847117a608fbd902db563c813f3e4ff7ca",
+        "c2630a4838ec2b80524136b945af4889136bd45b3e88ecb82dd174426d66a538",
     ),
     (
         "tests/teardown/test_platformctl_cleanup.py",
@@ -2408,7 +2408,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "policies/opa/exceptions.json",
         # pragma: allowlist nextline secret
-        "765c8889afb1ca4d0da148e120998343c979c02524a2b1f1070aa0aec83f4087",
+        "afc12e263e6224ccb34a5e410879fc7760943e22b0d098829007cf6cd7087392",
     ),
 )
 

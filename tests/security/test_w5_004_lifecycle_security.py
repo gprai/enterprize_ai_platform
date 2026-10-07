@@ -893,7 +893,11 @@ def module_aware_platform_unknown_plan() -> dict[str, object]:
             "RuntimeReadPlatformObjects",
             "RuntimeListPlatformBucket",
             "RuntimeUsePlatformKey",
-            "RuntimeOpenSearchDataPlane",
+            "RuntimeOpenSearchHealthRead",
+            "RuntimeOpenSearchExactIndexQuery",
+            "RuntimeWriteSafeApplicationLogs",
+            "RuntimeWriteBoundedMetrics",
+            "RuntimeWriteXRayTelemetry",
         ),
         "ingestion": (
             "IngestionPlatformObjects",
@@ -970,7 +974,10 @@ def module_aware_platform_unknown_plan() -> dict[str, object]:
         )
 
     opensearch_resources: list[dict[str, object]] = [
-        policy_document("domain_access", ("ExactSandboxRoleDataPlaneAccess",)),
+        policy_document(
+            "domain_access",
+            ("ExactSandboxRoleDataPlaneAccess", "RuntimeExactReadAccess"),
+        ),
         policy_document("log_delivery", ("ExactOpenSearchLogDelivery",)),
         {
             "address": "aws_cloudwatch_log_group.this",
@@ -1597,7 +1604,9 @@ def test_existing_opensearch_admin_trust_expiry_reconciliation_is_normalized() -
         )
 
     before_role["assume_role_policy"] = trust(previous_expiry)
-    after_role["assume_role_policy"] = trust(current_expiry)
+    trust_expiry = "2026-09-08T11:00:00Z"
+    assert previous_expiry < trust_expiry < current_expiry
+    after_role["assume_role_policy"] = trust(trust_expiry)
     after_domain = cast(dict[str, object], domain_body["after"])
     advanced = cast(list[dict[str, object]], after_domain["advanced_security_options"])[0]
     master = cast(list[dict[str, object]], advanced["master_user_options"])[0]

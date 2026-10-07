@@ -46,8 +46,7 @@ def valid_binding(output_root: Path, allowed_root: Path) -> dict[str, object]:
         "output_root": str(output_root.resolve()),
         "collector": {
             "ecr_repository_uri": (
-                "526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/"
-                "enterprise-ai/sandbox/otel-collector"
+                "526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/enterprise-ai/sandbox/api"
             ),
             "digest": COLLECTOR_DIGEST,
             "oci_identity": {"image_digest": COLLECTOR_DIGEST, "sha256": SHA},
@@ -175,6 +174,51 @@ def test_binding_rejects_wrong_image_authority(
 def test_binding_rejects_every_image_identity_mismatch(tmp_path: Path, field: str) -> None:
     binding = valid_binding(tmp_path / "operation", tmp_path)
     binding[field]["image_digest"] = "sha256:" + "c" * 64  # type: ignore[index]
+    with pytest.raises(w6_001_k8s.W6001Error, match="mismatch"):
+        w6_001_k8s.validate_release_binding(
+            binding,
+            source_template_sha256=binding["source_identity"]["template_sha256"],  # type: ignore[index]
+        )
+
+
+@pytest.mark.parametrize(
+    "repository",
+    [
+        "public.ecr.aws/aws-observability/aws-otel-collector",
+        "public.ecr.aws/aws-observability/wrong",
+        "docker.io/aws-observability/aws-otel-collector",
+        "526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/enterprise-ai/sandbox/otel-collector",
+        "111122223333.dkr.ecr.ap-southeast-1.amazonaws.com/enterprise-ai/sandbox/api",
+        "526338061652.dkr.ecr.us-east-1.amazonaws.com/enterprise-ai/sandbox/api",
+    ],
+)
+def test_binding_rejects_unapproved_collector_repository(tmp_path: Path, repository: str) -> None:
+    binding = valid_binding(tmp_path / "operation", tmp_path)
+    binding["collector"]["ecr_repository_uri"] = repository  # type: ignore[index]
+    with pytest.raises(w6_001_k8s.W6001Error, match="private ECR authority"):
+        w6_001_k8s.validate_release_binding(
+            binding,
+            source_template_sha256=binding["source_identity"]["template_sha256"],  # type: ignore[index]
+        )
+
+
+@pytest.mark.parametrize("digest", ["latest", "sha256:" + "0" * 64, "sha256:" + "d" * 63])
+def test_binding_rejects_mutable_or_invalid_collector_identity(tmp_path: Path, digest: str) -> None:
+    binding = valid_binding(tmp_path / "operation", tmp_path)
+    binding["collector"]["digest"] = digest  # type: ignore[index]
+    with pytest.raises(w6_001_k8s.W6001Error, match="collector digest"):
+        w6_001_k8s.validate_release_binding(
+            binding,
+            source_template_sha256=binding["source_identity"]["template_sha256"],  # type: ignore[index]
+        )
+
+
+@pytest.mark.parametrize(
+    "field", ["oci_identity", "trivy", "grype", "provenance", "image_composition_identity"]
+)
+def test_binding_rejects_collector_evidence_identity_mismatch(tmp_path: Path, field: str) -> None:
+    binding = valid_binding(tmp_path / "operation", tmp_path)
+    binding["collector"][field]["image_digest"] = "sha256:" + "e" * 64  # type: ignore[index]
     with pytest.raises(w6_001_k8s.W6001Error, match="mismatch"):
         w6_001_k8s.validate_release_binding(
             binding,

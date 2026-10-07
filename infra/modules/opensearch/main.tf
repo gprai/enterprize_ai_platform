@@ -73,6 +73,24 @@ data "aws_iam_policy_document" "domain_access" {
     ]
     resources = ["${local.domain_arn}/*"]
   }
+
+  statement {
+    sid    = "RuntimeExactReadAccess"
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = [var.runtime_role_arn]
+    }
+    actions = [
+      "es:ESHttpGet",
+      "es:ESHttpHead",
+      "es:ESHttpPost",
+    ]
+    resources = [
+      "${local.domain_arn}/_cluster/health",
+      "${local.domain_arn}/enterprise_ai_sandbox/*",
+    ]
+  }
 }
 
 resource "aws_opensearch_domain" "this" {

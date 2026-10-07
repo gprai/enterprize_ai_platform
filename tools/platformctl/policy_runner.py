@@ -99,7 +99,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "efa249b7d4f836a2724f6d2b664fce0930a5a0107b0728f2e7b76bd083f1a160",
+        "ee1c3d7c27331e7c9be1acfbe876de1573475ed54620365c62c99417994a9d75",
     ),
     (
         "infra/modules/ecr/main.tf",
@@ -113,7 +113,7 @@ PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
 PLATFORM_OPENSEARCH_LOG_SOURCE_SHA256 = (
     (
         "infra/modules/opensearch/main.tf",
-        "23d678d628f28a8680a5d9369766308d2d306ed1a6c736caad152fc056f97d71",
+        "c8bb4dd3cddf1d555ab8b620c245378a9af190418dc4672678351ed1ec7f87f7",
     ),
 )
 PLATFORM_GATEWAY_ENDPOINTS = frozenset(
@@ -144,7 +144,7 @@ PLATFORM_ALERT_TOPIC_ADDRESS = "module.observability[0].aws_sns_topic.alerts"
 PLATFORM_EKS_SOURCE_SHA256 = (
     (
         "infra/modules/eks/main.tf",
-        "f263c57faf93b40395d877c572116b9ee674a2a925ac33766f5de72fb24f5d50",
+        "55e6ae8cb7fc847dbd6c2f9f00d4713257ed0a4af34ffdb36984e8209dcad6de",
     ),
 )
 PLATFORM_OBSERVABILITY_SOURCE_SHA256 = (
@@ -251,7 +251,7 @@ PLATFORM_POLICY_DOCUMENT_BINDINGS = {
     ("module.opensearch.aws_opensearch_domain.this", "access_policies"): (
         "aws_opensearch_domain",
         "module.opensearch.data.aws_iam_policy_document.domain_access",
-        frozenset({"ExactSandboxRoleDataPlaneAccess"}),
+        frozenset({"ExactSandboxRoleDataPlaneAccess", "RuntimeExactReadAccess"}),
     ),
     (
         "module.opensearch.aws_cloudwatch_log_resource_policy.opensearch",
@@ -372,19 +372,19 @@ PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     ),
     "module.opensearch.data.aws_iam_policy_document.domain_access": (
         "infra/modules/opensearch/main.tf",
-        "23d678d628f28a8680a5d9369766308d2d306ed1a6c736caad152fc056f97d71",
+        "c8bb4dd3cddf1d555ab8b620c245378a9af190418dc4672678351ed1ec7f87f7",
     ),
     "module.opensearch.data.aws_iam_policy_document.log_delivery": (
         "infra/modules/opensearch/main.tf",
-        "23d678d628f28a8680a5d9369766308d2d306ed1a6c736caad152fc056f97d71",
+        "c8bb4dd3cddf1d555ab8b620c245378a9af190418dc4672678351ed1ec7f87f7",
     ),
     "module.eks[0].data.aws_iam_policy_document.cluster_assume": (
         "infra/modules/eks/main.tf",
-        "f263c57faf93b40395d877c572116b9ee674a2a925ac33766f5de72fb24f5d50",
+        "55e6ae8cb7fc847dbd6c2f9f00d4713257ed0a4af34ffdb36984e8209dcad6de",
     ),
     "module.eks[0].data.aws_iam_policy_document.node_assume": (
         "infra/modules/eks/main.tf",
-        "f263c57faf93b40395d877c572116b9ee674a2a925ac33766f5de72fb24f5d50",
+        "55e6ae8cb7fc847dbd6c2f9f00d4713257ed0a4af34ffdb36984e8209dcad6de",
     ),
     **{
         policy_address: (
@@ -1507,12 +1507,10 @@ def _admin_trust_expiry_reconciliation(
     previous_expiry: str,
     current_expiry: str,
 ) -> bool:
-    """Accept only the approved expiry change in the administrator trust policy."""
+    """Accept only a bounded extension of the administrator trust deadline."""
     normalized: list[object] = []
-    for document, expected_expiry in (
-        (before, previous_expiry),
-        (after, current_expiry),
-    ):
+    trust_expiries: list[str] = []
+    for document in (before, after):
         candidate = deepcopy(document)
         if not isinstance(candidate, dict):
             return False
@@ -1527,14 +1525,29 @@ def _admin_trust_expiry_reconciliation(
             return False
         condition = statement.get("Condition")
         date_less_than = condition.get("DateLessThan") if isinstance(condition, dict) else None
-        if (
-            not isinstance(date_less_than, dict)
-            or date_less_than.get("aws:CurrentTime") != expected_expiry
-        ):
+        trust_expiry = (
+            date_less_than.get("aws:CurrentTime") if isinstance(date_less_than, dict) else None
+        )
+        if not isinstance(trust_expiry, str):
             return False
+        trust_expiries.append(trust_expiry)
         date_less_than["aws:CurrentTime"] = "OWNER_APPROVED_EXPIRY"
         normalized.append(candidate)
-    return normalized[0] == normalized[1]
+    try:
+        previous_trust_expiry = parse_utc_timestamp(
+            trust_expiries[0], "previous administrator trust expiry"
+        )
+        current_trust_expiry = parse_utc_timestamp(
+            trust_expiries[1], "current administrator trust expiry"
+        )
+        current_resource_expiry = parse_utc_timestamp(current_expiry, "current resource expiry")
+    except ContractError:
+        return False
+    return (
+        trust_expiries[0] == previous_expiry
+        and previous_trust_expiry < current_trust_expiry <= current_resource_expiry
+        and normalized[0] == normalized[1]
+    )
 
 
 def _existing_opensearch_admin_role_is_exact(

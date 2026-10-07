@@ -1053,7 +1053,13 @@ def diagnostic_policy_templates(scope: str) -> dict[str, object]:
             http,
             [domain + "/*"],
             {"AWS": [ingestion, administrator]},
-        )
+        ),
+        statement(
+            "RuntimeExactReadAccess",
+            "es:ESHttpGet es:ESHttpHead es:ESHttpPost",
+            [domain + "/_cluster/health", domain + "/enterprise_ai_sandbox/*"],
+            {"AWS": runtime},
+        ),
     )
     return result
 
