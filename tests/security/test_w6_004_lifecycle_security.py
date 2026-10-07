@@ -56,6 +56,10 @@ def test_static_iam_user_is_not_in_sandbox_composition() -> None:
 
 def test_runtime_and_ingestion_identity_permissions_remain_separate() -> None:
     text = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    assert (
+        'opensearch_index_root_arn = "${local.opensearch_domain_arn}/enterprise_ai_sandbox"' in text
+    )
+    assert text.count("local.opensearch_index_root_arn,") == 2
     runtime = text.split('data "aws_iam_policy_document" "runtime" {', 1)[1].split(
         'resource "aws_iam_role_policy" "runtime"', 1
     )[0]
@@ -84,6 +88,7 @@ def test_opensearch_resource_policy_grants_runtime_only_exact_read_paths() -> No
     assert '"es:ESHttpPatch"' not in runtime
     assert '"es:ESHttpPut"' not in runtime
     assert '"${local.domain_arn}/_cluster/health"' in runtime
+    assert '"${local.domain_arn}/enterprise_ai_sandbox"' in runtime
     assert '"${local.domain_arn}/enterprise_ai_sandbox/*"' in runtime
     assert "var.ingestion_role_arn" in domain_access
     assert "var.administrator_role_arn" in domain_access

@@ -1,15 +1,16 @@
 locals {
-  runtime_role_name       = "enterprise-ai-sandbox-runtime"
-  ingestion_role_name     = "enterprise-ai-sandbox-ingestion"
-  administrator_role_name = "enterprise-ai-sandbox-opensearch-admin"
-  runtime_role_arn        = "arn:aws:iam::${var.aws_account_id}:role/${local.runtime_role_name}"
-  platform_bucket_arn     = "arn:aws:s3:::${var.platform_bucket_name}"
-  opensearch_domain_arn   = "arn:aws:es:${var.aws_region}:${var.aws_account_id}:domain/${var.opensearch_domain_name}"
-  opensearch_index_arn    = "${local.opensearch_domain_arn}/enterprise_ai_sandbox/*"
-  inference_profile_arn   = "arn:aws:bedrock:${var.aws_region}:${var.aws_account_id}:inference-profile/${var.bedrock_inference_profile_id}"
-  github_provider_arn     = "arn:aws:iam::${var.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
-  eks_cluster_arn         = "arn:aws:eks:${var.aws_region}:${var.aws_account_id}:cluster/${var.eks_cluster_name}"
-  application_log_arn     = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/enterprise-ai-platform/sandbox/application:*"
+  runtime_role_name         = "enterprise-ai-sandbox-runtime"
+  ingestion_role_name       = "enterprise-ai-sandbox-ingestion"
+  administrator_role_name   = "enterprise-ai-sandbox-opensearch-admin"
+  runtime_role_arn          = "arn:aws:iam::${var.aws_account_id}:role/${local.runtime_role_name}"
+  platform_bucket_arn       = "arn:aws:s3:::${var.platform_bucket_name}"
+  opensearch_domain_arn     = "arn:aws:es:${var.aws_region}:${var.aws_account_id}:domain/${var.opensearch_domain_name}"
+  opensearch_index_root_arn = "${local.opensearch_domain_arn}/enterprise_ai_sandbox"
+  opensearch_index_arn      = "${local.opensearch_domain_arn}/enterprise_ai_sandbox/*"
+  inference_profile_arn     = "arn:aws:bedrock:${var.aws_region}:${var.aws_account_id}:inference-profile/${var.bedrock_inference_profile_id}"
+  github_provider_arn       = "arn:aws:iam::${var.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
+  eks_cluster_arn           = "arn:aws:eks:${var.aws_region}:${var.aws_account_id}:cluster/${var.eks_cluster_name}"
+  application_log_arn       = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/enterprise-ai-platform/sandbox/application:*"
 }
 
 data "aws_iam_policy_document" "runtime_trust" {
@@ -259,7 +260,10 @@ data "aws_iam_policy_document" "runtime" {
       "es:ESHttpHead",
       "es:ESHttpPost",
     ]
-    resources = [local.opensearch_index_arn]
+    resources = [
+      local.opensearch_index_root_arn,
+      local.opensearch_index_arn,
+    ]
   }
 
   statement {
@@ -346,7 +350,10 @@ data "aws_iam_policy_document" "ingestion" {
       "es:ESHttpPost",
       "es:ESHttpPut",
     ]
-    resources = [local.opensearch_index_arn]
+    resources = [
+      local.opensearch_index_root_arn,
+      local.opensearch_index_arn,
+    ]
   }
 }
 

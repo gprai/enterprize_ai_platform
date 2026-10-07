@@ -88,6 +88,7 @@ data "aws_iam_policy_document" "domain_access" {
     ]
     resources = [
       "${local.domain_arn}/_cluster/health",
+      "${local.domain_arn}/enterprise_ai_sandbox",
       "${local.domain_arn}/enterprise_ai_sandbox/*",
     ]
   }
