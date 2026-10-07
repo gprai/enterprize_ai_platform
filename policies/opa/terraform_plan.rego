@@ -3110,6 +3110,137 @@ w6_004_stage3_recovery_delta(change, rule) if {
 	target.parameters.selectorValue == "app.kubernetes.io/name=enterprise-ai-api"
 }
 
+valid_exact_statement_resource_repair(
+	before_policy,
+	after_policy,
+	target_sid,
+	before_resources,
+	after_resources,
+) if {
+	is_string(before_policy)
+	is_string(after_policy)
+
+	before_document := json.unmarshal(before_policy)
+	after_document := json.unmarshal(after_policy)
+
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+
+	before_statements := before_document.Statement
+	after_statements := after_document.Statement
+	count(before_statements) == count(after_statements)
+
+	before_target := [
+	statement |
+		some statement in before_statements
+		object.get(statement, "Sid", "") == target_sid
+	]
+	after_target := [
+	statement |
+		some statement in after_statements
+		object.get(statement, "Sid", "") == target_sid
+	]
+	count(before_target) == 1
+	count(after_target) == 1
+
+	object.remove(before_target[0], {"Resource"}) == object.remove(after_target[0], {"Resource"})
+	exact_string_value_or_members(before_target[0].Resource, before_resources)
+	exact_string_members(after_target[0].Resource, after_resources)
+
+	before_other := {
+	json.marshal(statement) |
+		some statement in before_statements
+		object.get(statement, "Sid", "") != target_sid
+	}
+	after_other := {
+	json.marshal(statement) |
+		some statement in after_statements
+		object.get(statement, "Sid", "") != target_sid
+	}
+	before_other == after_other
+}
+
+valid_iam_index_root_resource_repair(before_policy, after_policy, target_sid) if {
+	valid_exact_statement_resource_repair(
+		before_policy,
+		after_policy,
+		target_sid,
+		{
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
+		},
+		{
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox",
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
+		},
+	)
+}
+
+valid_runtime_opensearch_root_resource_repair(before_policy, after_policy) if {
+	valid_exact_statement_resource_repair(
+		before_policy,
+		after_policy,
+		"RuntimeExactReadAccess",
+		{
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/_cluster/health",
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
+		},
+		{
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/_cluster/health",
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox",
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
+		},
+	)
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "module.iam.aws_iam_role_policy.runtime"
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["update"]
+	rule.update_paths == ["policy"]
+
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"policy"}) == object.remove(after_values, {"policy"})
+
+	valid_iam_index_root_resource_repair(
+		before_values.policy,
+		after_values.policy,
+		"RuntimeOpenSearchExactIndexQuery",
+	)
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "module.iam.aws_iam_role_policy.ingestion"
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["update"]
+	rule.update_paths == ["policy"]
+
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"policy"}) == object.remove(after_values, {"policy"})
+
+	valid_iam_index_root_resource_repair(
+		before_values.policy,
+		after_values.policy,
+		"IngestionOpenSearchDataPlane",
+	)
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "module.opensearch.aws_opensearch_domain.this"
+	change.type == "aws_opensearch_domain"
+	change.change.actions == ["update"]
+	rule.update_paths == ["access_policies"]
+
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"access_policies"}) == object.remove(after_values, {"access_policies"})
+
+	valid_runtime_opensearch_root_resource_repair(
+		before_values.access_policies,
+		after_values.access_policies,
+	)
+}
+
 valid_runtime_opensearch_statement(statement) if {
 	object.keys(statement) == {"Action", "Effect", "Principal", "Resource", "Sid"}
 	statement.Sid == "RuntimeExactReadAccess"

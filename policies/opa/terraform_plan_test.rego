@@ -2838,3 +2838,130 @@ test_r7_rejects_sts_policy_non_action_change if {
 	})
 	not w6_004_stage3_recovery_delta(modified, r7_sts_policy_rule)
 }
+
+r8_index_root_arn := "arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox"
+r8_index_child_arn := sprintf("%s/*", [r8_index_root_arn])
+r8_health_arn := "arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/_cluster/health"
+
+r8_iam_policy(sid, resources) := json.marshal({
+	"Version": "2012-10-17",
+	"Statement": [{
+		"Sid": sid,
+		"Effect": "Allow",
+		"Action": ["es:ESHttpGet", "es:ESHttpHead", "es:ESHttpPost"],
+		"Resource": resources,
+	}],
+})
+
+r8_iam_change(address, sid, after_resources) := normalized_update(
+	address,
+	"aws_iam_role_policy",
+	{
+		"name": "enterprise-ai-sandbox",
+		"role": "enterprise-ai-sandbox",
+		"policy": r8_iam_policy(sid, r8_index_child_arn),
+	},
+	{
+		"name": "enterprise-ai-sandbox",
+		"role": "enterprise-ai-sandbox",
+		"policy": r8_iam_policy(sid, after_resources),
+	},
+)
+
+r8_runtime_iam_rule := r5_recovery_rule(
+	"module.iam.aws_iam_role_policy.runtime",
+	"aws_iam_role_policy",
+	["update"],
+	["policy"],
+)
+
+r8_ingestion_iam_rule := r5_recovery_rule(
+	"module.iam.aws_iam_role_policy.ingestion",
+	"aws_iam_role_policy",
+	["update"],
+	["policy"],
+)
+
+test_r8_accepts_runtime_iam_index_root_addition if {
+	change := r8_iam_change(
+		"module.iam.aws_iam_role_policy.runtime",
+		"RuntimeOpenSearchExactIndexQuery",
+		[r8_index_root_arn, r8_index_child_arn],
+	)
+	w6_004_stage3_recovery_delta(change, r8_runtime_iam_rule)
+}
+
+test_r8_accepts_ingestion_iam_index_root_addition if {
+	change := r8_iam_change(
+		"module.iam.aws_iam_role_policy.ingestion",
+		"IngestionOpenSearchDataPlane",
+		[r8_index_root_arn, r8_index_child_arn],
+	)
+	w6_004_stage3_recovery_delta(change, r8_ingestion_iam_rule)
+}
+
+test_r8_rejects_additional_iam_resource if {
+	change := r8_iam_change(
+		"module.iam.aws_iam_role_policy.runtime",
+		"RuntimeOpenSearchExactIndexQuery",
+		[
+			r8_index_root_arn,
+			r8_index_child_arn,
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/*",
+		],
+	)
+	not w6_004_stage3_recovery_delta(change, r8_runtime_iam_rule)
+}
+
+r8_domain_runtime_statement(resources) := {
+	"Sid": "RuntimeExactReadAccess",
+	"Effect": "Allow",
+	"Principal": {
+		"AWS": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime",
+	},
+	"Action": ["es:ESHttpGet", "es:ESHttpHead", "es:ESHttpPost"],
+	"Resource": resources,
+}
+
+r8_domain_change(after_resources) := normalized_update(
+	"module.opensearch.aws_opensearch_domain.this",
+	"aws_opensearch_domain",
+	{
+		"access_policies": r5_opensearch_policy([
+			r5_opensearch_existing_statement,
+			r8_domain_runtime_statement([r8_health_arn, r8_index_child_arn]),
+		]),
+	},
+	{
+		"access_policies": r5_opensearch_policy([
+			r5_opensearch_existing_statement,
+			r8_domain_runtime_statement(after_resources),
+		]),
+	},
+)
+
+r8_domain_rule := r5_recovery_rule(
+	"module.opensearch.aws_opensearch_domain.this",
+	"aws_opensearch_domain",
+	["update"],
+	["access_policies"],
+)
+
+test_r8_accepts_domain_index_root_addition if {
+	change := r8_domain_change([
+		r8_health_arn,
+		r8_index_root_arn,
+		r8_index_child_arn,
+	])
+	w6_004_stage3_recovery_delta(change, r8_domain_rule)
+}
+
+test_r8_rejects_additional_domain_resource if {
+	change := r8_domain_change([
+		r8_health_arn,
+		r8_index_root_arn,
+		r8_index_child_arn,
+		"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/*",
+	])
+	not w6_004_stage3_recovery_delta(change, r8_domain_rule)
+}
