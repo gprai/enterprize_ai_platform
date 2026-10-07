@@ -2487,3 +2487,197 @@ test_log_kms_delta_rejects_duplicate_kms_action if {
 		"Statement": [altered],
 	})
 }
+
+r5_policy_test_input := {
+	"evaluation_context": object.union(approved_context, {
+		"operation": {"resource_expires_at": approved_tags.ExpiresAt},
+	}),
+}
+
+r5_expiry_rule(address, resource_type) := {
+	"address": address,
+	"resource_type": resource_type,
+	"actions": ["update"],
+	"update_paths": ["tags.ExpiresAt", "tags_all.ExpiresAt"],
+	"delta_rule": "EXPIRES_AT",
+}
+
+r5_access_entry_change := normalized_update(
+	"module.eks[0].aws_eks_access_entry.resilience",
+	"aws_eks_access_entry",
+	{"user_name": "fis-experiment", "tags": {"ExpiresAt": previous_tags.ExpiresAt}, "tags_all": previous_tags},
+	{"user_name": "fis-experiment", "tags": {}, "tags_all": approved_tags},
+)
+
+r5_pod_identity_change := {
+	"address": "module.eks[0].aws_eks_pod_identity_association.runtime",
+	"type": "aws_eks_pod_identity_association",
+	"change": {
+		"actions": ["update"],
+		"before": {
+			"external_id": null,
+			"role_arn": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime",
+			"tags": {"ExpiresAt": previous_tags.ExpiresAt},
+			"tags_all": previous_tags,
+		},
+		"after": {
+			"role_arn": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime",
+			"tags": null,
+			"tags_all": approved_tags,
+		},
+		"after_unknown": {"external_id": true, "tags_all": {}},
+		"before_sensitive": {"tags": {}, "tags_all": {}},
+		"after_sensitive": {"tags_all": {}},
+	},
+}
+
+test_r5_accepts_provider_normalized_expiry_changes if {
+	access_rule := r5_expiry_rule(r5_access_entry_change.address, r5_access_entry_change.type)
+	operational_expiry_delta(r5_access_entry_change, access_rule) with input as r5_policy_test_input
+
+	pod_rule := r5_expiry_rule(r5_pod_identity_change.address, r5_pod_identity_change.type)
+	operational_expiry_delta(r5_pod_identity_change, pod_rule) with input as r5_policy_test_input
+}
+
+test_r5_rejects_pod_identity_role_change if {
+	after := object.union(r5_pod_identity_change.change.after, {
+		"role_arn": "arn:aws:iam::526338061652:role/unapproved",
+	})
+	changed := object.union(r5_pod_identity_change, {
+		"change": object.union(r5_pod_identity_change.change, {"after": after}),
+	})
+	rule := r5_expiry_rule(changed.address, changed.type)
+	not operational_expiry_delta(changed, rule) with input as r5_policy_test_input
+}
+
+r5_recovery_rule(address, resource_type, actions, update_paths) := {
+	"address": address,
+	"resource_type": resource_type,
+	"actions": actions,
+	"update_paths": update_paths,
+	"delta_rule": "W6_004_STAGE3_RECOVERY",
+}
+
+r5_vpc_cni_change(configuration_values) := normalized_update(
+	`module.eks[0].aws_eks_addon.this["vpc-cni"]`,
+	"aws_eks_addon",
+	{"configuration_values": "", "tags": previous_tags, "tags_all": previous_tags},
+	{"configuration_values": configuration_values, "tags": approved_tags, "tags_all": approved_tags},
+)
+
+test_r5_accepts_exact_vpc_cni_network_policy_enablement if {
+	change := r5_vpc_cni_change(`{"enableNetworkPolicy":"true"}`)
+	rule := r5_recovery_rule(change.address, change.type, ["update"], ["configuration_values", "tags.ExpiresAt", "tags_all.ExpiresAt"])
+	w6_004_stage3_recovery_delta(change, rule) with input as r5_policy_test_input
+}
+
+test_r5_rejects_disabled_vpc_cni_network_policy if {
+	change := r5_vpc_cni_change(`{"enableNetworkPolicy":"false"}`)
+	rule := r5_recovery_rule(change.address, change.type, ["update"], ["configuration_values", "tags.ExpiresAt", "tags_all.ExpiresAt"])
+	not w6_004_stage3_recovery_delta(change, rule) with input as r5_policy_test_input
+}
+
+r5_fis_before := {
+	"action": [{
+		"action_id": "aws:eks:pod-delete",
+		"parameter": [{"key": "kubernetesServiceAccount", "value": "fis-experiment"}],
+	}],
+	"experiment_options": [{"account_targeting": "single-account", "empty_target_resolution_mode": "fail"}],
+	"id": "approved-template-id",
+	"tags": previous_tags,
+	"tags_all": previous_tags,
+	"target": [{
+		"parameters": {
+			"namespace": "enterprise-ai-sandbox",
+			"selectorType": "labelSelector",
+			"selectorValue": "app.kubernetes.io/name=enterprise-ai-api",
+		},
+		"resource_type": "aws:eks:pod",
+		"selection_mode": "COUNT(1)",
+	}],
+}
+
+r5_fis_after(service_account) := {
+	"action": [{
+		"action_id": "aws:eks:pod-delete",
+		"parameter": [{"key": "kubernetesServiceAccount", "value": service_account}],
+	}],
+	"tags": approved_tags,
+	"tags_all": approved_tags,
+	"target": [{
+		"parameters": {
+			"namespace": "enterprise-ai-sandbox",
+			"selectorType": "labelSelector",
+			"selectorValue": "app.kubernetes.io/name=enterprise-ai-api",
+		},
+		"resource_type": "aws:eks:pod",
+		"selection_mode": "COUNT(1)",
+	}],
+}
+
+r5_fis_change(service_account) := {
+	"address": "module.observability[0].aws_fis_experiment_template.pod_delete",
+	"type": "aws_fis_experiment_template",
+	"change": {
+		"actions": ["delete", "create"],
+		"before": r5_fis_before,
+		"after": r5_fis_after(service_account),
+		"after_unknown": {"experiment_options": true, "id": true},
+		"before_sensitive": {},
+		"after_sensitive": {},
+	},
+}
+
+r5_fis_rule := r5_recovery_rule(
+	"module.observability[0].aws_fis_experiment_template.pod_delete",
+	"aws_fis_experiment_template",
+	["delete", "create"],
+	["experiment_options", "id", "tags.ExpiresAt", "tags_all.ExpiresAt"],
+)
+
+test_r5_accepts_exact_bounded_fis_replacement if {
+	w6_004_stage3_recovery_delta(r5_fis_change("fis-experiment"), r5_fis_rule) with input as r5_policy_test_input
+}
+
+test_r5_rejects_wrong_fis_service_account if {
+	not w6_004_stage3_recovery_delta(r5_fis_change("default"), r5_fis_rule) with input as r5_policy_test_input
+}
+
+r5_opensearch_existing_statement := {
+	"Sid": "ExactSandboxRoleDataPlaneAccess",
+	"Effect": "Allow",
+	"Principal": {"AWS": ["arn:aws:iam::526338061652:role/enterprise-ai-sandbox-ingestion"]},
+	"Action": ["es:ESHttpGet"],
+	"Resource": ["arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/*"],
+}
+
+r5_opensearch_runtime_statement(actions) := {
+	"Sid": "RuntimeExactReadAccess",
+	"Effect": "Allow",
+	"Principal": {"AWS": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime"},
+	"Action": actions,
+	"Resource": [
+		"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/_cluster/health",
+		"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
+	],
+}
+
+r5_opensearch_policy(statements) := json.marshal({"Version": "2012-10-17", "Statement": statements})
+
+test_r5_accepts_exact_runtime_opensearch_policy_addition if {
+	before := r5_opensearch_policy([r5_opensearch_existing_statement])
+	after := r5_opensearch_policy([
+		r5_opensearch_existing_statement,
+		r5_opensearch_runtime_statement(["es:ESHttpGet", "es:ESHttpHead", "es:ESHttpPost"]),
+	])
+	valid_runtime_opensearch_policy_addition(before, after)
+}
+
+test_r5_rejects_runtime_opensearch_write_access if {
+	before := r5_opensearch_policy([r5_opensearch_existing_statement])
+	after := r5_opensearch_policy([
+		r5_opensearch_existing_statement,
+		r5_opensearch_runtime_statement(["es:ESHttpGet", "es:ESHttpPut", "es:ESHttpPost"]),
+	])
+	not valid_runtime_opensearch_policy_addition(before, after)
+}

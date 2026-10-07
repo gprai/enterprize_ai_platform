@@ -2668,6 +2668,7 @@ operational_expiry_delta(change, rule) if {
 	change.address in {
 		"module.eks[0].aws_eks_access_entry.administrator",
 		"module.eks[0].aws_eks_access_entry.deployment",
+		"module.eks[0].aws_eks_access_entry.resilience",
 	}
 	change.change.actions == ["update"]
 	before_values := change.change.before
@@ -2677,6 +2678,29 @@ operational_expiry_delta(change, rule) if {
 	after_values.tags == {}
 	valid_utc_timestamp(before_values.tags.ExpiresAt)
 	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
+	change_has_no_sensitive_markers(change)
+	not critical_unknown_present(change)
+}
+
+operational_expiry_delta(change, rule) if {
+	rule.delta_rule == "EXPIRES_AT"
+	rule.update_paths == ["tags.ExpiresAt", "tags_all.ExpiresAt"]
+	change.address in {
+		"module.eks[0].aws_eks_pod_identity_association.ingestion",
+		"module.eks[0].aws_eks_pod_identity_association.runtime",
+	}
+	change.change.actions == ["update"]
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"external_id", "tags", "tags_all"}) == object.remove(after_values, {"external_id", "tags", "tags_all"})
+	object.get(before_values, "external_id", null) == null
+	object.get(after_values, "external_id", null) == null
+	object.keys(before_values.tags) == {"ExpiresAt"}
+	after_values.tags == null
+	valid_utc_timestamp(before_values.tags.ExpiresAt)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
+	object.get(change.change.after_unknown, "external_id", false) == true
+	object.get(change.change.after_unknown, "tags_all", {}) == {}
 	change_has_no_sensitive_markers(change)
 	not critical_unknown_present(change)
 }
@@ -2986,6 +3010,105 @@ w6_004_stage3_recovery_delta(change, rule) if {
 	change.type == "aws_vpc_endpoint"
 	change.change.actions == ["update"]
 	rule.update_paths == ["policy", "tags.ExpiresAt", "tags_all.ExpiresAt"]
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == `module.eks[0].aws_eks_addon.this["vpc-cni"]`
+	change.type == "aws_eks_addon"
+	change.change.actions == ["update"]
+	rule.update_paths == ["configuration_values", "tags.ExpiresAt", "tags_all.ExpiresAt"]
+
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"configuration_values", "tags", "tags_all"}) == object.remove(after_values, {"configuration_values", "tags", "tags_all"})
+	before_values.configuration_values == ""
+	json.unmarshal(after_values.configuration_values) == {"enableNetworkPolicy": "true"}
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, operational.resource_expires_at)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "module.observability[0].aws_fis_experiment_template.pod_delete"
+	change.type == "aws_fis_experiment_template"
+	change.change.actions == ["delete", "create"]
+	rule.update_paths == ["experiment_options", "id", "tags.ExpiresAt", "tags_all.ExpiresAt"]
+
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"experiment_options", "id", "tags", "tags_all"}) == object.remove(after_values, {"experiment_options", "id", "tags", "tags_all"})
+	before_values.experiment_options == [{
+		"account_targeting": "single-account",
+		"empty_target_resolution_mode": "fail",
+	}]
+	is_string(before_values.id)
+	before_values.id != ""
+	not "experiment_options" in object.keys(after_values)
+	not "id" in object.keys(after_values)
+	object.get(change.change.after_unknown, "experiment_options", false) == true
+	object.get(change.change.after_unknown, "id", false) == true
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, operational.resource_expires_at)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
+
+	some action in after_values.action
+	action.action_id == "aws:eks:pod-delete"
+	some parameter in action.parameter
+	parameter == {"key": "kubernetesServiceAccount", "value": "fis-experiment"}
+	some target in after_values.target
+	target.resource_type == "aws:eks:pod"
+	target.selection_mode == "COUNT(1)"
+	target.parameters.namespace == "enterprise-ai-sandbox"
+	target.parameters.selectorType == "labelSelector"
+	target.parameters.selectorValue == "app.kubernetes.io/name=enterprise-ai-api"
+}
+
+valid_runtime_opensearch_statement(statement) if {
+	object.keys(statement) == {"Action", "Effect", "Principal", "Resource", "Sid"}
+	statement.Sid == "RuntimeExactReadAccess"
+	statement.Effect == "Allow"
+	statement.Principal == {"AWS": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime"}
+	exact_string_members(statement.Action, {"es:ESHttpGet", "es:ESHttpHead", "es:ESHttpPost"})
+	exact_string_members(statement.Resource, {
+		"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/_cluster/health",
+		"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
+	})
+}
+
+valid_runtime_opensearch_policy_addition(before_policy, after_policy) if {
+	is_string(before_policy)
+	is_string(after_policy)
+	before_document := json.unmarshal(before_policy)
+	after_document := json.unmarshal(after_policy)
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+
+	before_statements := before_document.Statement
+	after_statements := after_document.Statement
+	count(after_statements) == count(before_statements) + 1
+
+	before_runtime := [statement | some statement in before_statements; object.get(statement, "Sid", "") == "RuntimeExactReadAccess"]
+	after_runtime := [statement | some statement in after_statements; object.get(statement, "Sid", "") == "RuntimeExactReadAccess"]
+	count(before_runtime) == 0
+	count(after_runtime) == 1
+	valid_runtime_opensearch_statement(after_runtime[0])
+
+	before_other := {json.marshal(statement) | some statement in before_statements; object.get(statement, "Sid", "") != "RuntimeExactReadAccess"}
+	after_other := {json.marshal(statement) | some statement in after_statements; object.get(statement, "Sid", "") != "RuntimeExactReadAccess"}
+	count(before_other) == count(before_statements)
+	count(after_other) == count(after_statements) - 1
+	before_other == after_other
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "module.opensearch.aws_opensearch_domain.this"
+	change.type == "aws_opensearch_domain"
+	change.change.actions == ["update"]
+	rule.update_paths == ["access_policies", "tags.ExpiresAt", "tags_all.ExpiresAt"]
+
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"access_policies", "tags", "tags_all"}) == object.remove(after_values, {"access_policies", "tags", "tags_all"})
+	valid_runtime_opensearch_policy_addition(before_values.access_policies, after_values.access_policies)
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, operational.resource_expires_at)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
 }
 
 operational_change_valid(change, rule) if {
