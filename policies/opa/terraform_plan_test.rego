@@ -2965,3 +2965,11 @@ test_r8_rejects_additional_domain_resource if {
 	])
 	not w6_004_stage3_recovery_delta(change, r8_domain_rule)
 }
+
+test_r8_exact_index_child_wildcard_is_approved if {
+	approved_wildcard_arn(r8_index_child_arn)
+}
+
+test_r8_unrelated_index_wildcard_remains_rejected if {
+	not approved_wildcard_arn("arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/unapproved_index/*")
+}

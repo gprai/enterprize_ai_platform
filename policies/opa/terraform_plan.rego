@@ -470,6 +470,7 @@ approved_wildcard_arns := {
 	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/index-slow-logs:*",
 	"arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/search-slow-logs:*",
 	"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/*",
+	"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
 	"arn:aws:bedrock:*:526338061652:inference-profile/global.amazon.nova-2-lite-v1:0",
 }
 
