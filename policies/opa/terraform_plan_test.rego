@@ -2882,6 +2882,37 @@ r8_ingestion_iam_rule := r5_recovery_rule(
 	["policy"],
 )
 
+r8_runtime_update_context := {
+	"evaluation_context": object.union(approved_context, {
+		"operation": {
+			"profile": "PARTIAL_RECOVERY",
+			"rules": [r8_runtime_iam_rule],
+		},
+	}),
+}
+
+test_r8_runtime_scope_exemption_accepts_exact_index_root_repair if {
+	change := r8_iam_change(
+		"module.iam.aws_iam_role_policy.runtime",
+		"RuntimeOpenSearchExactIndexQuery",
+		[r8_index_root_arn, r8_index_child_arn],
+	)
+	approved_existing_w6_004_iam_policy(change) with input as r8_runtime_update_context
+}
+
+test_r8_runtime_scope_exemption_rejects_broader_resource if {
+	change := r8_iam_change(
+		"module.iam.aws_iam_role_policy.runtime",
+		"RuntimeOpenSearchExactIndexQuery",
+		[
+			r8_index_root_arn,
+			r8_index_child_arn,
+			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/*",
+		],
+	)
+	not approved_existing_w6_004_iam_policy(change) with input as r8_runtime_update_context
+}
+
 test_r8_accepts_runtime_iam_index_root_addition if {
 	change := r8_iam_change(
 		"module.iam.aws_iam_role_policy.runtime",

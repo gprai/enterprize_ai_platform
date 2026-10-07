@@ -2564,6 +2564,20 @@ approved_existing_w6_004_iam_policy(change) if {
 	)
 }
 
+# Grandfather the runtime policy's unchanged bounded wildcard statements only
+# when the operation-bound rule proves the exact r8 OpenSearch index-root repair.
+approved_existing_w6_004_iam_policy(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == "module.iam.aws_iam_role_policy.runtime"
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["update"]
+
+	rule := operational_rule(change)
+	rule.delta_rule == "W6_004_STAGE3_RECOVERY"
+	rule.update_paths == ["policy"]
+	w6_004_stage3_recovery_delta(change, rule)
+}
+
 raw_violations contains violation("W5-NET-001", change.address) if {
 	some change in evaluated_changes
 	network_topology_invalid(change)
