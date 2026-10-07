@@ -2191,11 +2191,11 @@ test_production_decision_rejects_missing_duplicate_or_altered_rules if {
 }
 
 test_production_decision_rejects_expiry_and_replacement_drift if {
-		every patch in [
-			{"resource_expires_at": "2026-09-05T00:00:01Z"},
-			{"resource_expires_at": "2026-09-04T00:00:00Z"},
-			{"expires_at": "2026-09-03T00:00:00Z"},
-		] {
+	every patch in [
+		{"resource_expires_at": "2026-09-05T00:00:01Z"},
+		{"resource_expires_at": "2026-09-04T00:00:00Z"},
+		{"expires_at": "2026-09-03T00:00:00Z"},
+	] {
 		context := object.union(approved_context, {"operation": object.union(v2_operation, patch)})
 		result := decision with input as object.union(approved_plan, {"evaluation_context": context})
 		result.allow == false
@@ -2486,6 +2486,85 @@ test_log_kms_delta_rejects_duplicate_kms_action if {
 		"Version": "2012-10-17",
 		"Statement": [altered],
 	})
+}
+
+r6_partial_recovery_context := {
+	"evaluation_context": object.union(approved_context, {
+		"operation": {"profile": "PARTIAL_RECOVERY"},
+	}),
+}
+
+r6_gate_noop(gate) := object.union(
+	object.remove(gate, {"change"}),
+	{
+		"change": {
+			"actions": ["no-op"],
+			"before": gate.change.after,
+			"after": gate.change.after,
+			"before_sensitive": object.get(gate.change, "after_sensitive", {}),
+			"after_sensitive": object.get(gate.change, "after_sensitive", {}),
+			"after_unknown": {},
+		},
+	},
+)
+
+test_r6_accepts_exact_noop_governance_gates if {
+	valid_change(r6_gate_noop(owner_expiry_gate)) with input as r6_partial_recovery_context
+	valid_change(r6_gate_noop(w6_004_runtime_gate)) with input as r6_partial_recovery_context
+}
+
+test_r6_rejects_unapproved_noop_terraform_data if {
+	invalid := object.union(
+		r6_gate_noop(owner_expiry_gate),
+		{"address": "terraform_data.unapproved"},
+	)
+	not valid_change(invalid) with input as r6_partial_recovery_context
+}
+
+test_r6_rejects_modified_governance_gate_as_noop if {
+	noop := r6_gate_noop(owner_expiry_gate)
+	invalid := object.union(noop, {
+		"change": object.union(noop.change, {
+			"after": object.union(noop.change.after, {
+				"input": "2026-09-04T02:00:00Z",
+			}),
+		}),
+	})
+	not valid_change(invalid) with input as r6_partial_recovery_context
+}
+
+r6_runtime_policy_values := {
+	"name": "enterprise-ai-sandbox-runtime",
+	"policy": json.marshal(runtime_policy_document(approved_tags.ExpiresAt)),
+	"role": "enterprise-ai-sandbox-runtime",
+}
+
+r6_runtime_policy_noop := {
+	"address": platform_runtime_policy_address,
+	"type": "aws_iam_role_policy",
+	"change": {
+		"actions": ["no-op"],
+		"before": r6_runtime_policy_values,
+		"after": r6_runtime_policy_values,
+		"before_sensitive": {},
+		"after_sensitive": {},
+		"after_unknown": {},
+	},
+}
+
+test_r6_accepts_exact_noop_runtime_policy_scope if {
+	approved_existing_w6_004_iam_policy(r6_runtime_policy_noop) with input as r6_partial_recovery_context
+}
+
+test_r6_rejects_modified_runtime_policy_disguised_as_noop if {
+	invalid := object.union(r6_runtime_policy_noop, {
+		"change": object.union(r6_runtime_policy_noop.change, {
+			"after": object.union(r6_runtime_policy_values, {
+				"role": "unapproved-runtime-role",
+			}),
+		}),
+	})
+	not approved_existing_w6_004_iam_policy(invalid) with input as r6_partial_recovery_context
 }
 
 r5_policy_test_input := {

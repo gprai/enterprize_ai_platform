@@ -263,22 +263,22 @@ w6_004_interface_endpoint_names := {
 }
 
 w6_004_endpoint_policy_document_relationships := {
-	{
-		"resource_address": sprintf(`module.network.aws_vpc_endpoint.interface["%s"]`, [name]),
-		"resource_type": "aws_vpc_endpoint",
-		"field_path": "policy",
-		"policy_document_address": sprintf(`module.network.data.aws_iam_policy_document.interface_endpoint["%s"]`, [name]),
-		"relationship": "exact-policy-document",
-	} |
+{
+	"resource_address": sprintf(`module.network.aws_vpc_endpoint.interface["%s"]`, [name]),
+	"resource_type": "aws_vpc_endpoint",
+	"field_path": "policy",
+	"policy_document_address": sprintf(`module.network.data.aws_iam_policy_document.interface_endpoint["%s"]`, [name]),
+	"relationship": "exact-policy-document",
+} |
 	some name in w6_004_interface_endpoint_names
 } | {
-	{
-		"resource_address": sprintf(`module.network.aws_vpc_endpoint.gateway["%s"]`, [name]),
-		"resource_type": "aws_vpc_endpoint",
-		"field_path": "policy",
-		"policy_document_address": sprintf(`module.network.data.aws_iam_policy_document.gateway_endpoint["%s"]`, [name]),
-		"relationship": "exact-policy-document",
-	} |
+{
+	"resource_address": sprintf(`module.network.aws_vpc_endpoint.gateway["%s"]`, [name]),
+	"resource_type": "aws_vpc_endpoint",
+	"field_path": "policy",
+	"policy_document_address": sprintf(`module.network.data.aws_iam_policy_document.gateway_endpoint["%s"]`, [name]),
+	"relationship": "exact-policy-document",
+} |
 	some name in {"DynamoDB", "S3"}
 }
 
@@ -1586,6 +1586,7 @@ valid_existing_opensearch_admin_role_action(role) if {
 }
 
 valid_existing_admin_policy_relation(role, before_policy, after_policy) if {
+	is_object(role)
 	before_policy == after_policy
 }
 
@@ -1765,6 +1766,19 @@ valid_change(change) if {
 valid_change(change) if {
 	operational.profile == "PARTIAL_RECOVERY"
 	change.address in w6_004_special_aws_addresses
+	change.change.actions == ["no-op"]
+	change.change.before == change.change.after
+	change.change.before_sensitive == change.change.after_sensitive
+	change.change.after_unknown == {}
+}
+
+valid_change(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address in {
+		"terraform_data.owner_expiry_gate",
+		"terraform_data.w6_004_runtime_gate[0]",
+	}
+	change.type == "terraform_data"
 	change.change.actions == ["no-op"]
 	change.change.before == change.change.after
 	change.change.before_sensitive == change.change.after_sensitive
@@ -2525,6 +2539,17 @@ approved_existing_w6_004_iam_policy(change) if {
 	change.type == "aws_iam_role_policy"
 	change.change.actions == ["no-op"]
 	change.change.before == change.change.after
+}
+
+# Permit only an unchanged existing runtime policy during partial recovery.
+approved_existing_w6_004_iam_policy(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == "module.iam.aws_iam_role_policy.runtime"
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["no-op"]
+	change.change.before == change.change.after
+	object.get(change.change, "before_sensitive", {}) == object.get(change.change, "after_sensitive", {})
+	object.get(change.change, "after_unknown", {}) == {}
 }
 
 approved_existing_w6_004_iam_policy(change) if {
