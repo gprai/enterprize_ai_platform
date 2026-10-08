@@ -147,6 +147,15 @@ def test_every_approved_module_has_main_variables_and_outputs() -> None:
         }
 
 
+def test_fis_expiry_tag_does_not_force_template_replacement() -> None:
+    source = (ROOT / "infra/modules/observability/main.tf").read_text(encoding="utf-8")
+    fis = source.split('resource "aws_fis_experiment_template" "pod_delete" {', maxsplit=1)[1]
+
+    assert "tags = var.tags" in fis
+    assert 'ignore_changes = [tags["ExpiresAt"]]' in fis
+    assert "ignore_changes = [tags]" not in fis
+
+
 def test_sandbox_composes_exact_modules_and_zero_secrets() -> None:
     source = (SANDBOX / "main.tf").read_text(encoding="utf-8")
     assert tuple(re.findall(r'^module "([^"]+)"', source, flags=re.MULTILINE)) == MODULES

@@ -133,4 +133,8 @@ resource "aws_fis_experiment_template" "pod_delete" {
     }
   }
   tags = var.tags
+
+  lifecycle {
+    ignore_changes = [tags["ExpiresAt"]]
+  }
 }
