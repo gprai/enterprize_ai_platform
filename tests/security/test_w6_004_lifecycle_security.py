@@ -1,3 +1,4 @@
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -130,6 +131,23 @@ def test_real_plan_normalizer_covers_every_approved_endpoint_policy() -> None:
         (address, "policy") in policy_runner.PLATFORM_POLICY_DOCUMENT_BINDINGS
         for address in expected_policy_consumers
     )
+
+
+def test_endpoint_policy_source_identity_tracks_expiry_update_source() -> None:
+    network_path = ROOT / "infra/modules/network/main.tf"
+    expected_identity = (
+        "infra/modules/network/main.tf",
+        sha256(network_path.read_bytes()).hexdigest(),
+    )
+    endpoint_policy_addresses = {
+        policy_address
+        for policy_address, _sid in policy_runner.PLATFORM_ENDPOINT_POLICY_BINDINGS.values()
+    }
+    assert endpoint_policy_addresses
+    assert {
+        policy_runner.PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256[policy_address]
+        for policy_address in endpoint_policy_addresses
+    } == {expected_identity}
 
 
 def test_real_plan_normalizer_protects_eks_trust_and_runtime_policy_sources() -> None:

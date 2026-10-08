@@ -389,7 +389,7 @@ PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     **{
         policy_address: (
             "infra/modules/network/main.tf",
-            "81b8e9044cc8e7492bacade01a766affddfc012ff283f567e05b18cd402f5dbc",
+            "ada89fd857b939e28fa490c2ae8ee5da574657f2ec5db479ee32af4c4beaff89",
         )
         for policy_address, _sid in PLATFORM_ENDPOINT_POLICY_BINDINGS.values()
     },
