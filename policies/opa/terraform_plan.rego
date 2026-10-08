@@ -1579,7 +1579,7 @@ valid_admin_trust_expiry_update(role) if {
 	object.keys(before_statement.Condition.DateLessThan) == {"aws:CurrentTime"}
 	object.keys(after_statement.Condition.DateLessThan) == {"aws:CurrentTime"}
 	before_statement.Condition.DateLessThan["aws:CurrentTime"] == before.tags.ExpiresAt
-	after_statement.Condition.DateLessThan["aws:CurrentTime"] == operational.resource_expires_at
+	after_statement.Condition.DateLessThan["aws:CurrentTime"] == operational.expires_at
 }
 
 valid_existing_opensearch_admin_role_action(role) if {

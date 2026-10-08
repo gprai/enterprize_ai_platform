@@ -2690,6 +2690,49 @@ test_r9_runtime_gate_rejects_resource_expiry_as_approval_deadline if {
 	not w6_004_stage3_recovery_delta(change, r9_runtime_gate_rule) with input as r9_runtime_gate_test_input
 }
 
+r9_admin_trust_policy(expires_at) := {
+	"Version": "2012-10-17",
+	"Statement": [{
+		"Sid": "TimeBoundExactSandboxAdministrator",
+		"Effect": "Allow",
+		"Action": "sts:AssumeRole",
+		"Principal": {"AWS": "arn:aws:iam::526338061652:role/approved-owner"},
+		"Condition": {
+			"DateLessThan": {"aws:CurrentTime": expires_at},
+			"StringEquals": {"aws:PrincipalAccount": "526338061652"},
+		},
+	}],
+}
+
+r9_admin_role_change(trust_expires_at) := normalized_update(
+	opensearch_admin_role_address,
+	"aws_iam_role",
+	{
+		"arn": opensearch_existing_role_arn,
+		"assume_role_policy": json.marshal(r9_admin_trust_policy("2026-09-04T00:30:00Z")),
+		"name": "enterprise-ai-sandbox-opensearch-admin",
+		"tags": object.union(approved_tags, {"ExpiresAt": "2026-09-04T00:30:00Z"}),
+		"tags_all": object.union(approved_tags, {"ExpiresAt": "2026-09-04T00:30:00Z"}),
+	},
+	{
+		"arn": opensearch_existing_role_arn,
+		"assume_role_policy": json.marshal(r9_admin_trust_policy(trust_expires_at)),
+		"name": "enterprise-ai-sandbox-opensearch-admin",
+		"tags": object.union(approved_tags, {"ExpiresAt": r9_runtime_gate_test_input.evaluation_context.operation.resource_expires_at}),
+		"tags_all": object.union(approved_tags, {"ExpiresAt": r9_runtime_gate_test_input.evaluation_context.operation.resource_expires_at}),
+	},
+)
+
+test_r9_admin_trust_binds_authorization_to_mutation_deadline if {
+	change := r9_admin_role_change(r9_runtime_gate_test_input.evaluation_context.operation.expires_at)
+	valid_admin_trust_expiry_update(change) with input as r9_runtime_gate_test_input
+}
+
+test_r9_admin_trust_rejects_resource_expiry_as_authorization_deadline if {
+	change := r9_admin_role_change(r9_runtime_gate_test_input.evaluation_context.operation.resource_expires_at)
+	not valid_admin_trust_expiry_update(change) with input as r9_runtime_gate_test_input
+}
+
 r5_vpc_cni_change(configuration_values) := normalized_update(
 	`module.eks[0].aws_eks_addon.this["vpc-cni"]`,
 	"aws_eks_addon",
