@@ -171,6 +171,42 @@ def test_single_json_markdown_fence_is_accepted_before_strict_validation() -> No
     }
 
 
+def test_explicit_provider_abstention_is_mapped_to_safe_result() -> None:
+    chunk = _chunk()
+    response = ChatResponse(
+        text=json.dumps({"abstain": True}),
+        usage=Usage(input_tokens=10, output_tokens=5, total_tokens=15),
+        stop_reason="end_turn",
+    )
+    service, _provider = _service((chunk,), response)
+
+    result = asyncio.run(service.answer(_auth(), Query(text="Unknown fact")))
+
+    assert result == AbstentionResult(
+        reason="insufficient_evidence",
+        prompt_version="w3-001.v1",
+        usage=Usage(input_tokens=10, output_tokens=5, total_tokens=15),
+    )
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"abstain": False},
+        {"abstain": "true"},
+        {"abstain": True, "reason": "model-controlled"},
+    ],
+)
+def test_malformed_provider_abstention_fails_closed(payload: dict[str, object]) -> None:
+    service, _provider = _service(
+        (_chunk(),),
+        ChatResponse(text=json.dumps(payload), stop_reason="end_turn"),
+    )
+
+    with pytest.raises(RAGOutputValidationError):
+        asyncio.run(service.answer(_auth(), Query(text="Unknown fact")))
+
+
 @pytest.mark.parametrize(
     "envelope",
     [

@@ -32,7 +32,7 @@ def _policy() -> RAGPolicy:
 
 def test_prompt_semantic_fingerprint_is_exact() -> None:
     assert prompt_template_sha256() == (
-        "f1b9583bd8e8dd3abfa066c1e03e3979a118bad56565a99930e387ea2ccba927"
+        "86b2837e4f037bc2d59b27fd43fe471f8f48dc593393fa4f52e6f8cfea71b484"
     )
 
 
@@ -80,6 +80,17 @@ def test_prompt_delimits_evidence_as_untrusted_data() -> None:
     assert user.content.index("BEGIN_UNTRUSTED_EVIDENCE") < user.content.index(injection)
     assert user.content.index(injection) < user.content.index("END_UNTRUSTED_EVIDENCE")
     assert request.tools == ()
+
+
+def test_prompt_requires_exact_bounded_abstention_object() -> None:
+    blocks = select_complete_evidence_blocks((_chunk(),), max_context_characters=12000)
+
+    request = build_rag_request(Query(text="Unknown fact"), blocks, _policy())
+
+    system = request.messages[0].content
+    assert '{"abstain":true}' in system
+    assert "does not directly answer the QUESTION" in system
+    assert "silence in the evidence" in system
 
 
 def test_evidence_selection_uses_complete_blocks_and_deduplicates_provenance() -> None:

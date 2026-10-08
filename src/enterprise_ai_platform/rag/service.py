@@ -167,6 +167,10 @@ def _parse_generated_answer(
         raise RAGOutputValidationError from None
     if not isinstance(generated, dict):
         raise RAGOutputValidationError
+    if set(generated) == {"abstain"}:
+        if generated["abstain"] is True:
+            return _abstain("insufficient_evidence", policy, response.usage)
+        raise RAGOutputValidationError
     if set(generated) - {"answer", "citations"} or "answer" not in generated:
         raise RAGOutputValidationError
     if "citations" not in generated:
