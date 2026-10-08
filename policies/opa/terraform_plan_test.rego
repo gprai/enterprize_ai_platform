@@ -2785,6 +2785,81 @@ r8_ingestion_iam_rule := r5_recovery_rule(
 	["policy"],
 )
 
+r11_fis_iam_rule := r5_recovery_rule(
+	platform_fis_policy_address,
+	"aws_iam_role_policy",
+	["update"],
+	["policy"],
+)
+
+r11_fis_policy(discovery_actions, cluster_actions) := json.marshal({
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": discovery_actions,
+			"Effect": "Allow",
+			"Resource": ["*"],
+		},
+		{
+			"Action": cluster_actions,
+			"Effect": "Allow",
+			"Resource": [platform_fis_cluster_arn],
+		},
+	],
+})
+
+r11_fis_change(after_discovery_actions, after_cluster_actions) := normalized_update(
+	platform_fis_policy_address,
+	"aws_iam_role_policy",
+	{
+		"id": "enterprise-ai-sandbox-fis:bounded-eks-pod-delete-discovery",
+		"name": "bounded-eks-pod-delete-discovery",
+		"name_prefix": "",
+		"policy": r11_fis_policy(
+			["tag:GetResources", "ec2:DescribeInstances"],
+			["eks:DescribeCluster", "eks:AccessKubernetesApi"],
+		),
+		"role": "enterprise-ai-sandbox-fis",
+	},
+	{
+		"id": "enterprise-ai-sandbox-fis:bounded-eks-pod-delete-discovery",
+		"name": "bounded-eks-pod-delete-discovery",
+		"name_prefix": "",
+		"policy": r11_fis_policy(after_discovery_actions, after_cluster_actions),
+		"role": "enterprise-ai-sandbox-fis",
+	},
+)
+
+r11_fis_update_context := {"evaluation_context": object.union(approved_context, {"operation": {
+	"profile": "PARTIAL_RECOVERY",
+	"rules": [r11_fis_iam_rule],
+}})}
+
+test_r11_accepts_exact_fis_subnet_discovery_repair if {
+	change := r11_fis_change(
+		["tag:GetResources", "ec2:DescribeSubnets", "ec2:DescribeInstances"],
+		["eks:DescribeCluster", "eks:AccessKubernetesApi"],
+	)
+	w6_004_stage3_recovery_delta(change, r11_fis_iam_rule)
+	approved_existing_w6_004_iam_policy(change) with input as r11_fis_update_context
+}
+
+test_r11_rejects_broader_fis_discovery_repair if {
+	change := r11_fis_change(
+		["tag:GetResources", "ec2:DescribeSubnets", "ec2:DescribeInstances", "ec2:Describe*"],
+		["eks:DescribeCluster", "eks:AccessKubernetesApi"],
+	)
+	not w6_004_stage3_recovery_delta(change, r11_fis_iam_rule)
+}
+
+test_r11_rejects_fis_cluster_permission_change if {
+	change := r11_fis_change(
+		["tag:GetResources", "ec2:DescribeSubnets", "ec2:DescribeInstances"],
+		["eks:DescribeCluster", "eks:AccessKubernetesApi", "eks:DeleteCluster"],
+	)
+	not w6_004_stage3_recovery_delta(change, r11_fis_iam_rule)
+}
+
 r8_runtime_update_context := {"evaluation_context": object.union(approved_context, {"operation": {
 	"profile": "PARTIAL_RECOVERY",
 	"rules": [r8_runtime_iam_rule],
@@ -2849,9 +2924,7 @@ test_r10_accepts_exact_global_bedrock_inference_profile_repair if {
 }
 
 test_r10_accepts_terraform_singleton_array_bedrock_policy_representation if {
-	before_policy := r10_runtime_bedrock_policy([
-		r10_runtime_bedrock_statement_array("InvokeExactApprovedInferenceProfile", platform_global_inference_profile_arn, runtime_bedrock_profile_conditions("ap-southeast-1", approved_tags.ExpiresAt)),
-	])
+	before_policy := r10_runtime_bedrock_policy([r10_runtime_bedrock_statement_array("InvokeExactApprovedInferenceProfile", platform_global_inference_profile_arn, runtime_bedrock_profile_conditions("ap-southeast-1", approved_tags.ExpiresAt))])
 	after_policy := r10_runtime_bedrock_policy([
 		r10_runtime_bedrock_statement_array("InvokeExactGlobalInferenceProfile", platform_global_inference_profile_arn, runtime_bedrock_base_conditions("ap-southeast-1", approved_tags.ExpiresAt)),
 		r10_runtime_bedrock_statement_array("InvokeExactGlobalInferenceProfileRegionalModel", platform_regional_foundation_model_arn, runtime_bedrock_profile_conditions("ap-southeast-1", approved_tags.ExpiresAt)),

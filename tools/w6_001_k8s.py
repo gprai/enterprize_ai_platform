@@ -530,6 +530,21 @@ def validate_documents(
             "resources": ["pods"],
             "verbs": ["create", "list", "get", "delete", "deletecollection"],
         },
+        {
+            "apiGroups": [""],
+            "resources": ["pods/ephemeralcontainers"],
+            "verbs": ["update"],
+        },
+        {
+            "apiGroups": [""],
+            "resources": ["pods/exec"],
+            "verbs": ["create"],
+        },
+        {
+            "apiGroups": ["apps"],
+            "resources": ["deployments"],
+            "verbs": ["get"],
+        },
     ]:
         raise W6001Error("FIS Role permissions differ")
     binding = fis_binding[0]

@@ -149,7 +149,7 @@ data "aws_iam_policy_document" "fis" {
   #checkov:skip=CKV_AWS_111:Read-only EC2 and tagging discovery APIs do not support resource-level permissions; FIS execution remains separately owner-approved.
   #checkov:skip=CKV_AWS_355:The owner-approved read-only discovery wildcards are limited to APIs without resource-level permissions.
   statement {
-    actions   = ["ec2:DescribeInstances", "tag:GetResources"]
+    actions   = ["ec2:DescribeInstances", "ec2:DescribeSubnets", "tag:GetResources"]
     resources = ["*"]
   }
   statement {

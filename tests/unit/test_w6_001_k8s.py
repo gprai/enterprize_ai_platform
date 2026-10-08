@@ -88,6 +88,38 @@ def deployment(documents: list[dict[str, object]]) -> dict[str, object]:
     return next(document for document in documents if document["kind"] == "Deployment")
 
 
+def test_fis_role_matches_aws_pod_action_rbac_contract() -> None:
+    role = next(document for document in template_documents() if document["kind"] == "Role")
+
+    assert role["rules"] == [
+        {
+            "apiGroups": [""],
+            "resources": ["configmaps"],
+            "verbs": ["get", "create", "patch", "delete"],
+        },
+        {
+            "apiGroups": [""],
+            "resources": ["pods"],
+            "verbs": ["create", "list", "get", "delete", "deletecollection"],
+        },
+        {
+            "apiGroups": [""],
+            "resources": ["pods/ephemeralcontainers"],
+            "verbs": ["update"],
+        },
+        {
+            "apiGroups": [""],
+            "resources": ["pods/exec"],
+            "verbs": ["create"],
+        },
+        {
+            "apiGroups": ["apps"],
+            "resources": ["deployments"],
+            "verbs": ["get"],
+        },
+    ]
+
+
 def test_exact_sentinel_is_accepted_only_in_template_mode() -> None:
     assert w6_001_k8s.validate_template(TEMPLATE_ROOT) == w6_001_k8s.TEMPLATE_STATUS
     documents = copy.deepcopy(template_documents())

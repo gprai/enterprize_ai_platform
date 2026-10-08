@@ -212,6 +212,8 @@ opensearch_password_field_path := "advanced_security_options[].master_user_optio
 opensearch_sensitive_relationship := "omitted-null-password-with-structurally-resolved-admin-role"
 opensearch_existing_sensitive_relationship := "omitted-null-password-with-existing-admin-role"
 platform_runtime_policy_address := "module.iam.aws_iam_role_policy.runtime"
+platform_fis_policy_address := "module.iam.aws_iam_role_policy.fis"
+platform_fis_cluster_arn := "arn:aws:eks:ap-southeast-1:526338061652:cluster/enterprise-ai-sandbox"
 platform_runtime_policy_legacy_bedrock_sid := "InvokeExactApprovedInferenceProfile"
 platform_runtime_policy_expiry_statement_sids := {
 	"InvokeExactGlobalInferenceProfile",
@@ -346,6 +348,7 @@ platform_recovery_update_resources := {
 	"module.iam.aws_iam_role.ingestion": "aws_iam_role",
 	"module.iam.aws_iam_role.opensearch_administrator": "aws_iam_role",
 	"module.iam.aws_iam_role.runtime": "aws_iam_role",
+	"module.iam.aws_iam_role_policy.fis": "aws_iam_role_policy",
 	"module.iam.aws_iam_role_policy.runtime": "aws_iam_role_policy",
 	"module.kms.aws_kms_key.this": "aws_kms_key",
 	"module.network.aws_default_security_group.restricted": "aws_default_security_group",
@@ -2603,6 +2606,21 @@ approved_existing_w6_004_iam_policy(change) if {
 	w6_004_stage3_recovery_delta(change, rule)
 }
 
+# Permit only the exact FIS discovery repair required by the AWS EKS pod-delete
+# action. The bounded wildcard resource and the existing EKS statement remain
+# structurally fixed; only ec2:DescribeSubnets is added.
+approved_existing_w6_004_iam_policy(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == platform_fis_policy_address
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["update"]
+
+	rule := operational_rule(change)
+	rule.delta_rule == "W6_004_STAGE3_RECOVERY"
+	rule.update_paths == ["policy"]
+	w6_004_stage3_recovery_delta(change, rule)
+}
+
 raw_violations contains violation("W5-NET-001", change.address) if {
 	some change in evaluated_changes
 	network_topology_invalid(change)
@@ -3292,6 +3310,76 @@ valid_runtime_global_bedrock_profile_repair(before_policy, after_policy) if {
 	after_other := policy_statement_set_without_sids(after_document, platform_runtime_policy_expiry_statement_sids)
 	before_other == after_other
 	count(after_document.Statement) == count(before_document.Statement) + 2
+}
+
+valid_fis_discovery_statement(statement, actions) if {
+	object.keys(statement) == {"Action", "Effect", "Resource"}
+	statement.Effect == "Allow"
+	statement.Resource == ["*"]
+	is_array(statement.Action)
+	count(statement.Action) == count(actions)
+	{action | some action in statement.Action} == actions
+}
+
+valid_fis_cluster_statement(statement) if {
+	object.keys(statement) == {"Action", "Effect", "Resource"}
+	statement.Effect == "Allow"
+	statement.Resource == [platform_fis_cluster_arn]
+	is_array(statement.Action)
+	count(statement.Action) == 2
+	{action | some action in statement.Action} == {
+		"eks:AccessKubernetesApi",
+		"eks:DescribeCluster",
+	}
+}
+
+valid_fis_policy(document, discovery_actions) if {
+	object.keys(document) == {"Statement", "Version"}
+	document.Version == "2012-10-17"
+	is_array(document.Statement)
+	count(document.Statement) == 2
+
+	discovery := [
+	statement |
+		some statement in document.Statement
+		valid_fis_discovery_statement(statement, discovery_actions)
+	]
+	count(discovery) == 1
+
+	cluster := [
+	statement |
+		some statement in document.Statement
+		valid_fis_cluster_statement(statement)
+	]
+	count(cluster) == 1
+}
+
+valid_fis_subnet_discovery_repair(before_policy, after_policy) if {
+	is_string(before_policy)
+	is_string(after_policy)
+	before_document := json.unmarshal(before_policy)
+	after_document := json.unmarshal(after_policy)
+	valid_fis_policy(before_document, {
+		"ec2:DescribeInstances",
+		"tag:GetResources",
+	})
+	valid_fis_policy(after_document, {
+		"ec2:DescribeInstances",
+		"ec2:DescribeSubnets",
+		"tag:GetResources",
+	})
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == platform_fis_policy_address
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["update"]
+	rule.update_paths == ["policy"]
+
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"policy"}) == object.remove(after_values, {"policy"})
+	valid_fis_subnet_discovery_repair(before_values.policy, after_values.policy)
 }
 
 w6_004_stage3_recovery_delta(change, rule) if {

@@ -212,6 +212,19 @@ def test_fis_contract_is_single_target_with_two_stop_alarms() -> None:
     assert fis.count("action {") == 1
 
 
+def test_fis_role_has_exact_eks_pod_delete_discovery_permissions() -> None:
+    text = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    fis = text.split('data "aws_iam_policy_document" "fis" {', 1)[1].split(
+        'resource "aws_iam_role_policy" "fis"', 1
+    )[0]
+
+    assert 'actions   = ["ec2:DescribeInstances", "ec2:DescribeSubnets", "tag:GetResources"]' in fis
+    assert 'actions   = ["eks:DescribeCluster", "eks:AccessKubernetesApi"]' in fis
+    assert "resources = [local.eks_cluster_arn]" in fis
+    assert "ec2:TerminateInstances" not in fis
+    assert "eks:DeleteCluster" not in fis
+
+
 def test_protected_content_and_non_finite_numbers_are_rejected() -> None:
     with pytest.raises(W6004Error, match="protected"):
         canonical_sha256({"prompt_content": "fixture"})
