@@ -8,6 +8,9 @@ locals {
   opensearch_index_root_arn = "${local.opensearch_domain_arn}/enterprise_ai_sandbox"
   opensearch_index_arn      = "${local.opensearch_domain_arn}/enterprise_ai_sandbox/*"
   inference_profile_arn     = "arn:aws:bedrock:${var.aws_region}:${var.aws_account_id}:inference-profile/${var.bedrock_inference_profile_id}"
+  foundation_model_id       = trimprefix(var.bedrock_inference_profile_id, "global.")
+  regional_model_arn        = "arn:aws:bedrock:${var.aws_region}::foundation-model/${local.foundation_model_id}"
+  global_model_arn          = "arn:aws:bedrock:::foundation-model/${local.foundation_model_id}"
   github_provider_arn       = "arn:aws:iam::${var.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
   eks_cluster_arn           = "arn:aws:eks:${var.aws_region}:${var.aws_account_id}:cluster/${var.eks_cluster_name}"
   application_log_arn       = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/enterprise-ai-platform/sandbox/application:*"
@@ -191,10 +194,37 @@ data "aws_iam_policy_document" "runtime" {
   #checkov:skip=CKV_AWS_111:The approved CloudWatch PutMetricData and X-Ray ingestion APIs do not support resource-level permissions; namespace, principal, region, role expiry and Pod Identity constrain use.
   #checkov:skip=CKV_AWS_355:The approved telemetry wildcard resources are limited to CloudWatch and X-Ray APIs without resource-level authorization support.
   statement {
-    sid       = "InvokeExactApprovedInferenceProfile"
+    sid       = "InvokeExactGlobalInferenceProfile"
     effect    = "Allow"
     actions   = ["bedrock:InvokeModel"]
     resources = [local.inference_profile_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestedRegion"
+      values   = [var.aws_region]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values   = [var.aws_account_id]
+    }
+    condition {
+      test     = "ArnEquals"
+      variable = "aws:PrincipalArn"
+      values   = [local.runtime_role_arn]
+    }
+    condition {
+      test     = "DateLessThan"
+      variable = "aws:CurrentTime"
+      values   = [var.expires_at]
+    }
+  }
+
+  statement {
+    sid       = "InvokeExactGlobalInferenceProfileRegionalModel"
+    effect    = "Allow"
+    actions   = ["bedrock:InvokeModel"]
+    resources = [local.regional_model_arn]
     condition {
       test     = "StringEquals"
       variable = "bedrock:InferenceProfileArn"
@@ -204,6 +234,38 @@ data "aws_iam_policy_document" "runtime" {
       test     = "StringEquals"
       variable = "aws:RequestedRegion"
       values   = [var.aws_region]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalAccount"
+      values   = [var.aws_account_id]
+    }
+    condition {
+      test     = "ArnEquals"
+      variable = "aws:PrincipalArn"
+      values   = [local.runtime_role_arn]
+    }
+    condition {
+      test     = "DateLessThan"
+      variable = "aws:CurrentTime"
+      values   = [var.expires_at]
+    }
+  }
+
+  statement {
+    sid       = "InvokeExactGlobalInferenceProfileGlobalModel"
+    effect    = "Allow"
+    actions   = ["bedrock:InvokeModel"]
+    resources = [local.global_model_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "bedrock:InferenceProfileArn"
+      values   = [local.inference_profile_arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestedRegion"
+      values   = ["unspecified"]
     }
     condition {
       test     = "StringEquals"

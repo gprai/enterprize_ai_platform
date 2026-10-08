@@ -668,15 +668,17 @@ def _runtime_policy(expires_at: str) -> str:
     inference_profile_arn = "".join(
         (
             "arn:aws:bedrock:ap-southeast-1:526338061652:",
-            "inference-profile/approved",
+            "inference-profile/global.amazon.nova-2-lite-v1:0",
         )
     )
+    regional_model_arn = "arn:aws:bedrock:ap-southeast-1::foundation-model/amazon.nova-2-lite-v1:0"
+    global_model_arn = "arn:aws:bedrock:::foundation-model/amazon.nova-2-lite-v1:0"
     return json.dumps(
         {
             "Version": "2012-10-17",
             "Statement": [
                 {
-                    "Sid": "InvokeExactApprovedInferenceProfile",
+                    "Sid": "InvokeExactGlobalInferenceProfile",
                     "Effect": "Allow",
                     "Action": "bedrock:InvokeModel",
                     "Resource": inference_profile_arn,
@@ -686,6 +688,35 @@ def _runtime_policy(expires_at: str) -> str:
                         "StringEquals": {
                             "aws:PrincipalAccount": "526338061652",
                             "aws:RequestedRegion": "ap-southeast-1",
+                        },
+                    },
+                },
+                {
+                    "Sid": "InvokeExactGlobalInferenceProfileRegionalModel",
+                    "Effect": "Allow",
+                    "Action": "bedrock:InvokeModel",
+                    "Resource": regional_model_arn,
+                    "Condition": {
+                        "ArnEquals": {"aws:PrincipalArn": runtime_role_arn},
+                        "DateLessThan": {"aws:CurrentTime": expires_at},
+                        "StringEquals": {
+                            "aws:PrincipalAccount": "526338061652",
+                            "aws:RequestedRegion": "ap-southeast-1",
+                            "bedrock:InferenceProfileArn": inference_profile_arn,
+                        },
+                    },
+                },
+                {
+                    "Sid": "InvokeExactGlobalInferenceProfileGlobalModel",
+                    "Effect": "Allow",
+                    "Action": "bedrock:InvokeModel",
+                    "Resource": global_model_arn,
+                    "Condition": {
+                        "ArnEquals": {"aws:PrincipalArn": runtime_role_arn},
+                        "DateLessThan": {"aws:CurrentTime": expires_at},
+                        "StringEquals": {
+                            "aws:PrincipalAccount": "526338061652",
+                            "aws:RequestedRegion": "unspecified",
                             "bedrock:InferenceProfileArn": inference_profile_arn,
                         },
                     },

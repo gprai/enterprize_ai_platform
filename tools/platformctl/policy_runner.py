@@ -200,7 +200,9 @@ PLATFORM_POLICY_DOCUMENT_BINDINGS = {
         "module.iam.data.aws_iam_policy_document.runtime",
         frozenset(
             {
-                "InvokeExactApprovedInferenceProfile",
+                "InvokeExactGlobalInferenceProfile",
+                "InvokeExactGlobalInferenceProfileRegionalModel",
+                "InvokeExactGlobalInferenceProfileGlobalModel",
                 "RuntimeReadPlatformObjects",
                 "RuntimeListPlatformBucket",
                 "RuntimeUsePlatformKey",
@@ -352,23 +354,23 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime": (
         "infra/modules/iam/main.tf",
-        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
+        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
     ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
         "infra/modules/iam/main.tf",
-        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
+        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
         "infra/modules/iam/main.tf",
-        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
+        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
         "infra/modules/iam/main.tf",
-        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
+        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
         "infra/modules/iam/main.tf",
-        "616f34cb8e6ce41c78324e931c2819fe73b759bef1d40ecad87f35ee812663e3",
+        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
     ),
     "module.opensearch.data.aws_iam_policy_document.domain_access": (
         "infra/modules/opensearch/main.tf",

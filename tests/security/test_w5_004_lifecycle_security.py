@@ -889,7 +889,9 @@ def module_aware_platform_unknown_plan() -> dict[str, object]:
 
     iam_policy_sids = {
         "runtime": (
-            "InvokeExactApprovedInferenceProfile",
+            "InvokeExactGlobalInferenceProfile",
+            "InvokeExactGlobalInferenceProfileRegionalModel",
+            "InvokeExactGlobalInferenceProfileGlobalModel",
             "RuntimeReadPlatformObjects",
             "RuntimeListPlatformBucket",
             "RuntimeUsePlatformKey",

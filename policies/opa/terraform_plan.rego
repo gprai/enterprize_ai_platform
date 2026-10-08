@@ -212,7 +212,23 @@ opensearch_password_field_path := "advanced_security_options[].master_user_optio
 opensearch_sensitive_relationship := "omitted-null-password-with-structurally-resolved-admin-role"
 opensearch_existing_sensitive_relationship := "omitted-null-password-with-existing-admin-role"
 platform_runtime_policy_address := "module.iam.aws_iam_role_policy.runtime"
-platform_runtime_policy_expiry_statement_sid := "InvokeExactApprovedInferenceProfile"
+platform_runtime_policy_legacy_bedrock_sid := "InvokeExactApprovedInferenceProfile"
+platform_runtime_policy_expiry_statement_sids := {
+	"InvokeExactGlobalInferenceProfile",
+	"InvokeExactGlobalInferenceProfileRegionalModel",
+	"InvokeExactGlobalInferenceProfileGlobalModel",
+}
+
+platform_runtime_policy_expiry_paths := {
+	"policy.Statement[Sid=InvokeExactGlobalInferenceProfile].Condition.DateLessThan.aws:CurrentTime",
+	"policy.Statement[Sid=InvokeExactGlobalInferenceProfileRegionalModel].Condition.DateLessThan.aws:CurrentTime",
+	"policy.Statement[Sid=InvokeExactGlobalInferenceProfileGlobalModel].Condition.DateLessThan.aws:CurrentTime",
+}
+
+platform_runtime_role_arn := "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime"
+platform_global_inference_profile_arn := "arn:aws:bedrock:ap-southeast-1:526338061652:inference-profile/global.amazon.nova-2-lite-v1:0"
+platform_regional_foundation_model_arn := "arn:aws:bedrock:ap-southeast-1::foundation-model/amazon.nova-2-lite-v1:0"
+platform_global_foundation_model_arn := "arn:aws:bedrock:::foundation-model/amazon.nova-2-lite-v1:0"
 
 platform_gateway_endpoint_addresses := {
 	`module.network.aws_vpc_endpoint.gateway["DynamoDB"]`,
@@ -892,18 +908,42 @@ valid_platform_recovery_create(change) if {
 	change_has_no_sensitive_markers(change)
 }
 
-runtime_policy_expiry_statements(document) := [
-statement |
+runtime_policy_expiry_statements(document) := {sid: statement |
 	some statement in object.get(document, "Statement", [])
 	is_object(statement)
-	object.get(statement, "Sid", "") == platform_runtime_policy_expiry_statement_sid
-]
+	sid := object.get(statement, "Sid", "")
+	platform_runtime_policy_expiry_statement_sids[sid]
+}
 
 runtime_policy_nonexpiry_statement_set(document) := {
 json.marshal(statement) |
 	some statement in object.get(document, "Statement", [])
 	is_object(statement)
-	object.get(statement, "Sid", "") != platform_runtime_policy_expiry_statement_sid
+	sid := object.get(statement, "Sid", "")
+	not platform_runtime_policy_expiry_statement_sids[sid]
+}
+
+valid_runtime_policy_expiry_statement_delta(before_statement, after_statement, next_expiry) if {
+	object.remove(before_statement, {"Condition"}) == object.remove(after_statement, {"Condition"})
+
+	before_condition := object.get(before_statement, "Condition", null)
+	after_condition := object.get(after_statement, "Condition", null)
+	is_object(before_condition)
+	is_object(after_condition)
+	object.remove(before_condition, {"DateLessThan"}) == object.remove(after_condition, {"DateLessThan"})
+
+	before_date_less_than := object.get(before_condition, "DateLessThan", null)
+	after_date_less_than := object.get(after_condition, "DateLessThan", null)
+	is_object(before_date_less_than)
+	is_object(after_date_less_than)
+	object.keys(before_date_less_than) == {"aws:CurrentTime"}
+	object.keys(after_date_less_than) == {"aws:CurrentTime"}
+	previous_expiry := object.get(before_date_less_than, "aws:CurrentTime", "")
+	policy_expiry := object.get(after_date_less_than, "aws:CurrentTime", "")
+	valid_utc_timestamp(previous_expiry)
+	valid_utc_timestamp(policy_expiry)
+	previous_expiry != policy_expiry
+	policy_expiry == next_expiry
 }
 
 valid_runtime_policy_expiry_delta(before_policy, after_policy, next_expiry) if {
@@ -923,36 +963,21 @@ valid_runtime_policy_expiry_delta(before_policy, after_policy, next_expiry) if {
 
 	before_expiry_statements := runtime_policy_expiry_statements(before_document)
 	after_expiry_statements := runtime_policy_expiry_statements(after_document)
-	count(before_expiry_statements) == 1
-	count(after_expiry_statements) == 1
-	before_expiry_statement := before_expiry_statements[0]
-	after_expiry_statement := after_expiry_statements[0]
-	object.remove(before_expiry_statement, {"Condition"}) == object.remove(after_expiry_statement, {"Condition"})
+	object.keys(before_expiry_statements) == platform_runtime_policy_expiry_statement_sids
+	object.keys(after_expiry_statements) == platform_runtime_policy_expiry_statement_sids
+	every sid in platform_runtime_policy_expiry_statement_sids {
+		valid_runtime_policy_expiry_statement_delta(
+			before_expiry_statements[sid],
+			after_expiry_statements[sid],
+			next_expiry,
+		)
+	}
 
 	before_other_statements := runtime_policy_nonexpiry_statement_set(before_document)
 	after_other_statements := runtime_policy_nonexpiry_statement_set(after_document)
-	count(before_other_statements) == count(before_statements) - 1
-	count(after_other_statements) == count(after_statements) - 1
+	count(before_other_statements) == count(before_statements) - count(platform_runtime_policy_expiry_statement_sids)
+	count(after_other_statements) == count(after_statements) - count(platform_runtime_policy_expiry_statement_sids)
 	before_other_statements == after_other_statements
-
-	before_condition := object.get(before_expiry_statement, "Condition", null)
-	after_condition := object.get(after_expiry_statement, "Condition", null)
-	is_object(before_condition)
-	is_object(after_condition)
-	object.remove(before_condition, {"DateLessThan"}) == object.remove(after_condition, {"DateLessThan"})
-
-	before_date_less_than := object.get(before_condition, "DateLessThan", null)
-	after_date_less_than := object.get(after_condition, "DateLessThan", null)
-	is_object(before_date_less_than)
-	is_object(after_date_less_than)
-	object.keys(before_date_less_than) == {"aws:CurrentTime"}
-	object.keys(after_date_less_than) == {"aws:CurrentTime"}
-	previous_expiry := object.get(before_date_less_than, "aws:CurrentTime", "")
-	policy_expiry := object.get(after_date_less_than, "aws:CurrentTime", "")
-	valid_utc_timestamp(previous_expiry)
-	valid_utc_timestamp(policy_expiry)
-	previous_expiry != policy_expiry
-	policy_expiry == next_expiry
 	next_expiry_ns := time.parse_rfc3339_ns(next_expiry)
 	next_expiry_ns > evaluation_time_ns
 	next_expiry_ns - evaluation_time_ns <= day_ns
@@ -2755,7 +2780,8 @@ operational_expiry_delta(change, rule) if {
 
 operational_expiry_delta(change, rule) if {
 	rule.delta_rule == "RUNTIME_IAM_EXPIRY"
-	rule.update_paths == ["policy.Statement[Sid=InvokeExactApprovedInferenceProfile].Condition.DateLessThan.aws:CurrentTime"]
+	count(rule.update_paths) == count(platform_runtime_policy_expiry_paths)
+	{path | some path in rule.update_paths} == platform_runtime_policy_expiry_paths
 	change.address == "module.iam.aws_iam_role_policy.runtime"
 	valid_runtime_policy_expiry_recovery_update(change)
 	changes_by_address["terraform_data.owner_expiry_gate"].change.after.input == operational.resource_expires_at
@@ -2782,25 +2808,15 @@ approved_opensearch_log_encryption_statement := {
 		"kms:ReEncryptTo",
 	],
 	"Resource": "*",
-	"Condition": {
-		"ArnEquals": {
-			"kms:EncryptionContext:aws:logs:arn": approved_opensearch_log_context_arns,
-		},
-	},
+	"Condition": {"ArnEquals": {"kms:EncryptionContext:aws:logs:arn": approved_opensearch_log_context_arns}},
 }
 
 approved_opensearch_log_encryption_statement_before := object.union(
 	approved_opensearch_log_encryption_statement,
-	{
-		"Condition": {
-			"ArnEquals": {
-				"kms:EncryptionContext:aws:logs:arn": approved_opensearch_log_context_arns,
-			},
-			"StringEquals": {
-				"kms:ViaService": "logs.ap-southeast-1.amazonaws.com",
-			},
-		},
-	},
+	{"Condition": {
+		"ArnEquals": {"kms:EncryptionContext:aws:logs:arn": approved_opensearch_log_context_arns},
+		"StringEquals": {"kms:ViaService": "logs.ap-southeast-1.amazonaws.com"},
+	}},
 )
 
 approved_opensearch_log_encryption_actions := {
@@ -3179,9 +3195,7 @@ valid_iam_index_root_resource_repair(before_policy, after_policy, target_sid) if
 		before_policy,
 		after_policy,
 		target_sid,
-		{
-			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
-		},
+		{"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*"},
 		{
 			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox",
 			"arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/enterprise_ai_sandbox/*",
@@ -3206,6 +3220,67 @@ valid_runtime_opensearch_root_resource_repair(before_policy, after_policy) if {
 	)
 }
 
+runtime_bedrock_base_conditions(requested_region, expires_at) := {
+	"ArnEquals": {"aws:PrincipalArn": platform_runtime_role_arn},
+	"DateLessThan": {"aws:CurrentTime": expires_at},
+	"StringEquals": {
+		"aws:PrincipalAccount": "526338061652",
+		"aws:RequestedRegion": requested_region,
+	},
+}
+
+runtime_bedrock_profile_conditions(requested_region, expires_at) := conditions if {
+	base := runtime_bedrock_base_conditions(requested_region, expires_at)
+	conditions := object.union(base, {"StringEquals": object.union(base.StringEquals, {"bedrock:InferenceProfileArn": platform_global_inference_profile_arn})})
+}
+
+runtime_bedrock_statement(sid, resource, conditions) := statement if {
+	statement := {
+		"Sid": sid,
+		"Effect": "Allow",
+		"Action": "bedrock:InvokeModel",
+		"Resource": resource,
+		"Condition": conditions,
+	}
+}
+
+policy_statement_by_sid(document, sid) := statement if {
+	matching := [
+	candidate |
+		some candidate in document.Statement
+		object.get(candidate, "Sid", "") == sid
+	]
+	count(matching) == 1
+	statement := matching[0]
+}
+
+policy_statement_set_without_sids(document, sids) := {
+json.marshal(statement) |
+	some statement in document.Statement
+	not sids[object.get(statement, "Sid", "")]
+}
+
+valid_runtime_global_bedrock_profile_repair(before_policy, after_policy) if {
+	is_string(before_policy)
+	is_string(after_policy)
+	before_document := json.unmarshal(before_policy)
+	after_document := json.unmarshal(after_policy)
+	is_object(before_document)
+	is_object(after_document)
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+	legacy := policy_statement_by_sid(before_document, platform_runtime_policy_legacy_bedrock_sid)
+	expires_at := legacy.Condition.DateLessThan["aws:CurrentTime"]
+	valid_utc_timestamp(expires_at)
+	legacy == runtime_bedrock_statement(platform_runtime_policy_legacy_bedrock_sid, platform_global_inference_profile_arn, runtime_bedrock_profile_conditions("ap-southeast-1", expires_at))
+	policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfile") == runtime_bedrock_statement("InvokeExactGlobalInferenceProfile", platform_global_inference_profile_arn, runtime_bedrock_base_conditions("ap-southeast-1", expires_at))
+	policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfileRegionalModel") == runtime_bedrock_statement("InvokeExactGlobalInferenceProfileRegionalModel", platform_regional_foundation_model_arn, runtime_bedrock_profile_conditions("ap-southeast-1", expires_at))
+	policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfileGlobalModel") == runtime_bedrock_statement("InvokeExactGlobalInferenceProfileGlobalModel", platform_global_foundation_model_arn, runtime_bedrock_profile_conditions("unspecified", expires_at))
+	before_other := policy_statement_set_without_sids(before_document, {platform_runtime_policy_legacy_bedrock_sid})
+	after_other := policy_statement_set_without_sids(after_document, platform_runtime_policy_expiry_statement_sids)
+	before_other == after_other
+	count(after_document.Statement) == count(before_document.Statement) + 2
+}
+
 w6_004_stage3_recovery_delta(change, rule) if {
 	change.address == "module.iam.aws_iam_role_policy.runtime"
 	change.type == "aws_iam_role_policy"
@@ -3221,6 +3296,18 @@ w6_004_stage3_recovery_delta(change, rule) if {
 		after_values.policy,
 		"RuntimeOpenSearchExactIndexQuery",
 	)
+}
+
+w6_004_stage3_recovery_delta(change, rule) if {
+	change.address == "module.iam.aws_iam_role_policy.runtime"
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["update"]
+	rule.update_paths == ["policy"]
+
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"policy"}) == object.remove(after_values, {"policy"})
+	valid_runtime_global_bedrock_profile_repair(before_values.policy, after_values.policy)
 }
 
 w6_004_stage3_recovery_delta(change, rule) if {

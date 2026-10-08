@@ -163,7 +163,9 @@ def test_real_plan_normalizer_protects_eks_trust_and_runtime_policy_sources() ->
     ]
     assert runtime_binding[2] == frozenset(
         {
-            "InvokeExactApprovedInferenceProfile",
+            "InvokeExactGlobalInferenceProfile",
+            "InvokeExactGlobalInferenceProfileRegionalModel",
+            "InvokeExactGlobalInferenceProfileGlobalModel",
             "RuntimeReadPlatformObjects",
             "RuntimeListPlatformBucket",
             "RuntimeUsePlatformKey",
@@ -178,6 +180,24 @@ def test_real_plan_normalizer_protects_eks_trust_and_runtime_policy_sources() ->
     assert policy_runner.PLATFORM_EKS_NODE_GROUP_ADDRESS == (
         "module.eks[0].aws_eks_node_group.application"
     )
+
+
+def test_runtime_bedrock_policy_uses_three_part_global_inference_contract() -> None:
+    iam = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+
+    assert "foundation_model_id       = trimprefix(" in iam
+    assert 'sid       = "InvokeExactGlobalInferenceProfile"' in iam
+    assert 'sid       = "InvokeExactGlobalInferenceProfileRegionalModel"' in iam
+    assert 'sid       = "InvokeExactGlobalInferenceProfileGlobalModel"' in iam
+    assert "resources = [local.inference_profile_arn]" in iam
+    assert "resources = [local.regional_model_arn]" in iam
+    assert "resources = [local.global_model_arn]" in iam
+    assert 'values   = ["unspecified"]' in iam
+
+    profile_statement = iam.split('sid       = "InvokeExactGlobalInferenceProfile"', 1)[1].split(
+        "\n  statement {", 1
+    )[0]
+    assert 'variable = "bedrock:InferenceProfileArn"' not in profile_statement
 
 
 def test_fis_contract_is_single_target_with_two_stop_alarms() -> None:
