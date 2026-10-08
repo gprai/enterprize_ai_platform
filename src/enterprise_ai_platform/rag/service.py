@@ -61,6 +61,23 @@ from enterprise_ai_platform.telemetry.runtime import (
 
 _REQUIRED_CITATION_KEYS = frozenset({"source_id", "document_id", "document_version", "chunk_id"})
 _ALLOWED_CITATION_KEYS = _REQUIRED_CITATION_KEYS | {"label"}
+_JSON_FENCE_OPEN = "```json"
+_JSON_FENCE_CLOSE = "```"
+
+
+def _unwrap_single_json_fence(text: str) -> str:
+    """Remove only one complete JSON Markdown fence and reject ambiguous envelopes."""
+
+    stripped = text.strip()
+    if not stripped.startswith("```"):
+        return text
+    lines = stripped.splitlines()
+    if len(lines) < 3 or lines[0] != _JSON_FENCE_OPEN or lines[-1] != _JSON_FENCE_CLOSE:
+        raise RAGOutputValidationError
+    payload = "\n".join(lines[1:-1])
+    if not payload.strip() or "```" in payload:
+        raise RAGOutputValidationError
+    return payload
 
 
 def _abstain(
@@ -143,7 +160,7 @@ def _parse_generated_answer(
     if response.tool_calls:
         raise RAGOutputValidationError
     try:
-        generated = strict_json_loads(response.text)
+        generated = strict_json_loads(_unwrap_single_json_fence(response.text))
     except DuplicateJSONKeyError:
         return _abstain("invalid_generated_citation", policy, response.usage)
     except (TypeError, ValueError):

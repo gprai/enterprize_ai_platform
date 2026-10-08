@@ -155,6 +155,45 @@ def test_valid_generated_citation_is_rebuilt_from_trusted_evidence() -> None:
     assert provider.requests[0].max_output_tokens == 512
 
 
+def test_single_json_markdown_fence_is_accepted_before_strict_validation() -> None:
+    chunk = _chunk()
+    response = _response([_citation(chunk)])
+    fenced = response.model_copy(update={"text": f"```json\n{response.text}\n```"})
+    service, _provider = _service((chunk,), fenced)
+
+    result = asyncio.run(service.answer(_auth(), Query(text="Synthetic query")))
+
+    assert isinstance(result, CitedAnswerResult)
+    assert result.answer.text == "Governed answer."
+    assert result.answer.citations[0].model_dump() == {
+        **_citation(chunk),
+        "label": None,
+    }
+
+
+@pytest.mark.parametrize(
+    "envelope",
+    [
+        "```\n{payload}\n```",
+        "```JSON\n{payload}\n```",
+        "prefix\n```json\n{payload}\n```",
+        "```json\n{payload}\n```\nsuffix",
+        "```json\n```json\n{payload}\n```\n```",
+        "```json\n\n```",
+    ],
+)
+def test_ambiguous_or_non_json_markdown_fences_fail_closed(envelope: str) -> None:
+    chunk = _chunk()
+    payload = _response([_citation(chunk)]).text
+    service, _provider = _service(
+        (chunk,),
+        ChatResponse(text=envelope.format(payload=payload)),
+    )
+
+    with pytest.raises(RAGOutputValidationError):
+        asyncio.run(service.answer(_auth(), Query(text="Synthetic query")))
+
+
 def test_valid_raw_string_uses_the_existing_policy_query_and_result_contract() -> None:
     chunk = _chunk()
     retrieval = StubRetrieval((chunk,))
