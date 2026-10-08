@@ -76,7 +76,7 @@ def test_runtime_warmup_is_bounded(
         asyncio.run(_runtime(embedder).start())
 
 
-def test_aws_runtime_uses_five_second_retrieval_budget(
+def test_aws_runtime_uses_fifteen_second_retrieval_budget(
     monkeypatch: pytest.MonkeyPatch,
     valid_settings: Settings,
 ) -> None:
@@ -109,5 +109,5 @@ def test_aws_runtime_uses_five_second_retrieval_budget(
         telemetry=NullTelemetryRuntime(),  # type: ignore[arg-type]
     )
 
-    assert captured["timeout_seconds"] == AWS_RETRIEVAL_TIMEOUT_SECONDS == 5.0
+    assert captured["timeout_seconds"] == AWS_RETRIEVAL_TIMEOUT_SECONDS == 15.0
     assert runtime.embedder is embedder

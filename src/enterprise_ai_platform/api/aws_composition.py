@@ -31,7 +31,7 @@ from enterprise_ai_platform.telemetry.runtime import (
 )
 
 AWS_STARTUP_WARMUP_TIMEOUT_SECONDS = 30.0
-AWS_RETRIEVAL_TIMEOUT_SECONDS = 5.0
+AWS_RETRIEVAL_TIMEOUT_SECONDS = 15.0
 AWS_STARTUP_WARMUP_TEXT = "enterprise ai platform startup readiness warmup"
 
 
