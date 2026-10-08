@@ -85,6 +85,8 @@ def create_app(
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         del application
         try:
+            if aws_runtime is not None:
+                await aws_runtime.start()
             yield
         finally:
             if aws_runtime is not None:

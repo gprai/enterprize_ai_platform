@@ -30,6 +30,10 @@ from enterprise_ai_platform.telemetry.runtime import (
     build_otlp_telemetry,
 )
 
+AWS_STARTUP_WARMUP_TIMEOUT_SECONDS = 30.0
+AWS_RETRIEVAL_TIMEOUT_SECONDS = 5.0
+AWS_STARTUP_WARMUP_TEXT = "enterprise ai platform startup readiness warmup"
+
 
 class _AsyncMethodGroup:
     """Run the locked synchronous OpenSearch client behind cancellable awaits."""
@@ -130,6 +134,13 @@ class AWSRuntimeComposition:
     readiness_probe: AWSReadinessProbe
     telemetry: TelemetryRuntime
     opensearch_client: object
+    embedder: Embedder
+
+    async def start(self) -> None:
+        """Load and exercise the local embedding model before serving traffic."""
+
+        async with asyncio.timeout(AWS_STARTUP_WARMUP_TIMEOUT_SECONDS):
+            await self.embedder.embed_query(AWS_STARTUP_WARMUP_TEXT)
 
     async def close(self) -> None:
         close = getattr(self.opensearch_client, "close", None)
@@ -243,7 +254,7 @@ def compose_aws_runtime(
         embedder=resolved_embedder,
         vector_store=adapters.vector_store,
         collection_spec=CollectionSpec(name=settings.opensearch_index_name),
-        timeout_seconds=1.0,
+        timeout_seconds=AWS_RETRIEVAL_TIMEOUT_SECONDS,
         telemetry=resolved_telemetry,
     )
     rag_service = RAGService(
@@ -260,4 +271,5 @@ def compose_aws_runtime(
         ),
         telemetry=resolved_telemetry,
         opensearch_client=opensearch_client,
+        embedder=resolved_embedder,
     )
