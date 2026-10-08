@@ -3244,6 +3244,19 @@ runtime_bedrock_statement(sid, resource, conditions) := statement if {
 	}
 }
 
+# aws_iam_policy_document serializes single action and resource values as
+# singleton arrays. Accept that Terraform representation as well as the scalar
+# representation used by the narrow unit fixtures; both forms remain exact.
+valid_runtime_bedrock_statement(statement, sid, resource, conditions) if {
+	is_object(statement)
+	object.keys(statement) == {"Action", "Condition", "Effect", "Resource", "Sid"}
+	statement.Sid == sid
+	statement.Effect == "Allow"
+	exact_string_value_or_members(statement.Action, {"bedrock:InvokeModel"})
+	exact_string_value_or_members(statement.Resource, {resource})
+	statement.Condition == conditions
+}
+
 policy_statement_by_sid(document, sid) := statement if {
 	matching := [
 	candidate |
@@ -3271,10 +3284,10 @@ valid_runtime_global_bedrock_profile_repair(before_policy, after_policy) if {
 	legacy := policy_statement_by_sid(before_document, platform_runtime_policy_legacy_bedrock_sid)
 	expires_at := legacy.Condition.DateLessThan["aws:CurrentTime"]
 	valid_utc_timestamp(expires_at)
-	legacy == runtime_bedrock_statement(platform_runtime_policy_legacy_bedrock_sid, platform_global_inference_profile_arn, runtime_bedrock_profile_conditions("ap-southeast-1", expires_at))
-	policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfile") == runtime_bedrock_statement("InvokeExactGlobalInferenceProfile", platform_global_inference_profile_arn, runtime_bedrock_base_conditions("ap-southeast-1", expires_at))
-	policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfileRegionalModel") == runtime_bedrock_statement("InvokeExactGlobalInferenceProfileRegionalModel", platform_regional_foundation_model_arn, runtime_bedrock_profile_conditions("ap-southeast-1", expires_at))
-	policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfileGlobalModel") == runtime_bedrock_statement("InvokeExactGlobalInferenceProfileGlobalModel", platform_global_foundation_model_arn, runtime_bedrock_profile_conditions("unspecified", expires_at))
+	valid_runtime_bedrock_statement(legacy, platform_runtime_policy_legacy_bedrock_sid, platform_global_inference_profile_arn, runtime_bedrock_profile_conditions("ap-southeast-1", expires_at))
+	valid_runtime_bedrock_statement(policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfile"), "InvokeExactGlobalInferenceProfile", platform_global_inference_profile_arn, runtime_bedrock_base_conditions("ap-southeast-1", expires_at))
+	valid_runtime_bedrock_statement(policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfileRegionalModel"), "InvokeExactGlobalInferenceProfileRegionalModel", platform_regional_foundation_model_arn, runtime_bedrock_profile_conditions("ap-southeast-1", expires_at))
+	valid_runtime_bedrock_statement(policy_statement_by_sid(after_document, "InvokeExactGlobalInferenceProfileGlobalModel"), "InvokeExactGlobalInferenceProfileGlobalModel", platform_global_foundation_model_arn, runtime_bedrock_profile_conditions("unspecified", expires_at))
 	before_other := policy_statement_set_without_sids(before_document, {platform_runtime_policy_legacy_bedrock_sid})
 	after_other := policy_statement_set_without_sids(after_document, platform_runtime_policy_expiry_statement_sids)
 	before_other == after_other

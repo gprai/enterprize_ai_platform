@@ -2816,6 +2816,14 @@ r10_runtime_bedrock_policy(statements) := json.marshal({
 	}]),
 })
 
+r10_runtime_bedrock_statement_array(sid, resource, conditions) := {
+	"Sid": sid,
+	"Effect": "Allow",
+	"Action": ["bedrock:InvokeModel"],
+	"Resource": [resource],
+	"Condition": conditions,
+}
+
 r10_runtime_bedrock_change(after_statements) := normalized_update(
 	"module.iam.aws_iam_role_policy.runtime",
 	"aws_iam_role_policy",
@@ -2838,6 +2846,18 @@ test_r10_accepts_exact_global_bedrock_inference_profile_repair if {
 		runtime_bedrock_statement("InvokeExactGlobalInferenceProfileGlobalModel", platform_global_foundation_model_arn, runtime_bedrock_profile_conditions("unspecified", approved_tags.ExpiresAt)),
 	])
 	w6_004_stage3_recovery_delta(change, r8_runtime_iam_rule)
+}
+
+test_r10_accepts_terraform_singleton_array_bedrock_policy_representation if {
+	before_policy := r10_runtime_bedrock_policy([
+		r10_runtime_bedrock_statement_array("InvokeExactApprovedInferenceProfile", platform_global_inference_profile_arn, runtime_bedrock_profile_conditions("ap-southeast-1", approved_tags.ExpiresAt)),
+	])
+	after_policy := r10_runtime_bedrock_policy([
+		r10_runtime_bedrock_statement_array("InvokeExactGlobalInferenceProfile", platform_global_inference_profile_arn, runtime_bedrock_base_conditions("ap-southeast-1", approved_tags.ExpiresAt)),
+		r10_runtime_bedrock_statement_array("InvokeExactGlobalInferenceProfileRegionalModel", platform_regional_foundation_model_arn, runtime_bedrock_profile_conditions("ap-southeast-1", approved_tags.ExpiresAt)),
+		r10_runtime_bedrock_statement_array("InvokeExactGlobalInferenceProfileGlobalModel", platform_global_foundation_model_arn, runtime_bedrock_profile_conditions("unspecified", approved_tags.ExpiresAt)),
+	])
+	valid_runtime_global_bedrock_profile_repair(before_policy, after_policy)
 }
 
 test_r10_rejects_global_bedrock_profile_repair_with_broad_model_access if {
