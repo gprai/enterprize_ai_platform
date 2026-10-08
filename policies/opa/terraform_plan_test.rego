@@ -2637,6 +2637,59 @@ r5_recovery_rule(address, resource_type, actions, update_paths) := {
 	"delta_rule": "W6_004_STAGE3_RECOVERY",
 }
 
+r9_runtime_gate_test_input := {
+	"evaluation_context": object.union(approved_context, {
+		"operation": {
+			"expires_at": "2026-09-04T08:00:00Z",
+			"resource_expires_at": "2026-09-04T23:45:00Z",
+		},
+	}),
+}
+
+r9_runtime_gate_change(approval_expires_at) := normalized_update(
+	"terraform_data.w6_004_runtime_gate[0]",
+	"terraform_data",
+	{
+		"input": {
+			"approval_issued_at": "2026-09-03T16:00:00Z",
+			"deployment_start": "2026-09-03T16:00:00Z",
+			"approval_expires_at": "2026-09-04T00:30:00Z",
+		},
+		"output": null,
+	},
+	{
+		"input": {
+			"approval_issued_at": "2026-09-04T00:00:00Z",
+			"deployment_start": "2026-09-04T00:00:00Z",
+			"approval_expires_at": approval_expires_at,
+		},
+		"output": null,
+	},
+)
+
+r9_runtime_gate_rule := r5_recovery_rule(
+	"terraform_data.w6_004_runtime_gate[0]",
+	"terraform_data",
+	["update"],
+	[
+		"input.approval_expires_at",
+		"input.approval_issued_at",
+		"input.deployment_start",
+		"output",
+	],
+)
+
+test_r9_runtime_gate_binds_approval_to_mutation_deadline if {
+	r9_runtime_gate_test_input.evaluation_context.operation.expires_at != r9_runtime_gate_test_input.evaluation_context.operation.resource_expires_at
+	change := r9_runtime_gate_change(r9_runtime_gate_test_input.evaluation_context.operation.expires_at)
+	w6_004_stage3_recovery_delta(change, r9_runtime_gate_rule) with input as r9_runtime_gate_test_input
+}
+
+test_r9_runtime_gate_rejects_resource_expiry_as_approval_deadline if {
+	change := r9_runtime_gate_change(r9_runtime_gate_test_input.evaluation_context.operation.resource_expires_at)
+	not w6_004_stage3_recovery_delta(change, r9_runtime_gate_rule) with input as r9_runtime_gate_test_input
+}
+
 r5_vpc_cni_change(configuration_values) := normalized_update(
 	`module.eks[0].aws_eks_addon.this["vpc-cni"]`,
 	"aws_eks_addon",

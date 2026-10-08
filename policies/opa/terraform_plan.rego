@@ -2989,7 +2989,7 @@ w6_004_stage3_recovery_delta(change, rule) if {
 		"input.deployment_start",
 		"output",
 	]
-	change.change.after.input.approval_expires_at == operational.resource_expires_at
+	change.change.after.input.approval_expires_at == operational.expires_at
 }
 
 w6_004_stage3_recovery_delta(change, rule) if {
