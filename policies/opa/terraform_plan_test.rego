@@ -3136,3 +3136,77 @@ test_admin_trust_may_expire_before_its_resource_tag if {
 	)
 	valid_admin_trust_expiry_update(role) with input as bedrock_logging_test_context
 }
+
+test_exact_bedrock_delivery_trust_is_the_only_approved_scope_wildcard if {
+	policy := {"Version": "2012-10-17", "Statement": [{
+		"Sid": "ExactBedrockLogDeliveryTrust",
+		"Effect": "Allow",
+		"Principal": {"Service": "bedrock.amazonaws.com"},
+		"Action": ["sts:AssumeRole"],
+		"Condition": {
+			"ArnLike": {"aws:SourceArn": "arn:aws:bedrock:ap-southeast-1:526338061652:*"},
+			"StringEquals": {"aws:SourceAccount": "526338061652"},
+		},
+	}]}
+	role_change := change(
+		"module.observability[0].aws_iam_role.bedrock_log_delivery",
+		"aws_iam_role",
+		{"name": "enterprise-ai-sandbox-bedrock-log-delivery", "assume_role_policy": json.marshal(policy)},
+	)
+	approved_existing_w6_004_iam_policy(role_change) with input as bedrock_logging_test_context
+	broad_policy := object.union(policy, {"Statement": [object.union(policy.Statement[0], {
+		"Condition": {"ArnLike": {"aws:SourceArn": "*"}},
+	})]})
+	broad := object.union(role_change, {"change": object.union(role_change.change, {
+		"after": object.union(role_change.change.after, {"assume_role_policy": json.marshal(broad_policy)}),
+	})})
+	not approved_existing_w6_004_iam_policy(broad) with input as bedrock_logging_test_context
+}
+
+test_bedrock_logging_allows_only_the_unchanged_expired_fis_snapshot if {
+	fis_values := {"tags": previous_tags, "tags_all": previous_tags}
+	fis := {
+		"address": "module.observability[0].aws_fis_experiment_template.pod_delete",
+		"type": "aws_fis_experiment_template",
+		"change": {
+			"actions": ["no-op"],
+			"before": fis_values,
+			"after": fis_values,
+			"before_sensitive": {},
+			"after_sensitive": {},
+			"after_unknown": {},
+		},
+	}
+	logging := change(
+		"module.observability[0].aws_bedrock_model_invocation_logging_configuration.this[0]",
+		"aws_bedrock_model_invocation_logging_configuration",
+		{"logging_config": []},
+	)
+	operation := object.union(v2_operation, {
+		"profile": "PARTIAL_RECOVERY",
+		"resource_expires_at": approved_tags.ExpiresAt,
+		"rules": [
+			{
+				"address": fis.address,
+				"resource_type": fis.type,
+				"actions": ["no-op"],
+				"update_paths": [],
+				"delta_rule": "NONE",
+			},
+			{
+				"address": logging.address,
+				"resource_type": logging.type,
+				"actions": ["create"],
+				"update_paths": [],
+				"delta_rule": "NONE",
+			},
+		],
+	})
+	plan := object.union(approved_plan, {
+		"resource_changes": [fis, logging],
+		"evaluation_context": object.union(approved_context, {"operation": operation}),
+	})
+	approved_bedrock_logging_fis_noop(fis) with input as plan
+	changed := object.union(fis, {"change": object.union(fis.change, {"after": {"tags": approved_tags, "tags_all": approved_tags}})})
+	not approved_bedrock_logging_fis_noop(changed) with input as plan
+}

@@ -2459,6 +2459,7 @@ raw_violations contains violation("W5-TAG-002", change.address) if {
 	after(change) != null
 	tags := tags_for(change)
 	not expires_at_valid(tags)
+	not approved_bedrock_logging_fis_noop(change)
 }
 
 raw_violations contains violation("W5-PLAN-002", change.address) if {
@@ -2608,6 +2609,47 @@ approved_existing_w6_004_iam_policy(change) if {
 	rule.delta_rule == "W6_004_STAGE3_RECOVERY"
 	rule.update_paths == ["policy"]
 	w6_004_stage3_recovery_delta(change, rule)
+}
+
+approved_existing_w6_004_iam_policy(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == "module.observability[0].aws_iam_role.bedrock_log_delivery"
+	change.type == "aws_iam_role"
+	change.change.actions == ["create"]
+	values := change.change.after
+	values.name == "enterprise-ai-sandbox-bedrock-log-delivery"
+	json.unmarshal(values.assume_role_policy) == {
+		"Version": "2012-10-17",
+		"Statement": [{
+			"Sid": "ExactBedrockLogDeliveryTrust",
+			"Effect": "Allow",
+			"Principal": {"Service": "bedrock.amazonaws.com"},
+			"Action": ["sts:AssumeRole"],
+			"Condition": {
+				"ArnLike": {"aws:SourceArn": "arn:aws:bedrock:ap-southeast-1:526338061652:*"},
+				"StringEquals": {"aws:SourceAccount": "526338061652"},
+			},
+		}],
+	}
+}
+
+approved_bedrock_logging_fis_noop(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == "module.observability[0].aws_fis_experiment_template.pod_delete"
+	change.type == "aws_fis_experiment_template"
+	change.change.actions == ["no-op"]
+	change.change.before == change.change.after
+	change.change.before_sensitive == change.change.after_sensitive
+	change.change.after_unknown == {}
+	fixed_tags_valid(change.change.after.tags_all)
+	valid_utc_timestamp(change.change.after.tags_all.ExpiresAt)
+	time.parse_rfc3339_ns(change.change.after.tags_all.ExpiresAt) <= evaluation_time_ns
+	logging := changes_by_address["module.observability[0].aws_bedrock_model_invocation_logging_configuration.this[0]"]
+	logging.type == "aws_bedrock_model_invocation_logging_configuration"
+	logging.change.actions == ["create"]
+	rule := operational_rule(change)
+	rule.update_paths == []
+	rule.delta_rule == "NONE"
 }
 
 # Permit only the exact FIS discovery repair required by the Amazon EKS pod-delete
