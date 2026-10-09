@@ -3210,3 +3210,60 @@ test_bedrock_logging_allows_only_the_unchanged_expired_fis_snapshot if {
 	changed := object.union(fis, {"change": object.union(fis.change, {"after": {"tags": approved_tags, "tags_all": approved_tags}})})
 	not approved_bedrock_logging_fis_noop(changed) with input as plan
 }
+
+bedrock_logging_disable_change := {
+	"address": "module.observability[0].aws_bedrock_model_invocation_logging_configuration.this[0]",
+	"type": "aws_bedrock_model_invocation_logging_configuration",
+	"change": {
+		"actions": ["delete"],
+		"before": bedrock_logging_configuration_snapshot,
+		"after": null,
+		"before_sensitive": bedrock_logging_configuration_before_sensitive,
+		"after_sensitive": {},
+		"after_unknown": {},
+	},
+}
+
+bedrock_logging_disable_rule := {
+	"address": bedrock_logging_disable_change.address,
+	"resource_type": bedrock_logging_disable_change.type,
+	"actions": ["delete"],
+	"update_paths": [],
+	"delta_rule": "W6_004_BEDROCK_LOGGING_DISABLE",
+}
+
+bedrock_logging_disable_test_context := {
+	"evaluation_context": object.union(approved_context, {"operation": object.union(v2_operation, {
+		"profile": "PARTIAL_RECOVERY",
+		"resource_expires_at": approved_tags.ExpiresAt,
+		"rules": [bedrock_logging_disable_rule],
+	})}),
+}
+
+test_bedrock_logging_disable_accepts_only_exact_snapshot if {
+	w6_004_bedrock_logging_disable(bedrock_logging_disable_change, bedrock_logging_disable_rule) with input as bedrock_logging_disable_test_context
+	operational_change_valid(bedrock_logging_disable_change, bedrock_logging_disable_rule) with input as bedrock_logging_disable_test_context
+	approved_partial_recovery_replacement(bedrock_logging_disable_change) with input as bedrock_logging_disable_test_context
+}
+
+test_bedrock_logging_disable_rejects_destination_drift if {
+	changed_config := object.union(bedrock_logging_configuration_snapshot, {"logging_config": [object.union(bedrock_logging_configuration_snapshot.logging_config[0], {
+		"s3_config": [{
+			"bucket_name": "unapproved-bucket",
+			"key_prefix": "bedrock-model-invocations",
+		}],
+	})]})
+	changed := object.union(bedrock_logging_disable_change, {"change": object.union(bedrock_logging_disable_change.change, {"before": changed_config})})
+	not w6_004_bedrock_logging_disable(changed, bedrock_logging_disable_rule) with input as bedrock_logging_disable_test_context
+}
+
+test_bedrock_logging_disable_rejects_broad_or_different_delete if {
+	changed := object.union(bedrock_logging_disable_change, {
+		"address": "module.observability[0].aws_cloudwatch_log_group.bedrock_invocations",
+		"type": "aws_cloudwatch_log_group",
+	})
+	not w6_004_bedrock_logging_disable(changed, object.union(bedrock_logging_disable_rule, {
+		"address": changed.address,
+		"resource_type": changed.type,
+	})) with input as bedrock_logging_disable_test_context
+}

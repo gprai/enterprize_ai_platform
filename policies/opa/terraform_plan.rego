@@ -1910,6 +1910,12 @@ approved_partial_recovery_replacement(change) if {
 	change.change.actions == ["delete", "create"]
 }
 
+approved_partial_recovery_replacement(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	rule := operational_rule(change)
+	w6_004_bedrock_logging_disable(change, rule)
+}
+
 related_address(address, resource_type) := replace(
 	address,
 	"aws_s3_bucket.",
@@ -3107,6 +3113,51 @@ bedrock_log_lifecycle_rule := {
 	"transition": [],
 }
 
+bedrock_logging_configuration_snapshot := {
+	"id": "ap-southeast-1",
+	"logging_config": [{
+		"cloudwatch_config": [{
+			"large_data_delivery_s3_config": [{
+				"bucket_name": "enterprise-ai-platform-526338061652-ap-southeast-1-sandbox",
+				"key_prefix": "bedrock-model-invocations",
+			}],
+			"log_group_name": "/aws/bedrock/enterprise-ai-sandbox/model-invocations",
+			"role_arn": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-bedrock-log-delivery",
+		}],
+		"embedding_data_delivery_enabled": false,
+		"image_data_delivery_enabled": false,
+		"s3_config": [{
+			"bucket_name": "enterprise-ai-platform-526338061652-ap-southeast-1-sandbox",
+			"key_prefix": "bedrock-model-invocations",
+		}],
+		"text_data_delivery_enabled": true,
+		"video_data_delivery_enabled": false,
+	}],
+	"region": "ap-southeast-1",
+}
+
+bedrock_logging_configuration_before_sensitive := {
+	"logging_config": [{
+		"cloudwatch_config": [{
+			"large_data_delivery_s3_config": [{}],
+		}],
+		"s3_config": [{}],
+	}],
+}
+
+w6_004_bedrock_logging_disable(change, rule) if {
+	change.address == "module.observability[0].aws_bedrock_model_invocation_logging_configuration.this[0]"
+	change.type == "aws_bedrock_model_invocation_logging_configuration"
+	change.change.actions == ["delete"]
+	change.change.before == bedrock_logging_configuration_snapshot
+	change.change.before_sensitive == bedrock_logging_configuration_before_sensitive
+	change.change.after == null
+	change.change.after_sensitive == {}
+	change.change.after_unknown == {}
+	rule.update_paths == []
+	rule.delta_rule == "W6_004_BEDROCK_LOGGING_DISABLE"
+}
+
 w6_004_bedrock_logging_delta(change, rule) if {
 	change.address == platform_kms_address
 	change.type == "aws_kms_key"
@@ -3176,6 +3227,12 @@ operational_change_valid(change, rule) if {
 	w6_004_bedrock_logging_delta(change, rule)
 	change_has_no_sensitive_markers(change)
 	not critical_unknown_present(change)
+}
+
+operational_change_valid(change, rule) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	w6_004_bedrock_logging_disable(change, rule)
+	change_has_no_sensitive_markers(change)
 }
 
 w6_004_stage3_endpoint_address(address) if address in platform_interface_endpoint_addresses
