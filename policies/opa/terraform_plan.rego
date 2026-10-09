@@ -1607,7 +1607,10 @@ valid_admin_trust_expiry_update(role) if {
 	object.remove(before_statement.Condition, {"DateLessThan"}) == object.remove(after_statement.Condition, {"DateLessThan"})
 	object.keys(before_statement.Condition.DateLessThan) == {"aws:CurrentTime"}
 	object.keys(after_statement.Condition.DateLessThan) == {"aws:CurrentTime"}
-	before_statement.Condition.DateLessThan["aws:CurrentTime"] == before.tags.ExpiresAt
+	valid_utc_timestamp(before_statement.Condition.DateLessThan["aws:CurrentTime"])
+	valid_utc_timestamp(before.tags.ExpiresAt)
+	time.parse_rfc3339_ns(before_statement.Condition.DateLessThan["aws:CurrentTime"]) <= time.parse_rfc3339_ns(before.tags.ExpiresAt)
+	time.parse_rfc3339_ns(before.tags.ExpiresAt) < time.parse_rfc3339_ns(operational.resource_expires_at)
 	after_statement.Condition.DateLessThan["aws:CurrentTime"] == operational.expires_at
 }
 
@@ -2992,6 +2995,117 @@ operational_expiry_delta(change, rule) if {
 	valid_platform_kms_log_compatibility_update(change, operational.resource_expires_at)
 }
 
+exact_policy_statement_addition(before_policy, after_policy, target_sid, expected) if {
+	is_string(before_policy)
+	is_string(after_policy)
+	before_document := json.unmarshal(before_policy)
+	after_document := json.unmarshal(after_policy)
+	object.remove(before_document, {"Statement"}) == object.remove(after_document, {"Statement"})
+	before_statements := before_document.Statement
+	after_statements := after_document.Statement
+	is_array(before_statements)
+	is_array(after_statements)
+	count(after_statements) == count(before_statements) + 1
+	count([statement | some statement in before_statements; object.get(statement, "Sid", "") == target_sid]) == 0
+	after_target := [statement | some statement in after_statements; object.get(statement, "Sid", "") == target_sid]
+	after_target == [expected]
+	{json.marshal(statement) | some statement in before_statements} == {
+	json.marshal(statement) |
+		some statement in after_statements
+		object.get(statement, "Sid", "") != target_sid
+	}
+}
+
+bedrock_log_kms_statement := {
+	"Sid": "AllowExactBedrockInvocationLogEncryption",
+	"Effect": "Allow",
+	"Principal": {"Service": "bedrock.amazonaws.com"},
+	"Action": ["kms:GenerateDataKey"],
+	"Resource": ["*"],
+	"Condition": {
+		"ArnLike": {"aws:SourceArn": "arn:aws:bedrock:ap-southeast-1:526338061652:*"},
+		"StringEquals": {"aws:SourceAccount": "526338061652"},
+	},
+}
+
+bedrock_log_s3_statement := {
+	"Sid": "AllowExactBedrockInvocationLogDelivery",
+	"Effect": "Allow",
+	"Principal": {"Service": "bedrock.amazonaws.com"},
+	"Action": ["s3:PutObject"],
+	"Resource": ["arn:aws:s3:::enterprise-ai-platform-526338061652-ap-southeast-1-sandbox/bedrock-model-invocations/AWSLogs/526338061652/BedrockModelInvocationLogs/*"],
+	"Condition": {
+		"ArnLike": {"aws:SourceArn": "arn:aws:bedrock:ap-southeast-1:526338061652:*"},
+		"StringEquals": {"aws:SourceAccount": "526338061652"},
+	},
+}
+
+bedrock_log_lifecycle_rule := {
+	"abort_incomplete_multipart_upload": [],
+	"expiration": [{
+		"date": null,
+		"days": 7,
+		"expired_object_delete_marker": false,
+	}],
+	"filter": [{
+		"and": [],
+		"object_size_greater_than": null,
+		"object_size_less_than": null,
+		"prefix": "bedrock-model-invocations/",
+		"tag": [],
+	}],
+	"id": "expire-bedrock-model-invocation-logs",
+	"noncurrent_version_expiration": [{
+		"newer_noncurrent_versions": null,
+		"noncurrent_days": 7,
+	}],
+	"noncurrent_version_transition": [],
+	"prefix": "",
+	"status": "Enabled",
+	"transition": [],
+}
+
+w6_004_bedrock_logging_delta(change, rule) if {
+	change.address == platform_kms_address
+	change.type == "aws_kms_key"
+	change.change.actions == ["update"]
+	rule.update_paths == ["policy", "tags.ExpiresAt", "tags_all.ExpiresAt"]
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"policy", "tags", "tags_all"}) == object.remove(after_values, {"policy", "tags", "tags_all"})
+	valid_expiry_reconciliation(before_values.tags, after_values.tags, operational.resource_expires_at)
+	valid_expiry_reconciliation(before_values.tags_all, after_values.tags_all, operational.resource_expires_at)
+	exact_policy_statement_addition(before_values.policy, after_values.policy, bedrock_log_kms_statement.Sid, bedrock_log_kms_statement)
+}
+
+w6_004_bedrock_logging_delta(change, rule) if {
+	change.address == "module.storage.aws_s3_bucket_policy.tls_only"
+	change.type == "aws_s3_bucket_policy"
+	change.change.actions == ["update"]
+	rule.update_paths == ["policy"]
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"policy"}) == object.remove(after_values, {"policy"})
+	exact_policy_statement_addition(before_values.policy, after_values.policy, bedrock_log_s3_statement.Sid, bedrock_log_s3_statement)
+}
+
+w6_004_bedrock_logging_delta(change, rule) if {
+	change.address == "module.storage.aws_s3_bucket_lifecycle_configuration.this"
+	change.type == "aws_s3_bucket_lifecycle_configuration"
+	change.change.actions == ["update"]
+	rule.update_paths == ["rule"]
+	before_values := change.change.before
+	after_values := change.change.after
+	object.remove(before_values, {"rule"}) == object.remove(after_values, {"rule"})
+	count(after_values.rule) == count(before_values.rule) + 1
+	[entry | some entry in after_values.rule; entry.id == bedrock_log_lifecycle_rule.id] == [bedrock_log_lifecycle_rule]
+	{json.marshal(entry) | some entry in before_values.rule} == {
+	json.marshal(entry) |
+		some entry in after_values.rule
+		entry.id != bedrock_log_lifecycle_rule.id
+	}
+}
+
 operational_change_valid(change, rule) if {
 	change.change.actions in [["create"], ["read"], ["no-op"]]
 	rule.update_paths == []
@@ -3003,6 +3117,23 @@ operational_change_valid(change, rule) if {
 operational_change_valid(change, rule) if {
 	operational.profile == "PARTIAL_RECOVERY"
 	operational_expiry_delta(change, rule)
+}
+
+valid_change(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	rule := operational_rule(change)
+	rule.delta_rule == "W6_004_BEDROCK_LOGGING"
+	w6_004_bedrock_logging_delta(change, rule)
+	change_has_no_sensitive_markers(change)
+	not critical_unknown_present(change)
+}
+
+operational_change_valid(change, rule) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	rule.delta_rule == "W6_004_BEDROCK_LOGGING"
+	w6_004_bedrock_logging_delta(change, rule)
+	change_has_no_sensitive_markers(change)
+	not critical_unknown_present(change)
 }
 
 w6_004_stage3_endpoint_address(address) if address in platform_interface_endpoint_addresses

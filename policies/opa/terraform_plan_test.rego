@@ -3050,3 +3050,89 @@ test_r8_exact_index_child_wildcard_is_approved if {
 test_r8_unrelated_index_wildcard_remains_rejected if {
 	not approved_wildcard_arn("arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox/unapproved_index/*")
 }
+
+bedrock_logging_test_context := {"evaluation_context": object.union(approved_context, {"operation": {
+	"profile": "PARTIAL_RECOVERY",
+	"resource_expires_at": approved_tags.ExpiresAt,
+	"expires_at": "2026-09-04T08:00:00Z",
+}})}
+
+bedrock_logging_rule(address, resource_type, update_paths) := {
+	"address": address,
+	"resource_type": resource_type,
+	"actions": ["update"],
+	"update_paths": update_paths,
+	"delta_rule": "W6_004_BEDROCK_LOGGING",
+}
+
+test_bedrock_logging_accepts_exact_kms_statement_addition if {
+	before_policy := {"Version": "2012-10-17", "Statement": []}
+	after_policy := {"Version": "2012-10-17", "Statement": [bedrock_log_kms_statement]}
+	change := normalized_update(
+		platform_kms_address,
+		"aws_kms_key",
+		{"policy": json.marshal(before_policy), "tags": previous_tags, "tags_all": previous_tags},
+		{"policy": json.marshal(after_policy), "tags": approved_tags, "tags_all": approved_tags},
+	)
+	rule := bedrock_logging_rule(change.address, change.type, ["policy", "tags.ExpiresAt", "tags_all.ExpiresAt"])
+	w6_004_bedrock_logging_delta(change, rule) with input as bedrock_logging_test_context
+}
+
+test_bedrock_logging_rejects_broad_kms_source_arn if {
+	before_policy := {"Version": "2012-10-17", "Statement": []}
+	broad := object.union(bedrock_log_kms_statement, {"Condition": {
+		"ArnLike": {"aws:SourceArn": "*"},
+		"StringEquals": {"aws:SourceAccount": "526338061652"},
+	}})
+	after_policy := {"Version": "2012-10-17", "Statement": [broad]}
+	change := normalized_update(
+		platform_kms_address,
+		"aws_kms_key",
+		{"policy": json.marshal(before_policy), "tags": previous_tags, "tags_all": previous_tags},
+		{"policy": json.marshal(after_policy), "tags": approved_tags, "tags_all": approved_tags},
+	)
+	rule := bedrock_logging_rule(change.address, change.type, ["policy", "tags.ExpiresAt", "tags_all.ExpiresAt"])
+	not w6_004_bedrock_logging_delta(change, rule) with input as bedrock_logging_test_context
+}
+
+test_bedrock_logging_accepts_exact_s3_statement_and_lifecycle if {
+	before_policy := {"Version": "2012-10-17", "Statement": []}
+	after_policy := {"Version": "2012-10-17", "Statement": [bedrock_log_s3_statement]}
+	policy_change := normalized_update(
+		"module.storage.aws_s3_bucket_policy.tls_only",
+		"aws_s3_bucket_policy",
+		{"bucket": "approved", "policy": json.marshal(before_policy)},
+		{"bucket": "approved", "policy": json.marshal(after_policy)},
+	)
+	policy_rule := bedrock_logging_rule(policy_change.address, policy_change.type, ["policy"])
+	w6_004_bedrock_logging_delta(policy_change, policy_rule) with input as bedrock_logging_test_context
+
+	lifecycle_change := normalized_update(
+		"module.storage.aws_s3_bucket_lifecycle_configuration.this",
+		"aws_s3_bucket_lifecycle_configuration",
+		{"bucket": "approved", "rule": []},
+		{"bucket": "approved", "rule": [bedrock_log_lifecycle_rule]},
+	)
+	lifecycle_rule := bedrock_logging_rule(lifecycle_change.address, lifecycle_change.type, ["rule"])
+	w6_004_bedrock_logging_delta(lifecycle_change, lifecycle_rule) with input as bedrock_logging_test_context
+}
+
+test_admin_trust_may_expire_before_its_resource_tag if {
+	before_trust := {"Version": "2012-10-17", "Statement": [{
+		"Sid": "TimeBoundExactSandboxAdministrator",
+		"Effect": "Allow",
+		"Action": "sts:AssumeRole",
+		"Principal": {"AWS": "arn:aws:iam::123456789012:role/owner"},
+		"Condition": {"DateLessThan": {"aws:CurrentTime": "2026-09-03T12:00:00Z"}},
+	}]}
+	after_trust := object.union(before_trust, {"Statement": [object.union(before_trust.Statement[0], {
+		"Condition": {"DateLessThan": {"aws:CurrentTime": "2026-09-04T08:00:00Z"}},
+	})]})
+	role := normalized_update(
+		opensearch_admin_role_address,
+		"aws_iam_role",
+		{"assume_role_policy": json.marshal(before_trust), "tags": previous_tags, "tags_all": previous_tags},
+		{"assume_role_policy": json.marshal(after_trust), "tags": approved_tags, "tags_all": approved_tags},
+	)
+	valid_admin_trust_expiry_update(role) with input as bedrock_logging_test_context
+}
