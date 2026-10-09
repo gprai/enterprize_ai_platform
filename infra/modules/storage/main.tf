@@ -92,6 +92,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     }
   }
 
+  rule {
+    id     = "expire-bedrock-model-invocation-logs"
+    status = "Enabled"
+
+    filter {
+      prefix = "${var.bedrock_log_prefix}/"
+    }
+
+    expiration {
+      days = 7
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 7
+    }
+  }
+
   depends_on = [aws_s3_bucket_versioning.this]
 }
 
@@ -118,6 +135,29 @@ data "aws_iam_policy_document" "tls_only" {
       test     = "Bool"
       variable = "aws:SecureTransport"
       values   = ["false"]
+    }
+  }
+
+  statement {
+    sid    = "AllowExactBedrockInvocationLogDelivery"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["bedrock.amazonaws.com"]
+    }
+    actions = ["s3:PutObject"]
+    resources = [
+      "${local.bucket_arn}/${var.bedrock_log_prefix}/AWSLogs/${var.aws_account_id}/BedrockModelInvocationLogs/*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [var.aws_account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:bedrock:${var.aws_region}:${var.aws_account_id}:*"]
     }
   }
 }

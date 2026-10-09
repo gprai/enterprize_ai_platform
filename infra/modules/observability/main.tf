@@ -12,6 +12,81 @@ resource "aws_cloudwatch_log_group" "eks" {
   tags              = var.tags
 }
 
+locals {
+  bedrock_log_prefix     = "bedrock-model-invocations"
+  bedrock_log_group_name = "/aws/bedrock/${var.name}/model-invocations"
+  bedrock_log_stream_arn = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:${local.bedrock_log_group_name}:log-stream:aws/bedrock/modelinvocations"
+  bedrock_source_arn     = "arn:aws:bedrock:${var.aws_region}:${var.aws_account_id}:*"
+}
+
+resource "aws_cloudwatch_log_group" "bedrock_invocations" {
+  #checkov:skip=CKV_AWS_158:Owner-approved CloudWatch service-side encryption is used for this seven-day synthetic-only evidence window; large payloads use the platform KMS-encrypted bucket.
+  #checkov:skip=CKV_AWS_338:Owner-approved synthetic transcript retention is exactly seven days, followed by expiry.
+  name              = local.bedrock_log_group_name
+  retention_in_days = 7
+  tags              = var.tags
+}
+
+resource "aws_iam_role" "bedrock_log_delivery" {
+  name = "${var.name}-bedrock-log-delivery"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "ExactBedrockLogDeliveryTrust"
+      Effect    = "Allow"
+      Action    = "sts:AssumeRole"
+      Principal = { Service = "bedrock.amazonaws.com" }
+      Condition = {
+        StringEquals = { "aws:SourceAccount" = var.aws_account_id }
+        ArnLike      = { "aws:SourceArn" = local.bedrock_source_arn }
+      }
+    }]
+  })
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "bedrock_log_delivery" {
+  name = "write-exact-bedrock-invocation-log"
+  role = aws_iam_role.bedrock_log_delivery.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid      = "WriteExactBedrockLogStream"
+      Effect   = "Allow"
+      Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+      Resource = local.bedrock_log_stream_arn
+    }]
+  })
+}
+
+resource "aws_bedrock_model_invocation_logging_configuration" "this" {
+  count = var.bedrock_invocation_logging_enabled ? 1 : 0
+
+  logging_config {
+    embedding_data_delivery_enabled = false
+    image_data_delivery_enabled     = false
+    text_data_delivery_enabled      = true
+    video_data_delivery_enabled     = false
+
+    cloudwatch_config {
+      log_group_name = aws_cloudwatch_log_group.bedrock_invocations.name
+      role_arn       = aws_iam_role.bedrock_log_delivery.arn
+
+      large_data_delivery_s3_config {
+        bucket_name = var.platform_bucket_name
+        key_prefix  = local.bedrock_log_prefix
+      }
+    }
+
+    s3_config {
+      bucket_name = var.platform_bucket_name
+      key_prefix  = local.bedrock_log_prefix
+    }
+  }
+
+  depends_on = [aws_iam_role_policy.bedrock_log_delivery]
+}
+
 resource "aws_sns_topic" "alerts" {
   name              = "${var.name}-alerts"
   kms_master_key_id = "alias/aws/sns"

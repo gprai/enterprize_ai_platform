@@ -22,6 +22,7 @@ EXPECTED_CHECKOV_SKIPS = {
     ("infra/modules/iam/main.tf", "CKV_AWS_111"),
     ("infra/modules/iam/main.tf", "CKV_AWS_355"),
     ("infra/modules/observability/main.tf", "CKV_AWS_158"),
+    ("infra/modules/observability/main.tf", "CKV_AWS_338"),
     ("infra/modules/network/main.tf", "CKV2_AWS_11"),
     ("infra/modules/opensearch/main.tf", "CKV_AWS_318"),
     ("infra/modules/opensearch/main.tf", "CKV_AWS_338"),
@@ -59,7 +60,7 @@ def test_prohibited_action_wildcards_and_permissions_are_absent() -> None:
 
 def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     source = terraform_source()
-    assert source.count('resources = ["*"]') == 11
+    assert source.count('resources = ["*"]') == 12
     assert source.count('identifiers = ["*"]') == 5
     network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
     assert network.count('identifiers = ["*"]') == 3

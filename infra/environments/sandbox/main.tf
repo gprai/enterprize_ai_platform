@@ -140,9 +140,12 @@ module "kms" {
 module "storage" {
   source = "../../modules/storage"
 
-  bucket_name = local.platform_bucket
-  kms_key_arn = module.kms.key_arn
-  tags        = var.mandatory_tags
+  bucket_name        = local.platform_bucket
+  kms_key_arn        = module.kms.key_arn
+  aws_account_id     = var.aws_account_id
+  aws_region         = var.aws_region
+  bedrock_log_prefix = "bedrock-model-invocations"
+  tags               = var.mandatory_tags
 }
 
 module "secrets" {
@@ -240,13 +243,16 @@ module "observability" {
   count  = var.w6_004_enabled ? 1 : 0
   source = "../../modules/observability"
 
-  name                  = "enterprise-ai-sandbox"
-  aws_region            = var.aws_region
-  retention_days        = 14
-  alert_email_endpoints = var.alert_email_endpoints
-  fis_role_arn          = module.iam.fis_role_arn
-  cluster_arn           = module.eks[0].cluster_arn
-  namespace             = "enterprise-ai-sandbox"
-  fis_service_account   = "fis-experiment"
-  tags                  = var.mandatory_tags
+  name                               = "enterprise-ai-sandbox"
+  aws_account_id                     = var.aws_account_id
+  aws_region                         = var.aws_region
+  platform_bucket_name               = module.storage.bucket_name
+  bedrock_invocation_logging_enabled = var.bedrock_invocation_logging_enabled
+  retention_days                     = 14
+  alert_email_endpoints              = var.alert_email_endpoints
+  fis_role_arn                       = module.iam.fis_role_arn
+  cluster_arn                        = module.eks[0].cluster_arn
+  namespace                          = "enterprise-ai-sandbox"
+  fis_service_account                = "fis-experiment"
+  tags                               = var.mandatory_tags
 }

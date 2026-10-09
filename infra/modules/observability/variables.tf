@@ -4,6 +4,15 @@ variable "name" {
 variable "aws_region" {
   type = string
 }
+variable "aws_account_id" {
+  type = string
+}
+variable "platform_bucket_name" {
+  type = string
+}
+variable "bedrock_invocation_logging_enabled" {
+  type = bool
+}
 variable "retention_days" {
   type = number
 }

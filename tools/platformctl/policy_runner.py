@@ -99,7 +99,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "ee1c3d7c27331e7c9be1acfbe876de1573475ed54620365c62c99417994a9d75",
+        "e935f916e5a27f838279845a516c32dd31641cc2ed98f1a3929e476327ec6645",
     ),
     (
         "infra/modules/ecr/main.tf",
@@ -113,7 +113,7 @@ PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
 PLATFORM_OPENSEARCH_LOG_SOURCE_SHA256 = (
     (
         "infra/modules/opensearch/main.tf",
-        "c8bb4dd3cddf1d555ab8b620c245378a9af190418dc4672678351ed1ec7f87f7",
+        "41b13212d7b4940c8faa0a1ff05690b126e83ad98f4fb26367e3699a1d7563d3",
     ),
 )
 PLATFORM_GATEWAY_ENDPOINTS = frozenset(
@@ -150,7 +150,7 @@ PLATFORM_EKS_SOURCE_SHA256 = (
 PLATFORM_OBSERVABILITY_SOURCE_SHA256 = (
     (
         "infra/modules/observability/main.tf",
-        "d2506b815e7adce11ae26969680a49c534169ebd3755842744a4bbac16f6abcf",
+        "d624712462c58b701aeb6cf966b513bb27ee740e9bc4f8ded2d72542ada7011c",
     ),
 )
 PLATFORM_ENDPOINT_POLICY_BINDINGS = {
@@ -222,13 +222,19 @@ PLATFORM_POLICY_DOCUMENT_BINDINGS = {
                 "EnableExactAccountKeyAdministration",
                 "AllowExactWorkloadCryptography",
                 "AllowExactOpenSearchLogEncryption",
+                "AllowExactBedrockInvocationLogEncryption",
             }
         ),
     ),
     ("module.storage.aws_s3_bucket_policy.tls_only", "policy"): (
         "aws_s3_bucket_policy",
         "module.storage.data.aws_iam_policy_document.tls_only",
-        frozenset({"DenyNonTLSPlatformAccess"}),
+        frozenset(
+            {
+                "DenyNonTLSPlatformAccess",
+                "AllowExactBedrockInvocationLogDelivery",
+            }
+        ),
     ),
     ("module.iam.aws_iam_role.runtime", "assume_role_policy"): (
         "aws_iam_role",
@@ -354,31 +360,31 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime": (
         "infra/modules/iam/main.tf",
-        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
+        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
     ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
         "infra/modules/iam/main.tf",
-        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
+        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
         "infra/modules/iam/main.tf",
-        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
+        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
         "infra/modules/iam/main.tf",
-        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
+        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
         "infra/modules/iam/main.tf",
-        "f9ee1221f589e41bc15f9129aec47a57c669e11baaa9a8aadf314bbcbf404614",
+        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
     ),
     "module.opensearch.data.aws_iam_policy_document.domain_access": (
         "infra/modules/opensearch/main.tf",
-        "c8bb4dd3cddf1d555ab8b620c245378a9af190418dc4672678351ed1ec7f87f7",
+        "41b13212d7b4940c8faa0a1ff05690b126e83ad98f4fb26367e3699a1d7563d3",
     ),
     "module.opensearch.data.aws_iam_policy_document.log_delivery": (
         "infra/modules/opensearch/main.tf",
-        "c8bb4dd3cddf1d555ab8b620c245378a9af190418dc4672678351ed1ec7f87f7",
+        "41b13212d7b4940c8faa0a1ff05690b126e83ad98f4fb26367e3699a1d7563d3",
     ),
     "module.eks[0].data.aws_iam_policy_document.cluster_assume": (
         "infra/modules/eks/main.tf",

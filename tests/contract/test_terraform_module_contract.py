@@ -20,6 +20,7 @@ EXPECTED_INPUT_KEYS = (
     "egress_mode",
     "vpc_endpoint_services",
     "w6_004_enabled",
+    "bedrock_invocation_logging_enabled",
     "administrator_role_arn",
     "approval_expires_at",
     "approval_issued_at",
@@ -82,12 +83,12 @@ MODULES = (
 )
 
 
-def test_exact_44_key_tfvars_schema_is_preserved_without_az_key() -> None:
+def test_exact_45_key_tfvars_schema_is_preserved_without_az_key() -> None:
     source = (SANDBOX / "variables.tf").read_text(encoding="utf-8")
     variables = tuple(re.findall(r'^variable "([^"]+)"', source, flags=re.MULTILINE))
 
     assert variables == EXPECTED_INPUT_KEYS
-    assert len(variables) == 44
+    assert len(variables) == 45
     assert "availability_zones" not in variables
     assert 'allowed_data_regions == tolist(["Global Cross-Region"])' in source
     assert "aws_region must equal ap-southeast-1" in source

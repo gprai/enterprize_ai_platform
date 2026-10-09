@@ -134,6 +134,12 @@ variable "w6_004_enabled" {
   default     = false
 }
 
+variable "bedrock_invocation_logging_enabled" {
+  type        = bool
+  description = "Temporary owner switch for synthetic-only Bedrock text invocation logging."
+  default     = false
+}
+
 variable "administrator_role_arn" {
   type        = string
   description = "Fresh short-lived SSO/federated administrator role; static IAM users are prohibited."

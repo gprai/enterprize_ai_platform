@@ -16,3 +16,9 @@ output "availability_alarm_arn" {
 output "safety_alarm_arn" {
   value = aws_cloudwatch_metric_alarm.safety.arn
 }
+output "bedrock_invocation_log_group_arn" {
+  value = aws_cloudwatch_log_group.bedrock_invocations.arn
+}
+output "bedrock_invocation_log_prefix" {
+  value = local.bedrock_log_prefix
+}

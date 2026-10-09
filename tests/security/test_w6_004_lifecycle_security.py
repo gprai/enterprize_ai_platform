@@ -1,3 +1,4 @@
+import re
 from hashlib import sha256
 from pathlib import Path
 
@@ -223,6 +224,26 @@ def test_fis_role_has_exact_eks_pod_delete_discovery_permissions() -> None:
     assert "resources = [local.eks_cluster_arn]" in fis
     assert "ec2:TerminateInstances" not in fis
     assert "eks:DeleteCluster" not in fis
+
+
+def test_bedrock_invocation_logging_is_text_only_and_bounded() -> None:
+    observability = (ROOT / "infra/modules/observability/main.tf").read_text(encoding="utf-8")
+    storage = (ROOT / "infra/modules/storage/main.tf").read_text(encoding="utf-8")
+    kms = (ROOT / "infra/modules/kms/main.tf").read_text(encoding="utf-8")
+
+    assert 'resource "aws_bedrock_model_invocation_logging_configuration" "this"' in observability
+    assert "count = var.bedrock_invocation_logging_enabled ? 1 : 0" in observability
+    assert "text_data_delivery_enabled      = true" in observability
+    for modality in ("embedding", "image", "video"):
+        assert re.search(rf"{modality}_data_delivery_enabled\s*=\s*false", observability)
+    assert "retention_in_days = 7" in observability
+    assert 'Principal = { Service = "bedrock.amazonaws.com" }' in observability
+    assert 'Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]' in observability
+    assert 'prefix = "${var.bedrock_log_prefix}/"' in storage
+    assert "days = 7" in storage
+    assert 'actions = ["s3:PutObject"]' in storage
+    assert 'sid    = "AllowExactBedrockInvocationLogEncryption"' in kms
+    assert 'actions   = ["kms:GenerateDataKey"]' in kms
 
 
 def test_protected_content_and_non_finite_numbers_are_rejected() -> None:

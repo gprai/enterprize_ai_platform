@@ -89,7 +89,8 @@ daily_budget_alert_usd = 3
 max_paid_evaluation_usd = 5
 
 # W6-004 source bindings. This checked-in example remains non-executable.
-w6_004_enabled                 = false
+w6_004_enabled                       = false
+bedrock_invocation_logging_enabled   = false
 administrator_role_arn         = "OWNER_BINDING_REQUIRED"
 approval_expires_at            = "OWNER_BINDING_REQUIRED"
 approval_issued_at             = "OWNER_BINDING_REQUIRED"

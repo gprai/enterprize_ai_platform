@@ -106,6 +106,7 @@ taggable_resource_types := {
 }
 
 supported_aws_resource_types := {
+	"aws_bedrock_model_invocation_logging_configuration",
 	"aws_cloudwatch_log_group",
 	"aws_cloudwatch_log_resource_policy",
 	"aws_cloudwatch_dashboard",
@@ -2606,7 +2607,7 @@ approved_existing_w6_004_iam_policy(change) if {
 	w6_004_stage3_recovery_delta(change, rule)
 }
 
-# Permit only the exact FIS discovery repair required by the AWS EKS pod-delete
+# Permit only the exact FIS discovery repair required by the Amazon EKS pod-delete
 # action. The bounded wildcard resource and the existing EKS statement remain
 # structurally fixed; only ec2:DescribeSubnets is added.
 approved_existing_w6_004_iam_policy(change) if {

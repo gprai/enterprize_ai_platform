@@ -86,6 +86,27 @@ data "aws_iam_policy_document" "this" {
       values   = var.opensearch_log_group_arns
     }
   }
+
+  statement {
+    sid    = "AllowExactBedrockInvocationLogEncryption"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["bedrock.amazonaws.com"]
+    }
+    actions   = ["kms:GenerateDataKey"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [var.aws_account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:bedrock:ap-southeast-1:${var.aws_account_id}:*"]
+    }
+  }
 }
 
 resource "aws_kms_key" "this" {

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -121,6 +122,8 @@ EXPECTED_SKIPS = {
     "infra/modules/observability/main.tf": (
         "CKV_AWS_158",
         "CKV_AWS_158",
+        "CKV_AWS_158",
+        "CKV_AWS_338",
     ),
     "infra/modules/opensearch/main.tf": (
         "CKV_AWS_338",
@@ -224,7 +227,7 @@ def test_inline_checkov_skip_inventory_and_rationales_are_exact() -> None:
         rationales.extend(item[1] for item in directives)
 
     assert observed == EXPECTED_SKIPS
-    assert sum(len(items) for items in observed.values()) == 24
+    assert sum(len(items) for items in observed.values()) == 26
     weighted_skips = 17 + 3
     assert weighted_skips == 20
     opensearch = (ROOT / "infra/modules/opensearch/main.tf").read_text(encoding="utf-8")
@@ -263,7 +266,9 @@ def test_no_other_inline_skip_or_custom_checkov_policy_exists() -> None:
 
 def test_initial_registry_does_not_copy_any_checkov_skip() -> None:
     source = EXCEPTIONS.read_text(encoding="utf-8")
-    assert '"exceptions": []' in source
+    registry = json.loads(source)
+    assert registry["schema_version"] == "w5-003.policy-exceptions.v1"
+    assert all(not exception["policy_id"].startswith("CKV") for exception in registry["exceptions"])
     assert "CKV_" not in source and "CKV2_" not in source
 
 

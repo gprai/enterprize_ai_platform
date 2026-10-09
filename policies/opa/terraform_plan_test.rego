@@ -4,6 +4,7 @@ import rego.v1
 
 test_w6_004_resource_types_are_explicitly_supported if {
 	every resource_type in {
+		"aws_bedrock_model_invocation_logging_configuration",
 		"aws_eks_cluster", "aws_eks_node_group", "aws_eks_addon",
 		"aws_eks_pod_identity_association", "aws_fis_experiment_template",
 		"aws_cloudwatch_metric_alarm", "aws_sns_topic",
