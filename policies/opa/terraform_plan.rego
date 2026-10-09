@@ -2617,12 +2617,7 @@ approved_existing_w6_004_iam_policy(change) if {
 	w6_004_stage3_recovery_delta(change, rule)
 }
 
-approved_existing_w6_004_iam_policy(change) if {
-	operational.profile == "PARTIAL_RECOVERY"
-	change.address == "module.observability[0].aws_iam_role.bedrock_log_delivery"
-	change.type == "aws_iam_role"
-	change.change.actions == ["create"]
-	values := change.change.after
+exact_bedrock_log_delivery_role(values) if {
 	values.name == "enterprise-ai-sandbox-bedrock-log-delivery"
 	json.unmarshal(values.assume_role_policy) == {
 		"Version": "2012-10-17",
@@ -2639,6 +2634,29 @@ approved_existing_w6_004_iam_policy(change) if {
 	}
 }
 
+approved_existing_w6_004_iam_policy(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == "module.observability[0].aws_iam_role.bedrock_log_delivery"
+	change.type == "aws_iam_role"
+	change.change.actions == ["create"]
+	exact_bedrock_log_delivery_role(change.change.after)
+}
+
+approved_existing_w6_004_iam_policy(change) if {
+	operational.profile == "PARTIAL_RECOVERY"
+	change.address == "module.observability[0].aws_iam_role.bedrock_log_delivery"
+	change.type == "aws_iam_role"
+	change.change.actions == ["no-op"]
+	change.change.before == change.change.after
+	change.change.before_sensitive == change.change.after_sensitive
+	change.change.after_unknown == {}
+	exact_bedrock_log_delivery_role(change.change.after)
+	bedrock_logging_disable_present
+	rule := operational_rule(change)
+	rule.update_paths == []
+	rule.delta_rule == "NONE"
+}
+
 approved_bedrock_logging_fis_noop(change) if {
 	operational.profile == "PARTIAL_RECOVERY"
 	change.address == "module.observability[0].aws_fis_experiment_template.pod_delete"
@@ -2650,13 +2668,19 @@ approved_bedrock_logging_fis_noop(change) if {
 	fixed_tags_valid(change.change.after.tags_all)
 	valid_utc_timestamp(change.change.after.tags_all.ExpiresAt)
 	time.parse_rfc3339_ns(change.change.after.tags_all.ExpiresAt) <= evaluation_time_ns
-	logging := changes_by_address["module.observability[0].aws_bedrock_model_invocation_logging_configuration.this[0]"]
-	logging.type == "aws_bedrock_model_invocation_logging_configuration"
-	logging.change.actions == ["create"]
+	bedrock_logging_transition_present
 	rule := operational_rule(change)
 	rule.update_paths == []
 	rule.delta_rule == "NONE"
 }
+
+bedrock_logging_transition_present if {
+	logging := changes_by_address["module.observability[0].aws_bedrock_model_invocation_logging_configuration.this[0]"]
+	logging.type == "aws_bedrock_model_invocation_logging_configuration"
+	logging.change.actions == ["create"]
+}
+
+bedrock_logging_transition_present if bedrock_logging_disable_present
 
 # Permit only the exact FIS discovery repair required by the Amazon EKS pod-delete
 # action. The bounded wildcard resource and the existing EKS statement remain
@@ -3156,6 +3180,12 @@ w6_004_bedrock_logging_disable(change, rule) if {
 	change.change.after_unknown == {}
 	rule.update_paths == []
 	rule.delta_rule == "W6_004_BEDROCK_LOGGING_DISABLE"
+}
+
+bedrock_logging_disable_present if {
+	logging := changes_by_address["module.observability[0].aws_bedrock_model_invocation_logging_configuration.this[0]"]
+	rule := operational_rule(logging)
+	w6_004_bedrock_logging_disable(logging, rule)
 }
 
 w6_004_bedrock_logging_delta(change, rule) if {

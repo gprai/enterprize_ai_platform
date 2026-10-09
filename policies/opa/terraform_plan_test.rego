@@ -3267,3 +3267,94 @@ test_bedrock_logging_disable_rejects_broad_or_different_delete if {
 		"resource_type": changed.type,
 	})) with input as bedrock_logging_disable_test_context
 }
+
+bedrock_disable_noop_role_values := {
+	"name": "enterprise-ai-sandbox-bedrock-log-delivery",
+	"assume_role_policy": json.marshal({
+		"Version": "2012-10-17",
+		"Statement": [{
+			"Sid": "ExactBedrockLogDeliveryTrust",
+			"Effect": "Allow",
+			"Principal": {"Service": "bedrock.amazonaws.com"},
+			"Action": ["sts:AssumeRole"],
+			"Condition": {
+				"ArnLike": {"aws:SourceArn": "arn:aws:bedrock:ap-southeast-1:526338061652:*"},
+				"StringEquals": {"aws:SourceAccount": "526338061652"},
+			},
+		}],
+	}),
+}
+
+bedrock_disable_noop_role := {
+	"address": "module.observability[0].aws_iam_role.bedrock_log_delivery",
+	"type": "aws_iam_role",
+	"change": {
+		"actions": ["no-op"],
+		"before": bedrock_disable_noop_role_values,
+		"after": bedrock_disable_noop_role_values,
+		"before_sensitive": {},
+		"after_sensitive": {},
+		"after_unknown": {},
+	},
+}
+
+bedrock_disable_noop_fis := {
+	"address": "module.observability[0].aws_fis_experiment_template.pod_delete",
+	"type": "aws_fis_experiment_template",
+	"change": {
+		"actions": ["no-op"],
+		"before": {"tags": previous_tags, "tags_all": previous_tags},
+		"after": {"tags": previous_tags, "tags_all": previous_tags},
+		"before_sensitive": {},
+		"after_sensitive": {},
+		"after_unknown": {},
+	},
+}
+
+bedrock_disable_noop_rule(change) := {
+	"address": change.address,
+	"resource_type": change.type,
+	"actions": ["no-op"],
+	"update_paths": [],
+	"delta_rule": "NONE",
+}
+
+bedrock_logging_disable_noop_context := {
+	"resource_changes": [
+		bedrock_logging_disable_change,
+		bedrock_disable_noop_role,
+		bedrock_disable_noop_fis,
+	],
+	"evaluation_context": object.union(approved_context, {"operation": object.union(v2_operation, {
+		"profile": "PARTIAL_RECOVERY",
+		"resource_expires_at": approved_tags.ExpiresAt,
+		"rules": [
+			bedrock_logging_disable_rule,
+			bedrock_disable_noop_rule(bedrock_disable_noop_role),
+			bedrock_disable_noop_rule(bedrock_disable_noop_fis),
+		],
+	})}),
+}
+
+test_bedrock_logging_disable_accepts_only_bound_unchanged_noops if {
+	approved_existing_w6_004_iam_policy(bedrock_disable_noop_role) with input as bedrock_logging_disable_noop_context
+	approved_bedrock_logging_fis_noop(bedrock_disable_noop_fis) with input as bedrock_logging_disable_noop_context
+}
+
+test_bedrock_logging_disable_rejects_noop_role_or_fis_drift if {
+	broad_policy := object.union(json.unmarshal(bedrock_disable_noop_role_values.assume_role_policy), {"Statement": [object.union(
+		json.unmarshal(bedrock_disable_noop_role_values.assume_role_policy).Statement[0],
+		{"Condition": {"ArnLike": {"aws:SourceArn": "*"}}},
+	)]})
+	broad_values := object.union(bedrock_disable_noop_role_values, {"assume_role_policy": json.marshal(broad_policy)})
+	broad_role := object.union(bedrock_disable_noop_role, {"change": object.union(bedrock_disable_noop_role.change, {
+		"before": broad_values,
+		"after": broad_values,
+	})})
+	not approved_existing_w6_004_iam_policy(broad_role) with input as bedrock_logging_disable_noop_context
+
+	changed_fis := object.union(bedrock_disable_noop_fis, {"change": object.union(bedrock_disable_noop_fis.change, {
+		"after": {"tags": approved_tags, "tags_all": approved_tags},
+	})})
+	not approved_bedrock_logging_fis_noop(changed_fis) with input as bedrock_logging_disable_noop_context
+}
