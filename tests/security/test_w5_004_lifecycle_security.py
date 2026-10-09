@@ -1625,6 +1625,38 @@ def test_existing_opensearch_admin_trust_expiry_reconciliation_is_normalized() -
     assert len(cast(list[object], context["provider_sensitive_nulls"])) == 1
 
 
+def test_existing_opensearch_admin_trust_and_resource_expiries_may_be_distinct() -> None:
+    raw = opensearch_existing_role_omitted_password_plan()
+    changes = resource_changes(raw)
+    role_body = change_body(changes[0])
+    before_role = cast(dict[str, object], role_body["before"])
+    after_role = cast(dict[str, object], role_body["after"])
+
+    def trust(expiry: str) -> str:
+        return json.dumps(
+            {
+                "Statement": [
+                    {
+                        "Action": "sts:AssumeRole",
+                        "Condition": {"DateLessThan": {"aws:CurrentTime": expiry}},
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "arn:aws:iam::123456789012:role/owner"},
+                        "Sid": "TimeBoundExactSandboxAdministrator",
+                    }
+                ],
+                "Version": "2012-10-17",
+            }
+        )
+
+    before_role["assume_role_policy"] = trust("2026-09-07T12:00:00Z")
+    after_role["assume_role_policy"] = trust("2026-09-08T12:00:00Z")
+
+    normalized = normalize_plan(raw, evaluation_time="2026-09-08T00:00:00Z")
+
+    context = cast(dict[str, object], normalized["evaluation_context"])
+    assert len(cast(list[object], context["provider_sensitive_nulls"])) == 1
+
+
 @pytest.mark.parametrize(
     "mutation",
     (

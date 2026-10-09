@@ -1548,11 +1548,13 @@ def _admin_trust_expiry_reconciliation(
         current_trust_expiry = parse_utc_timestamp(
             trust_expiries[1], "current administrator trust expiry"
         )
+        previous_resource_expiry = parse_utc_timestamp(previous_expiry, "previous resource expiry")
         current_resource_expiry = parse_utc_timestamp(current_expiry, "current resource expiry")
     except ContractError:
         return False
     return (
-        trust_expiries[0] == previous_expiry
+        previous_trust_expiry <= previous_resource_expiry
+        and previous_resource_expiry < current_resource_expiry
         and previous_trust_expiry < current_trust_expiry <= current_resource_expiry
         and normalized[0] == normalized[1]
     )
