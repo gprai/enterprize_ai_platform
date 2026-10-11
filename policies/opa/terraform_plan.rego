@@ -3808,6 +3808,11 @@ operational_destroy_resource_valid(change) if {
 	change.type == "terraform_data"
 }
 
+operational_destroy_resource_valid(change) if {
+	change.address == "terraform_data.w6_004_runtime_gate[0]"
+	change.type == "terraform_data"
+}
+
 operational_destroy_change_valid(change, rule) if {
 	operational_destroy_resource_valid(change)
 	rule.update_paths == []

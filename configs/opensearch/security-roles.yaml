@@ -1,0 +1,30 @@
+schema_version: w6-004.opensearch-security.v1
+
+roles:
+  enterprise_ai_ingestion:
+    cluster_permissions:
+      - indices:data/write/bulk
+    index_permissions:
+      - index_patterns:
+          - enterprise_ai_sandbox
+        allowed_actions:
+          - indices:admin/exists
+          - indices:admin/get
+          - indices:admin/mappings/get
+          - indices:admin/refresh
+          - indices:data/read/get
+          - indices:data/read/search
+          - indices:data/write/bulk*
+          - indices:data/write/delete/byquery
+          - indices:data/write/index*
+        dls: ""
+        fls: []
+        masked_fields: []
+    tenant_permissions: []
+
+role_mappings:
+  enterprise_ai_ingestion:
+    backend_roles:
+      - arn:aws:iam::526338061652:role/enterprise-ai-sandbox-ingestion
+    hosts: []
+    users: []

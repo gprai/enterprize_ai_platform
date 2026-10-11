@@ -84,6 +84,16 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W6-10 integrated-readiness evidence](W6-10-integrated-readiness.txt) — local platform, SRE, policy, infrastructure, Kubernetes, supply-chain and quality gates passed; complete pytest recorded **2088 passed, 7 skipped, 4 deselected, 1 warning**.
 - [W6-11 local-rollback evidence](W6-11-local-rollback.txt) — synthetic candidate **FAIL**, deterministic historical W4 known-good restoration **PASS**; EKS, Terraform and cloud rollback remain **NOT RUN**.
 - [W6-13 W6-004 handover evidence](W6-13-w6-004-handover.txt) — exactly three external evidence files retained, repository residue 0, live AWS/ECR/EKS and live deployment/rollback/teardown **NOT RUN**, and W6-004 entry `BLOCKED_PENDING_W6_004_STAGE_A`.
+- [W6-004 full AWS/EKS lifecycle evidence](W6-004.md) — immutable deployment, Stage 6 **PASS**, Stage 7 **PASS**, application and infrastructure rollback **PASS_WITH_TELEMETRY_GAP**, complete project-owned teardown **PASS**, and overall closure **INDETERMINATE_PENDING_KMS_AND_BILLING_LAG**.
+- [W6-004 plan review](../deployment-records/W6-plan-review.md) — fresh source, image, state, saved-plan, policy, approval and cost boundaries; failed, consumed and superseded attempts remain historical evidence.
+- [W6-004 sandbox lifecycle](../deployment-records/W6-sandbox.md) — final deployed digests, Pod Identity, OpenSearch, approved Nova 2 Lite, telemetry, security-denial, HPA/PDB and bounded resilience outcomes.
+- [W6-004 application rollback](../rollback-records/W6-application.md) — exact regression and known-good digest restoration **PASS_WITH_TELEMETRY_GAP**.
+- [W6-004 infrastructure rollback](../rollback-records/W6-infrastructure.md) — separately planned node-group minimum-capacity regression and restoration **PASS_WITH_TELEMETRY_GAP**; no node was terminated.
+- [W6-004 complete teardown](../deployment-records/W6-destroy-plan.md) — Kubernetes → OpenSearch → S3 → ECR → platform Terraform → exact state cleanup → bootstrap Terraform, with resource teardown **PASS**.
+- [W6-004 conditional lifecycle runbook](../deployment-records/W6-lifecycle-runbook.md) — future deployments require fresh identities, plans, scans, approvals, rollback targets, teardown plans and closure checks.
+- [W6-004 conditional sign-off](../deployment-records/W6-signoff.md) — final approval remains pending billing reconciliation and physical KMS deletion verification.
+- [W6-004 final cleanliness](../resource-cleanliness/W6-final.json) — machine-readable zero-live-residue result, two expected KMS `PendingDeletion` tails and scheduled billing checks.
+- [Week 6 learning review](../learning/W6-learning-review.md) — business, architecture, security, resilience, rollback, teardown and evidence-preservation lessons from the complete lifecycle.
 
 The W6-003 records prove deterministic local pre-deployment readiness only.
 They do not prove live AWS, ECR, EKS, OpenSearch, Bedrock, observability, FIS,

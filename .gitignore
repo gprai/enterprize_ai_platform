@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.tmp/
 reports/eval.json
 reports/eval-repeat.json
 reports/.eval.json.*.tmp

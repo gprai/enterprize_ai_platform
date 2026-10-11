@@ -83,7 +83,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "configs/releases/versions/w4-synthetic-regression-v1.json": {"Hex High Entropy String": 101},
     "docker-compose.w2-004.yml": {"Base64 High Entropy String": 1},
     "docs/resource-cleanliness/W5-report.json": {"Hex High Entropy String": 1},
-    "docs/resource-cleanliness/W6-final.json": {"Hex High Entropy String": 1},
+    "docs/resource-cleanliness/W6-final.json": {"Hex High Entropy String": 3},
     "docs/test-evidence/W2-09-retrieval.json": {"Hex High Entropy String": 2},
     "docs/test-evidence/W6-06-observability.json": {"Hex High Entropy String": 4},
     "src/enterprise_ai_platform/embeddings/sentence_transformer.py": {"Hex High Entropy String": 1},
@@ -108,6 +108,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tools/bedrock_owner_verify.py": {"Hex High Entropy String": 1},
     "tools/platformctl/aws_inventory.py": {"Secret Keyword": 1},
     "tools/w5_002_ci.py": {"Hex High Entropy String": 16},
+    "tools/w6_004_stage6_transcript.py": {"Secret Keyword": 1},
 }
 EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/ci/w5-002.json": {1: 12},
@@ -150,7 +151,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/releases/versions/w4-synthetic-regression-v1.json": {1: 101},
     "docker-compose.w2-004.yml": {29: 1},
     "docs/resource-cleanliness/W5-report.json": {61: 1},
-    "docs/resource-cleanliness/W6-final.json": {15: 1},
+    "docs/resource-cleanliness/W6-final.json": {43: 1, 70: 1, 72: 1},
     "docs/test-evidence/W2-09-retrieval.json": {27: 1, 29: 1},
     "docs/test-evidence/W6-06-observability.json": {6: 1, 11: 1, 54: 1, 55: 1},
     "src/enterprise_ai_platform/embeddings/sentence_transformer.py": {43: 1},
@@ -218,23 +219,23 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         116: 1,
         147: 1,
         153: 1,
-        287: 1,
-        290: 1,
         293: 1,
         296: 1,
         299: 1,
         302: 1,
+        305: 1,
         308: 1,
-        324: 1,
-        333: 1,
-        336: 1,
+        314: 1,
+        330: 1,
         339: 1,
         342: 1,
-        346: 1,
-        347: 1,
-        351: 1,
+        345: 1,
+        348: 1,
+        352: 1,
+        353: 1,
         357: 1,
-        394: 1,
+        363: 1,
+        400: 1,
     },
     "tools/w5_002_ci.py": {
         37: 1,
@@ -255,6 +256,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         952: 1,
     },
     "tools/w6_003_readiness.py": {23: 1},
+    "tools/w6_004_stage6_transcript.py": {348: 1},
 }
 EXPECTED_BASELINE_FINDING_KEYS = {
     "type",
@@ -389,8 +391,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 42
-    assert sum(len(findings) for findings in results.values()) == 368
+    assert len(results) == 43
+    assert sum(len(findings) for findings in results.values()) == 371
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

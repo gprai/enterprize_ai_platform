@@ -127,3 +127,26 @@ The AWS FIS plan is not executable authority. It is limited to one EKS pod-delet
 - Conditions: Preserve all statuses and limitations; do not interpret local, synthetic, fake, injected, configuration, or native-tool evidence as production or cloud readiness; only the owner updates Excel or mutates Git.
 - Next-task handover: The owner may update the W6-002 tracker row and initiate W6-003 separately. This approval grants no execution authority for W6-004.
 - Tracker update responsibility: Owner.
+
+## W6-004 live lifecycle addendum
+
+W6-004 subsequently bound this design to the synthetic AWS/EKS sandbox. The
+final validated application image was
+`sha256:efaafe47204afbd4a092f675f3a60fc3575abad288e89e8f73692b053d22dd55`,
+deployed through `stage5-recovery-009` and validated by `stage6-live-009`.
+X-Ray, CloudWatch metrics/logs and SNS were exercised, and the bounded FIS
+experiment `EXP4kVuudab1bLqwGN` deleted exactly one application pod with the
+availability-burn and safety alarms configured as stop conditions.
+
+This live evidence does not convert the initial review targets into proven
+production SLOs. Application rollback remained
+`PASS_WITH_TELEMETRY_GAP` because the alarm metrics had no datapoints and the
+alarms were `INSUFFICIENT_DATA`. Infrastructure rollback remained
+`PASS_WITH_TELEMETRY_GAP` because its bounded Bedrock request could not be
+correlated to a model-invocation log event. The complete project-owned resource
+teardown passed, while overall lifecycle closure remains
+`INDETERMINATE_PENDING_KMS_AND_BILLING_LAG`.
+
+The W6-002 architecture and owner approval above remain historical facts. This
+addendum records later W6-004 execution; it does not rewrite the original local
+validation boundary or claim production readiness.

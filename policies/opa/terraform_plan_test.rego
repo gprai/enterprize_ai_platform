@@ -2091,6 +2091,27 @@ test_production_destroy_uses_deletion_not_create_configuration if {
 	result.findings == []
 }
 
+test_production_destroy_allows_only_known_terraform_data_gates if {
+	every address in ["terraform_data.owner_expiry_gate", "terraform_data.w6_004_runtime_gate[0]"] {
+		change := object.union(v2_destroy_change, {"address": address, "type": "terraform_data"})
+		rule := object.union(v2_destroy_operation.rules[0], {"address": address, "resource_type": "terraform_data"})
+		operation := object.union(v2_destroy_operation, {"rules": [rule]})
+		context := object.union(approved_context, {"operation": operation})
+		plan := object.union(v2_destroy_plan, {"resource_changes": [change], "evaluation_context": context})
+		result := decision with input as plan
+		result.allow == true
+		result.findings == []
+	}
+
+	unknown_change := object.union(v2_destroy_change, {"address": "terraform_data.unknown", "type": "terraform_data"})
+	unknown_rule := object.union(v2_destroy_operation.rules[0], {"address": "terraform_data.unknown", "resource_type": "terraform_data"})
+	unknown_operation := object.union(v2_destroy_operation, {"rules": [unknown_rule]})
+	unknown_context := object.union(approved_context, {"operation": unknown_operation})
+	unknown_plan := object.union(v2_destroy_plan, {"resource_changes": [unknown_change], "evaluation_context": unknown_context})
+	unknown_result := decision with input as unknown_plan
+	unknown_result.allow == false
+}
+
 test_production_destroy_rejects_replacement_sensitive_and_extra_resource if {
 	every patch in [{"actions": ["delete", "create"]}, {"after_sensitive": {"field": true}}, {"after": {}}] {
 		changed := object.union(v2_destroy_change, {"change": object.union(v2_destroy_change.change, patch)})
