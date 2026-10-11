@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -635,3 +636,9 @@ def test_post_policy_template_uses_frozen_expiry_without_guessing_a_future_hash(
         "PolicyDocument.@policy_sha256": sha256_bytes(canonical_json_bytes(expected)),
     }
     assert "expiry://resource" in target.assertions[0].expected_fields_json
+
+
+def test_future_backend_example_uses_only_native_lockfile_contract() -> None:
+    backend = (ROOT / "infra/environments/sandbox/backend.hcl.example").read_text(encoding="utf-8")
+    assert re.search(r"(?m)^use_lockfile\s*=\s*true\s*$", backend)
+    assert "dynamodb_table" not in backend

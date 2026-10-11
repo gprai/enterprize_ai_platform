@@ -105,7 +105,8 @@ def test_private_protection_failure_cleans_only_created_empty_file(
 
 def test_repository_contains_no_w5_004_runtime_artifacts() -> None:
     forbidden = {"operation.lock.json", "plan.tfplan", "terraform.tfstate"}
-    assert [path for path in ROOT.rglob("*") if path.name in forbidden] == []
+    protected = ROOT / "infra/bootstrap/terraform.tfstate"
+    assert [path for path in ROOT.rglob("*") if path.name in forbidden and path != protected] == []
 
 
 def test_w6_12_is_reuse_only_and_not_run() -> None:

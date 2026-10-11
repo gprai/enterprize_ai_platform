@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+OWNER_PROTECTED_STATE = ROOT / "infra/bootstrap/terraform.tfstate"
 W5_TEMP = Path(r"E:\AI\.tmp\enterprise-ai-platform-w5-003")
 W5_PRE_COMMIT_HOME = Path(r"E:\AI\.pre-commit-cache\enterprise-ai-platform-w5-003")
 W5_001_REPORTS = ROOT / "reports/verification"
@@ -37,6 +38,8 @@ def _repository_residue() -> list[str]:
     forbidden_suffixes = (".tfstate", ".tfplan", ".plan", ".sarif")
     for path in ROOT.rglob("*"):
         if any(path == ignored or ignored in path.parents for ignored in ignored_roots):
+            continue
+        if path == OWNER_PROTECTED_STATE:
             continue
         relative = path.relative_to(ROOT).as_posix()
         if path.is_dir() and path.name in forbidden_directories:

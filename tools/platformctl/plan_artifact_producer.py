@@ -263,8 +263,12 @@ def _apply_overrides(
 
 
 def _backend_bytes(values: Mapping[str, object]) -> bytes:
-    names = ("bucket", "key", "region", "dynamodb_table", "encrypt", "kms_key_id")
+    names = ("bucket", "key", "region", "use_lockfile", "encrypt", "kms_key_id")
+    if "dynamodb_table" in values:
+        raise ContractError("PLAN_ARTIFACT_BACKEND_LOCKFILE_REQUIRED")
     _exact_keys(values, set(names), "backend")
+    if values.get("use_lockfile") is not True:
+        raise ContractError("PLAN_ARTIFACT_BACKEND_LOCKFILE_REQUIRED")
     lines: list[str] = []
     for name in names:
         value = values[name]
@@ -555,7 +559,8 @@ def prepare_owner_envelope(
         backend.get("region") != EXPECTED_REGION
         or backend.get("bucket") != "enterprise-ai-platform-sbx-tfstate-526338061652-ap-southeast-1"
         or backend.get("key") != "sandbox/platform.tfstate"
-        or backend.get("dynamodb_table") != "enterprise-ai-platform-sandbox-tflock"
+        or backend.get("use_lockfile") is not True
+        or "dynamodb_table" in backend
         or backend.get("kms_key_id") != "alias/enterprise-ai-platform-sandbox-terraform-state"
         or backend.get("encrypt") is not True
     ):

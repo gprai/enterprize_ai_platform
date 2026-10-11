@@ -126,6 +126,88 @@ gates and direct service APIs for final absence verification.
 | GOV-03 | Earlier failed Jobs, packages and plans risked accidental reuse. | Immutable identities remain visible even after failure and can look operationally convenient. | Created fresh Stage 5/6 identities, fresh saved plans and explicit consumed/superseded evidence. | `RESOLVED`. | Encode one-time consumption and expiry in artifact schemas and reject reused operation identities automatically. |
 | GOV-04 | Temporary model invocation logging could capture unrelated calls. | Bedrock invocation logging is account/Region scoped. | Enabled it only for a short synthetic window, used synthetic prompts, preserved required evidence and disabled logging afterwards. | `RESOLVED_WITH_LIMITATION`. | Prefer workload-scoped transcript capture and request-ID correlation. Require a time-bound owner decision before any future provider-level payload logging. |
 
+## W7-001-remediation prevention-control update
+
+The historical issue rows above remain authoritative for what happened during
+W6. The following table records the later W7-001-remediation prevention
+controls and local validation without replacing the original failure,
+correction, outcome or limitation.
+
+The original W7 implementation boundary was 12 CREATE and 32 UPDATE paths.
+Local TEST-001 passed with 2,276 Pytest tests, 8 skipped tests, 4 deselected
+AWS/paid tests, one accepted third-party warning, 180 of 180 Terraform OPA tests
+and 11 of 11 Kubernetes OPA tests. No AWS, Bedrock, Kubernetes, registry,
+Terraform, deployment, rollback, disaster-recovery or teardown operation was
+performed by this remediation.
+
+| ID | Current prevention-control status | Primary implementation | Local evidence | Remaining external evidence or limitation |
+|---|---|---|---|---|
+| APP-01 | **IMPLEMENTED — LOCAL PASS** | `tools/platformctl/process_runner.py`; existing API/retrieval runtime retained | W7 feature and full regression suites | Production-shaped dependency warm-up and latency remain external. |
+| APP-02 | **IMPLEMENTED — LOCAL PASS** | Existing OpenSearch adapter and authorization retained; live-validation contract strengthened | OpenSearch security regressions | Live runtime-role allow/deny probe remains separately authorized. |
+| APP-03 | **IMPLEMENTED — LOCAL PASS** | Existing Bedrock adapter retained; exact profile and evidence contracts strengthened | Bedrock security regressions | Live approved-profile invocation remains **NOT RUN**. |
+| APP-04 | **IMPLEMENTED — LOCAL PASS** | Existing Bedrock denial path retained with valid-unapproved fixture coverage | Bedrock owner-verification regressions | Live valid-unapproved denial remains **NOT RUN**. |
+| APP-05 | **IMPLEMENTED — LOCAL PASS** | Existing OpenSearch signer/transport composition retained | OpenSearch integration regressions | Live signed endpoint probe remains **NOT RUN**. |
+| APP-06 | **IMPLEMENTED — LOCAL PASS** | Existing VPC endpoint validation retained | OpenSearch security regressions | Live VPC endpoint discovery remains external. |
+| APP-07 | **IMPLEMENTED — LOCAL PASS WITH HISTORICAL LIMITATION RETAINED** | `tools/platformctl/lifecycle_models.py`; `tools/platformctl/validate.py` | W7 contract tests | Real control-matrix dependencies remain operation-specific. |
+| APP-08 | **IMPLEMENTED — LOCAL PASS** | `tools/platformctl/live_validation.py`; `tools/platformctl/process_runner.py` | W7 unit/feature tests | Real network calls were not executed. |
+| IMG-01 | **IMPLEMENTED — LOCAL PASS** | `tools/platformctl/image_lifecycle.py` | W5 supply-chain feature regressions | Fresh Windows OCI/scanner execution remains **NOT RUN**. |
+| IMG-02 | **IMPLEMENTED — LOCAL PASS** | `tools/platformctl/image_lifecycle.py` typed OCI identities | W7 unit tests | No new registry/OCI identity evidence was produced. |
+| IMG-03 | **IMPLEMENTED — LOCAL PASS** | `tools/platformctl/process_runner.py`; image lifecycle byte contracts | PowerShell compatibility tests | ECR helper and registry operations remain **NOT RUN**. |
+| IMG-04 | **IMPLEMENTED — LOCAL PASS WITH LIMITATION RETAINED** | `tools/w5_002_ci.py`; `configs/ci/w5-002.json` | W5 supply-chain security tests | Image rebuild, rescans and waiver retirement remain **NOT RUN**. |
+| IMG-05 | **IMPLEMENTED — LOCAL PASS** | `tools/platformctl/image_lifecycle.py` | W7 unit tests | Fresh registry/Docker/OCI size reconciliation remains external. |
+| K8S-01 | **IMPLEMENTED — LOCAL PASS** | `tools/platformctl/kubernetes_lifecycle.py` | Kubernetes composition regressions | No live rollout occurred. |
+| K8S-02 | **IMPLEMENTED — LOCAL PASS** | Kubernetes lifecycle normalization | Kubernetes security regressions | No server-side dry-run occurred. |
+| K8S-03 | **IMPLEMENTED — LOCAL PASS** | Kubernetes optional-property normalization | W7 unit tests | Fixture proof only. |
+| K8S-04 | **IMPLEMENTED — LOCAL PASS** | Expected-NotFound classifier | W7 unit tests | No live kubectl probe occurred. |
+| K8S-05 | **IMPLEMENTED — LOCAL PASS** | Replica progress and independent maximum observation | W7 unit tests | No live HPA exercise occurred. |
+| K8S-06 | **IMPLEMENTED — LOCAL PASS** | Exact-name/UID validation and delete-argument rejection | W7 security tests | No live deletion occurred. |
+| K8S-07 | **IMPLEMENTED — LOCAL PASS** | Ordered teardown and zero-dependent-object gate | W7 teardown tests | Live teardown remains **NOT RUN**. |
+| K8S-08 | **IMPLEMENTED — LOCAL PASS** | UTF-8 patch-file identity validation | PowerShell compatibility tests | No patch was applied. |
+| TF-01 | **IMPLEMENTED — LOCAL PASS** | `policies/opa/terraform_plan.rego` scalar/singleton normalization | Terraform OPA 180/180 | Future provider-shape changes still require regression updates. |
+| TF-02 | **IMPLEMENTED — LOCAL PASS** | `tools/platformctl/terraform_runner.py`; shared argv boundary | W7 unit tests | No Terraform command executed. |
+| TF-03 | **IMPLEMENTED — LOCAL PASS** | Exact executable/version and zero-byte rejection | Terraform contract tests | Real tool-identity rehearsal remains **NOT RUN**. |
+| TF-04 | **IMPLEMENTED — LOCAL PASS** | Separate state and plan normalization | Terraform contract tests | No live state/plan was generated. |
+| TF-05 | **IMPLEMENTED — LOCAL PASS** | Typed blocks, instances and normalized addresses | W7 integration tests | No real plan comparison occurred. |
+| TF-06 | **IMPLEMENTED — LOCAL PASS** | Correct top-level and nested `resource_changes` handling | Terraform contract tests | No saved plan was generated. |
+| TF-07 | **IMPLEMENTED — LOCAL PASS FOR RECOVERY CONTRACT** | `tools/platformctl/rollback.py` encrypted snapshot validation | W7 rollback tests | Bootstrap recovery rehearsal remains **NOT RUN**. |
+| TF-08 | **IMPLEMENTED — LOCAL PASS** | State lineage/serial binding | Plan-identity unit tests | No state-bound mutation occurred. |
+| TF-09 | **IMPLEMENTED — FUTURE-CONTRACT LOCAL PASS; HISTORICAL FOLLOW-UP REMAINS OPEN** | `infra/environments/sandbox/backend.hcl.example`; `tools/platformctl/plan_artifact_producer.py` | W7 integration tests | Init, lock contention, migration, rollback and DynamoDB retirement remain **NOT RUN**. |
+| OPS-01 | **IMPLEMENTED — LOCAL PASS** | Repository-owned process boundary replaces fragmented execution | PowerShell compatibility tests | Real multi-branch lifecycle scripts remain owner-executed. |
+| OPS-02 | **IMPLEMENTED — LOCAL PASS** | Closed-schema and optional-value validation | W7 unit tests | Local contract only. |
+| OPS-03 | **IMPLEMENTED — LOCAL PASS** | Typed parsing avoids undeclared-reference behavior | PowerShell compatibility tests | No live PowerShell lifecycle operation. |
+| OPS-04 | **IMPLEMENTED — LOCAL PASS** | Windows PowerShell 5.1/PowerShell 7 compatible process contract | PowerShell compatibility tests | Real tool launch remains separately authorized. |
+| OPS-05 | **IMPLEMENTED — LOCAL PASS** | Compatible SHA-256 and canonical byte contracts | PowerShell compatibility tests | Local byte fixtures only. |
+| OPS-06 | **IMPLEMENTED — LOCAL PASS** | Zero/one/many normalization and optional-property checks | W7 unit tests | Local fixtures only. |
+| OPS-07 | **IMPLEMENTED — LOCAL PASS** | Immutable argv and validated external-path handling | PowerShell compatibility tests | AWS CLI execution remains **NOT RUN**. |
+| OPS-08 | **IMPLEMENTED — LOCAL PASS WITH HISTORICAL TELEMETRY LIMITATION RETAINED** | Exact SLO namespace/dimension and `NO_DATA` contracts | W6 observability unit/contract tests | Live rollback metric and alarm evidence remains **NOT RUN**. |
+| OPS-09 | **IMPLEMENTED — LOCAL PASS** | UTF-8/BOM-safe process and evidence serialization | PowerShell compatibility tests | Local byte fixtures only. |
+| OPS-10 | **IMPLEMENTED — LOCAL PASS** | Exit code and classification are structurally bound | Injected-failure W7 unit tests | No live command mutation. |
+| OPS-11 | **IMPLEMENTED — LOCAL PASS** | Validated working directory and supported module invocation | W7 integration tests | Future owner shells must retain the approved invocation. |
+| TD-01 | **IMPLEMENTED — LOCAL PASS** | Required acknowledgement, nonzero expected mutation and native absence | W7 teardown tests | Live OpenSearch deletion remains **NOT RUN**. |
+| TD-02 | **IMPLEMENTED — LOCAL PASS WITH HISTORICAL LIMITATION RETAINED** | Private data cleanup precedes namespace/network removal | W7 teardown tests | No permanent private administrative path was live-validated. |
+| TD-03 | **IMPLEMENTED — LOCAL PASS** | Exact temporary-IAM and archive identity contract | W7 security tests | S3 version archive remains **NOT RUN**. |
+| TD-04 | **IMPLEMENTED — LOCAL PASS** | Safe parameter naming and cardinality normalization | PowerShell compatibility tests | No live helper execution. |
+| TD-05 | **IMPLEMENTED — LOCAL PASS** | Append-only checkpoint, partial state and identity-bound rejoin | W7 rollback tests | No interrupted live teardown occurred. |
+| TD-06 | **IMPLEMENTED — LOCAL PASS** | Tagging discovery is separated from native service truth | W7 teardown tests | Future lifecycle still requires native AWS reconciliation. |
+| TD-07 | **IMPLEMENTED — NON-CLOSURE REGRESSION PASS; FOLLOW-UP OPEN** | Validation prevents PendingDeletion from becoming final absence PASS | W7 teardown tests | GAP-02 and GAP-03 physical-absence checks remain owner-deferred. |
+| TD-08 | **IMPLEMENTED — NON-CLOSURE REGRESSION PASS; FOLLOW-UP OPEN** | Validation prevents immediate or incomplete billing data from becoming closure PASS | W7 teardown tests | GAP-01 delayed billing reconciliation remains owner-deferred. |
+| GOV-01 | **IMPLEMENTED — LOCAL PASS** | Complete control matrix rejects missing, `NO_DATA` and `NOT RUN` mandatory rows | W7 contract tests | Real rows still require operation evidence. |
+| GOV-02 | **IMPLEMENTED — LOCAL PASS WITH HISTORICAL LIMITATION RETAINED** | Shared runner, canonical evidence, hashes and compatibility checks | W7 compatibility and integration tests | Historical commands were not all re-executed. |
+| GOV-03 | **IMPLEMENTED — LOCAL PASS** | Append-only current/failed/partial/superseded/consumed/expired evidence lifecycle | W7 contract tests | Future real evidence must use the contract. |
+| GOV-04 | **IMPLEMENTED — LOCAL PASS WITH CONTROLLED LIMITATION RETAINED** | Default-off, synthetic-only, time-bound Bedrock logging contract | W7 security tests | Live enable/disable exercise remains **NOT RUN**. |
+
+The detailed 81-row mapping, including GAP-01 through GAP-28, is retained in
+`docs/governance/W7-001-remediation-traceability.md`. The implementation and
+TEST-001 evidence is retained in
+`docs/test-evidence/W7-001-remediation.md`.
+
+GAP-01 through GAP-04 remain:
+
+`OWNER-DEFERRED — GAP-01 THROUGH GAP-04 — REMAIN W6 CLOSURE BLOCKERS — NO PASS OR CLOSURE INFERENCE.`
+
+This update does not establish W6 closure, production readiness, cloud
+deployment eligibility or Column N approval.
+
 ## Required future remediation backlog
 
 The following work is recommended after W6-004 closure and requires its own
@@ -159,11 +241,32 @@ scope and approval:
 - [W6-004 teardown record](../deployment-records/W6-destroy-plan.md)
 - [W6-004 lifecycle runbook](../deployment-records/W6-lifecycle-runbook.md)
 - [W6-004 gap analysis](W6-004-gap-analysis.md)
+- [W7-001-remediation implementation and TEST-001 evidence](../test-evidence/W7-001-remediation.md)
+- [W7-001-remediation governance traceability](W7-001-remediation-traceability.md)
+- [W7-001-remediation learning guide](../learning/W7-001-remediation-learning.md)
 
 ## Final Owner Approval
 
-- Documentation status: **PREPARED FOR OWNER REVIEW**.
-- Lifecycle status: **INDETERMINATE_PENDING_KMS_AND_BILLING_LAG**.
+- Prompt/task ID: `W7-001-remediation`.
+- Reviewer: Gyan Prakash Rai.
+- Reviewer role: Project Owner and Final Approval Reviewer.
+- Owner decision: `FINAL APPROVAL AFTER OWNER TEST — APPROVED`.
+- Decision date/time: `2026-10-10 18:24:00 SGT`.
+- Final documentation status: **CLOSED FOR W7-001-remediation WITH DEFERRED W6 BLOCKERS RETAINED**.
+- Code and configuration review status: the owner-reviewed Column L implementation is accepted at Git `HEAD` `dde3e89abbc76322558ad5a38065c3d1a943bae3`, tree `70a4bfb75cb3c3f751c411b3497b42ccfc7e994d`; this approval does not stage, commit or push it.
+- Documentation review status: the complete five-document Column M manifest was reviewed from the approved baseline; this document's pre-Column-N SHA-256 was `dcff1ad535d0b7f2f62212e5b651f1004b165ec7bb6b28386bb96dd86a4b886f`.
+- Owner-executed test status: **PASS for the recorded local TEST-001 scope** — focused W7 unit/contract `9 passed`; focused integration/feature PASS after approved remediation; affected W5/W6 regressions `142 passed`; full repository Pytest `2,276 passed, 8 skipped, 4 deselected`; Ruff format/lint PASS; MyPy PASS for 128 source files; validators, secret reconciliation, pre-commit and OPA strict suites PASS. The accepted Starlette/AnyIO third-party deprecation warning remains recorded.
+- Accepted warnings, risks, evidence gaps and limitations: all and only those recorded in the approved W7-001-remediation Column M manifest are accepted. No local, fake, mocked or injected evidence is treated as real integration, deployment, production or cloud readiness.
+- NOT RUN and INDETERMINATE: all recorded NOT RUN activities remain NOT RUN and every historical INDETERMINATE result is preserved. No additional open INDETERMINATE activity was identified beyond the retained W6 lifecycle tails.
+- Deployment: W7 deployment and all live AWS, Bedrock, paid-service, Qdrant, model and image operations were **NOT RUN**. The W6 observability result is contract validation only and was not deployed.
+- Rollback and recovery: W7 application rollback, infrastructure rollback and DR/recovery snapshot exercises were **NOT RUN**. Historical W6 application/infrastructure rollback remains `PASS_WITH_TELEMETRY_GAP`.
+- Teardown and residual resources: W7 live teardown was **NOT RUN**. Historical W6 project-owned resource teardown remains PASS with residual tails retained. Task-specific owner-test-02 temporary and pre-commit cache paths were removed; `.secrets.baseline` remained owner-staged; the owner workbook and any Excel lock remained outside Codex mutation.
+- Protected state: `infra/bootstrap/terraform.tfstate` was retained untouched at 34,206 bytes with SHA-256 `2ecd4c1ff41f6e545a6b90840b7f9048762200b11015760ffc0a2f8041fbc9ea`.
+- Cost, KMS and closure tails: `GAP-01` delayed Cost Explorer reconciliation, `GAP-02` platform KMS physical-absence confirmation, `GAP-03` bootstrap KMS physical-absence confirmation and `GAP-04` separately governed W6 coordinated closure remain open. This approval closes none of those historical tails.
+- Deferred actions and owner: every deferred action in the approved Column M manifest remains open. Responsible owner: Gyan Prakash Rai unless another owner is explicitly recorded for an individual action.
+- Conditions and next-task handover: preserve all classifications, warnings, risks, limitations, deferred work and residual resources; complete delayed cost, KMS and W6 closure checks under separate owner authority; only the owner may update Excel or perform Git mutation.
+- W6 lifecycle status: **INDETERMINATE_PENDING_KMS_AND_BILLING_LAG**.
 - Production readiness: **NOT ESTABLISHED**.
-- Column N: **PENDING**.
+- Cloud deployment eligibility: **NOT ESTABLISHED**.
+- Weekly learning: material is approved; teach-back completion is not inferred.
 - Tracker update responsibility: **Owner**.

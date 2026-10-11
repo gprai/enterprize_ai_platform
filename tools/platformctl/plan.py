@@ -131,6 +131,7 @@ from .policy_runner import OpaPolicyRunner, normalize_plan, summarize_plan
 from .terraform_runner import (
     CommandRunner,
     GitObservationRunner,
+    ProcessOutcomeUncertain,
     SubprocessCommandRunner,
     TerraformRunner,
     controlled_environment,
@@ -291,7 +292,6 @@ def execute_reviewed_plan(
     """Shared direct-call execution path; no operation can bypass the complete gate."""
     from .lifecycle_models import OperationPhase
     from .operation_state import OperationLedger
-    from .terraform_runner import ProcessOutcomeUncertain
 
     if not isinstance(execution_context, VerifiedExecutionContext):
         raise ContractError("VERIFIED_EXECUTION_CONTEXT_REQUIRED")
@@ -2273,7 +2273,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         ".secrets.baseline",
         # pragma: allowlist nextline secret
-        "a5d274776f4a71c2d3dbc6b2655f220ac1b04727d2a6df5ec5af68fc1179b4b5",
+        "2b1d5c6955f81de382303d3555e665818376dc83b7b4cc50d1913c9f408b8a73",
     ),
     (
         "feature-matrix.yaml",
@@ -2298,7 +2298,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/environments/sandbox/main.tf",
         # pragma: allowlist nextline secret
-        "ee1c3d7c27331e7c9be1acfbe876de1573475ed54620365c62c99417994a9d75",
+        "e935f916e5a27f838279845a516c32dd31641cc2ed98f1a3929e476327ec6645",
     ),
     (
         "infra/environments/sandbox/versions.tf",
@@ -2308,7 +2308,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/contract/test_terraform_module_contract.py",
         # pragma: allowlist nextline secret
-        "35b8b5dbd24162eeaac9fbd90f02c1cf8fa3f73016c6679ed4992ed991d20063",
+        "a619a7b1a14f57cd5b8e852fcdf1f5b3783b01f1206a77eefc25f40fe9919392",
     ),
     (
         "tests/feature/test_feature_matrix.py",
@@ -2323,32 +2323,32 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_precommit_controls.py",
         # pragma: allowlist nextline secret
-        "cbe6a2894c8e4c3ffb1aa9549af1264040c4144b2955220e8540070d5a319f52",
+        "9453e5fb9f7a54991a8e7cb55de1b88d63d25da40b1d69cdb8b8ff9a7eac8234",
     ),
     (
         "tests/security/test_repository_security.py",
         # pragma: allowlist nextline secret
-        "6cfb7a1d355929520b966984208da6819fbbf1dac537b707a2f1cb4fb9ead733",
+        "94fdec07191bff6a4498759336c4e5b96893ae7d2c2a95e5683062a5a16fed94",
     ),
     (
         "tests/security/test_terraform_security.py",
         # pragma: allowlist nextline secret
-        "c2630a4838ec2b80524136b945af4889136bd45b3e88ecb82dd174426d66a538",
+        "53abddb8017f168aa854c644c198e54ce55050db06ebc507238a8ccbe9f8ffd4",
     ),
     (
         "tests/teardown/test_platformctl_cleanup.py",
         # pragma: allowlist nextline secret
-        "d200375c7b732f9cd445b98727967a664bc3ae734e566e9e9b5af30f546ca2eb",
+        "56b46ae717ebb0cf746b807187fed630917004ac5e94849ea1bcd50b6d63bd02",
     ),
     (
         "tests/teardown/test_terraform_state_boundary.py",
         # pragma: allowlist nextline secret
-        "14235777d14294d1540ce3be4122369c6f0da66b8dc08a36ed4a99e4020a41b0",
+        "6e6f511c03e222178fd1479aa404c5e3cfa63ccdc8c01b7732a5552d42bdf465",
     ),
     (
         "tests/teardown/test_w1_08_cleanliness.py",
         # pragma: allowlist nextline secret
-        "4917d4ebd96ad9c9c5394da427f71bd1873c1f8765e566bc8865ae19c259e4d2",
+        "64a2602dc1e9e73b8defac1e2de7c4f46f331fc079f2a05fea2da038ff1a6ab3",
     ),
     (
         "tools/platformctl/__init__.py",
@@ -2373,7 +2373,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/environments/sandbox/terraform.tfvars.example",
         # pragma: allowlist nextline secret
-        "1c672b4d4f8458fdb59fe8fdb487dad2e8177fc9a41a2748733945074e632bdd",
+        "982462aeeb9d61bbfb9db0bed9bea813a358da80ce9ed760ed4fd9473225e060",
     ),
     (
         "docs/cost-estimates/W5-inputs.md",
@@ -2408,7 +2408,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "policies/opa/exceptions.json",
         # pragma: allowlist nextline secret
-        "afc12e263e6224ccb34a5e410879fc7760943e22b0d098829007cf6cd7087392",
+        "765c8889afb1ca4d0da148e120998343c979c02524a2b1f1070aa0aec83f4087",
     ),
 )
 

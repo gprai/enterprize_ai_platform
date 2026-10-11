@@ -802,6 +802,7 @@ def module_aware_platform_unknown_plan() -> dict[str, object]:
                 "EnableExactAccountKeyAdministration",
                 "AllowExactWorkloadCryptography",
                 "AllowExactOpenSearchLogEncryption",
+                "AllowExactBedrockInvocationLogEncryption",
             ),
         ),
         {
@@ -826,7 +827,10 @@ def module_aware_platform_unknown_plan() -> dict[str, object]:
     )
 
     storage_resources = [
-        policy_document("tls_only", ("DenyNonTLSPlatformAccess",)),
+        policy_document(
+            "tls_only",
+            ("DenyNonTLSPlatformAccess", "AllowExactBedrockInvocationLogDelivery"),
+        ),
         {
             "address": "aws_s3_bucket.this",
             "mode": "managed",
@@ -2562,7 +2566,7 @@ def test_purge_low_level_method_requires_authority_before_any_client_call(method
 
 def test_process_adapter_never_enables_a_command_shell() -> None:
     source = (
-        Path(__file__).resolve().parents[2] / "tools/platformctl/terraform_runner.py"
+        Path(__file__).resolve().parents[2] / "tools/platformctl/process_runner.py"
     ).read_text(encoding="utf-8")
     assert "shell=False" in source
     assert "shell=True" not in source

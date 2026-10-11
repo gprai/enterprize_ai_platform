@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from .lifecycle_models import ControlMatrixRow, ProductionReadinessReference
 
 from .contracts import ContractError
 from .lifecycle_io import load_lifecycle_config
@@ -1007,6 +1010,68 @@ def load_feature_matrix(path: Path) -> dict[str, object]:
     if not isinstance(data, dict) or any(not isinstance(key, str) for key in data):
         raise MatrixValidationError("feature matrix keys must be strings")
     return cast(dict[str, object], data)
+
+
+def validate_control_matrix(rows: tuple[ControlMatrixRow, ...]) -> tuple[ControlMatrixRow, ...]:
+    """Require every mandatory control to have conclusive, identity-bound evidence."""
+    from .contracts import validate_sha256
+    from .lifecycle_models import ControlResult
+
+    if not rows or len({row.control_id for row in rows}) != len(rows):
+        raise ContractError("CONTROL_MATRIX_IDENTITY_INVALID")
+    known = {row.control_id for row in rows}
+    for row in rows:
+        if not row.executor or not row.expected_result:
+            raise ContractError("CONTROL_MATRIX_FIELDS_REQUIRED")
+        if any(
+            dependency not in known or dependency == row.control_id
+            for dependency in row.dependency_ids
+        ):
+            raise ContractError("CONTROL_MATRIX_DEPENDENCY_INVALID")
+        if row.mandatory and row.result in {
+            ControlResult.NO_DATA,
+            ControlResult.NOT_RUN,
+            ControlResult.INDETERMINATE,
+        }:
+            raise ContractError("MANDATORY_CONTROL_NOT_CONCLUSIVE")
+        if row.result in {ControlResult.PASS, ControlResult.FAIL} and row.evidence is None:
+            raise ContractError("CONCLUSIVE_CONTROL_REQUIRES_EVIDENCE")
+        if row.evidence is not None:
+            validate_sha256(row.evidence.sha256)
+    dependencies = {row.control_id: row.dependency_ids for row in rows}
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(control_id: str) -> None:
+        if control_id in visiting:
+            raise ContractError("CONTROL_MATRIX_DEPENDENCY_CYCLE")
+        if control_id in visited:
+            return
+        visiting.add(control_id)
+        for dependency in dependencies[control_id]:
+            visit(dependency)
+        visiting.remove(control_id)
+        visited.add(control_id)
+
+    for control_id in dependencies:
+        visit(control_id)
+    return rows
+
+
+def validate_production_readiness_reference(value: ProductionReadinessReference) -> None:
+    """A reviewer name alone never establishes production readiness."""
+    from .contracts import parse_utc_timestamp, validate_sha256
+    from .lifecycle_models import W7_001_SCHEMA_VERSION
+
+    if value.schema_version != W7_001_SCHEMA_VERSION or value.reviewer != "Gyan Prakash Rai":
+        raise ContractError("PRODUCTION_READINESS_REFERENCE_INVALID")
+    validate_sha256(value.review_sha256)
+    if (value.decision is None) != (value.decided_at is None):
+        raise ContractError("PRODUCTION_READINESS_DECISION_INCOMPLETE")
+    if value.decision is not None:
+        if value.decision not in {"APPROVED", "REJECTED"}:
+            raise ContractError("PRODUCTION_READINESS_DECISION_INVALID")
+        parse_utc_timestamp(value.decided_at or "", "production readiness decided_at")
 
 
 def repository_root() -> Path:

@@ -39,6 +39,15 @@ EXPECTED_LOCAL_REHEARSALS = {
     "readiness_failure",
     "retry_storm",
 }
+EXPECTED_LIVE_SCENARIOS = {
+    "availability-zone-interruption",
+    "bedrock-unavailable",
+    "bounded-load",
+    "node-interruption",
+    "opensearch-unavailable",
+    "pod-interruption",
+    "telemetry-delivery-failure",
+}
 
 
 class W6002Error(ValueError):
@@ -94,18 +103,29 @@ def validate(root: Path) -> str:
     slo = _load_yaml(root / REQUIRED_PATHS[1])
     if slo["schema_version"] != "w6-002.slo.v1" or slo["owner"] != "Gyan Prakash Rai":
         raise W6002Error("SLO identity differs")
+    if slo.get("hardening_schema_version") != "w7-001.slo-hardening.v1":
+        raise W6002Error("SLO hardening schema differs")
     if slo["window"] != {
         "rolling_days": 30,
         "minimum_eligible_events": 100,
         "below_minimum_status": "NO_DATA",
     }:
         raise W6002Error("SLO evidence window differs")
+    if slo["metric_contract"] != {
+        "namespace": "EnterpriseAI/Sandbox",
+        "dimensions": ["stage", "operation", "outcome"],
+        "pre_exercise_readiness": {"status": "NO_DATA", "minimum_samples": 1},
+        "rollback_window": {"status": "NO_DATA", "minimum_samples": 1},
+        "missing_samples_status": "NO_DATA",
+    }:
+        raise W6002Error("metric readiness contract differs")
     if slo["alerting"] != {
-        "primary_owner": "Gyan Prakash Rai",
-        "backup_owner": None,
-        "local_destination": "synthetic-receiver",
-        "live_destination": None,
-        "live_destination_owner": "W6-004",
+        "schema_version": "w7-001.slo-hardening.v1",
+        "owner_reference": "role:platform-observability-primary",
+        "backup_owner_reference": "role:platform-observability-backup",
+        "destination_reference": "external:owner-approved-alert-destination",
+        "delivery_status": "NOT RUN",
+        "delivery_evidence_sha256": None,
     }:
         raise W6002Error("alert ownership or destination differs")
 
@@ -126,6 +146,16 @@ def validate(root: Path) -> str:
         raise W6002Error("local rehearsal mode differs")
     if set(fis["local_rehearsals"]["scenarios"]) != EXPECTED_LOCAL_REHEARSALS:
         raise W6002Error("local rehearsal inventory differs")
+    live_scenarios = fis["live_scenarios"]
+    if (
+        live_scenarios["execution"] != "unauthorized"
+        or live_scenarios["default_status"] != "NOT RUN"
+    ):
+        raise W6002Error("live resilience execution must remain unauthorized and NOT RUN")
+    if {item["id"] for item in live_scenarios["scenarios"]} != EXPECTED_LIVE_SCENARIOS:
+        raise W6002Error("live resilience scenario inventory differs")
+    if any(item["status"] != "NOT RUN" for item in live_scenarios["scenarios"]):
+        raise W6002Error("live resilience scenarios must remain NOT RUN")
 
     alerts = _load_yaml(root / REQUIRED_PATHS[3])
     names = {
@@ -136,6 +166,21 @@ def validate(root: Path) -> str:
     }
     if names != EXPECTED_ALERTS:
         raise W6002Error("alert inventory differs")
+    alert_rules = [
+        rule
+        for group in alerts.get("groups", [])
+        for rule in group.get("rules", [])
+        if "alert" in rule
+    ]
+    expected_labels = {
+        "ownership_ref": "role:platform-observability-primary",
+        "destination_ref": "external:owner-approved-alert-destination",
+    }
+    if any(
+        any(rule["labels"].get(key) != value for key, value in expected_labels.items())
+        for rule in alert_rules
+    ):
+        raise W6002Error("alert rule ownership binding differs")
 
     dashboard = json.loads((root / REQUIRED_PATHS[4]).read_text(encoding="utf-8"))
     if dashboard.get("uid") != "enterprise-ai-w6-002" or len(dashboard.get("panels", [])) != 8:

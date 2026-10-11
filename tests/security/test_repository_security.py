@@ -61,11 +61,17 @@ class RepositorySecurityTests(unittest.TestCase):
                 if isinstance(node, ast.Import):
                     for imported in node.names:
                         if imported.name.split(".")[0] in forbidden_imports and not (
-                            path.name == "terraform_runner.py" and imported.name == "subprocess"
+                            path.name == "process_runner.py" and imported.name == "subprocess"
                         ):
                             findings.append(f"{path.name}: import {imported.name}")
                 elif isinstance(node, ast.ImportFrom) and node.module:
-                    if node.module.split(".")[0] in forbidden_imports:
+                    is_bounded_uri_decoding = (
+                        path.name == "image_lifecycle.py" and node.module == "urllib.parse"
+                    )
+                    if (
+                        node.module.split(".")[0] in forbidden_imports
+                        and not is_bounded_uri_decoding
+                    ):
                         findings.append(f"{path.name}: from {node.module}")
                 elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
                     is_utc_isoformat_normalization = (
@@ -86,11 +92,19 @@ class RepositorySecurityTests(unittest.TestCase):
                         and isinstance(node.keywords[0].value, ast.Constant)
                         and node.keywords[0].value.value == 0
                     )
+                    is_bounded_string_normalization = (
+                        node.func.attr == "replace"
+                        and path.name in {"kubernetes_lifecycle.py", "policy_runner.py"}
+                        and not node.keywords
+                        and len(node.args) == 2
+                        and all(isinstance(argument, ast.Constant) for argument in node.args)
+                    )
                     if (
                         node.func.attr in forbidden_methods
                         and path.name not in approved_write_modules
                         and not is_utc_isoformat_normalization
                         and not is_datetime_precision_normalization
+                        and not is_bounded_string_normalization
                     ):
                         findings.append(f"{path.name}: call {node.func.attr}")
 

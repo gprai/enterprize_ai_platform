@@ -156,3 +156,16 @@ def test_metric_attributes_never_include_correlation_or_identity() -> None:
         "source_id",
     }
     assert forbidden.isdisjoint(labels)
+
+
+def test_metric_readiness_keeps_missing_rollback_samples_non_pass() -> None:
+    from pydantic import ValidationError
+
+    from enterprise_ai_platform.telemetry.slo import EvidenceStatus, MetricSeriesReadiness
+
+    with pytest.raises(ValidationError, match="missing metric samples"):
+        MetricSeriesReadiness(
+            pre_exercise_samples=1,
+            rollback_window_samples=0,
+            status=EvidenceStatus.PASS,
+        )

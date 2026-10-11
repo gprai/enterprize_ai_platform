@@ -1200,3 +1200,143 @@ class W6004StageEvidence:
     completed_at: str
     warnings: tuple[str, ...] = ()
     residuals: tuple[str, ...] = ()
+
+
+# W7-001 additive hardening contracts. Historical W5/W6 schemas remain unchanged.
+W7_001_SCHEMA_VERSION = "w7-001.remediation.v1"
+
+
+class EvidenceDisposition(StrEnum):
+    CURRENT = "CURRENT"
+    FAILED = "FAILED"
+    PARTIAL = "PARTIAL"
+    SUPERSEDED = "SUPERSEDED"
+    WAIVED = "WAIVED"
+    LIMITED = "LIMITED"
+    CLOSURE_TAIL = "CLOSURE_TAIL"
+
+
+class EvidenceLifecycle(StrEnum):
+    ACTIVE = "ACTIVE"
+    CONSUMED = "CONSUMED"
+    EXPIRED = "EXPIRED"
+
+
+class ResidueLocation(StrEnum):
+    REPOSITORY = "REPOSITORY"
+    EXTERNAL = "EXTERNAL"
+
+
+class ResidueStatus(StrEnum):
+    ABSENT = "ABSENT"
+    RETAINED = "RETAINED"
+    UNEXPECTED = "UNEXPECTED"
+
+
+class ControlResult(StrEnum):
+    PASS = "PASS"  # noqa: S105 - evidence classification, not a credential.
+    FAIL = "FAIL"
+    NO_DATA = "NO_DATA"
+    NOT_RUN = "NOT RUN"
+    INDETERMINATE = "INDETERMINATE"
+
+
+@dataclass(frozen=True)
+class TemporaryIamOperation:
+    schema_version: str
+    operation_id: str
+    principal: str
+    actions: tuple[str, ...]
+    resources: tuple[str, ...]
+    conditions: tuple[tuple[str, str], ...]
+    source_sha256: str
+    approval_id: str
+    issued_at: str
+    expires_at: str
+    operation_expires_at: str
+    before_state_sha256: str
+    after_state_sha256: str | None
+    restoration_status: ControlResult
+    partial_failure_cleanup: ControlResult
+
+
+@dataclass(frozen=True)
+class BedrockLoggingContract:
+    schema_version: str
+    enabled: bool
+    synthetic_only: bool
+    account_id: str
+    region: str
+    approval_id: str | None
+    operation_id: str | None
+    retention_days: int
+    encryption_identity: str
+    access_identity_sha256: str
+    before_state_sha256: str
+    after_state_sha256: str | None
+    disablement_status: ControlResult
+    raw_protected_content_allowed: bool = False
+
+
+@dataclass(frozen=True)
+class RecoverySnapshotContract:
+    schema_version: str
+    operation_id: str
+    external_path: str
+    state_lineage: str
+    state_serial: int
+    content_sha256: str
+    encryption_identity: str
+    recovery_principal: str
+    retention_until: str
+    cleanup_owner: str
+    plaintext_retained: bool
+    mutation_allowed: bool
+    rehearsal_status: ControlResult
+
+
+@dataclass(frozen=True)
+class ControlMatrixRow:
+    control_id: str
+    mandatory: bool
+    executor: str
+    mutation_type: str
+    expected_result: str
+    evidence: EvidenceRef | None
+    dependency_ids: tuple[str, ...]
+    result: ControlResult
+
+
+@dataclass(frozen=True)
+class EvidenceIndexRecord:
+    record_id: str
+    disposition: EvidenceDisposition
+    lifecycle: EvidenceLifecycle
+    source_sha256: str
+    configuration_sha256: str
+    tool_sha256: str
+    artifact: EvidenceRef
+    reviewer: str | None
+    approval_id: str | None
+    retained_until: str
+    cleanup_owner: str
+    supersedes: tuple[str, ...] = ()
+    limitations: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class ProductionReadinessReference:
+    schema_version: str
+    review_sha256: str
+    reviewer: str
+    decision: str | None
+    decided_at: str | None
+
+
+@dataclass(frozen=True)
+class ResidueClassification:
+    path: str
+    location: ResidueLocation
+    status: ResidueStatus
+    expected: bool
+    cleanup_owner: str

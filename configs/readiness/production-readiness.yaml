@@ -1,0 +1,19 @@
+schema_version: w7-001.production-readiness.v1
+classification: NOT ESTABLISHED
+reviewer: Gyan Prakash Rai
+decision: null
+decided_at: null
+sections:
+  identity: {status: NOT RUN, evidence: null, limitations: []}
+  security: {status: NOT RUN, evidence: null, limitations: []}
+  privacy: {status: NOT RUN, evidence: null, limitations: []}
+  threat_model: {status: NOT RUN, evidence: null, limitations: []}
+  capacity: {status: NOT RUN, evidence: null, limitations: []}
+  slo_evidence: {status: NOT RUN, evidence: null, limitations: []}
+  resilience: {status: NOT RUN, evidence: null, limitations: []}
+  disaster_recovery: {status: NOT RUN, evidence: null, limitations: []}
+  operations_and_support: {status: NOT RUN, evidence: null, limitations: []}
+  cost: {status: NOT RUN, evidence: null, limitations: []}
+  compliance_controls: {status: NOT RUN, evidence: null, limitations: []}
+  change_and_rollback: {status: NOT RUN, evidence: null, limitations: []}
+  residual_risks: {status: NOT RUN, evidence: null, limitations: []}

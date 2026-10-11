@@ -20,6 +20,7 @@ if TYPE_CHECKING:
         RecoveryProfile,
         ReviewPackage,
         StateEvidence,
+        TemporaryIamOperation,
     )
 
 APPROVAL_SCHEMA_VERSION = "1.0"
@@ -1509,3 +1510,52 @@ def validate_w6_004_window(issued_at: datetime, expires_at: datetime) -> None:
     duration = expires_at - issued_at
     if duration <= timedelta(0) or duration > W6_004_MAX_GOVERNANCE_LIFETIME:
         raise ApprovalError("W6_004_APPROVAL_WINDOW_INVALID")
+
+
+def validate_temporary_iam_operation(value: TemporaryIamOperation, now: datetime) -> None:
+    """Validate exact, source-bound temporary access without performing an IAM call."""
+    from .lifecycle_models import W7_001_SCHEMA_VERSION, ControlResult, TemporaryIamOperation
+
+    if (
+        not isinstance(value, TemporaryIamOperation)
+        or value.schema_version != W7_001_SCHEMA_VERSION
+    ):
+        raise ContractError("TEMPORARY_IAM_SCHEMA_REQUIRED")
+    for digest in (
+        value.source_sha256,
+        value.before_state_sha256,
+        value.after_state_sha256,
+    ):
+        if digest is not None:
+            validate_sha256(digest)
+    issued = parse_utc_timestamp(value.issued_at, "temporary IAM issued_at")
+    expires = parse_utc_timestamp(value.expires_at, "temporary IAM expires_at")
+    operation_expires = parse_utc_timestamp(
+        value.operation_expires_at, "temporary IAM operation_expires_at"
+    )
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ContractError("TEMPORARY_IAM_NOW_TIMEZONE_REQUIRED")
+    if (
+        issued > now
+        or expires <= now
+        or expires > operation_expires
+        or expires - issued > timedelta(hours=1)
+    ):
+        raise ContractError("TEMPORARY_IAM_EXPIRY_INVALID")
+    if (
+        not value.operation_id
+        or not value.approval_id
+        or not value.principal.startswith("arn:")
+        or not value.actions
+        or not value.resources
+        or any("*" in item for item in (*value.actions, *value.resources))
+        or len(value.actions) != len(set(value.actions))
+        or len(value.resources) != len(set(value.resources))
+        or len(value.conditions) != len(set(value.conditions))
+    ):
+        raise ContractError("TEMPORARY_IAM_SCOPE_INVALID")
+    if value.restoration_status is ControlResult.PASS:
+        if value.after_state_sha256 != value.before_state_sha256:
+            raise ContractError("TEMPORARY_IAM_RESTORATION_MISMATCH")
+        if value.partial_failure_cleanup is not ControlResult.PASS:
+            raise ContractError("TEMPORARY_IAM_PARTIAL_CLEANUP_UNPROVEN")

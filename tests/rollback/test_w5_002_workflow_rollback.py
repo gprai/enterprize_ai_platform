@@ -77,3 +77,11 @@ def test_migration_cleanup_runs_on_success_failure_and_cancellation() -> None:
     assert "w5-002.cleanup-retention.v2" in (ROOT / "tools/w5_002_ci.py").read_text(
         encoding="utf-8"
     )
+
+
+def test_supply_chain_disagreement_remains_fail_closed() -> None:
+    import json
+
+    config = json.loads((ROOT / "configs/ci/w5-002.json").read_text(encoding="utf-8"))
+    assert config["security"]["scanner_disagreement_blocks"] is True
+    assert config["remediation"]["freshness"]["stale_status"] == "INDETERMINATE"

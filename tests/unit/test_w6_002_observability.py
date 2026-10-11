@@ -73,3 +73,20 @@ def test_slo_population_passes_and_fails_deterministically() -> None:
     )
     assert evaluate_slo(definition, passing).status is SLOStatus.PASS
     assert evaluate_slo(definition, failing).status is SLOStatus.FAIL
+
+
+def test_pre_exercise_and_rollback_metric_contract_is_exact() -> None:
+    from enterprise_ai_platform.telemetry.slo import (
+        METRIC_DIMENSIONS,
+        METRIC_NAMESPACE,
+        EvidenceStatus,
+        MetricSeriesReadiness,
+    )
+
+    readiness = MetricSeriesReadiness(
+        pre_exercise_samples=0,
+        rollback_window_samples=0,
+        status=EvidenceStatus.NO_DATA,
+    )
+    assert readiness.namespace == METRIC_NAMESPACE == "EnterpriseAI/Sandbox"
+    assert readiness.dimensions == METRIC_DIMENSIONS == ("stage", "operation", "outcome")

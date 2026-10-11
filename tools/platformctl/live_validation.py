@@ -11,6 +11,10 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from ipaddress import IPv4Network, ip_network
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .lifecycle_models import BedrockLoggingContract
 
 SOURCE_SCHEMA = "w6-004.source-contract.v1"
 SOURCE_STATUS = "W6-004 LIFECYCLE SOURCE CONTRACT VALID - NOT EXECUTED"
@@ -918,3 +922,45 @@ def validate_stage_sequence(stages: Sequence[str]) -> None:
 def validate_residue(actual: Sequence[str], expected: Sequence[str]) -> None:
     if sorted(actual) != sorted(expected):
         raise W6004Error("unexpected lifecycle residue")
+
+
+def validate_bedrock_logging_contract(value: BedrockLoggingContract) -> BedrockLoggingContract:
+    """Validate default-off, synthetic-only logging metadata without enabling logging."""
+    from .contracts import APPROVED_AWS_ACCOUNT_ID, APPROVED_AWS_REGION, validate_sha256
+    from .lifecycle_models import W7_001_SCHEMA_VERSION, ControlResult
+
+    if value.schema_version != W7_001_SCHEMA_VERSION:
+        raise W6004Error("Bedrock logging schema differs")
+    if value.account_id != APPROVED_AWS_ACCOUNT_ID or value.region != APPROVED_AWS_REGION:
+        raise W6004Error("Bedrock logging authority differs")
+    if value.retention_days < 1 or value.retention_days > 7:
+        raise W6004Error("Bedrock logging retention is outside the approved boundary")
+    if not value.encryption_identity:
+        raise W6004Error("Bedrock logging encryption identity is required")
+    for digest in (value.access_identity_sha256, value.before_state_sha256):
+        validate_sha256(digest)
+    if value.after_state_sha256 is not None:
+        validate_sha256(value.after_state_sha256)
+    if value.raw_protected_content_allowed or not value.synthetic_only:
+        raise W6004Error("Bedrock logging must be synthetic-only and content-safe")
+    if value.enabled:
+        if not value.approval_id or not value.operation_id:
+            raise W6004Error("enabled logging requires exact approval and operation identity")
+        if value.disablement_status is ControlResult.PASS:
+            raise W6004Error("enabled logging cannot claim disablement PASS")
+    elif value.disablement_status is ControlResult.PASS:
+        if value.after_state_sha256 is None:
+            raise W6004Error("logging disablement PASS requires after-state identity")
+    return value
+
+
+def require_non_pass_for_limited_evidence(
+    *,
+    status: str,
+    disposition: str,
+    scanner_disagreement: bool = False,
+) -> None:
+    """Prevent partial, waived, limited or disputed evidence from becoming PASS."""
+    limited = {"FAILED", "PARTIAL", "WAIVED", "LIMITED", "CLOSURE_TAIL"}
+    if status == "PASS" and (disposition in limited or scanner_disagreement):
+        raise W6004Error("limited or disputed evidence cannot be PASS")

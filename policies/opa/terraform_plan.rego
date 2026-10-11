@@ -349,7 +349,6 @@ platform_recovery_update_resources := {
 	"module.iam.aws_iam_role.ingestion": "aws_iam_role",
 	"module.iam.aws_iam_role.opensearch_administrator": "aws_iam_role",
 	"module.iam.aws_iam_role.runtime": "aws_iam_role",
-	"module.iam.aws_iam_role_policy.fis": "aws_iam_role_policy",
 	"module.iam.aws_iam_role_policy.runtime": "aws_iam_role_policy",
 	"module.kms.aws_kms_key.this": "aws_kms_key",
 	"module.network.aws_default_security_group.restricted": "aws_default_security_group",

@@ -930,13 +930,13 @@ def build_otlp_telemetry(*, settings: Settings) -> OTLPTelemetryComposition:
     ):
         raise ValueError("OTLP telemetry requires the exact approved loopback profile")
 
-    from opentelemetry.exporter.otlp.proto.grpc._log_exporter import (  # type: ignore[import-not-found]
+    from opentelemetry.exporter.otlp.proto.grpc._log_exporter import (
         OTLPLogExporter,
     )
-    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (  # type: ignore[import-not-found]
+    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
         OTLPMetricExporter,
     )
-    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (  # type: ignore[import-not-found]
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
         OTLPSpanExporter,
     )
     from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler

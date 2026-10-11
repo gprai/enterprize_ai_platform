@@ -32,5 +32,30 @@ local_rehearsals:
     - exporter_saturation
     - readiness_failure
     - retry_storm
+live_scenarios:
+  execution: unauthorized
+  default_status: NOT RUN
+  scenarios:
+    - id: pod-interruption
+      failure_domain: pod
+      status: NOT RUN
+    - id: node-interruption
+      failure_domain: node
+      status: NOT RUN
+    - id: availability-zone-interruption
+      failure_domain: availability-zone
+      status: NOT RUN
+    - id: opensearch-unavailable
+      failure_domain: opensearch
+      status: NOT RUN
+    - id: bedrock-unavailable
+      failure_domain: bedrock
+      status: NOT RUN
+    - id: telemetry-delivery-failure
+      failure_domain: telemetry
+      status: NOT RUN
+    - id: bounded-load
+      failure_domain: load
+      status: NOT RUN
 execution_authority: W6-004-owner-approval-required
 cost_authority: none-in-w6-002

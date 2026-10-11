@@ -1539,7 +1539,7 @@ def _admin_trust_expiry_reconciliation(
         if not isinstance(trust_expiry, str):
             return False
         trust_expiries.append(trust_expiry)
-        date_less_than["aws:CurrentTime"] = "OWNER_APPROVED_EXPIRY"
+        cast(dict[str, object], date_less_than)["aws:CurrentTime"] = "OWNER_APPROVED_EXPIRY"
         normalized.append(candidate)
     try:
         previous_trust_expiry = parse_utc_timestamp(

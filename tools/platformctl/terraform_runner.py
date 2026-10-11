@@ -3,13 +3,9 @@
 from __future__ import annotations
 
 import re
-import subprocess  # noqa: S404 - exact argv execution is isolated in this adapter.
-import threading
 from collections.abc import Iterator, Mapping, Sequence
 from contextlib import ExitStack, contextmanager
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
 
 from .contracts import ContractError, VerifiedExecutionContext, validate_sha256
 from .lifecycle_io import (
@@ -22,15 +18,22 @@ from .lifecycle_io import (
     sha256_file,
     validate_original_ancestors,
 )
+from .process_runner import (
+    CommandRunner as CommandRunner,
+)
+from .process_runner import (
+    ProcessOutcomeUncertain as ProcessOutcomeUncertain,
+)
+from .process_runner import (
+    ProcessResult as ProcessResult,
+)
+from .process_runner import (
+    capture_process,
+)
 
 TERRAFORM_VERSION = "1.16.1"
 AWS_PROVIDER_VERSION = "6.55.0"
 DEFAULT_TIMEOUT_SECONDS = 900
-MAX_PROCESS_OUTPUT_BYTES = 8 * 1024 * 1024
-
-
-class ProcessOutcomeUncertain(ContractError):
-    """The adapter cannot prove process completion; never retry a mutation."""
 
 
 def _require_bound_process(
@@ -88,30 +91,6 @@ def controlled_environment(environment: Mapping[str, str], *, cost_child: bool) 
     if cost_child and any(key.startswith("AWS_") for key in result):
         raise ContractError("COST_CHILD_AWS_ENVIRONMENT_PROHIBITED")
     return result
-
-
-@dataclass(frozen=True)
-class ProcessResult:
-    """Sanitized process result returned by an injected runner."""
-
-    returncode: int
-    stdout: str
-    stderr: str
-
-
-class CommandRunner(Protocol):
-    """Injection boundary used by tests and the later owner runner."""
-
-    def run(
-        self,
-        arguments: Sequence[str],
-        *,
-        cwd: Path,
-        environment: Mapping[str, str],
-        timeout_seconds: int,
-    ) -> ProcessResult:
-        """Run one argv-only process without a command shell."""
-        ...
 
 
 class SubprocessCommandRunner:
@@ -352,61 +331,13 @@ class SubprocessCommandRunner:
         environment: Mapping[str, str],
         timeout_seconds: int,
     ) -> ProcessResult:
-        """Capture one already-validated launch; never inherit the parent environment."""
-        chunks: list[bytearray] = [bytearray(), bytearray()]
-        overflow = threading.Event()
-        try:
-            process = subprocess.Popen(  # noqa: S603
-                tuple(arguments),
-                cwd=cwd,
-                env=environment,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=False,
-            )
-            from typing import BinaryIO
-
-            def drain(stream: BinaryIO, destination: bytearray) -> None:
-                try:
-                    while block := stream.read(65536):
-                        if len(destination) + len(block) > MAX_PROCESS_OUTPUT_BYTES:
-                            overflow.set()
-                            process.kill()
-                            break
-                        destination.extend(block)
-                except OSError:
-                    overflow.set()
-                finally:
-                    stream.close()
-
-            if process.stdout is None or process.stderr is None:
-                process.kill()
-                raise ProcessOutcomeUncertain("PROCESS_CAPTURE_UNAVAILABLE")
-            readers = [
-                threading.Thread(target=drain, args=(process.stdout, chunks[0]), daemon=True),
-                threading.Thread(target=drain, args=(process.stderr, chunks[1]), daemon=True),
-            ]
-            for reader in readers:
-                reader.start()
-            try:
-                process.wait(timeout=timeout_seconds)
-            except (subprocess.TimeoutExpired, KeyboardInterrupt) as exc:
-                process.kill()
-                process.wait(timeout=10)
-                raise ProcessOutcomeUncertain("PROCESS_TIMEOUT_OR_CANCELLED") from exc
-            finally:
-                for reader in readers:
-                    reader.join(timeout=10)
-            if overflow.is_set() or any(reader.is_alive() for reader in readers):
-                raise ProcessOutcomeUncertain("PROCESS_OUTPUT_LIMIT_OR_INCOMPLETE")
-            return ProcessResult(
-                process.returncode,
-                bytes(chunks[0]).decode("utf-8", errors="strict"),
-                bytes(chunks[1]).decode("utf-8", errors="strict"),
-            )
-        except (OSError, subprocess.SubprocessError, UnicodeDecodeError) as exc:
-            raise ProcessOutcomeUncertain("PROCESS_COMPLETION_UNPROVEN") from exc
+        """Compatibility seam delegating capture to the provider-neutral boundary."""
+        return capture_process(
+            arguments,
+            cwd=cwd,
+            environment=environment,
+            timeout_seconds=timeout_seconds,
+        )
 
 
 class TerraformRunner:

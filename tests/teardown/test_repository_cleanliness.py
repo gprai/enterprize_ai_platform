@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+OWNER_PROTECTED_STATE = Path("infra/bootstrap/terraform.tfstate")
 
 
 class RepositoryCleanlinessTests(unittest.TestCase):
@@ -34,6 +35,8 @@ class RepositoryCleanlinessTests(unittest.TestCase):
             if ".git" in relative_path.parts:
                 continue
             if relative_path in approved_provider_locks and path.is_file():
+                continue
+            if relative_path == OWNER_PROTECTED_STATE and path.is_file():
                 continue
             if path.name in forbidden_names or (
                 path.is_file() and path.suffix.casefold() in {".pyc", ".pyo"}

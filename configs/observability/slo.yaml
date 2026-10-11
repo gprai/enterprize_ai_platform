@@ -1,4 +1,5 @@
 schema_version: w6-002.slo.v1
+hardening_schema_version: w7-001.slo-hardening.v1
 owner: Gyan Prakash Rai
 classification: deployment-readiness-input-not-live-evidence
 window:
@@ -39,12 +40,30 @@ error_budget:
       long_window: 6h
       minimum_short_window_events: 20
 quality_safety_classification: release-gate-sli-not-prometheus-operational-slo
+metric_contract:
+  namespace: EnterpriseAI/Sandbox
+  dimensions:
+    - stage
+    - operation
+    - outcome
+  pre_exercise_readiness:
+    status: NO_DATA
+    minimum_samples: 1
+  rollback_window:
+    status: NO_DATA
+    minimum_samples: 1
+  missing_samples_status: NO_DATA
+correlation_contract:
+  request_id_field: request_id
+  test_id_field: test_id
+  raw_prompt_content_allowed: false
 alerting:
-  primary_owner: Gyan Prakash Rai
-  backup_owner: null
-  local_destination: synthetic-receiver
-  live_destination: null
-  live_destination_owner: W6-004
+  schema_version: w7-001.slo-hardening.v1
+  owner_reference: role:platform-observability-primary
+  backup_owner_reference: role:platform-observability-backup
+  destination_reference: external:owner-approved-alert-destination
+  delivery_status: NOT RUN
+  delivery_evidence_sha256: null
 deployment_boundary:
   owner_task: W6-004
   private_aws_endpoints_only: true

@@ -10,7 +10,7 @@
   },
   "prompt": {
     "version": "w3-001.v1",
-    "semantic_sha256": "f1b9583bd8e8dd3abfa066c1e03e3979a118bad56565a99930e387ea2ccba927"
+    "semantic_sha256": "86b2837e4f037bc2d59b27fd43fe471f8f48dc593393fa4f52e6f8cfea71b484"
   },
   "rag_configuration": {
     "path": "configs/rag.yaml",

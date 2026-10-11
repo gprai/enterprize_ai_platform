@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 SANDBOX = ROOT / "infra/environments/sandbox"
 EXPECTED_INPUT_KEYS = (
@@ -197,7 +199,8 @@ def test_backend_example_uses_exact_owner_approved_boundary() -> None:
         in source
     )
     assert 'key            = "sandbox/platform.tfstate"' in source
-    assert 'dynamodb_table = "enterprise-ai-platform-sandbox-tflock"' in source
+    assert re.search(r"(?m)^use_lockfile\s*=\s*true\s*$", source)
+    assert "dynamodb_table" not in source
     assert 'kms_key_id     = "alias/enterprise-ai-platform-sandbox-terraform-state"' in source
 
 
@@ -229,3 +232,20 @@ def test_github_repository_identity_produces_the_exact_oidc_subject() -> None:
         "repo:${var.github_organization}/${var.github_repository}:"
         "environment:${var.github_environment}" in iam
     )
+
+
+def test_future_backend_contract_rejects_deprecated_or_dual_locking() -> None:
+    from tools.platformctl.contracts import ContractError
+    from tools.platformctl.plan_artifact_producer import _backend_bytes
+
+    valid = {
+        "bucket": "state-bucket",
+        "key": "sandbox/platform.tfstate",
+        "region": "ap-southeast-1",
+        "use_lockfile": True,
+        "encrypt": True,
+        "kms_key_id": "alias/state",
+    }
+    assert b"use_lockfile = true" in _backend_bytes(valid)
+    with pytest.raises(ContractError, match="LOCKFILE"):
+        _backend_bytes({**valid, "dynamodb_table": "historical-lock-table"})

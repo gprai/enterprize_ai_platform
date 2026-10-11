@@ -6,7 +6,10 @@ import json
 from datetime import datetime
 from pathlib import Path
 from string import ascii_letters, ascii_uppercase, digits
-from typing import cast
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from .lifecycle_models import EvidenceIndexRecord
 
 from .contracts import (
     Action,
@@ -502,6 +505,48 @@ class OperationLedger(ApprovalUsageRegistry):
         )
         self._exclusive_write(self._root / "results" / f"{operation_id}.verified.json", result)
         self.release(operation_id)
+
+    def record_evidence_state(
+        self,
+        record: EvidenceIndexRecord,
+        *,
+        recorded_at: datetime,
+    ) -> None:
+        """Append one evidence lifecycle state; never replace or silently reopen it."""
+        from dataclasses import asdict
+
+        from .lifecycle_io import validate_evidence_index
+        from .lifecycle_models import EvidenceLifecycle
+
+        validate_evidence_index((record,), now=recorded_at)
+        _operation_name(record.record_id)
+        directory = self._root / "evidence-state" / record.record_id
+        if directory.exists():
+            prior = tuple(sorted(directory.glob("*.json")))
+            if not prior:
+                raise OperationStateError("EVIDENCE_STATE_DIRECTORY_EMPTY")
+            latest = cast(dict[str, object], load_json_strict(prior[-1]))
+            latest_state = latest.get("lifecycle")
+            allowed = {
+                EvidenceLifecycle.ACTIVE.value: {
+                    EvidenceLifecycle.CONSUMED.value,
+                    EvidenceLifecycle.EXPIRED.value,
+                },
+                EvidenceLifecycle.CONSUMED.value: set(),
+                EvidenceLifecycle.EXPIRED.value: set(),
+            }
+            if record.lifecycle.value not in allowed.get(cast(str, latest_state), set()):
+                raise OperationStateError("EVIDENCE_STATE_TRANSITION_INVALID")
+        else:
+            reserve_operation_directory(directory, self._root, self._repository_root)
+            if record.lifecycle is not EvidenceLifecycle.ACTIVE:
+                raise OperationStateError("EVIDENCE_INITIAL_STATE_MUST_BE_ACTIVE")
+        sequence = len(tuple(directory.glob("*.json"))) + 1
+        payload = {
+            **asdict(record),
+            "recorded_at": recorded_at.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        }
+        self._exclusive_write(directory / f"{sequence:06d}.json", payload)
 
 
 def _operation_name(value: str) -> None:

@@ -34,7 +34,7 @@ from tools.platformctl.lifecycle_io import (
 
 REPOSITORY = Path(__file__).absolute().parents[1]
 BASELINE_NAME = ".secrets.baseline"
-MAINTENANCE_PARENT = Path(r"E:\AI\.tmp\enterprise-ai-platform-w5-004\owner-test-01")
+MAINTENANCE_PARENT = Path(r"E:\AI\.runtime\enterprise_ai_platform\w7-001-remediation\owner-test-01")
 PLUGIN_NAMES = (
     "ArtifactoryDetector AWSKeyDetector AzureStorageKeyDetector Base64HighEntropyString "
     "BasicAuthDetector CloudantDetector DiscordBotTokenDetector GitHubTokenDetector "

@@ -158,3 +158,11 @@ def test_symlink_output_is_rejected(tmp_path: Path) -> None:
         pytest.skip("symlink creation is unavailable to this owner-controlled test process")
     with pytest.raises(w5_002_ci.ContractError, match="symlink"):
         w5_002_ci.write_json(link, {})
+
+
+def test_normalization_policy_cannot_suppress_vulnerabilities() -> None:
+    config = w5_002_ci.load_json(ROOT / "configs/ci/w5-002.json")
+    remediation = config["remediation"]
+    assert remediation["purl"]["normalization_reason_required"] is True
+    assert remediation["scanner_reconciliation"]["disagreement_status"] == "INDETERMINATE"
+    assert config["security"]["vulnerability_free_claim"] is False

@@ -121,6 +121,18 @@ def test_w6_001_ci_extension_is_offline_and_source_template_only() -> None:
         assert prohibited not in workflow
 
 
+def test_supply_chain_remediation_policy_is_composed_without_new_waivers() -> None:
+    import json
+
+    config = json.loads((ROOT / "configs/ci/w5-002.json").read_text(encoding="utf-8"))
+    remediation = config["remediation"]
+    assert remediation["waivers"] == {
+        "expiry_required": True,
+        "new_waivers_allowed": False,
+    }
+    assert remediation["zero_critical_required"] is True
+
+
 def test_w6_003_ci_extension_validates_only_the_local_readiness_contract() -> None:
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 

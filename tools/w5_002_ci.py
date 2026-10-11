@@ -10,7 +10,9 @@ import re
 import sys
 import tarfile
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from enum import StrEnum
 from pathlib import Path
 from typing import cast
 
@@ -125,6 +127,89 @@ FORBIDDEN_LOCK_PACKAGE_PREFIXES = ("cuda", "nvidia", "triton")
 
 class ContractError(ValueError):
     """Raised when a W5-002 input violates its exact contract."""
+
+
+class ReconciliationStatus(StrEnum):
+    PASS = "PASS"  # noqa: S105 - evidence status, not a credential.
+    FAIL = "FAIL"
+    INDETERMINATE = "INDETERMINATE"
+
+
+@dataclass(frozen=True)
+class VulnerabilityWaiver:
+    waiver_id: str
+    finding_ids: tuple[str, ...]
+    approved_at: datetime
+    expires_at: datetime
+    approval_sha256: str
+
+
+@dataclass(frozen=True)
+class PurlReconciliation:
+    sbom_sha256: str
+    sbom_format: str
+    trivy_sha256: str
+    grype_sha256: str
+    publisher_identity: str | None
+    advisory_identity: str | None
+    package_name: str
+    package_version: str
+    ecosystem: str
+    original_purl: str
+    normalized_purl: str
+    normalization_reason: str
+    coverage_result: ReconciliationStatus
+    skipped_package_count: int
+
+
+def validate_vulnerability_waiver(value: VulnerabilityWaiver, *, now: datetime) -> None:
+    if (
+        not value.waiver_id
+        or not value.finding_ids
+        or len(value.finding_ids) != len(set(value.finding_ids))
+        or now.tzinfo is None
+        or value.approved_at.tzinfo is None
+        or value.expires_at.tzinfo is None
+        or value.approved_at > now
+        or value.expires_at <= now
+        or value.expires_at <= value.approved_at
+        or re.fullmatch(r"[0-9a-f]{64}", value.approval_sha256) is None
+    ):
+        raise ContractError("vulnerability waiver is missing, malformed, or expired")
+
+
+def validate_purl_reconciliation(value: PurlReconciliation) -> ReconciliationStatus:
+    from urllib.parse import unquote
+
+    for digest in (value.sbom_sha256, value.trivy_sha256, value.grype_sha256):
+        if re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+            raise ContractError("PURL reconciliation evidence identity is malformed")
+    if value.sbom_format not in {"SPDX", "CycloneDX"}:
+        raise ContractError("PURL reconciliation SBOM format differs")
+    if value.original_purl != value.normalized_purl and not value.normalization_reason:
+        raise ContractError("PURL normalization requires a recorded reason")
+    expected_identity = (
+        value.ecosystem.casefold(),
+        value.package_name.casefold(),
+        value.package_version,
+    )
+    for purl in (value.original_purl, value.normalized_purl):
+        match = re.fullmatch(r"pkg:([^/]+)/([^@]+)@([^?#]+)(?:[?#].*)?", purl)
+        if (
+            match is None
+            or (
+                unquote(match.group(1)).casefold(),
+                unquote(match.group(2)).casefold(),
+                unquote(match.group(3)),
+            )
+            != expected_identity
+        ):
+            raise ContractError("PURL normalization changed package semantics")
+    if value.skipped_package_count < 0:
+        raise ContractError("skipped-package count is invalid")
+    if value.skipped_package_count or value.coverage_result is ReconciliationStatus.INDETERMINATE:
+        return ReconciliationStatus.INDETERMINATE
+    return value.coverage_result
 
 
 def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -933,6 +1018,7 @@ def _validate_config_v2(value: object) -> dict[str, object]:
             "historical",
             "plan",
             "python",
+            "remediation",
             "reports",
             "runner",
             "schema_version",
@@ -1049,6 +1135,22 @@ def _validate_config_v2(value: object) -> dict[str, object]:
         "vulnerability_free_claim": False,
     }:
         raise ContractError("base qualification facts differ from owner-accepted evidence")
+    if data["remediation"] != {
+        "freshness": {"maximum_age_hours": 24, "stale_status": "INDETERMINATE"},
+        "high_findings": {"inventory_required": True, "unresolved_status": "WAIVED_OR_FAIL"},
+        "purl": {
+            "normalization_reason_required": True,
+            "publisher_advisory_optional": True,
+            "skipped_packages_status": "INDETERMINATE",
+        },
+        "scanner_reconciliation": {
+            "disagreement_status": "INDETERMINATE",
+            "sbom_formats": ["SPDX", "CycloneDX"],
+        },
+        "waivers": {"expiry_required": True, "new_waivers_allowed": False},
+        "zero_critical_required": True,
+    }:
+        raise ContractError("W7 supply-chain remediation policy differs")
     if data["historical"] != {
         "config_schema": CONFIG_SCHEMA_V1,
         "python": "3.11.16",
@@ -1246,8 +1348,8 @@ def source_composition_sha256(repository_root: Path) -> str:
         if path.is_file()
     )
     ordered = sorted(relative_paths, key=lambda path: path.as_posix())
-    if len(ordered) != 98:
-        raise ContractError("source composition must contain the approved 98 paths")
+    if len(ordered) != 99:
+        raise ContractError("source composition must contain the approved 99 paths")
     digest = hashlib.sha256()
     for relative in ordered:
         absolute = repository_root / relative

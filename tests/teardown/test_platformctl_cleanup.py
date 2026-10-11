@@ -49,11 +49,11 @@ def test_platformctl_keeps_live_execution_inside_explicit_adapters() -> None:
     }
     source = "\n".join(sources.values())
     assert "import boto3" not in source
-    assert "import subprocess" in sources["terraform_runner.py"]
+    assert "import subprocess" in sources["process_runner.py"]
     assert all(
         "import subprocess" not in module_source
         for name, module_source in sources.items()
-        if name != "terraform_runner.py"
+        if name != "process_runner.py"
     )
     assert "terraform apply" not in source.lower()
     assert "terraform destroy" not in source.lower()

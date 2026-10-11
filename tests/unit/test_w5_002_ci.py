@@ -395,3 +395,17 @@ def test_report_size_and_candidate_identity_mismatch_fail_closed(
                 },
             }
         )
+
+
+def test_expired_vulnerability_waiver_is_rejected() -> None:
+    from datetime import UTC, datetime
+
+    waiver = w5_002_ci.VulnerabilityWaiver(
+        waiver_id="historical-waiver",
+        finding_ids=("CVE-2026-0001",),
+        approved_at=datetime(2026, 1, 1, tzinfo=UTC),
+        expires_at=datetime(2026, 1, 2, tzinfo=UTC),
+        approval_sha256="a" * 64,
+    )
+    with pytest.raises(w5_002_ci.ContractError, match="expired"):
+        w5_002_ci.validate_vulnerability_waiver(waiver, now=datetime(2026, 1, 3, tzinfo=UTC))

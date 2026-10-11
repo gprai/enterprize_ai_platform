@@ -12,6 +12,7 @@ import types
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
+from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from hashlib import sha256
@@ -22,7 +23,12 @@ from uuid import uuid4
 from .contracts import ContractError
 
 if TYPE_CHECKING:
-    from .lifecycle_models import EvidenceRef
+    from .lifecycle_models import (
+        EvidenceIndexRecord,
+        EvidenceRef,
+        RecoverySnapshotContract,
+        ResidueClassification,
+    )
 
 MAX_JSON_BYTES = 8 * 1024 * 1024
 LIFECYCLE_BASELINE_HEAD = "78576879b2c1d13507680872f471345c7b9b6be0"
@@ -1240,3 +1246,95 @@ def capture_private_tool_json(
             raise ContractError("PRIVATE_TOOL_OUTPUT_OWNERSHIP_CHANGED")
         value = load_json_strict(target)
     return value
+
+
+def validate_evidence_index(
+    records: tuple[EvidenceIndexRecord, ...], *, now: datetime
+) -> tuple[EvidenceIndexRecord, ...]:
+    """Validate one immutable W7 evidence index without reading external artifacts."""
+    from .contracts import parse_utc_timestamp, validate_sha256
+    from .lifecycle_models import EvidenceDisposition, EvidenceLifecycle
+
+    if not records:
+        raise ContractError("EVIDENCE_INDEX_EMPTY")
+    identities = [record.record_id for record in records]
+    if any(not identity for identity in identities) or len(identities) != len(set(identities)):
+        raise ContractError("EVIDENCE_INDEX_IDENTITY_INVALID")
+    known = set(identities)
+    for record in records:
+        for digest in (
+            record.source_sha256,
+            record.configuration_sha256,
+            record.tool_sha256,
+            record.artifact.sha256,
+        ):
+            validate_sha256(digest)
+        retained_until = parse_utc_timestamp(record.retained_until, "retained_until")
+        if record.lifecycle is EvidenceLifecycle.EXPIRED and retained_until > now:
+            raise ContractError("EVIDENCE_EXPIRY_NOT_REACHED")
+        if record.lifecycle is EvidenceLifecycle.ACTIVE and retained_until <= now:
+            raise ContractError("EVIDENCE_ACTIVE_AFTER_EXPIRY")
+        if any(target not in known or target == record.record_id for target in record.supersedes):
+            raise ContractError("EVIDENCE_SUPERSESSION_INVALID")
+        if record.disposition is EvidenceDisposition.CURRENT and (
+            record.lifecycle is EvidenceLifecycle.EXPIRED or record.supersedes
+        ):
+            raise ContractError("CURRENT_EVIDENCE_STATE_INVALID")
+        if record.disposition is EvidenceDisposition.WAIVED and not record.approval_id:
+            raise ContractError("WAIVER_APPROVAL_REQUIRED")
+        if (
+            record.disposition in {EvidenceDisposition.LIMITED, EvidenceDisposition.PARTIAL}
+            and not record.limitations
+        ):
+            raise ContractError("EVIDENCE_LIMITATION_REQUIRED")
+        if not record.cleanup_owner:
+            raise ContractError("EVIDENCE_CLEANUP_OWNER_REQUIRED")
+    return records
+
+
+def validate_recovery_snapshot(
+    snapshot: RecoverySnapshotContract,
+    *,
+    allowed_root: Path,
+    repository_root: Path,
+    now: datetime,
+) -> RecoverySnapshotContract:
+    """Validate metadata for an encrypted external snapshot; never create or decrypt it."""
+    from .contracts import parse_utc_timestamp, validate_sha256
+    from .lifecycle_models import W7_001_SCHEMA_VERSION, ControlResult
+
+    if snapshot.schema_version != W7_001_SCHEMA_VERSION:
+        raise ContractError("RECOVERY_SNAPSHOT_SCHEMA_REQUIRED")
+    validate_sha256(snapshot.content_sha256)
+    path = ensure_external_path(Path(snapshot.external_path), allowed_root, repository_root)
+    if path == allowed_root or repository_root in path.parents or snapshot.plaintext_retained:
+        raise ContractError("RECOVERY_SNAPSHOT_BOUNDARY_INVALID")
+    if snapshot.state_serial < 0 or not snapshot.state_lineage:
+        raise ContractError("RECOVERY_SNAPSHOT_STATE_IDENTITY_INVALID")
+    if not snapshot.encryption_identity or not snapshot.recovery_principal:
+        raise ContractError("RECOVERY_SNAPSHOT_SECURITY_IDENTITY_REQUIRED")
+    if parse_utc_timestamp(snapshot.retention_until, "retention_until") <= now:
+        raise ContractError("RECOVERY_SNAPSHOT_RETENTION_EXPIRED")
+    if snapshot.mutation_allowed or snapshot.rehearsal_status is ControlResult.PASS:
+        raise ContractError("RECOVERY_REHEARSAL_MUST_REMAIN_NOT_RUN")
+    if not snapshot.cleanup_owner:
+        raise ContractError("RECOVERY_SNAPSHOT_CLEANUP_OWNER_REQUIRED")
+    return snapshot
+
+
+def validate_residue_classification(
+    records: tuple[ResidueClassification, ...],
+) -> tuple[ResidueClassification, ...]:
+    """Keep repository and external residue explicit and independently owned."""
+    from .lifecycle_models import ResidueStatus
+
+    if not records or len({(record.location, record.path) for record in records}) != len(records):
+        raise ContractError("RESIDUE_CLASSIFICATION_IDENTITY_INVALID")
+    for record in records:
+        if not record.path or not record.cleanup_owner:
+            raise ContractError("RESIDUE_CLASSIFICATION_FIELDS_REQUIRED")
+        if record.status is ResidueStatus.UNEXPECTED and record.expected:
+            raise ContractError("UNEXPECTED_RESIDUE_CANNOT_BE_EXPECTED")
+        if record.status is ResidueStatus.RETAINED and not record.expected:
+            raise ContractError("RETAINED_RESIDUE_REQUIRES_EXPECTATION")
+    return records

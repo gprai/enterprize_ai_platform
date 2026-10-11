@@ -166,3 +166,22 @@ def test_sensitive_or_content_fields_cannot_enter_schemas(sentinel: str) -> None
         values[prohibited_field] = sentinel
         with pytest.raises(ValidationError):
             SafeLogRecord(**values)
+
+
+def test_alert_contract_uses_stable_role_and_external_references() -> None:
+    from enterprise_ai_platform.telemetry.slo import AlertOwnershipContract, EvidenceStatus
+
+    contract = AlertOwnershipContract(
+        owner_reference="role:platform-observability-primary",
+        backup_owner_reference="role:platform-observability-backup",
+        destination_reference="external:owner-approved-alert-destination",
+        delivery_status=EvidenceStatus.NOT_RUN,
+    )
+    assert contract.delivery_evidence_sha256 is None
+    with pytest.raises(ValidationError):
+        AlertOwnershipContract(
+            owner_reference="Gyan Prakash Rai",
+            backup_owner_reference="role:backup",
+            destination_reference="synthetic-receiver",
+            delivery_status=EvidenceStatus.NOT_RUN,
+        )

@@ -1,6 +1,6 @@
 bucket         = "enterprise-ai-platform-sbx-tfstate-526338061652-ap-southeast-1"
 key            = "sandbox/platform.tfstate"
 region         = "ap-southeast-1"
-dynamodb_table = "enterprise-ai-platform-sandbox-tflock"
+use_lockfile    = true
 encrypt        = true
 kms_key_id     = "alias/enterprise-ai-platform-sandbox-terraform-state"

@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .lifecycle_models import RecoverySnapshotContract
 
 from .contracts import (
     Action,
@@ -80,3 +84,21 @@ def validate_w6_004_known_good_identity(
         raise ImageLifecycleError("rollback identities must be immutable digests")
     if current_digest != known_good_digest or regression_digest == known_good_digest:
         raise ImageLifecycleError("known-good and safe-regression identities differ incorrectly")
+
+
+def validate_no_mutation_recovery_rehearsal(
+    snapshot: RecoverySnapshotContract,
+    *,
+    allowed_root: Path,
+    repository_root: Path,
+    now: datetime,
+) -> RecoverySnapshotContract:
+    """Validate a proposed encrypted recovery snapshot without creating or applying it."""
+    from .lifecycle_io import validate_recovery_snapshot
+
+    return validate_recovery_snapshot(
+        snapshot,
+        allowed_root=allowed_root,
+        repository_root=repository_root,
+        now=now,
+    )

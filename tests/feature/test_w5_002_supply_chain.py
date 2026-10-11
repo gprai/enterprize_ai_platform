@@ -169,3 +169,32 @@ def test_scanner_database_or_application_identity_disagreement_is_rejected(
 
     with pytest.raises(w5_002_ci.ContractError, match="one database identity"):
         w5_002_ci.write_supply_chain_records(reports)
+
+
+def test_purl_skips_preserve_indeterminate_instead_of_vulnerability_free() -> None:
+    record = w5_002_ci.PurlReconciliation(
+        sbom_sha256="a" * 64,
+        sbom_format="SPDX",
+        trivy_sha256="b" * 64,
+        grype_sha256="c" * 64,
+        publisher_identity=None,
+        advisory_identity=None,
+        package_name="example",
+        package_version="1.0",
+        ecosystem="apk",
+        original_purl="pkg:apk/example@1.0",
+        normalized_purl="pkg:apk/example@1.0",
+        normalization_reason="representation unchanged",
+        coverage_result=w5_002_ci.ReconciliationStatus.PASS,
+        skipped_package_count=1,
+    )
+    assert (
+        w5_002_ci.validate_purl_reconciliation(record)
+        is w5_002_ci.ReconciliationStatus.INDETERMINATE
+    )
+    with pytest.raises(w5_002_ci.ContractError, match="semantics"):
+        w5_002_ci.validate_purl_reconciliation(
+            w5_002_ci.PurlReconciliation(
+                **{**record.__dict__, "normalized_purl": "pkg:apk/other@1.0"}
+            )
+        )
