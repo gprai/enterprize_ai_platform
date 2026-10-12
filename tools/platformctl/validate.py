@@ -299,10 +299,44 @@ EXPECTED_W7_002_EDITABLE_PATHS = (
     "tests/unit/test_platformctl.py",
     "tests/feature/test_feature_matrix.py",
 )
-EXPECTED_RAG_IMPLEMENTATION_PATHS = EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS + tuple(
+EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS = EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS + tuple(
     path
     for path in EXPECTED_W7_002_EDITABLE_PATHS
     if path not in EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS
+)
+EXPECTED_W7_003_EDITABLE_PATHS = (
+    "configs/ingestion/w7-003.yaml",
+    "src/enterprise_ai_platform/ingestion/privacy_lifecycle.py",
+    "tests/fakes/w7_003_privacy_lifecycle.py",
+    "tests/unit/test_w7_003_privacy_lifecycle.py",
+    "tests/contract/test_w7_003_privacy_lifecycle_contract.py",
+    "tests/integration/test_w7_003_privacy_lifecycle_composition.py",
+    "tests/feature/test_w7_003_privacy_lifecycle.py",
+    "tests/security/test_w7_003_privacy_lifecycle_security.py",
+    "tests/rollback/test_w7_003_privacy_lifecycle_rollback.py",
+    "tests/teardown/test_w7_003_privacy_lifecycle_cleanliness.py",
+    "src/enterprise_ai_platform/ingestion/__init__.py",
+    "src/enterprise_ai_platform/retrieval/vector_store.py",
+    "src/enterprise_ai_platform/retrieval/adapters/fake.py",
+    "src/enterprise_ai_platform/retrieval/adapters/opensearch.py",
+    "src/enterprise_ai_platform/retrieval/adapters/qdrant.py",
+    "tests/contract/test_vector_store.py",
+    "tests/integration/test_opensearch.py",
+    "tests/integration/test_qdrant.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+)
+EXPECTED_RAG_IMPLEMENTATION_PATHS = (
+    EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS
+    + tuple(
+        path
+        for path in EXPECTED_W7_003_EDITABLE_PATHS
+        if path not in EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS
+    )
+    + ("tests/contract/test_w7_004_feature_management_decision.py",)
 )
 EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W2-03",
@@ -324,6 +358,8 @@ EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W3-11",
     "W7-001",
     "W7-002",
+    "W7-003",
+    "W7-004",
 )
 EXPECTED_RAG_FEATURE = {
     "id": "RAG-001",

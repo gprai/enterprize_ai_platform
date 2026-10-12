@@ -104,6 +104,22 @@ class QdrantVectorStore:
                 await self._wait_before_retry(deadline)
         raise VectorStoreUnavailableError
 
+    async def _execute_destructive(
+        self,
+        operation: Callable[[], Awaitable[_T]],
+        timeout_seconds: float,
+    ) -> _T:
+        """Execute a mutation once; destructive retries require a new approval."""
+
+        try:
+            return await asyncio.wait_for(operation(), timeout=timeout_seconds)
+        except VectorStoreError:
+            raise
+        except TimeoutError:
+            raise VectorStoreTimeoutError from None
+        except Exception:
+            raise VectorStoreUnavailableError from None
+
     @staticmethod
     def _spec_payload(specification: CollectionSpec) -> dict[str, Any]:
         return {
@@ -345,7 +361,7 @@ class QdrantVectorStore:
                 ),
             ]
         )
-        await self._execute(
+        await self._execute_destructive(
             lambda: self._client.delete(
                 collection_name=specification.name,
                 points_selector=qmodels.FilterSelector(filter=delete_filter),
@@ -388,7 +404,7 @@ class QdrantVectorStore:
                 ),
             ]
         )
-        await self._execute(
+        await self._execute_destructive(
             lambda: self._client.delete(
                 collection_name=specification.name,
                 points_selector=qmodels.FilterSelector(filter=delete_filter),
@@ -396,6 +412,53 @@ class QdrantVectorStore:
             ),
             timeout,
         )
+
+    async def count_by_document_version(
+        self,
+        specification: CollectionSpec,
+        document_id: str,
+        document_version: str,
+        auth_context: AuthContext,
+        *,
+        timeout_seconds: float | None = None,
+    ) -> int:
+        timeout = validated_timeout(timeout_seconds)
+        require_delete_authorized(auth_context)
+        if not document_id.strip() or not document_version.strip():
+            raise VectorStoreValidationError
+        await self._ensure_collection(specification, timeout)
+        count_filter = qmodels.Filter(
+            must=[
+                qmodels.FieldCondition(
+                    key=_RECORD_TYPE,
+                    match=qmodels.MatchValue(value=_CHUNK_RECORD),
+                ),
+                qmodels.FieldCondition(
+                    key="tenant_id",
+                    match=qmodels.MatchValue(value=auth_context.tenant_id),
+                ),
+                qmodels.FieldCondition(
+                    key="document_id",
+                    match=qmodels.MatchValue(value=document_id),
+                ),
+                qmodels.FieldCondition(
+                    key="document_version",
+                    match=qmodels.MatchValue(value=document_version),
+                ),
+            ]
+        )
+        response = await self._execute(
+            lambda: self._client.count(
+                collection_name=specification.name,
+                count_filter=count_filter,
+                exact=True,
+            ),
+            timeout,
+        )
+        count = getattr(response, "count", None)
+        if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+            raise VectorStoreUnavailableError
+        return count
 
     async def healthcheck(self, *, timeout_seconds: float | None = None) -> bool:
         timeout = validated_timeout(timeout_seconds)

@@ -234,7 +234,18 @@
           "tests/feature/test_w7_002_data_quality.py",
           "tests/security/test_w7_002_processing_security.py",
           "tests/rollback/test_w7_002_processing_rollback.py",
-          "tests/teardown/test_w7_002_processing_cleanliness.py"
+          "tests/teardown/test_w7_002_processing_cleanliness.py",
+          "configs/ingestion/w7-003.yaml",
+          "src/enterprise_ai_platform/ingestion/privacy_lifecycle.py",
+          "tests/fakes/w7_003_privacy_lifecycle.py",
+          "tests/unit/test_w7_003_privacy_lifecycle.py",
+          "tests/contract/test_w7_003_privacy_lifecycle_contract.py",
+          "tests/integration/test_w7_003_privacy_lifecycle_composition.py",
+          "tests/feature/test_w7_003_privacy_lifecycle.py",
+          "tests/security/test_w7_003_privacy_lifecycle_security.py",
+          "tests/rollback/test_w7_003_privacy_lifecycle_rollback.py",
+          "tests/teardown/test_w7_003_privacy_lifecycle_cleanliness.py",
+          "tests/contract/test_w7_004_feature_management_decision.py"
       ],
       "status": "In Progress",
       "linked_tracker_steps": [
@@ -256,7 +267,9 @@
         "W3-08",
           "W3-11",
           "W7-001",
-          "W7-002"
+          "W7-002",
+          "W7-003",
+          "W7-004"
       ]
     },
     {

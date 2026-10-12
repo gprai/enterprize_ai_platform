@@ -123,6 +123,15 @@ def test_local_qdrant_round_trip_and_collection_cleanup() -> None:
             assert collections.collections == []
             await store.create_or_validate_collection(specification)
             await store.upsert_chunks(specification, (source_chunk,), auth(Role.INGESTOR))
+            assert (
+                await store.count_by_document_version(
+                    specification,
+                    source_chunk.document_id,
+                    source_chunk.document_version,
+                    auth(Role.ADMIN),
+                )
+                == 1
+            )
             results = await store.search(
                 specification,
                 Query(text="policy"),
@@ -135,6 +144,15 @@ def test_local_qdrant_round_trip_and_collection_cleanup() -> None:
                 source_chunk.document_id,
                 source_chunk.document_version,
                 auth(Role.ADMIN),
+            )
+            assert (
+                await store.count_by_document_version(
+                    specification,
+                    source_chunk.document_id,
+                    source_chunk.document_version,
+                    auth(Role.ADMIN),
+                )
+                == 0
             )
             assert (
                 await store.search(

@@ -90,6 +90,15 @@ def test_create_upsert_search_delete_contract_is_idempotent() -> None:
             (second_version,),
             auth(Role.INGESTOR),
         )
+        assert (
+            await store.count_by_document_version(
+                specification,
+                "policy-001",
+                "v2",
+                auth(Role.ADMIN),
+            )
+            == 1
+        )
 
         results = await store.search(
             specification,
@@ -107,6 +116,15 @@ def test_create_upsert_search_delete_contract_is_idempotent() -> None:
             "policy-001",
             "v2",
             auth(Role.ADMIN),
+        )
+        assert (
+            await store.count_by_document_version(
+                specification,
+                "policy-001",
+                "v2",
+                auth(Role.ADMIN),
+            )
+            == 0
         )
         remaining = await store.search(
             specification,

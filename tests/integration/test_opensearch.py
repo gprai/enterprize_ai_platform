@@ -146,6 +146,18 @@ class FakeOpenSearchClient:
             del self.documents[key]
         return {"deleted": len(delete_ids)}
 
+    async def count(self, *, index: str, body: dict[str, Any]) -> dict[str, int]:
+        del index
+        filters = body["query"]["bool"]["filter"]
+        expected = {next(iter(item["term"])): next(iter(item["term"].values())) for item in filters}
+        return {
+            "count": sum(
+                1
+                for document in self.documents.values()
+                if all(document[key] == value for key, value in expected.items())
+            )
+        }
+
 
 def test_injected_opensearch_boundary_carries_spec_filters_and_no_sdk_results() -> None:
     async def scenario() -> None:
@@ -178,6 +190,15 @@ def test_injected_opensearch_boundary_carries_spec_filters_and_no_sdk_results() 
             result.__class__.__module__.startswith("enterprise_ai_platform") for result in results
         )
         assert await store.healthcheck()
+        assert (
+            await store.count_by_document_version(
+                specification,
+                source_chunk.document_id,
+                source_chunk.document_version,
+                auth(Role.ADMIN),
+            )
+            == 1
+        )
 
         await store.delete_by_document_version(
             specification,
@@ -186,6 +207,15 @@ def test_injected_opensearch_boundary_carries_spec_filters_and_no_sdk_results() 
             auth(Role.ADMIN),
         )
         assert client.documents == {}
+        assert (
+            await store.count_by_document_version(
+                specification,
+                source_chunk.document_id,
+                source_chunk.document_version,
+                auth(Role.ADMIN),
+            )
+            == 0
+        )
 
     asyncio.run(scenario())
 

@@ -96,4 +96,14 @@ class VectorStore(Protocol):
         timeout_seconds: float | None = None,
     ) -> None: ...
 
+    async def count_by_document_version(
+        self,
+        specification: CollectionSpec,
+        document_id: str,
+        document_version: str,
+        auth_context: AuthContext,
+        *,
+        timeout_seconds: float | None = None,
+    ) -> int: ...
+
     async def healthcheck(self, *, timeout_seconds: float | None = None) -> bool: ...

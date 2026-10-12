@@ -96,6 +96,22 @@ class OpenSearchVectorStore:
                 await self._wait_before_retry(deadline)
         raise VectorStoreUnavailableError
 
+    async def _execute_destructive(
+        self,
+        operation: Callable[[], Awaitable[_T]],
+        timeout_seconds: float,
+    ) -> _T:
+        """Execute a mutation once; destructive retries require a new approval."""
+
+        try:
+            return await asyncio.wait_for(operation(), timeout=timeout_seconds)
+        except VectorStoreError:
+            raise
+        except TimeoutError:
+            raise VectorStoreTimeoutError from None
+        except Exception:
+            raise VectorStoreUnavailableError from None
+
     @staticmethod
     def _mapping(specification: CollectionSpec) -> dict[str, Any]:
         return {
@@ -326,7 +342,7 @@ class OpenSearchVectorStore:
         if not document_id.strip():
             raise VectorStoreValidationError
         await self._ensure_collection(specification, timeout)
-        await self._execute(
+        await self._execute_destructive(
             lambda: self._client.delete_by_query(
                 index=specification.name,
                 body={
@@ -359,7 +375,7 @@ class OpenSearchVectorStore:
         if not document_id.strip() or not document_version.strip():
             raise VectorStoreValidationError
         await self._ensure_collection(specification, timeout)
-        await self._execute(
+        await self._execute_destructive(
             lambda: self._client.delete_by_query(
                 index=specification.name,
                 body={
@@ -378,6 +394,42 @@ class OpenSearchVectorStore:
             ),
             timeout,
         )
+
+    async def count_by_document_version(
+        self,
+        specification: CollectionSpec,
+        document_id: str,
+        document_version: str,
+        auth_context: AuthContext,
+        *,
+        timeout_seconds: float | None = None,
+    ) -> int:
+        timeout = validated_timeout(timeout_seconds)
+        require_delete_authorized(auth_context)
+        if not document_id.strip() or not document_version.strip():
+            raise VectorStoreValidationError
+        await self._ensure_collection(specification, timeout)
+        response = await self._execute(
+            lambda: self._client.count(
+                index=specification.name,
+                body={
+                    "query": {
+                        "bool": {
+                            "filter": [
+                                {"term": {"tenant_id": auth_context.tenant_id}},
+                                {"term": {"document_id": document_id}},
+                                {"term": {"document_version": document_version}},
+                            ]
+                        }
+                    }
+                },
+            ),
+            timeout,
+        )
+        count = response.get("count")
+        if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+            raise VectorStoreUnavailableError
+        return int(count)
 
     async def healthcheck(self, *, timeout_seconds: float | None = None) -> bool:
         timeout = validated_timeout(timeout_seconds)

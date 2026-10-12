@@ -39,6 +39,7 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS,
+    EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS,
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
     EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
@@ -47,6 +48,7 @@ from tools.platformctl.validate import (
     EXPECTED_W6_003_IMPLEMENTATION_PATHS,
     EXPECTED_W7_001_EDITABLE_PATHS,
     EXPECTED_W7_002_EDITABLE_PATHS,
+    EXPECTED_W7_003_EDITABLE_PATHS,
 )
 
 
@@ -243,7 +245,11 @@ class PlatformCtlUnitTests(unittest.TestCase):
             self.assertEqual(1, EXPECTED_RAG_IMPLEMENTATION_PATHS.count(path))
         self.assertEqual(
             ("W3-01", "W3-02", "W3-03", "W3-04"),
-            EXPECTED_RAG_LINKED_TRACKER_STEPS[-9:-5],
+            EXPECTED_RAG_LINKED_TRACKER_STEPS[
+                EXPECTED_RAG_LINKED_TRACKER_STEPS.index(
+                    "W3-01"
+                ) : EXPECTED_RAG_LINKED_TRACKER_STEPS.index("W3-05")
+            ],
         )
         self.assertIn("src/enterprise_ai_platform/llm", REQUIRED_DIRECTORIES)
         self.assertIn("src/enterprise_ai_platform/rag", REQUIRED_DIRECTORIES)
@@ -257,7 +263,11 @@ class PlatformCtlUnitTests(unittest.TestCase):
         )
         self.assertEqual(
             ("W3-05", "W3-08"),
-            EXPECTED_RAG_LINKED_TRACKER_STEPS[-5:-3],
+            EXPECTED_RAG_LINKED_TRACKER_STEPS[
+                EXPECTED_RAG_LINKED_TRACKER_STEPS.index(
+                    "W3-05"
+                ) : EXPECTED_RAG_LINKED_TRACKER_STEPS.index("W3-11")
+            ],
         )
         self.assertIn("src/enterprise_ai_platform/guardrails", REQUIRED_DIRECTORIES)
         for path in EXPECTED_W3_003_EDITABLE_PATHS:
@@ -272,7 +282,10 @@ class PlatformCtlUnitTests(unittest.TestCase):
             EXPECTED_W3_004_EDITABLE_PATHS,
             EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS[-28:],
         )
-        self.assertEqual("W3-11", EXPECTED_RAG_LINKED_TRACKER_STEPS[-3])
+        self.assertEqual(
+            "W3-11",
+            EXPECTED_RAG_LINKED_TRACKER_STEPS[EXPECTED_RAG_LINKED_TRACKER_STEPS.index("W3-11")],
+        )
         self.assertIn("configs/rag/versions", REQUIRED_DIRECTORIES)
         self.assertIn(
             "src/enterprise_ai_platform/rag_rollback",
@@ -284,19 +297,29 @@ class PlatformCtlUnitTests(unittest.TestCase):
     def test_w7_001_data_foundation_extends_rag_ownership(self) -> None:
         self.assertEqual(35, len(EXPECTED_W7_001_EDITABLE_PATHS))
         self.assertEqual(35, len(set(EXPECTED_W7_001_EDITABLE_PATHS)))
-        self.assertEqual("W7-001", EXPECTED_RAG_LINKED_TRACKER_STEPS[-2])
+        self.assertEqual("W7-001", EXPECTED_RAG_LINKED_TRACKER_STEPS[-4])
         for path in EXPECTED_W7_001_EDITABLE_PATHS:
             self.assertIn(path, EXPECTED_RAG_IMPLEMENTATION_PATHS)
 
     def test_w7_002_processing_contract_extends_rag_ownership(self) -> None:
         self.assertEqual(18, len(EXPECTED_W7_002_EDITABLE_PATHS))
         self.assertEqual(18, len(set(EXPECTED_W7_002_EDITABLE_PATHS)))
-        self.assertEqual("W7-002", EXPECTED_RAG_LINKED_TRACKER_STEPS[-1])
+        self.assertEqual("W7-002", EXPECTED_RAG_LINKED_TRACKER_STEPS[-3])
         for path in EXPECTED_W7_001_EDITABLE_PATHS:
             self.assertIn(path, EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS)
         self.assertIn("configs/processing", REQUIRED_DIRECTORIES)
         self.assertIn("src/enterprise_ai_platform/processing", REQUIRED_DIRECTORIES)
         for path in EXPECTED_W7_002_EDITABLE_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+            self.assertIn(path, EXPECTED_RAG_IMPLEMENTATION_PATHS)
+
+    def test_w7_003_privacy_lifecycle_extends_rag_ownership(self) -> None:
+        self.assertEqual(23, len(EXPECTED_W7_003_EDITABLE_PATHS))
+        self.assertEqual(23, len(set(EXPECTED_W7_003_EDITABLE_PATHS)))
+        self.assertEqual("W7-003", EXPECTED_RAG_LINKED_TRACKER_STEPS[-2])
+        for path in EXPECTED_W7_002_EDITABLE_PATHS:
+            self.assertIn(path, EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS)
+        for path in EXPECTED_W7_003_EDITABLE_PATHS:
             self.assertIn(path, REQUIRED_FILES)
             self.assertIn(path, EXPECTED_RAG_IMPLEMENTATION_PATHS)
 

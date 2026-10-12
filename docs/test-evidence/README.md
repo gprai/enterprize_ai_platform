@@ -61,6 +61,31 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
   cost validation remain **NOT RUN**. **FINAL APPROVAL AFTER OWNER TEST —
   APPROVED** by Gyan Prakash Rai on 2026-10-12 at 14:00:00 SGT. See the
   [Week 7 evidence index](W7/README.md).
+- [W7-003 privacy, retention, deletion and re-index](W7/W7-003.md) —
+  fail-closed, synthetic-only privacy and exact-version lifecycle contracts
+  with redacted evidence and one-time approvals. Final local TEST-001 recorded
+  2,347 passed, 8 skipped, 4 deselected and 1 warning; lint, format, MyPy,
+  validation, scoped secret scanning, pre-commit, integrity and cleanup passed.
+  The all-files secret scan retained its scanner/input failure because the
+  owner-managed Excel lock path contains `~`. Live Macie/Presidio, AWS/S3/
+  OpenSearch, deployment, operational rollback/restore, cloud teardown and
+  cost validation remain **NOT RUN**. **FINAL APPROVAL AFTER OWNER TEST —
+  APPROVED** by Gyan Prakash Rai on 2026-10-12 at 16:51:00 SGT. This
+  local/offline evidence does not imply cloud or production readiness. See the
+  [Week 7 evidence index](W7/README.md).
+- [W7-004 feature-management decision](W7/W7-004.md) — owner-approved
+  **NOT ADOPTED** for the bounded task scope because no measurable structured-
+  ML reuse workflow was established. The decision and alternatives are in
+  [ADR-018](../adr/ADR-018-feature-management-decision.md). Final local
+  TEST-001 recorded 2,348 passed, 8 skipped, 4 deselected, 10 subtests and
+  1 warning; Ruff, MyPy, validation, scoped secret scanning and pre-commit
+  passed. Live feature-store/AWS activity, deployment, quantified feature-store
+  cost, rollback, restore and teardown remain **NOT RUN** or deferred. W7-003
+  remains **Blocked**; owner teach-back remains pending. Column N documentation
+  closure was approved by Gyan Prakash Rai, Project Owner and Final Approval
+  Reviewer, on 2026-10-12 at 18:11:00 SGT. This local/offline evidence does not
+  imply cloud or production readiness. See the
+  [Week 7 evidence index](W7/README.md).
 - [W1-001](W1/W1-001.md) — approved aggregate repository-foundation evidence; final task approval recorded, with deployment and live lifecycle work NOT RUN.
 - [W1-002](W1/W1-002.md) — approved aggregate typed-configuration and local application-foundation evidence, preserving the dependency-install summary gap and accepted warning.
 - [W1-003](W1/W1-003.md) — local testing structure, deterministic providers, opt-in markers, redacted stdout metadata, and cleanliness controls.

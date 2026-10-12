@@ -21,6 +21,27 @@ does not contain source code, cloud output, tracker state or Git approval.
   deployment, destructive reprocessing, live rollback, cloud teardown and
   cost validation remain **NOT RUN**. **FINAL APPROVAL AFTER OWNER TEST —
   APPROVED** by Gyan Prakash Rai on 2026-10-12 at 14:00:00 SGT.
+- [W7-003 privacy, retention, deletion and re-index](W7-003.md) — fail-closed,
+  synthetic-only privacy and exact-version lifecycle contracts. Local TEST-001
+  recorded 2,347 passed, 8 skipped, 4 deselected and 1 warning; scoped secret
+  scan, lint, formatting, typing, validation, pre-commit, integrity and cleanup
+  passed. The all-files secret scan retained its scanner/input failure because
+  of the owner-managed Excel lock path. Live Macie/Presidio, AWS/S3/OpenSearch,
+  deployment, live rollback, restore, cloud teardown and cost validation remain
+  **NOT RUN**. **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash
+  Rai on 2026-10-12 at 16:51:00 SGT. This local/offline evidence does not imply
+  cloud or production readiness. See this task's canonical evidence record.
+- [W7-004 feature-management decision](W7-004.md) — owner-approved
+  **NOT ADOPTED** for the bounded scope because no measurable structured-ML
+  producer/consumer use case was established. No feature store or RAG runtime
+  was added. Local TEST-001 passed: 2,348 passed, 8 skipped, 4 deselected,
+  10 subtests and 1 warning; Ruff, MyPy, validation, scoped secret scanning and
+  pre-commit passed. Live feature-store integration, deployment, cost estimate,
+  rollback, restore and teardown remain **NOT RUN** or deferred. W7-003 remains
+  **Blocked** and owner teach-back remains pending. Column N documentation
+  closure was approved by Gyan Prakash Rai, Project Owner and Final Approval
+  Reviewer, on 2026-10-12 at 18:11:00 SGT. This local/offline evidence does not
+  imply cloud or production readiness.
 
 ## Week 7 boundary
 
@@ -41,6 +62,24 @@ schema/volume/duplicate checks, redacted quality reports and bounded
 checkpointed replay. Exact duplicates do not create a second embedding;
 identity/content conflict, corrupt input, tenant mismatch, PII failure and
 failed batch quality remain fail-closed.
+
+W7-003 extends the same RAG-001 ingestion/retrieval boundary. It binds
+synthetic PUBLIC/INTERNAL classification and redaction/quarantine to exact
+source and index versions, redacted archive evidence, one-time owner approval,
+retained KMS usability and native absence checks. The record-office analogy is
+used for learning: every copy is tracked, and only the specifically approved
+record is destroyed after a witnessed chain of custody. Live cloud behavior
+and weekly owner teach-back remain NOT RUN / owner-led, respectively.
+
+W7-004 records a separate feature-management decision under RAG-001 without
+creating a new feature runtime or placing a feature store in document RAG.
+Because no measurable structured-ML reuse workflow was established, the
+owner-approved outcome is **NOT ADOPTED** for this scope. SageMaker Feature
+Store remains a conditional AWS-first candidate and Feast a conditional
+portability candidate only after a proven use case, controls and cost boundary
+are supplied. The shared-pantry analogy is the learning anchor: prove who
+supplies and uses the pantry before building and stocking it. Owner teach-back
+remains pending; no cloud or live feature-store behavior was tested.
 
 The factory-line analogy is the W7-002 learning anchor: every batch has a
 recipe, inspection station and traceable reject bin. The implemented quality

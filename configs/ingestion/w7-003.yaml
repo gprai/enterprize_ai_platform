@@ -1,0 +1,25 @@
+schema_version: "w7-003.privacy-lifecycle.v1"
+feature_id: "RAG-001"
+region: "ap-southeast-1"
+synthetic_only: true
+classifications:
+  - "PUBLIC"
+  - "INTERNAL"
+retention_days:
+  raw: 7
+  quarantine: 7
+  processed: 30
+  evidence: 30
+privacy:
+  presidio: "injected_adapter_only"
+  macie: "protocol_fake_only"
+  evidence_content: "redacted_metadata_only"
+lifecycle:
+  approval_validity_seconds: 900
+  concurrency: 1
+  discovery_maximum_attempts: 2
+  destructive_retry: "disabled"
+  durable_approval_store: "protocol_in_memory_fake_only"
+  live_cloud_execution: "separate_owner_approval_required"
+  shared_resource_deletion: "prohibited"
+
