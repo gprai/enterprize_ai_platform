@@ -35,6 +35,10 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W7-001 remediation](W7/W7-001-remediation.md) — W6 issue-prevention and
+  hardening evidence; historical classifications, open GAP-01 through GAP-04,
+  deferred work, and local-versus-cloud boundaries remain as recorded. See the
+  [Week 7 evidence index](W7/README.md).
 - [W7-001 governed data foundation](W7/W7-001.md) — deterministic governed
   ingestion, canonical lineage, quarantine, idempotency, embedding-eligibility,
   existing-bucket storage/IAM and policy contracts. Local TEST-001 passed
@@ -45,56 +49,68 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
   deployment, live rollback, cloud teardown and cost validation remain **NOT
   RUN**. **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai on
   2026-10-12 at 11:41:00 SGT. See the [Week 7 evidence index](W7/README.md).
-- [W1-001](W1-001.md) — approved aggregate repository-foundation evidence; final task approval recorded, with deployment and live lifecycle work NOT RUN.
-- [W1-002](W1-002.md) — approved aggregate typed-configuration and local application-foundation evidence, preserving the dependency-install summary gap and accepted warning.
-- [W1-003](W1-003.md) — local testing structure, deterministic providers, opt-in markers, redacted stdout metadata, and cleanliness controls.
-- [W1-004](W1-004.md) — owner-gated lifecycle controls, offline planning, fail-closed cleanliness verification, remediation history, and owner-executed validation.
-- [W1-03 repository layout](W1-03-layout.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W1-04 feature matrix](W1-04-feature-matrix.json) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W1-05 typed configuration](W1-05-config.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W1-06 test foundation](W1-06-tests.json) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W1-07 Makefile controls](W1-07-make.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W1-08 pre-commit and secret scanning](W1-08-precommit.txt) — the original retrospective record remains a historical **NOT RUN / OPEN CONTROL GAP** disclosure; the later bounded W1-08/SEC-003 corrective implementation and owner testing are **PASS**, with final approval pending Column N.
-- [W1-09 Terraform roots](W1-09-roots.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W1-10 platformctl](W1-10-platformctl.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W1-11 cleanup verification](W1-11-cleanup.json) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
-- [W2-001](W2-001.md) — retrieval contracts, vector-store adapters, tenant isolation, internal-only Qdrant testing, remediation history, and teardown evidence.
-- [W2-002](W2-002.md) — bounded embedding contracts, deterministic fake testing, immutable real-model verification, offline CPU inference, remediation history, and retained-cache evidence.
-- [W2-003](W2-003.md) — secure local ingestion, deterministic identity, PII-before-embedding controls, offline tokenizer verification, exact-version compensation, remediation history, and cleanliness evidence.
-- [W2-004](W2-004.md) — internal-only local retrieval, authorized top-five results, tenant isolation, regression and known-good rollback validation, exact collection removal, Docker teardown, external model-cache removal, and zero-residue evidence.
-- [W2-REVIEW-001](W2-REVIEW-001.md) — **Column N closed: W2-12 is Verified and Approved by Gyan Prakash Rai on 2026-08-25 at 23:32:08 SGT (UTC+08:00) and was subsequently owner-reconciled to Done. W2-13 is also final-approved; remaining handover work is tracker prompt-cell reconciliation, the clean committed baseline and the separate W1-08 prerequisite.**
+- [W7-002 deterministic processing, quality and safe replay](W7/W7-002.md) —
+  extends the immutable W7-001 handoff with deterministic extraction,
+  provider-neutral Great Expectations-compatible validation, schema/volume/
+  duplicate drift checks, quarantine, retry, checkpoint/resume and bounded
+  replay without duplicate embeddings. Final local TEST-001 recorded 2,328
+  passed, 8 skipped, 4 deselected, 10 passing subtests and 1 warning; Ruff,
+  MyPy, validation, secret scanning, pre-commit, integrity and cleanup passed
+  after preserved bounded remediations. Real Glue/Spark/AWS integration,
+  deployment, destructive reprocessing, live rollback, cloud teardown and
+  cost validation remain **NOT RUN**. **FINAL APPROVAL AFTER OWNER TEST —
+  APPROVED** by Gyan Prakash Rai on 2026-10-12 at 14:00:00 SGT. See the
+  [Week 7 evidence index](W7/README.md).
+- [W1-001](W1/W1-001.md) — approved aggregate repository-foundation evidence; final task approval recorded, with deployment and live lifecycle work NOT RUN.
+- [W1-002](W1/W1-002.md) — approved aggregate typed-configuration and local application-foundation evidence, preserving the dependency-install summary gap and accepted warning.
+- [W1-003](W1/W1-003.md) — local testing structure, deterministic providers, opt-in markers, redacted stdout metadata, and cleanliness controls.
+- [W1-004](W1/W1-004.md) — owner-gated lifecycle controls, offline planning, fail-closed cleanliness verification, remediation history, and owner-executed validation.
+- [W1-03 repository layout](W1/W1-03-layout.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
+- [W1-04 feature matrix](W1/W1-04-feature-matrix.json) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
+- [W1-05 typed configuration](W1/W1-05-config.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
+- [W1-06 test foundation](W1/W1-06-tests.json) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
+- [W1-07 Makefile controls](W1/W1-07-make.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
+- [W1-08 pre-commit and secret scanning](W1/W1-08-precommit.txt) — the original retrospective record remains a historical **NOT RUN / OPEN CONTROL GAP** disclosure; the later bounded W1-08/SEC-003 corrective implementation and owner testing are **PASS**, with final approval pending Column N.
+- [W1-09 Terraform roots](W1/W1-09-roots.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
+- [W1-10 platformctl](W1/W1-10-platformctl.txt) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
+- [W1-11 cleanup verification](W1/W1-11-cleanup.json) — **Retrospective evidence-gap reconciliation — not contemporaneous command output**.
+- [W2-001](W2/W2-001.md) — retrieval contracts, vector-store adapters, tenant isolation, internal-only Qdrant testing, remediation history, and teardown evidence.
+- [W2-002](W2/W2-002.md) — bounded embedding contracts, deterministic fake testing, immutable real-model verification, offline CPU inference, remediation history, and retained-cache evidence.
+- [W2-003](W2/W2-003.md) — secure local ingestion, deterministic identity, PII-before-embedding controls, offline tokenizer verification, exact-version compensation, remediation history, and cleanliness evidence.
+- [W2-004](W2/W2-004.md) — internal-only local retrieval, authorized top-five results, tenant isolation, regression and known-good rollback validation, exact collection removal, Docker teardown, external model-cache removal, and zero-residue evidence.
+- [W2-REVIEW-001](W2/W2-REVIEW-001.md) — **Column N closed: W2-12 is Verified and Approved by Gyan Prakash Rai on 2026-08-25 at 23:32:08 SGT (UTC+08:00) and was subsequently owner-reconciled to Done. W2-13 is also final-approved; remaining handover work is tracker prompt-cell reconciliation, the clean committed baseline and the separate W1-08 prerequisite.**
 - [W2 Week 2 sign-off](../deployment-records/W2-signoff.md) — **W2-12 and W2-13 are approved within the recorded local-only scope. Historical warnings, gaps, NOT RUN work and retained-resource facts remain visible; Week 3 remains gated by the clean baseline and W1-08 prerequisite.**
 - [W2-13 Week 2 learning review](../learning/W2-learning-review.md) — **FINAL APPROVAL AFTER OWNER TEACH-BACK — APPROVED by Gyan Prakash Rai on 2026-08-25 at 23:59:08 SGT (UTC+08:00). The four-document Column N manifest is closed; this business/interview summary complements the unchanged detailed W2-11 local-retrieval architecture record.**
-- [W3-001](W3-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-26 at 11:11:21 SGT. Final local evidence: Ruff PASS, strict MyPy PASS, 118 scoped tests passed with 1 AWS/paid test deselected, and 344 complete ordinary tests passed with 7 owner-controlled skips and 4 opt-in deselections. Live Bedrock, deployment and cloud lifecycle work remain **NOT RUN**; all six Column M documents are closed together.
-- [W3-002](W3-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** for the original evaluation, with component evidence in [W3-06 golden dataset](W3-06-golden.txt) and [W3-10 quality gate](W3-10-gate.txt). Candidate/repeat and every absolute gate passed across 39 cases. The original reports remain **NO_APPROVED_BASELINE** and `release_eligible=false`; the first immutable baseline was later separately **PROMOTED** for future comparisons. Post-promotion comparison, live/judge/performance work and deployment remain **NOT RUN**. Baseline-promotion document approval is pending Column N.
-- [W3-003](W3-003.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 14:40:21 SGT. Deterministic local guardrail and security-regression evidence passed after two preserved historical failures and bounded remediation. Live-model, vendor, deployment and production behavior remain **NOT RUN**; all five Column M documents are closed together.
-- [W3-004](W3-004.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 17:31:21 SGT. Final local evidence records 465 passing ordinary tests, the exact controlled Q1/Q2 regression, atomic restoration to the known-good identity, restored absolute and baseline-comparison PASS, verified external archival and repository-local zero residue. All four W3-ROLLBACK-001 Column M documents are closed together.
-- [W4-001](W4-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-28 at 23:56:21 SGT. The deterministic local API boundary has focused [W4-01 API evidence](W4-01-api.txt) and [W4-02 authentication and authorization evidence](W4-02-auth.txt). The final ordinary suite recorded 537 passed, 7 skipped and 4 deselected. W4-10 is **NOT RUN — deferred until W4-06**; no `W4-10-load.json` evidence exists. All four W4-001 Column M documents are closed together.
-- [W4-002](W4-002.md) — bounded LangGraph controller, durable local approval, strict budgets and redacted SQLite state. Owner TEST-001 passed after preserved historical failures and bounded remediation: 613 passed, 7 skipped and 4 deselected in the final ordinary suite. At this original summary point, final owner approval was pending Column N and W4-09/W4-10 were **NOT RUN**; W4-002 was subsequently final-approved, and the separately governed W4-09/W4-10 closures are recorded later in this index.
+- [W3-001](W3/W3-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-26 at 11:11:21 SGT. Final local evidence: Ruff PASS, strict MyPy PASS, 118 scoped tests passed with 1 AWS/paid test deselected, and 344 complete ordinary tests passed with 7 owner-controlled skips and 4 opt-in deselections. Live Bedrock, deployment and cloud lifecycle work remain **NOT RUN**; all six Column M documents are closed together.
+- [W3-002](W3/W3-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** for the original evaluation, with component evidence in [W3-06 golden dataset](W3/W3-06-golden.txt) and [W3-10 quality gate](W3/W3-10-gate.txt). Candidate/repeat and every absolute gate passed across 39 cases. The original reports remain **NO_APPROVED_BASELINE** and `release_eligible=false`; the first immutable baseline was later separately **PROMOTED** for future comparisons. Post-promotion comparison, live/judge/performance work and deployment remain **NOT RUN**. Baseline-promotion document approval is pending Column N.
+- [W3-003](W3/W3-003.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 14:40:21 SGT. Deterministic local guardrail and security-regression evidence passed after two preserved historical failures and bounded remediation. Live-model, vendor, deployment and production behavior remain **NOT RUN**; all five Column M documents are closed together.
+- [W3-004](W3/W3-004.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-27 at 17:31:21 SGT. Final local evidence records 465 passing ordinary tests, the exact controlled Q1/Q2 regression, atomic restoration to the known-good identity, restored absolute and baseline-comparison PASS, verified external archival and repository-local zero residue. All four W3-ROLLBACK-001 Column M documents are closed together.
+- [W4-001](W4/W4-001.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-28 at 23:56:21 SGT. The deterministic local API boundary has focused [W4-01 API evidence](W4/W4-01-api.txt) and [W4-02 authentication and authorization evidence](W4/W4-02-auth.txt). The final ordinary suite recorded 537 passed, 7 skipped and 4 deselected. W4-10 is **NOT RUN — deferred until W4-06**; no `W4-10-load.json` evidence exists. All four W4-001 Column M documents are closed together.
+- [W4-002](W4/W4-002.md) — bounded LangGraph controller, durable local approval, strict budgets and redacted SQLite state. Owner TEST-001 passed after preserved historical failures and bounded remediation: 613 passed, 7 skipped and 4 deselected in the final ordinary suite. At this original summary point, final owner approval was pending Column N and W4-09/W4-10 were **NOT RUN**; W4-002 was subsequently final-approved, and the separately governed W4-09/W4-10 closures are recorded later in this index.
 - [W4-ROLLBACK-001 / W4-11 / REL-001](../rollback-records/W4-release.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-31 at 16:52:21 SGT. The local immutable application-release rollback restored exact N in 838 ms; rollback, smoke and cleanup passed; the full suite recorded 724 passed, 7 skipped and 4 deselected; the remediated Make-target assertion failure and Starlette/httpx warning remain recorded; Python 3.11, deployment, cloud and infrastructure rollback were NOT RUN; zero unexpected residue remained. Both Column M documents are closed together. W4-12 sign-off is separate.
-- [W5-002 aggregate evidence](W5-002.md) — **TEST-001 FAIL** at the mandatory OCI zero-critical-vulnerability gate; the candidate is rejected and ineligible, SBOM generation is complete, and provenance/eligibility reconciliation remains NOT RUN.
-- [W5-07 local CI and workflow evidence](W5-07-ci.txt) — owner-executed local quality, workflow, policy, Terraform, rollback, and cleanliness results; hosted GitHub, OIDC, AWS, push, and deployment remain NOT RUN.
-- [W5-08 OCI supply-chain evidence](W5-08-supply-chain.txt) — candidate identity, Bookworm and Trixie vulnerability findings, OCI-layout remediation, completed SPDX/CycloneDX evidence, and retained-resource status.
-- [W5-004 reviewed lifecycle evidence](W5-004.md) — owner-executed sandbox deployment, targeted rollback, platform and bootstrap teardown, and final project-scoped residue verification. The lifecycle-cost gate remains **WAIVED/ACCEPTED_RISK — NOT PASS**; production remains **BLOCKED**; the final current Python-suite rerun remains an open validation gap.
+- [W5-002 aggregate evidence](W5/W5-002.md) — **TEST-001 FAIL** at the mandatory OCI zero-critical-vulnerability gate; the candidate is rejected and ineligible, SBOM generation is complete, and provenance/eligibility reconciliation remains NOT RUN.
+- [W5-07 local CI and workflow evidence](W5/W5-07-ci.txt) — owner-executed local quality, workflow, policy, Terraform, rollback, and cleanliness results; hosted GitHub, OIDC, AWS, push, and deployment remain NOT RUN.
+- [W5-08 OCI supply-chain evidence](W5/W5-08-supply-chain.txt) — candidate identity, Bookworm and Trixie vulnerability findings, OCI-layout remediation, completed SPDX/CycloneDX evidence, and retained-resource status.
+- [W5-004 reviewed lifecycle evidence](W5/W5-004.md) — owner-executed sandbox deployment, targeted rollback, platform and bootstrap teardown, and final project-scoped residue verification. The lifecycle-cost gate remains **WAIVED/ACCEPTED_RISK — NOT PASS**; production remains **BLOCKED**; the final current Python-suite rerun remains an open validation gap.
 - [W5-004 plan review](../deployment-records/W5-plan-review.md) — exact forward-plan binding, OPA result, action boundary, owner approval controls, and accepted cost risk.
 - [W5-004 sandbox lifecycle](../deployment-records/W5-sandbox.md) — deployment, KMS compatibility remediation, post-apply checks, and targeted rollback outcome.
 - [W5-004 teardown plan](../deployment-records/W5-destroy-plan.md) — platform-first and bootstrap-last destruction sequence, exact plan identities, and retained KMS tails.
 - [W5-004 resource cleanliness](../resource-cleanliness/W5-report.json) — machine-readable project-scoped absence findings, expected `PendingDeletion` keys, and deferred billing/KMS checks.
 - [W6-12 future final-cleanliness handover](../resource-cleanliness/W6-final.json) — **NOT RUN**; reusable W5 handover only, requiring wholly fresh Week 6 plans, evidence, approvals, and discovery.
-- [W6-001 immutable EKS application evidence](W6-001.md) — local implementation and `TEST-001` **PASS**; the artifact remains **SOURCE TEMPLATE VALID — NOT DEPLOYABLE** and Column N documentation closure is **APPROVED**.
-- [W6-02 Kubernetes evidence](W6-02-k8s.txt) — eight source files, nine YAML documents, eight rendered objects and the two-stage immutable release boundary; server-side dry-run and live deployment are **NOT RUN**.
-- [W6-03 identity evidence](W6-03-identity.txt) — dedicated ServiceAccount and zero unnecessary Kubernetes RBAC grants; EKS Pod Identity, IAM and live caller verification are **NOT RUN**.
-- [W6-04 network evidence](W6-04-network.txt) — locally validated default-deny and DNS-only Kubernetes policies; live network and AWS/VPC enforcement checks are **NOT RUN**.
-- [W6-05 resilience evidence](W6-05-resilience.txt) — locally validated replica, resource, probe, HPA, PDB and immutable rollback contracts; live scaling, rollout, rollback and teardown are **NOT RUN**.
-- [W6-002 observability evidence](W6-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai on 2026-10-02 at 01:06:00 SGT. The record preserves bounded local telemetry export, SLO, alert, failure-response, remediation, and cleanup evidence; live AWS/EKS deployment and lifecycle work remain **NOT RUN**.
+- [W6-001 immutable EKS application evidence](W6/W6-001.md) — local implementation and `TEST-001` **PASS**; the artifact remains **SOURCE TEMPLATE VALID — NOT DEPLOYABLE** and Column N documentation closure is **APPROVED**.
+- [W6-02 Kubernetes evidence](W6/W6-02-k8s.txt) — eight source files, nine YAML documents, eight rendered objects and the two-stage immutable release boundary; server-side dry-run and live deployment are **NOT RUN**.
+- [W6-03 identity evidence](W6/W6-03-identity.txt) — dedicated ServiceAccount and zero unnecessary Kubernetes RBAC grants; EKS Pod Identity, IAM and live caller verification are **NOT RUN**.
+- [W6-04 network evidence](W6/W6-04-network.txt) — locally validated default-deny and DNS-only Kubernetes policies; live network and AWS/VPC enforcement checks are **NOT RUN**.
+- [W6-05 resilience evidence](W6/W6-05-resilience.txt) — locally validated replica, resource, probe, HPA, PDB and immutable rollback contracts; live scaling, rollout, rollback and teardown are **NOT RUN**.
+- [W6-002 observability evidence](W6/W6-002.md) — **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai on 2026-10-02 at 01:06:00 SGT. The record preserves bounded local telemetry export, SLO, alert, failure-response, remediation, and cleanup evidence; live AWS/EKS deployment and lifecycle work remain **NOT RUN**.
 - [W6-002 SLO architecture](../architecture/slo.md) — business objectives, telemetry flow, SLI populations, error budget, alerting, bounded concurrency, security/privacy/cost controls, and W6-003/W6-004 handover boundaries.
-- [W6-06 structured observability evidence](W6-06-observability.json) — content-safe machine-readable W6-002 results, historical failures and remediations, retained Promtool identity, lifecycle truth, and pending Column N fields.
-- [W6-09 failure and chaos-readiness evidence](W6-09-chaos.txt) — locally validated fake-provider failure boundary and plan-only FIS controls; live FIS execution, operational rollback, and cloud teardown remain **NOT RUN**.
-- [W6-003 consolidated evidence](W6-003.md) — deterministic local owner testing **PASS** with final classification **W6-003 INTEGRATED READINESS CONTRACT VALID — NOT DEPLOYED**; final Column N owner approval is **PENDING**.
-- [W6-10 integrated-readiness evidence](W6-10-integrated-readiness.txt) — local platform, SRE, policy, infrastructure, Kubernetes, supply-chain and quality gates passed; complete pytest recorded **2088 passed, 7 skipped, 4 deselected, 1 warning**.
-- [W6-11 local-rollback evidence](W6-11-local-rollback.txt) — synthetic candidate **FAIL**, deterministic historical W4 known-good restoration **PASS**; EKS, Terraform and cloud rollback remain **NOT RUN**.
-- [W6-13 W6-004 handover evidence](W6-13-w6-004-handover.txt) — exactly three external evidence files retained, repository residue 0, live AWS/ECR/EKS and live deployment/rollback/teardown **NOT RUN**, and W6-004 entry `BLOCKED_PENDING_W6_004_STAGE_A`.
-- [W6-004 full AWS/EKS lifecycle evidence](W6-004.md) — immutable deployment, Stage 6 **PASS**, Stage 7 **PASS**, application and infrastructure rollback **PASS_WITH_TELEMETRY_GAP**, complete project-owned teardown **PASS**, and overall closure **INDETERMINATE_PENDING_KMS_AND_BILLING_LAG**.
+- [W6-06 structured observability evidence](W6/W6-06-observability.json) — content-safe machine-readable W6-002 results, historical failures and remediations, retained Promtool identity, lifecycle truth, and pending Column N fields.
+- [W6-09 failure and chaos-readiness evidence](W6/W6-09-chaos.txt) — locally validated fake-provider failure boundary and plan-only FIS controls; live FIS execution, operational rollback, and cloud teardown remain **NOT RUN**.
+- [W6-003 consolidated evidence](W6/W6-003.md) — deterministic local owner testing **PASS** with final classification **W6-003 INTEGRATED READINESS CONTRACT VALID — NOT DEPLOYED**; final Column N owner approval is **PENDING**.
+- [W6-10 integrated-readiness evidence](W6/W6-10-integrated-readiness.txt) — local platform, SRE, policy, infrastructure, Kubernetes, supply-chain and quality gates passed; complete pytest recorded **2088 passed, 7 skipped, 4 deselected, 1 warning**.
+- [W6-11 local-rollback evidence](W6/W6-11-local-rollback.txt) — synthetic candidate **FAIL**, deterministic historical W4 known-good restoration **PASS**; EKS, Terraform and cloud rollback remain **NOT RUN**.
+- [W6-13 W6-004 handover evidence](W6/W6-13-w6-004-handover.txt) — exactly three external evidence files retained, repository residue 0, live AWS/ECR/EKS and live deployment/rollback/teardown **NOT RUN**, and W6-004 entry `BLOCKED_PENDING_W6_004_STAGE_A`.
+- [W6-004 full AWS/EKS lifecycle evidence](W6/W6-004.md) — immutable deployment, Stage 6 **PASS**, Stage 7 **PASS**, application and infrastructure rollback **PASS_WITH_TELEMETRY_GAP**, complete project-owned teardown **PASS**, and overall closure **INDETERMINATE_PENDING_KMS_AND_BILLING_LAG**.
 - [W6-004 plan review](../deployment-records/W6-plan-review.md) — fresh source, image, state, saved-plan, policy, approval and cost boundaries; failed, consumed and superseded attempts remain historical evidence.
 - [W6-004 sandbox lifecycle](../deployment-records/W6-sandbox.md) — final deployed digests, Pod Identity, OpenSearch, approved Nova 2 Lite, telemetry, security-denial, HPA/PDB and bounded resilience outcomes.
 - [W6-004 application rollback](../rollback-records/W6-application.md) — exact regression and known-good digest restoration **PASS_WITH_TELEMETRY_GAP**.
@@ -170,6 +186,64 @@ not PASS. No cloud operation or cost was authorized.
   technology work remains separately governed.
 - Tracker update responsibility: **Owner**.
 
+## W7-002 deterministic processing and safe replay — Column N closure
+
+W7-002 extends the immutable W7-001 handoff with deterministic extraction,
+logical `VALIDATED`/`CURATED` processing states, strict schema and drift
+checks, bounded replay, quarantine, dead-letter and checkpoint/resume controls.
+It does not rename the physical W7-001 zones or prove a real Glue/Spark/AWS
+runtime. The approved 21-path post-remediation implementation manifest has
+SHA-256 `f7986d9cb2eb0fa201bf1e0a43a90be000fc4eba41e4085c4aaa41d4e785bb49`.
+
+### Final Owner Approval — W7-002
+
+- Prompt/task ID: `W7-002`.
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**.
+- Approval date and time/timezone: **2026-10-12 14:00:00 SGT**.
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W7-002** within the
+  recorded local deterministic processing, quality and safe-replay scope.
+- Code and evidence review status: **APPROVED** within the recorded local,
+  provider-neutral and fake-backed boundaries.
+- Documentation review status: **APPROVED**. All three Column M documents close
+  together with no partial closure.
+- TEST-001 status: **PASS within the recorded local scope** through
+  owner-authorized execution and owner-executed final integrity/state
+  verification: 2,328 passed, 8 skipped, 4 deselected, 10 passing subtests and
+  1 warning. Historical failures and their passing remediations remain visible.
+- Accepted warnings, risks, evidence gaps and scope limitations: **All items
+  recorded in the approved W7-002 Column M manifest are accepted; no
+  additional item is silently accepted.**
+- NOT RUN and INDETERMINATE activities: Every recorded NOT RUN remains NOT RUN;
+  every historical INDETERMINATE result remains preserved. **Remaining open
+  INDETERMINATE activities: None.**
+- Deployment facts: No local application/service, image, registry artifact,
+  Glue/Spark runtime, AWS service, infrastructure or cloud resource was
+  deployed. Cloud and production deployment remain **NOT RUN**.
+- Rollback and restore facts: Automated local processing rollback contract
+  **PASS**; live/source deployment rollback, durable checkpoint restore,
+  infrastructure and cloud rollback/restoration remain **NOT RUN**.
+- Teardown, cleanup and residual-resource facts: Task-specific caches were
+  removed, repository cache residue was zero and protected Terraform state was
+  unchanged. The external Python environment remains owner-managed. Cloud
+  teardown and native cloud-residue verification remain **NOT RUN**.
+- Cost facts: No cloud operation or pricing lookup occurred; cost and billing
+  validation remain **NOT RUN**.
+- Deferred actions and responsible owner: Every recorded W7-002 deferral
+  remains open. Responsible owner: **Gyan Prakash Rai**, unless another owner
+  is explicitly recorded for an individual action.
+- Conditions: Preserve every PASS, FAIL, NOT RUN, INDETERMINATE, SKIPPED,
+  DESELECTED, warning, risk, limitation, deferred-work and residual-resource
+  fact; infer no production or cloud readiness from local, fake, mocked,
+  injected, static or offline evidence; only the owner updates Excel and
+  performs Git mutation.
+- Next-task handover: The owner may update the W7-002 tracker row. Every
+  deferred technology, real integration, destructive reprocessing, cloud,
+  deployment, rollback, restore, teardown, cost and Git activity remains
+  separately governed.
+- Tracker update responsibility: **Owner**.
+
 The W6-003 records prove deterministic local pre-deployment readiness only.
 They do not prove live AWS, ECR, EKS, OpenSearch, Bedrock, observability, FIS,
 deployment, operational rollback, complete cloud teardown or production
@@ -232,7 +306,7 @@ The W6-002 records establish local deployment readiness only. They do not prove 
 - Approval date and time/timezone: **2026-10-02 01:06:00 SGT**.
 - Final status: **APPROVED FOR USER TRACKER UPDATE — W6-002**. The five-document Column M manifest is closed together with no partial closure.
 - Code review status: **APPROVED** within the bounded W6-002 local deployment-readiness scope. Live, cloud, FIS, production, and operational lifecycle approval is not implied.
-- Documentation review status: **APPROVED** for [W6-002](W6-002.md), [SLO architecture](../architecture/slo.md), [W6-06 structured observability evidence](W6-06-observability.json), [W6-09 failure and chaos-readiness evidence](W6-09-chaos.txt), and this index.
+- Documentation review status: **APPROVED** for [W6-002](W6/W6-002.md), [SLO architecture](../architecture/slo.md), [W6-06 structured observability evidence](W6/W6-06-observability.json), [W6-09 failure and chaos-readiness evidence](W6/W6-09-chaos.txt), and this index.
 - Owner-executed test status: **PASS within the recorded local and native-tool scopes**. The final ordinary suite recorded 2069 passed, 7 skipped, 4 deselected, 1 warning, and 10 subtests passed. Historical failures and bounded passing remediations remain visible.
 - Accepted warnings, risks, evidence gaps, and limitations: **All items recorded in the approved W6-002 Column M manifest are accepted; no additional item is silently accepted.** The warning, skips, deselections, local/synthetic scope, unpriced local costs, unproven SLOs, and absent live identity, connectivity, retention, destination, pricing, and cost evidence remain recorded.
 - NOT RUN and INDETERMINATE activities: AWS/EKS deployment, live X-Ray/CloudWatch export, live alert delivery, live dependency validation, FIS execution, production SLO proof, operational rollback, and cloud teardown remain **NOT RUN**. Historical INDETERMINATE results remain preserved. **Remaining open INDETERMINATE activities: None.**
@@ -253,7 +327,7 @@ The W6-002 records establish local deployment readiness only. They do not prove 
 - Approval date and time/timezone: **2026-10-01 16:00:00 SGT**.
 - Final status: **APPROVED FOR USER TRACKER UPDATE — W6-001**. The six-document Column M manifest is closed together with no partial closure.
 - Code review status: **APPROVED within the bounded W6-001 implementation and owner-executed local evidence scope**. The artifact remains **SOURCE TEMPLATE VALID — NOT DEPLOYABLE**; no release, deployment or production readiness is approved.
-- Documentation review status: **APPROVED** for [W6-001](W6-001.md), [W6-02](W6-02-k8s.txt), [W6-03](W6-03-identity.txt), [W6-04](W6-04-network.txt), [W6-05](W6-05-resilience.txt) and this index.
+- Documentation review status: **APPROVED** for [W6-001](W6/W6-001.md), [W6-02](W6/W6-02-k8s.txt), [W6-03](W6/W6-03-identity.txt), [W6-04](W6/W6-04-network.txt), [W6-05](W6/W6-05-resilience.txt) and this index.
 - Owner-executed test status: **PASS** — 2052 passed, 7 skipped and 4 deselected, with one retained dependency deprecation warning. Historical failures and separately passing remediation reruns remain visible in W6-001 evidence.
 - Accepted warnings, risks, evidence gaps and scope limitations: **All items recorded in the approved W6-001 Column M manifest are accepted; no additional item is silently accepted.** The warning, skips, source-sentinel exception, local/static scope, absent W6-01 release evidence, unpriced local costs and lack of live/production proof remain recorded.
 - NOT RUN and INDETERMINATE activities: Every recorded live or external activity remains **NOT RUN** and none is converted to PASS. Historical INDETERMINATE results remain preserved. **Remaining open INDETERMINATE activities: None.**
@@ -269,7 +343,7 @@ The W6-002 records establish local deployment readiness only. They do not prove 
 
 W5-004 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on `2026-09-16 16:37:21 SGT`.
 
-The approved seven-document closure consists of [W5-004 owner evidence](W5-004.md), [plan review](../deployment-records/W5-plan-review.md), [sandbox lifecycle](../deployment-records/W5-sandbox.md), [teardown record](../deployment-records/W5-destroy-plan.md), [W5 cleanliness result](../resource-cleanliness/W5-report.json), this index, and the [W6-12 handover](../resource-cleanliness/W6-final.json).
+The approved seven-document closure consists of [W5-004 owner evidence](W5/W5-004.md), [plan review](../deployment-records/W5-plan-review.md), [sandbox lifecycle](../deployment-records/W5-sandbox.md), [teardown record](../deployment-records/W5-destroy-plan.md), [W5 cleanliness result](../resource-cleanliness/W5-report.json), this index, and the [W6-12 handover](../resource-cleanliness/W6-final.json).
 
 The synthetic, non-production sandbox lifecycle completed with forward deployment, targeted rollback, platform destroy, bootstrap destroy, and project-scoped final verification. This closure preserves the full-suite validation gap, `WAIVED/ACCEPTED_RISK — NOT PASS` lifecycle-cost status, `USD_3_BOUNDED=false`, production `BLOCKED` status, delayed billing follow-up, and two expected KMS `PendingDeletion` tails. W6-12 remains **NOT RUN**. The uncommitted source tree is not release-ready; only the owner may update the tracker or perform Git mutation.
 
@@ -285,25 +359,25 @@ The synthetic, non-production sandbox lifecycle completed with forward deploymen
 - Conditions and handover: do not infer production or cloud readiness from this closure. W6-12 remains **NOT RUN** and requires a new lifecycle with fresh evidence and approvals.
 - Tracker update responsibility: Owner.
 
-W2-001 also has bounded component evidence for its [models](W2-01-models.txt), [vector-store contract](W2-02-vector-contract.txt), [Qdrant integration](W2-03-qdrant.txt), [adapters](W2-04-adapters.txt), and [tenant isolation](W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
+W2-001 also has bounded component evidence for its [models](W2/W2-01-models.txt), [vector-store contract](W2/W2-02-vector-contract.txt), [Qdrant integration](W2/W2-03-qdrant.txt), [adapters](W2/W2-04-adapters.txt), and [tenant isolation](W2/W2-08-isolation.txt). These records describe owner-executed local checks; they are not deployment or live-cloud evidence.
 
-W3-001 has bounded component evidence for its [provider-neutral LLM contract](W3-01-llm-contract.txt), [Bedrock Converse boundary](W3-02-bedrock.txt), [prompt contract](W3-03-prompt.txt), and [authorized cited-RAG pipeline](W3-04-rag.txt). These records describe owner-executed local, fake and injected-stub checks. They do not establish live Bedrock behavior, deployment, production readiness, privacy/residency compliance or cloud cleanliness.
+W3-001 has bounded component evidence for its [provider-neutral LLM contract](W3/W3-01-llm-contract.txt), [Bedrock Converse boundary](W3/W3-02-bedrock.txt), [prompt contract](W3/W3-03-prompt.txt), and [authorized cited-RAG pipeline](W3/W3-04-rag.txt). These records describe owner-executed local, fake and injected-stub checks. They do not establish live Bedrock behavior, deployment, production readiness, privacy/residency compliance or cloud cleanliness.
 
-W3-002 has bounded component evidence for its [39-case golden dataset](W3-06-golden.txt) and [absolute quality gate](W3-10-gate.txt). The owner-generated `reports/eval.json` remains read-only and is not duplicated here. These records establish deterministic local fake-provider behavior only; they do not establish an approved regression baseline, release eligibility, live-model quality, real performance or production readiness.
+W3-002 has bounded component evidence for its [39-case golden dataset](W3/W3-06-golden.txt) and [absolute quality gate](W3/W3-10-gate.txt). The owner-generated `reports/eval.json` remains read-only and is not duplicated here. These records establish deterministic local fake-provider behavior only; they do not establish an approved regression baseline, release eligibility, live-model quality, real performance or production readiness.
 
-W3-003 has bounded component evidence for its [deterministic input guardrails](W3-05-guardrails.txt), [security regression](W3-08-security.txt) and [consolidated W3 security position](W3-security.txt). These records establish local deterministic controls using fake, injected and synthetic evidence only. They do not establish live-model semantic resistance, vendor-guardrail integration, deployment, production readiness or cloud lifecycle behavior.
+W3-003 has bounded component evidence for its [deterministic input guardrails](W3/W3-05-guardrails.txt), [security regression](W3/W3-08-security.txt) and [consolidated W3 security position](W3/W3-security.txt). These records establish local deterministic controls using fake, injected and synthetic evidence only. They do not establish live-model semantic resistance, vendor-guardrail integration, deployment, production readiness or cloud lifecycle behavior.
 
-W3-ROLLBACK-001 has bounded component evidence for its [W3-11 cited-RAG rollback drill](W3-11-rag-rollback.txt) and detailed [W3 cited-RAG rollback record](../rollback-records/W3-rag.md). These records establish deterministic local identity rollback, restored approved-baseline behavior, external evidence archival and repository-local zero residue. They do not establish deployment, live-provider recovery, production resilience or cloud rollback.
+W3-ROLLBACK-001 has bounded component evidence for its [W3-11 cited-RAG rollback drill](W3/W3-11-rag-rollback.txt) and detailed [W3 cited-RAG rollback record](../rollback-records/W3-rag.md). These records establish deterministic local identity rollback, restored approved-baseline behavior, external evidence archival and repository-local zero residue. They do not establish deployment, live-provider recovery, production resilience or cloud rollback.
 
-W2-002 has bounded component evidence for its [W2-05 embedder](W2-05-embedder.txt). It records owner-executed fake-provider checks, immutable model download and integrity verification, offline real-model execution, repository cleanliness, and the intentionally retained external model cache. W2-002 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. The owner did not supply a reviewer name or approval date, so neither is recorded.
+W2-002 has bounded component evidence for its [W2-05 embedder](W2/W2-05-embedder.txt). It records owner-executed fake-provider checks, immutable model download and integrity verification, offline real-model execution, repository cleanliness, and the intentionally retained external model cache. W2-002 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. The owner did not supply a reviewer name or approval date, so neither is recorded.
 
-W2-003 has bounded component evidence for [W2-06 ingestion](W2-06-ingestion.txt) and [W2-07 PII](W2-07-pii.txt). These records cover owner-executed local ingestion, privacy, rollback and cleanliness checks. W2-003 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-25 at 13:45 SGT (UTC+08:00).
+W2-003 has bounded component evidence for [W2-06 ingestion](W2/W2-06-ingestion.txt) and [W2-07 PII](W2/W2-07-pii.txt). These records cover owner-executed local ingestion, privacy, rollback and cleanliness checks. W2-003 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-25 at 13:45 SGT (UTC+08:00).
 
 W2-001 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. The owner did not supply a reviewer name or approval date, so neither is recorded. The owner-managed Excel tracker update remains **Pending**.
 
 # W1-003 final approval
 
-W1-003 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai on 2026-08-22. Its approved baseline is the owner-tested repository testing and evidence foundation recorded in `docs/test-evidence/W1-003.md`.
+W1-003 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai on 2026-08-22. Its approved baseline is the owner-tested repository testing and evidence foundation recorded in `docs/test-evidence/W1/W1-003.md`.
 
 Column N authorizes only bounded closure of documentation already approved under Column M. After documentation closure, the owner—not Codex—updates the Excel tracker.
 
@@ -311,7 +385,7 @@ This approval does not mean that AWS or paid tests, live integrations, deploymen
 
 ## W1-004 final approval
 
-W1-004 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from G P Rai on 2026-08-22. Its approved baseline is the owner-tested, owner-gated lifecycle foundation recorded in `docs/test-evidence/W1-004.md`. The approved local testing scope passed after the documented teardown and Ruff remediations. The offline plan-intent check passed and explicitly reported that Terraform plan was **NOT RUN**.
+W1-004 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from G P Rai on 2026-08-22. Its approved baseline is the owner-tested, owner-gated lifecycle foundation recorded in `docs/test-evidence/W1/W1-004.md`. The approved local testing scope passed after the documented teardown and Ruff remediations. The offline plan-intent check passed and explicitly reported that Terraform plan was **NOT RUN**.
 
 AWS cleanliness remains **INDETERMINATE** because the required AWS inventory provider was unavailable; exit code `3` is the approved fail-closed result for that condition. AWS and paid tests, live integrations, deployment, rollback execution, Terraform apply/destroy, and cloud teardown remain **NOT RUN** and were not converted into successful outcomes by final approval. The retained external virtual environment and non-blocking Starlette/TestClient warning remain accepted limitations.
 
@@ -368,7 +442,7 @@ Final owner approval is still pending Column N.
 
 ## W2-001 final approval
 
-W2-001 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. Its approved baseline is the owner-tested local retrieval foundation recorded in `docs/test-evidence/W2-001.md`, including the retrieval models and vector-store contract, deterministic fake, injected OpenSearch boundary, tenant-isolation controls, internal-only Qdrant test architecture, immutable runner identity, least-privilege controls, passing local verification, and zero project-labelled Docker residue after teardown.
+W2-001 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. Its approved baseline is the owner-tested local retrieval foundation recorded in `docs/test-evidence/W2/W2-001.md`, including the retrieval models and vector-store contract, deterministic fake, injected OpenSearch boundary, tenant-isolation controls, internal-only Qdrant test architecture, immutable runner identity, least-privilege controls, passing local verification, and zero project-labelled Docker residue after teardown.
 
 Final approval accepts the documented local-scope limitations and non-blocking warnings: the Starlette/FastAPI TestClient deprecation warning, BuildKit's constant-platform warning for the intentionally explicit Linux/AMD64 constraint, Compose's `--progress` placement advice, repository-approved dependency-family bounds rather than a fully locked transitive graph, and the absence of vulnerability-scan evidence. The reviewer name and approval date were not supplied and remain an evidence gap.
 
@@ -380,7 +454,7 @@ The next task may rely on the approved local retrieval contracts, tenant-isolati
 
 ## W2-002 final approval
 
-W2-002 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. Its approved baseline is the owner-tested local embedding foundation recorded in `docs/test-evidence/W2-002.md` and `docs/test-evidence/W2-05-embedder.txt`: deterministic fake behavior, the bounded embedding contract, immutable model identity and artifact integrity, offline CPU-only real-model execution, process-wide concurrency control, passing local verification, and repository cleanliness.
+W2-002 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**. Its approved baseline is the owner-tested local embedding foundation recorded in `docs/test-evidence/W2/W2-002.md` and `docs/test-evidence/W2/W2-05-embedder.txt`: deterministic fake behavior, the bounded embedding contract, immutable model identity and artifact integrity, offline CPU-only real-model execution, process-wide concurrency control, passing local verification, and repository cleanliness.
 
 Final approval accepts the documented local-scope limitations and evidence gaps. The Starlette/FastAPI TestClient warning and Hugging Face unauthenticated-rate-limit warning remain accepted and non-blocking. A fully locked transitive dependency graph, vulnerability scan, software bill of materials, reviewer name, and approval date were not supplied.
 
@@ -392,7 +466,7 @@ The next tasks may rely on the approved embedding interface, deterministic fake,
 
 ## W2-003 final approval
 
-W2-003 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-25 at 13:45 SGT (UTC+08:00). Its final status is **APPROVED WITH RECORDED WARNINGS, RISKS, EVIDENCE GAPS, LIMITATIONS AND DEFERRED INTEGRATIONS**. The approved baseline is the owner-tested secure local ingestion and PII-gating implementation recorded in `docs/test-evidence/W2-003.md`, `docs/test-evidence/W2-06-ingestion.txt` and `docs/test-evidence/W2-07-pii.txt`.
+W2-003 received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-08-25 at 13:45 SGT (UTC+08:00). Its final status is **APPROVED WITH RECORDED WARNINGS, RISKS, EVIDENCE GAPS, LIMITATIONS AND DEFERRED INTEGRATIONS**. The approved baseline is the owner-tested secure local ingestion and PII-gating implementation recorded in `docs/test-evidence/W2/W2-003.md`, `docs/test-evidence/W2/W2-06-ingestion.txt` and `docs/test-evidence/W2/W2-07-pii.txt`.
 
 The final local suite passed after the documented remediations: 239 passed, 3 skipped, 3 deselected, 9 subtests passed and 1 warning. Historical failures remain recorded. The Starlette/FastAPI TestClient warning is accepted as a non-blocking limitation; its remediation was **NOT RUN**. No vulnerability scan, software bill of materials or fully locked transitive dependency graph was supplied. Local fake and offline-tokenizer evidence does not prove production ingestion, identity integration, compliance or cloud readiness.
 
@@ -404,7 +478,7 @@ The next task may rely on W2-003's approved deterministic identity, strict manif
 
 ## W2-004 final approval
 
-W2-004 received **APPROVED FOR FINAL DOCUMENTATION CLOSURE — W2-004** from Gyan Prakash Rai, Project Owner and Approval Reviewer, on 2026-08-25 at 17:52:46 SGT (UTC+08:00). Its task evidence is recorded in [W2-004](W2-004.md), with machine-readable retrieval evidence in [W2-09 retrieval](W2-09-retrieval.json). The approved rollback and resource-cleanliness records are maintained in `docs/rollback-records/W2-local.md` and `docs/resource-cleanliness/W2-local.json`.
+W2-004 received **APPROVED FOR FINAL DOCUMENTATION CLOSURE — W2-004** from Gyan Prakash Rai, Project Owner and Approval Reviewer, on 2026-08-25 at 17:52:46 SGT (UTC+08:00). Its task evidence is recorded in [W2-004](W2/W2-004.md), with machine-readable retrieval evidence in [W2-09 retrieval](W2/W2-09-retrieval.json). The approved rollback and resource-cleanliness records are maintained in `docs/rollback-records/W2-local.md` and `docs/resource-cleanliness/W2-local.json`.
 
 The owner-executed local evidence records passing affected and complete suites, Ruff, MyPy, repository validation, Compose configuration, runner build and inspection, ingestion, authorized query and isolation, known-good rollback validation, exact collection removal, task-owned Docker teardown, external model-cache removal, teardown tests and zero-residue verification. The controlled regression's historical failure remains visible and is not converted into an ordinary PASS.
 
@@ -456,7 +530,7 @@ Column N reconciled all four W2-13 manifest documents together:
 
 1. `docs/learning/W2-learning-review.md`
 2. `docs/deployment-records/W2-signoff.md`
-3. `docs/test-evidence/W2-REVIEW-001.md`
+3. `docs/test-evidence/W2/W2-REVIEW-001.md`
 4. `docs/test-evidence/README.md`
 
 The detailed W2-11 architecture record at `docs/architecture/local-retrieval.md` remains unchanged and is not duplicated or replaced. The owner must reconcile the W2-13 tracker prompt/status cells and establish a clean committed baseline. The separately recorded W1-08 control gap remains open but was later accepted by the owner as a non-blocking deferral for W3-001. Tracker update responsibility: **Owner — Gyan Prakash Rai**.
@@ -650,7 +724,7 @@ working-copy notices remain accepted. Patch integrity otherwise passed with no
 whitespace error or conflict marker.
 
 W4-10 remains **NOT RUN — deferred until W4-06**. No
-`docs/test-evidence/W4-10-load.json` evidence exists. Production performance,
+`docs/test-evidence/W4/W4-10-load.json` evidence exists. Production performance,
 capacity, latency, SLO and readiness remain unproven.
 
 The evidence used deterministic fakes, synthetic inputs and in-process ASGI
@@ -702,16 +776,16 @@ W4-002 implements the default-off bounded agent controller for `AGENT-001`. The 
 
 The ten new Column M documents are:
 
-1. [W4-002 aggregate implementation and evidence](W4-002.md)
+1. [W4-002 aggregate implementation and evidence](W4/W4-002.md)
 2. [ADR-005 bounded LangGraph decision](../adr/ADR-005-langgraph.md)
 3. [Agent approval architecture](../architecture/agent-approval.md)
 4. [Agent-state retention and cleanup](../architecture/retention.md)
 5. [Agent execution and cost budget](../cost-estimates/budget.md)
-6. [W4-03 graph evidence](W4-03-graph.txt)
-7. [W4-04 read-tool evidence](W4-04-read-tool.txt)
-8. [W4-05 approval evidence](W4-05-approval.txt)
-9. [W4-06 budget evidence](W4-06-budgets.txt)
-10. [W4-07 state evidence](W4-07-state.txt)
+6. [W4-03 graph evidence](W4/W4-03-graph.txt)
+7. [W4-04 read-tool evidence](W4/W4-04-read-tool.txt)
+8. [W4-05 approval evidence](W4/W4-05-approval.txt)
+9. [W4-06 budget evidence](W4/W4-06-budgets.txt)
+10. [W4-07 state evidence](W4/W4-07-state.txt)
 
 Final implementation reconciliation is **22 CREATE, 20 UPDATE, 0 DELETE — 42 paths**. The 20 updates include the original 18 plus the separately approved stale-consumer remediations in `tests/feature/test_w2_002_embedder_contract.py` and `tests/feature/test_w2_003_ingestion_contract.py`.
 
@@ -758,14 +832,14 @@ bounded approvals after their prerequisites were satisfied.
 
 Canonical evidence and decision records:
 
-1. [W4-003 aggregate implementation and evidence](W4-003.md) — `OBS-001` / W4-003.
-2. [W3-09 telemetry metrics, schema and redaction evidence](W3-09-telemetry.txt) — `OBS-001` / W4-003.
-3. [W4-08 correlated trace evidence](W4-08-trace.json) — `OBS-001` / W4-003.
+1. [W4-003 aggregate implementation and evidence](W4/W4-003.md) — `OBS-001` / W4-003.
+2. [W3-09 telemetry metrics, schema and redaction evidence](W3/W3-09-telemetry.txt) — `OBS-001` / W4-003.
+3. [W4-08 correlated trace evidence](W4/W4-08-trace.json) — `OBS-001` / W4-003.
 4. [ADR-008: OpenTelemetry as observability contract](../adr/ADR-008-otel.md) — W4-003 decision record.
-5. [W4-09 safe agent-failure evidence](W4-09-failures.txt) — `AGENT-001` / W4-002.
-6. [W4-10 deterministic local API load evidence](W4-10-load.json) — `API-001` / W4-001.
-7. [W4-001 aggregate record and later W4-10 addendum](W4-001.md) — `API-001` / W4-001.
-8. [W4-002 aggregate record and later W4-09 addendum](W4-002.md) — `AGENT-001` / W4-002.
+5. [W4-09 safe agent-failure evidence](W4/W4-09-failures.txt) — `AGENT-001` / W4-002.
+6. [W4-10 deterministic local API load evidence](W4/W4-10-load.json) — `API-001` / W4-001.
+7. [W4-001 aggregate record and later W4-10 addendum](W4/W4-001.md) — `API-001` / W4-001.
+8. [W4-002 aggregate record and later W4-09 addendum](W4/W4-002.md) — `AGENT-001` / W4-002.
 
 W4-003 created a default-off, vendor-neutral and bounded telemetry boundary.
 The owner verified W3-09 with 37 passing tests and W4-08 with 6 passing tests.
@@ -962,17 +1036,17 @@ production readiness.
 
 Column M documents:
 
-1. [W5-001 aggregate evidence](W5-001.md) — business, implementation, testing,
+1. [W5-001 aggregate evidence](W5/W5-001.md) — business, implementation, testing,
    cost, evidence, limitations and lifecycle summary.
-2. [W5-02 bootstrap evidence](W5-02-bootstrap.txt) — static Terraform state
+2. [W5-02 bootstrap evidence](W5/W5-02-bootstrap.txt) — static Terraform state
    boundary, validation and cleanup evidence; plan/apply remain NOT RUN.
-3. [W5-02 Bedrock verification evidence](W5-02-bedrock-verification.txt) — AWS
+3. [W5-02 Bedrock verification evidence](W5/W5-02-bedrock-verification.txt) — AWS
    identity, model, quotas, paid runs, costs and the final live-model FAIL.
-4. [W5-03 security evidence](W5-03-security.txt) — Checkov, OPA, TFLint, IAM
+4. [W5-03 security evidence](W5/W5-03-security.txt) — Checkov, OPA, TFLint, IAM
    restrictions, historical findings and accepted sandbox limitations.
-5. [W5-04 IAM evidence](W5-04-iam.txt) — verified caller and static role, trust,
+5. [W5-04 IAM evidence](W5/W5-04-iam.txt) — verified caller and static role, trust,
    expiry, wildcard and bounded-resource controls.
-6. [W5-05 platform-plan boundary](W5-05-platform-plan.txt) — prominently records
+6. [W5-05 platform-plan boundary](W5/W5-05-platform-plan.txt) — prominently records
    that Terraform plan, apply, deployment, rollback and cloud teardown were
    NOT RUN.
 
@@ -1045,13 +1119,13 @@ readiness, or cloud readiness.
 
 Column M documents:
 
-1. [W5-003 aggregate evidence](W5-003.md) — business objective, exact 18-path
+1. [W5-003 aggregate evidence](W5/W5-003.md) — business objective, exact 18-path
    implementation boundary, architecture, 20 controls, TEST-001 results,
    historical remediation, limitations, cost, and lifecycle evidence.
-2. [W5-06 canonical policy evidence](W5-06-policy.txt) — ordered policy
+2. [W5-06 canonical policy evidence](W5/W5-06-policy.txt) — ordered policy
    inventory, mandatory tags, strict exception schema, safe findings, offline
    Checkov behavior, and joint-gate results.
-3. [W5 policy-gate business summary](W5-policy.txt) — concise explanation of
+3. [W5 policy-gate business summary](W5/W5-policy.txt) — concise explanation of
    what the joint gate protects, what blocks it, how exceptions work, and why
    policy PASS is not deployment approval.
 
@@ -1134,13 +1208,13 @@ the linked documents.
 
 Closed Column M/Column N manifest documents:
 
-1. [W5-002 aggregate evidence](W5-002.md) — historical Python 3.11 and failed
+1. [W5-002 aggregate evidence](W5/W5-002.md) — historical Python 3.11 and failed
    Debian evidence, Python 3.13.15 implementation/testing, composed-image
    security, SBOM/provenance/eligibility, cleanup and lifecycle limits.
-2. [W5-07 CI evidence](W5-07-ci.txt) — dependency controls, local quality and
+2. [W5-07 CI evidence](W5/W5-07-ci.txt) — dependency controls, local quality and
    policy results, pull-request and trusted-main boundaries, and hosted/cloud
    work that remains NOT RUN.
-3. [W5-08 supply-chain evidence](W5-08-supply-chain.txt) — qualified base and
+3. [W5-08 supply-chain evidence](W5/W5-08-supply-chain.txt) — qualified base and
    composed OCI identities, scanner results/limitations, SBOMs, provenance,
    eligibility, rollback identity, cleanup and retained resources.
 
@@ -1237,13 +1311,13 @@ No critical-CVE waiver was granted.
 
 Column M documents:
 
-1. [W5-002 aggregate evidence](W5-002.md) — business outcome, final local test
+1. [W5-002 aggregate evidence](W5/W5-002.md) — business outcome, final local test
    results, historical remediation, mandatory security failure, lifecycle,
    retained resources, and limitations.
-2. [W5-07 local CI and workflow evidence](W5-07-ci.txt) — executed local CI,
+2. [W5-07 local CI and workflow evidence](W5/W5-07-ci.txt) — executed local CI,
    policy, workflow, Terraform, security, rollback, and cleanliness checks plus
    the hosted and cloud work that remains NOT RUN.
-3. [W5-08 OCI supply-chain evidence](W5-08-supply-chain.txt) — exact candidate
+3. [W5-08 OCI supply-chain evidence](W5/W5-08-supply-chain.txt) — exact candidate
    identity, vulnerability results, OCI-layout remediation, completed SBOMs,
    and provenance/eligibility gaps.
 

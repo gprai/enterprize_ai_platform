@@ -372,11 +372,11 @@ own bounded approval and actual evidence.
 
 This sign-off summary relies on, but does not replace, the detailed records:
 
-- `docs/test-evidence/W4-001.md`;
-- `docs/test-evidence/W4-002.md`;
-- `docs/test-evidence/W4-003.md`;
-- `docs/test-evidence/W4-09-failures.txt`;
-- `docs/test-evidence/W4-10-load.json`;
+- `docs/test-evidence/W4/W4-001.md`;
+- `docs/test-evidence/W4/W4-002.md`;
+- `docs/test-evidence/W4/W4-003.md`;
+- `docs/test-evidence/W4/W4-09-failures.txt`;
+- `docs/test-evidence/W4/W4-10-load.json`;
 - `docs/rollback-records/W4-release.md`;
 - `docs/test-evidence/README.md`; and
 - `docs/learning/W4-learning-review.md` for the separately governed Week 4

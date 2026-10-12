@@ -1,0 +1,60 @@
+W2-02 — VECTOR-STORE CONTRACT
+=============================
+
+BUSINESS PURPOSE
+The vector-store contract lets the platform create or validate storage,
+write chunks, search authorized content, delete document content, and check
+health through one stable interface.
+
+ARCHITECTURE POSITION
+Callers depend on the contract rather than on Qdrant or OpenSearch directly.
+Vendor adapters translate the contract into their own client operations.
+The deterministic fake provides an offline reference implementation for
+always-on tests.
+
+OWNER-EXECUTED EVIDENCE
+Result: PASS
+Check: tests/contract/test_vector_store.py
+Observed result: 4 passed.
+
+The contract was also exercised by the complete suite, which reported
+157 passed, 1 expected skip, and 3 deselected.
+
+TECHNICAL IMPORTANCE
+- Keeps business behavior stable across storage choices.
+- Gives timeout, retry, exception, and return behavior a defined boundary.
+- Allows deterministic failure and authorization cases to be tested without
+  depending on a live service.
+- Makes adapter parity review possible.
+
+LAYMAN EXPLANATION
+The contract is a universal socket. The application uses the same plug while
+each database adapter handles the different wiring behind the wall.
+
+FAIL / REMEDIATION HISTORY
+No final vector-contract test failed. Three complete-suite failures were
+observed earlier in legacy feature-matrix validator consumers, outside the
+vector behavior itself. A separately approved bounded remediation aligned
+those consumers with owner-approved RAG-001; 19 focused tests and the later
+complete suite passed.
+
+NOT RUN
+- Production scale, load, latency, or capacity testing.
+- Live failover, backup restore, or disaster recovery.
+- Cross-vendor migration of production data.
+
+FINAL OWNER APPROVAL
+- Prompt/task ID: W2-001.
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Component status: Approved as part of the final-approved W2-001 local
+  retrieval baseline.
+- Reviewer name: Not supplied — accepted evidence gap.
+- Approval date and timestamp: Not supplied — accepted evidence gap.
+- Historical PASS, FAIL, NOT RUN, warnings and limitations remain exactly as
+  recorded above and in docs/test-evidence/W2/W2-001.md.
+- Tracker update responsibility: Owner.
+
+INTERVIEW TALKING POINTS
+- Explain interface segregation between business code and vendor SDKs.
+- Explain why a deterministic fake does not replace a real integration test.
+- Explain how a common contract supports migration and failure handling.

@@ -326,7 +326,7 @@ Live Bedrock, OpenSearch/AWS, real Presidio, production deployment, answer gener
 |---|---|---|---|
 | `docs/learning/W2-learning-review.md` | CREATE | Canonical W2-13 business, architecture and interview learning record | Closed — teach-back and Final Owner Approval recorded |
 | `docs/deployment-records/W2-signoff.md` | UPDATE | Register the W2-13 learning handover without changing the prior W2-12 approval | Closed — final W2-13 handover reconciled |
-| `docs/test-evidence/W2-REVIEW-001.md` | UPDATE | Register the W2-13 downstream document and pending closure | Closed — downstream handover reconciled |
+| `docs/test-evidence/W2/W2-REVIEW-001.md` | UPDATE | Register the W2-13 downstream document and pending closure | Closed — downstream handover reconciled |
 | `docs/test-evidence/README.md` | UPDATE | Index the canonical W2-13 learning record | Closed — final index state reconciled |
 
 Column N closed all four documents together. The README update did not substitute for the learning record or either downstream handover document.

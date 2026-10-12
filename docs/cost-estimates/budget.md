@@ -38,7 +38,7 @@ Historical failures remain visible: one Ruff diagnostic, four MyPy errors across
 
 ## Limitations and lifecycle
 
-Real provider/model behavior, token accounting from a live model, paid evaluation, network latency, production contention, capacity, availability, deployment readiness and cloud cost were NOT RUN and remain unproven. W4-09 and W4-10 were NOT RUN at W4-002 closure and were later completed under separate approvals and their original feature owners. The later [W4-10 local load evidence](../test-evidence/W4-10-load.json) is informational and is not a production SLO.
+Real provider/model behavior, token accounting from a live model, paid evaluation, network latency, production contention, capacity, availability, deployment readiness and cloud cost were NOT RUN and remain unproven. W4-09 and W4-10 were NOT RUN at W4-002 closure and were later completed under separate approvals and their original feature owners. The later [W4-10 local load evidence](../test-evidence/W4/W4-10-load.json) is informational and is not a production SLO.
 
 No network, Qdrant, tokenizer, provider/model, cloud or deployment activity occurred. Configuration rollback by disabling both agent flags passed automated testing. Operational release/deployment rollback and operational teardown remain NOT RUN. Temporary local stores and caches reached zero residue; intended source and test files remain retained.
 

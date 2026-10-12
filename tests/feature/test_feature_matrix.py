@@ -26,12 +26,14 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS,
+    EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS,
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
     EXPECTED_W6_003_IMPLEMENTATION_PATHS,
     EXPECTED_W6_004_IMPLEMENTATION_PATHS,
     EXPECTED_W7_001_EDITABLE_PATHS,
+    EXPECTED_W7_002_EDITABLE_PATHS,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -267,7 +269,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "W3-08",
                 "W3-11",
             ],
-            rag_feature["linked_tracker_steps"][-8:-1],
+            rag_feature["linked_tracker_steps"][-9:-2],
         )
         self.assertEqual(
             list(EXPECTED_W3_003_EDITABLE_PATHS),
@@ -288,9 +290,12 @@ class FeatureMatrixTests(unittest.TestCase):
         for path in EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS:
             self.assertIn(path, rag_feature["implementation_paths"])
         self.assertNotIn("W3-06", rag_feature["linked_tracker_steps"])
-        self.assertEqual("W7-001", rag_feature["linked_tracker_steps"][-1])
+        self.assertEqual("W7-002", rag_feature["linked_tracker_steps"][-1])
         self.assertTrue(
             set(EXPECTED_W7_001_EDITABLE_PATHS).issubset(rag_feature["implementation_paths"])
+        )
+        self.assertTrue(
+            set(EXPECTED_W7_002_EDITABLE_PATHS).issubset(rag_feature["implementation_paths"])
         )
         self.assertEqual("EVAL-001", eval_feature["id"])
         self.assertEqual("API-001", api_feature["id"])
@@ -299,6 +304,24 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual("AWS-001", aws_feature["id"])
         self.assertEqual("BED-001", bedrock_feature["id"])
         self.assertEqual("GHA-001", gha_feature["id"])
+
+    def test_rag_001_owns_the_exact_w7_002_processing_manifest(self) -> None:
+        rag_feature = read_matrix()["features"][1]
+        new_paths = [
+            path
+            for path in EXPECTED_W7_002_EDITABLE_PATHS
+            if path not in EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS
+        ]
+
+        self.assertEqual("W7-002", rag_feature["linked_tracker_steps"][-1])
+        self.assertEqual(
+            new_paths,
+            rag_feature["implementation_paths"][-len(new_paths) :],
+        )
+        self.assertEqual(
+            len(rag_feature["implementation_paths"]),
+            len(set(rag_feature["implementation_paths"])),
+        )
 
     def test_eval_001_owns_the_exact_w3_002_manifest(self) -> None:
         matrix = read_matrix()

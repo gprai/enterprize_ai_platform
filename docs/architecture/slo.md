@@ -117,7 +117,7 @@ The AWS FIS plan is not executable authority. It is limited to one EKS pod-delet
 - Final status: **APPROVED FOR USER TRACKER UPDATE — W6-002** within the documented local deployment-readiness boundary.
 - Code review status: **APPROVED** for the bounded W6-002 implementation; the architecture remains a locally validated design and W6-004 input, not live-cloud evidence.
 - Documentation review status: **APPROVED** as one of the five documents closed together under Column N.
-- Owner-executed test status: Local schema, exporter, SLO, rule, security, rollback-contract, teardown, quality, regression, and identity checks passed as recorded in `docs/test-evidence/W6-002.md`; skips, deselections, warning, and historical failures remain preserved.
+- Owner-executed test status: Local schema, exporter, SLO, rule, security, rollback-contract, teardown, quality, regression, and identity checks passed as recorded in `docs/test-evidence/W6/W6-002.md`; skips, deselections, warning, and historical failures remain preserved.
 - Accepted warnings, risks, gaps, and limitations: All Column M items are accepted without silently accepting any additional item. Initial targets are not proven production SLOs; the live alert destination, backup owner, private endpoints, Pod Identity/IAM, final retention, pricing, cost cap, AWS integrations, and production traffic evidence remain absent.
 - NOT RUN and INDETERMINATE: Live AWS/EKS export, dashboard and alert operation, FIS execution, production SLO proof, operational rollback, and cloud teardown remain **NOT RUN**. Remaining open INDETERMINATE activities: **None**.
 - Deployment facts: Configuration and synthetic local composition were validated; no observability or application resource was deployed.

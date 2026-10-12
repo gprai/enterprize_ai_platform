@@ -48,7 +48,7 @@ Historical TEST-001 failures remain visible: one Ruff diagnostic, four MyPy erro
 
 Ordinary tests used deterministic fakes, synthetic inputs and temporary local stores. No live identity, external approval service, real write, network, model/provider, Qdrant, cloud or deployment activity occurred. Provider/cloud cost was USD 0; local CPU, disk, memory, owner time and workstation cost were not monetized.
 
-The evidence does not prove production identity, production data governance, real write safety, provider behavior, performance, availability, deployment or cloud readiness. Python 3.11 execution remains NOT RUN. W4-09 and W4-10 were NOT RUN when W4-002 closed; their later separately approved closures remain under `AGENT-001` and `API-001` and are recorded in [W4-09 evidence](../test-evidence/W4-09-failures.txt) and [W4-10 evidence](../test-evidence/W4-10-load.json).
+The evidence does not prove production identity, production data governance, real write safety, provider behavior, performance, availability, deployment or cloud readiness. Python 3.11 execution remains NOT RUN. W4-09 and W4-10 were NOT RUN when W4-002 closed; their later separately approved closures remain under `AGENT-001` and `API-001` and are recorded in [W4-09 evidence](../test-evidence/W4/W4-09-failures.txt) and [W4-10 evidence](../test-evidence/W4/W4-10-load.json).
 
 Disabling both flags is configuration rollback and passed automated testing. Purging terminal records is cleanup. Operational release/deployment rollback and operational teardown are NOT RUN. Temporary store artifacts reached zero residue; the intended implementation and test files remain retained.
 

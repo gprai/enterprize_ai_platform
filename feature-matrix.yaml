@@ -221,7 +221,20 @@
           "tests/security/test_terraform_security.py",
           "tests/feature/test_terraform_sandbox_plan.py",
           "tests/feature/test_policy_gate.py",
-          "tests/security/test_policy_pack.py"
+          "tests/security/test_policy_pack.py",
+          "configs/processing/w7-002.yaml",
+          "src/enterprise_ai_platform/processing/__init__.py",
+          "src/enterprise_ai_platform/processing/contracts.py",
+          "src/enterprise_ai_platform/processing/quality.py",
+          "src/enterprise_ai_platform/processing/pipeline.py",
+          "tests/fakes/w7_002_processing.py",
+          "tests/unit/test_w7_002_processing.py",
+          "tests/contract/test_w7_002_processing_contract.py",
+          "tests/integration/test_w7_002_processing_composition.py",
+          "tests/feature/test_w7_002_data_quality.py",
+          "tests/security/test_w7_002_processing_security.py",
+          "tests/rollback/test_w7_002_processing_rollback.py",
+          "tests/teardown/test_w7_002_processing_cleanliness.py"
       ],
       "status": "In Progress",
       "linked_tracker_steps": [
@@ -242,7 +255,8 @@
         "W3-05",
         "W3-08",
           "W3-11",
-          "W7-001"
+          "W7-001",
+          "W7-002"
       ]
     },
     {

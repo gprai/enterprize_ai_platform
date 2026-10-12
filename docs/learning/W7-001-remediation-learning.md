@@ -304,7 +304,7 @@ The approved implementation identity is HEAD
 `70a4bfb75cb3c3f751c411b3497b42ccfc7e994d`. The owner-reviewed
 pre-Column-N learning-document identity is
 `fba6ac6e985a2d22f70f6378711d08a66323baec1130e91d6eb03b948bb08edd`;
-the evidence candidate is `docs/test-evidence/W7-001-remediation.md` with
+the evidence candidate is `docs/test-evidence/W7/W7-001-remediation.md` with
 pre-Column-N SHA-256
 `e0c4f22d0f7aae677f389bf1f56d8b8210b9a1753f16176fb214aaf3d42ccb9b`.
 

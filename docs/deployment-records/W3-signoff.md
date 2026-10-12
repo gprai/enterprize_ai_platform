@@ -184,8 +184,8 @@ All historical failures and the resolved INDETERMINATE observation remain eviden
 | Action | Path | Purpose |
 | --- | --- | --- |
 | CREATE | `docs/rollback-records/W3-rag.md` | Human-readable rollback chronology, identities, results, recovery and lifecycle record |
-| CREATE | `docs/test-evidence/W3-004.md` | Aggregate W3-004 implementation and verification evidence |
-| CREATE | `docs/test-evidence/W3-11-rag-rollback.txt` | Exact rollback acceptance evidence for tracker step W3-11 |
+| CREATE | `docs/test-evidence/W3/W3-004.md` | Aggregate W3-004 implementation and verification evidence |
+| CREATE | `docs/test-evidence/W3/W3-11-rag-rollback.txt` | Exact rollback acceptance evidence for tracker step W3-11 |
 | UPDATE | `docs/test-evidence/README.md` | Index the W3-004 evidence without rewriting earlier approvals |
 
 All four documents were owner-reviewed and closed together under Column N. The detailed lifecycle and artifact identities are recorded in `docs/rollback-records/W3-rag.md`.

@@ -25,7 +25,7 @@ def test_cli_prints_one_json_record_without_creating_a_file(
             "--result",
             "PASS",
             "--report-path",
-            "docs/test-evidence/W1-003.md",
+            "docs/test-evidence/W1/W1-003.md",
         ],
         clock=FixedClock(),
     )
@@ -34,4 +34,4 @@ def test_cli_prints_one_json_record_without_creating_a_file(
 
     assert return_code == 0
     assert payload["git_sha"] == "UNCOMMITTED"
-    assert payload["report_path"] == "docs/test-evidence/W1-003.md"
+    assert payload["report_path"] == "docs/test-evidence/W1/W1-003.md"

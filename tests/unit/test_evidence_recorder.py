@@ -24,7 +24,7 @@ def test_uncommitted_record_is_deterministic() -> None:
         git_state=git_state,
         environment=FakeEnvironmentProvider().name(),
         result="PASS",
-        report_path="docs/test-evidence/W1-003.md",
+        report_path="docs/test-evidence/W1/W1-003.md",
         clock=FixedClock(),
     )
 
@@ -48,7 +48,7 @@ def test_approved_results_are_accepted(result: str) -> None:
         git_state="UNCOMMITTED",
         environment="sandbox",
         result=result,
-        report_path="docs/test-evidence/W1-003.md",
+        report_path="docs/test-evidence/W1/W1-003.md",
         clock=FixedClock(),
     )
     assert record.result == result
@@ -62,7 +62,7 @@ def test_unapproved_result_is_rejected() -> None:
             git_state="UNCOMMITTED",
             environment="sandbox",
             result="SUCCESS",
-            report_path="docs/test-evidence/W1-003.md",
+            report_path="docs/test-evidence/W1/W1-003.md",
             clock=FixedClock(),
         )
 
@@ -76,7 +76,7 @@ def test_non_utc_clock_is_rejected() -> None:
             git_state="UNCOMMITTED",
             environment="sandbox",
             result="PASS",
-            report_path="docs/test-evidence/W1-003.md",
+            report_path="docs/test-evidence/W1/W1-003.md",
             clock=non_utc_clock,
         )
 

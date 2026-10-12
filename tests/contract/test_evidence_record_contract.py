@@ -32,7 +32,7 @@ def test_serialized_record_has_exact_approved_keys() -> None:
         git_state="UNCOMMITTED",
         environment="sandbox",
         result="PASS",
-        report_path="docs/test-evidence/W1-003.md",
+        report_path="docs/test-evidence/W1/W1-003.md",
         clock=FixedClock(),
     )
     payload = json.loads(record.to_json())
@@ -49,7 +49,7 @@ def test_uncommitted_sha_requires_matching_state() -> None:
             git_state="DIRTY",
             environment="sandbox",
             result="PASS",
-            report_path="docs/test-evidence/W1-003.md",
+            report_path="docs/test-evidence/W1/W1-003.md",
             clock=FixedClock(),
         )
 
@@ -61,7 +61,7 @@ def test_committed_sha_requires_dirty_state() -> None:
         git_state="DIRTY",
         environment="sandbox",
         result="PASS",
-        report_path="docs/test-evidence/W1-003.md",
+        report_path="docs/test-evidence/W1/W1-003.md",
         clock=FixedClock(),
     )
     assert record.git_sha == "a" * 40

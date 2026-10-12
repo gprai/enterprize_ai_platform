@@ -1,0 +1,65 @@
+W2-01 — RETRIEVAL MODELS
+========================
+
+BUSINESS PURPOSE
+The retrieval models give document chunks, requests, authorization context,
+collection specifications, and search results one validated meaning across
+all vector-store adapters. This reduces the risk that different backends
+interpret tenant, classification, identity, or embedding information
+differently.
+
+ARCHITECTURE POSITION
+The models are the data boundary above the deterministic fake, Qdrant, and
+OpenSearch adapters. They express the owner-approved DATA-002, DATA-003,
+EMB-001, and SEC-001 contracts without depending on a vendor client.
+
+OWNER-EXECUTED EVIDENCE
+Result: PASS
+Check: tests/unit/test_models.py
+Observed result: 7 passed.
+
+The complete local suite later reported 157 passed, 1 expected skip, and
+3 deselected. MyPy reported no issues in 25 source files, and Ruff reported
+all checks passed.
+
+TECHNICAL IMPORTANCE
+- Deterministic identifiers make repeated ingestion of the same approved
+  identity inputs address the same logical chunk.
+- Validated metadata gives authorization and adapters a stable contract.
+- A single approved embedding dimension prevents incompatible vectors from
+  being silently mixed.
+- Document version, content hash, owner, PII status, and ingestion status
+  preserve provenance and lifecycle meaning.
+
+LAYMAN EXPLANATION
+These models are the standard form attached to every searchable page. Every
+database receives the same fields and rules, so changing the filing system
+does not change what the page means or who may see it.
+
+FAIL / REMEDIATION HISTORY
+Ruff initially rejected three legacy UTC spellings across approved files.
+The owner approved a mechanical timezone.UTC-to-UTC change. Directly affected
+tests, Ruff, MyPy, and the complete suite later passed. No model behavior or
+test expectation was changed by that remediation.
+
+NOT RUN
+- Real business-document ingestion.
+- Production embedding generation or model download.
+- Production schema migration or compatibility validation.
+
+FINAL OWNER APPROVAL
+- Prompt/task ID: W2-001.
+- Owner decision: FINAL APPROVAL AFTER OWNER TEST — APPROVED.
+- Component status: Approved as part of the final-approved W2-001 local
+  retrieval baseline.
+- Reviewer name: Not supplied — accepted evidence gap.
+- Approval date and timestamp: Not supplied — accepted evidence gap.
+- Historical PASS, FAIL, NOT RUN, warnings and limitations remain exactly as
+  recorded above and in docs/test-evidence/W2/W2-001.md.
+- Tracker update responsibility: Owner.
+
+INTERVIEW TALKING POINTS
+- Explain why domain models should not expose vendor request objects.
+- Explain deterministic IDs and idempotent ingestion.
+- Explain why embeddings need dimension validation and security metadata.
+- Explain the difference between data validation and authorization.

@@ -110,4 +110,4 @@ The owner will retain this external evidence for 180 days and then owns its dele
 - Conditions: preserve every PASS, FAIL, NOT RUN, INDETERMINATE, warning, risk, limitation, deferral and residual-resource fact; infer no production or cloud readiness from local, fake, mocked, injected or synthetic evidence; only the owner updates Excel or mutates Git.
 - Next-task handover: future work may rely on the approved deterministic local rollback contract and protected W3-002 identities. Deployment, live-provider recovery, production performance/security/privacy/residency and cloud lifecycle require separate approval and evidence.
 - Tracker update responsibility: Owner
-- Column N reconciliation: this document, `docs/test-evidence/W3-004.md`, `docs/test-evidence/W3-11-rag-rollback.txt` and `docs/test-evidence/README.md` closed together; no partial closure.
+- Column N reconciliation: this document, `docs/test-evidence/W3/W3-004.md`, `docs/test-evidence/W3/W3-11-rag-rollback.txt` and `docs/test-evidence/README.md` closed together; no partial closure.

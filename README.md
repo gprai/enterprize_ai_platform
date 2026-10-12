@@ -35,7 +35,7 @@ The foundation includes a minimal FastAPI application with a non-sensitive healt
 - **NOT RUN:** FastAPI service startup, live HTTP testing, Docker, model loading, external-service integration, deployment, cloud mutation, rollback execution, and infrastructure teardown.
 - **Pending:** Owner documentation review, Column N Final Approval, and the owner-managed Excel tracker update.
 
-The redacted command evidence is recorded in `docs/test-evidence/W1-002.md`. The supplied package-install excerpt did not contain its final summary, so the documentation does not infer a separate installation PASS.
+The redacted command evidence is recorded in `docs/test-evidence/W1/W1-002.md`. The supplied package-install excerpt did not contain its final summary, so the documentation does not infer a separate installation PASS.
 
 ### Why It Matters
 

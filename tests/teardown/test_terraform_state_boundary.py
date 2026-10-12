@@ -39,7 +39,7 @@ def test_only_tracked_provider_locks_may_exist_without_runtime_residue() -> None
 
 
 def test_no_real_plan_json_or_excluded_evidence_path_exists() -> None:
-    assert not (ROOT / "docs/test-evidence/W5-terraform.txt").exists()
+    assert not (ROOT / "docs/test-evidence/W5/W5-terraform.txt").exists()
     assert not (ROOT / "reports/verification/bedrock-owner-test-result.json").exists()
     assert tuple(ROOT.rglob("terraform-plan*.json")) == ()
 

@@ -21,14 +21,14 @@ def test_no_test_tool_cache_or_deepeval_residue_exists() -> None:
 def test_approved_w1_003_documents_exist_without_json_evidence() -> None:
     approved_documents = (
         REPOSITORY_ROOT / "docs" / "test-evidence" / "README.md",
-        REPOSITORY_ROOT / "docs" / "test-evidence" / "W1-003.md",
+        REPOSITORY_ROOT / "docs" / "test-evidence" / "W1" / "W1-003.md",
     )
     missing_documents = [
         path.relative_to(REPOSITORY_ROOT).as_posix()
         for path in approved_documents
         if not path.exists()
     ]
-    unapproved_json_evidence = REPOSITORY_ROOT / "docs" / "test-evidence" / "W1-003.json"
+    unapproved_json_evidence = REPOSITORY_ROOT / "docs" / "test-evidence" / "W1" / "W1-003.json"
 
     assert missing_documents == []
     assert not unapproved_json_evidence.exists()

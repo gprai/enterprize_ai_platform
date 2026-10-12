@@ -174,13 +174,13 @@ A gap may be marked closed only when:
 
 ## Related records
 
-- [W6-004 lifecycle evidence](../test-evidence/W6-004.md)
+- [W6-004 lifecycle evidence](../test-evidence/W6/W6-004.md)
 - [Week 6 sign-off](../deployment-records/W6-signoff.md)
 - [W6-004 resource cleanliness](../resource-cleanliness/W6-final.json)
 - [W6-004 application rollback](../rollback-records/W6-application.md)
 - [W6-004 infrastructure rollback](../rollback-records/W6-infrastructure.md)
 - [W6-004 issue and remediation register](W6-004-issue-and-remediation-register.md)
-- [W7-001-remediation implementation and TEST-001 evidence](../test-evidence/W7-001-remediation.md)
+- [W7-001-remediation implementation and TEST-001 evidence](../test-evidence/W7/W7-001-remediation.md)
 - [W7-001-remediation governance traceability](W7-001-remediation-traceability.md)
 - [W7-001-remediation learning guide](../learning/W7-001-remediation-learning.md)
 

@@ -199,7 +199,7 @@ performed by this remediation.
 The detailed 81-row mapping, including GAP-01 through GAP-28, is retained in
 `docs/governance/W7-001-remediation-traceability.md`. The implementation and
 TEST-001 evidence is retained in
-`docs/test-evidence/W7-001-remediation.md`.
+`docs/test-evidence/W7/W7-001-remediation.md`.
 
 GAP-01 through GAP-04 remain:
 
@@ -234,14 +234,14 @@ scope and approval:
 
 ## Related records
 
-- [W6-004 lifecycle evidence](../test-evidence/W6-004.md)
+- [W6-004 lifecycle evidence](../test-evidence/W6/W6-004.md)
 - [W6-004 learning review](../learning/W6-learning-review.md)
 - [W6-004 application rollback](../rollback-records/W6-application.md)
 - [W6-004 infrastructure rollback](../rollback-records/W6-infrastructure.md)
 - [W6-004 teardown record](../deployment-records/W6-destroy-plan.md)
 - [W6-004 lifecycle runbook](../deployment-records/W6-lifecycle-runbook.md)
 - [W6-004 gap analysis](W6-004-gap-analysis.md)
-- [W7-001-remediation implementation and TEST-001 evidence](../test-evidence/W7-001-remediation.md)
+- [W7-001-remediation implementation and TEST-001 evidence](../test-evidence/W7/W7-001-remediation.md)
 - [W7-001-remediation governance traceability](W7-001-remediation-traceability.md)
 - [W7-001-remediation learning guide](../learning/W7-001-remediation-learning.md)
 

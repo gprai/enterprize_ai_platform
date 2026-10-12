@@ -183,7 +183,7 @@ All recorded warnings, risks, evidence gaps, limitations, NOT RUN work and histo
 |---|---|---|---|
 | `docs/learning/W2-learning-review.md` | CREATE | Final-approved | Closed |
 | `docs/deployment-records/W2-signoff.md` | UPDATE | Final handover reconciled | Closed |
-| `docs/test-evidence/W2-REVIEW-001.md` | UPDATE | Downstream handover reconciled | Closed |
+| `docs/test-evidence/W2/W2-REVIEW-001.md` | UPDATE | Downstream handover reconciled | Closed |
 | `docs/test-evidence/README.md` | UPDATE | Final learning record indexed | Closed |
 
 Tracker update responsibility: **Owner — Gyan Prakash Rai**.

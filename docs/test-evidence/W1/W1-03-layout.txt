@@ -1,0 +1,32 @@
+W1-03 — Repository layout
+
+Record type: Retrospective evidence-gap reconciliation
+Original tracker step: W1-03
+Evidence-record ID: W1-03-layout
+Canonical evidence path: docs/test-evidence/W1/W1-03-layout.txt
+Purpose: Prove that the required repository and documentation skeleton was present.
+Aggregate evidence source: docs/test-evidence/W1/W1-001.md; docs/deployment-records/W1-signoff.md where consistent
+Supported historical result: PASS within the W1-001 repository-layout and validation test scope.
+Supported facts: The owner-executed W1-001 integration checks reported 3 tests OK, repository validation reported the approved contract present, and the Week 1 sign-off accepted the repository foundation.
+Original step-level command output availability: Original step-level evidence unavailable; no contemporaneous layout listing was retained at this canonical path.
+Original find or equivalent output: Unavailable.
+Retrospective command execution: NOT RUN.
+Current repository use restriction: The current W2-era repository layout was not used to recreate or simulate the historical W1 result.
+Evidence limitation: The aggregate approved evidence supports the historical outcome, but there is no contemporaneous step-level directory listing.
+Deployment status: NOT RUN; W1-001 created no deployed application or cloud resource.
+Rollback facts: NOT RUN; no release existed. Any documentation rollback requires a separately approved document change.
+Teardown facts: The W1-001 automated cleanliness test passed within its coded repository scope; resource-deletion teardown was NOT RUN because no managed resource existed.
+Remaining action: Owner decides whether this disclosed evidence gap is accepted in the tracker.
+Responsible owner: Gyan Prakash Rai
+Tracker update responsibility: Owner
+Current reconciliation approval:
+Reviewer: Gyan Prakash Rai
+Reviewer role: Project Owner, Learner and Approval Reviewer
+Decision: APPROVED WITH QUALIFICATIONS
+Documentation review: APPROVED
+Approval timestamp: 2026-08-25 21:38:20 SGT (UTC+08:00)
+Approval scope: Accuracy of this retrospective gap disclosure; original step-level output remains unavailable and retrospective execution remains NOT RUN.
+Evidence completeness: QUALIFIED
+W1-08 control status: OPEN CONTROL GAP
+Final status: APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION
+Tracker update responsibility: Owner

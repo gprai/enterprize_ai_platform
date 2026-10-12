@@ -1,0 +1,74 @@
+{
+  "record_type": "Retrospective evidence-gap reconciliation",
+  "task_id": "W1-06",
+  "evidence_record_id": "W1-06-tests",
+  "canonical_evidence_path": "docs/test-evidence/W1/W1-06-tests.json",
+  "historical_result": "PASS within the approved final W1-003 local test scope",
+  "historical_result_source": [
+    "docs/test-evidence/W1/W1-003.md",
+    "docs/deployment-records/W1-signoff.md"
+  ],
+  "approved_test_categories": [
+    "unit",
+    "integration",
+    "contract",
+    "feature",
+    "smoke",
+    "security",
+    "teardown"
+  ],
+  "supported_historical_facts": [
+    "Deterministic fake providers and automatic category markers were implemented.",
+    "AWS and paid tests were excluded by default.",
+    "The final W1-003 default suite reported 73 passed, 2 deselected, and 1 accepted warning.",
+    "The final W1-003 teardown run reported 9 passed.",
+    "Scoped Ruff and MyPy checks passed in the recorded W1-003 scope."
+  ],
+  "step_level_evidence_availability": "Original W1-06 granular output unavailable; approved aggregate W1-003 evidence is available",
+  "retrospective_execution": "NOT RUN",
+  "current_repository_used_as_historical_evidence": false,
+  "warnings": [
+    "Accepted non-blocking Starlette/TestClient deprecation warning",
+    "Two pre-existing W1-001 Ruff findings remained deferred outside the W1-003 boundary"
+  ],
+  "evidence_gaps": [
+    "No contemporaneous W1-06 step-level evidence file",
+    "Repository-wide Ruff was not proved by the scoped W1-003 result"
+  ],
+  "not_run": [
+    "Retrospective W1-06 execution",
+    "AWS tests",
+    "Paid tests",
+    "Live integrations",
+    "Deployment",
+    "Rollback execution",
+    "Cloud teardown"
+  ],
+  "indeterminate": [
+    "Initial DeepEval telemetry or update-check activity"
+  ],
+  "retained_resources": [
+    "The external virtual environment was intentionally retained for later owner work with accepted local disk usage"
+  ],
+  "deployment": "NOT RUN; W1-003 was a local testing and evidence foundation",
+  "rollback": "NOT RUN; no deployment existed and no code rollback was required after final passing validation",
+  "teardown": "Repository cleanup and W1-003 teardown tests passed within their tested scope; the external environment was intentionally retained",
+  "deferred_actions": [
+    "Address the deferred historical Ruff findings only under separate owner approval",
+    "Maintain or remove the retained external environment by owner decision"
+  ],
+  "responsible_owner": "Gyan Prakash Rai",
+  "tracker_update_responsibility": "Owner",
+  "final_owner_approval": {
+    "reviewer": "Gyan Prakash Rai",
+    "reviewer_role": "Project Owner, Learner and Approval Reviewer",
+    "decision": "APPROVED WITH QUALIFICATIONS",
+    "documentation_review_decision": "APPROVED",
+    "approval_timestamp": "2026-08-25 21:38:20 SGT (UTC+08:00)",
+    "approval_scope": "Accuracy of the retrospective evidence-gap disclosure; not recovered contemporaneous evidence",
+    "evidence_completeness": "QUALIFIED",
+    "w1_08_control_status": "OPEN CONTROL GAP",
+    "tracker_update_responsibility": "Owner",
+    "final_status": "APPROVED FOR USER TRACKER UPDATE — WEEKLY-LEARN-001 — WEEK 1 CONTROL FOUNDATION"
+  }
+}

@@ -116,9 +116,9 @@ exporters, residency, retention or production lifecycle requirements change.
 
 ## Evidence links
 
-- [W4-003 aggregate evidence](../test-evidence/W4-003.md)
-- [W3-09 telemetry evidence](../test-evidence/W3-09-telemetry.txt)
-- [W4-08 trace evidence](../test-evidence/W4-08-trace.json)
+- [W4-003 aggregate evidence](../test-evidence/W4/W4-003.md)
+- [W3-09 telemetry evidence](../test-evidence/W3/W3-09-telemetry.txt)
+- [W4-08 trace evidence](../test-evidence/W4/W4-08-trace.json)
 
 ## Final Owner Approval — W4-003 Closure
 

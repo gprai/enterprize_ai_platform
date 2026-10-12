@@ -274,10 +274,35 @@ EXPECTED_W7_001_EDITABLE_PATHS = (
     "tests/feature/test_policy_gate.py",
     "tests/security/test_policy_pack.py",
 )
-EXPECTED_RAG_IMPLEMENTATION_PATHS = EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS + tuple(
+EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS = EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS + tuple(
     path
     for path in EXPECTED_W7_001_EDITABLE_PATHS
     if path not in EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS
+)
+EXPECTED_W7_002_EDITABLE_PATHS = (
+    "configs/processing/w7-002.yaml",
+    "src/enterprise_ai_platform/processing/__init__.py",
+    "src/enterprise_ai_platform/processing/contracts.py",
+    "src/enterprise_ai_platform/processing/quality.py",
+    "src/enterprise_ai_platform/processing/pipeline.py",
+    "tests/fakes/w7_002_processing.py",
+    "tests/unit/test_w7_002_processing.py",
+    "tests/contract/test_w7_002_processing_contract.py",
+    "tests/integration/test_w7_002_processing_composition.py",
+    "tests/feature/test_w7_002_data_quality.py",
+    "tests/security/test_w7_002_processing_security.py",
+    "tests/rollback/test_w7_002_processing_rollback.py",
+    "tests/teardown/test_w7_002_processing_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+)
+EXPECTED_RAG_IMPLEMENTATION_PATHS = EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS + tuple(
+    path
+    for path in EXPECTED_W7_002_EDITABLE_PATHS
+    if path not in EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS
 )
 EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W2-03",
@@ -298,6 +323,7 @@ EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W3-08",
     "W3-11",
     "W7-001",
+    "W7-002",
 )
 EXPECTED_RAG_FEATURE = {
     "id": "RAG-001",
@@ -851,6 +877,7 @@ REQUIRED_DIRECTORIES = (
     "configs/releases/versions",
     "configs/verification",
     "configs/ci",
+    "configs/processing",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -866,6 +893,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/telemetry",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
+    "src/enterprise_ai_platform/processing",
     "src/enterprise_ai_platform/release_rollback",
     "src/enterprise_ai_platform/retrieval",
     "src/enterprise_ai_platform/retrieval/adapters",

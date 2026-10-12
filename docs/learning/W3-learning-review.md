@@ -757,12 +757,12 @@ The key trade-off was choosing deterministic local evidence and strict fail-clos
 The learning summary was reconciled from the supplied Week 3 governing and evidence records, including:
 
 - W3-001 final Column L and final owner-evidence summary;
-- `docs/test-evidence/W3-001.md` and W3-001 component records as summarized in the evidence README;
-- `docs/test-evidence/W3-002.md`;
-- `docs/test-evidence/W3-06-golden.txt`;
-- `docs/test-evidence/W3-10-gate.txt`;
+- `docs/test-evidence/W3/W3-001.md` and W3-001 component records as summarized in the evidence README;
+- `docs/test-evidence/W3/W3-002.md`;
+- `docs/test-evidence/W3/W3-06-golden.txt`;
+- `docs/test-evidence/W3/W3-10-gate.txt`;
 - W3-002 immutable baseline-promotion records;
-- `docs/test-evidence/W3-003.md`;
+- `docs/test-evidence/W3/W3-003.md`;
 - W3-003 guardrail/security component records;
 - final W3-004 Main Prompt, Gate 2 reconciliation and Column L Code Edit Approval.
 

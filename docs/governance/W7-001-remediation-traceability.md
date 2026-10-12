@@ -23,7 +23,7 @@ This record maps 81 governed issue identifiers to the prevention controls and lo
 
 Evidence source abbreviations:
 
-- **W7** — `docs/test-evidence/W7-001-remediation.md`
+- **W7** — `docs/test-evidence/W7/W7-001-remediation.md`
 - **W6** — retained `W6-004-gap-analysis.md` or `W6-004-issue-and-remediation-register.md`
 - **Both** — W7 prevention evidence interpreted together with retained W6 history
 
@@ -201,7 +201,7 @@ Approved implementation identity is repository HEAD
 `70a4bfb75cb3c3f751c411b3497b42ccfc7e994d`. The owner-reviewed
 pre-Column-N identity of this document is
 `0c8dafc151233fe446f6097d185f46be8b4c6fbf8eceac5672cd32b885784eb0`.
-The evidence source is `docs/test-evidence/W7-001-remediation.md`; its
+The evidence source is `docs/test-evidence/W7/W7-001-remediation.md`; its
 pre-Column-N identity is
 `e0c4f22d0f7aae677f389bf1f56d8b8210b9a1753f16176fb214aaf3d42ccb9b`.
 No live data, model, deployment, saved plan or new recovery snapshot was

@@ -1,0 +1,37 @@
+schema_version: "w7-002.processing-config.v1"
+feature_id: "RAG-001"
+region: "ap-southeast-1"
+classifications:
+  - "PUBLIC"
+  - "INTERNAL"
+quality:
+  required_fields:
+    - "document_id"
+    - "tenant_id"
+    - "classification"
+    - "source_identity_sha256"
+    - "content_sha256"
+    - "normalized_content_sha256"
+  minimum_drift_sample: 20
+  volume_minimum_ratio: 0.5
+  volume_maximum_ratio: 2.0
+  duplicate_pass_maximum_ratio: 0.05
+  duplicate_warning_maximum_ratio: 0.10
+processing:
+  maximum_attempts: 2
+  document_deadline_seconds: 120.0
+  concurrency: 1
+replay:
+  maximum_documents: 100
+  maximum_document_bytes: 5242880
+  maximum_total_bytes: 104857600
+  maximum_duration_seconds: 900
+  maximum_source_age_hours: 24
+  single_tenant: true
+  immutable_version_required: true
+capabilities:
+  quality_engine: "provider_neutral_compatible"
+  checkpoint_store: "protocol_in_memory_fake_only"
+  glue_spark: "compatible_interface_only"
+  network_access: "disabled"
+  destructive_reprocessing: "separate_owner_approval_required"
