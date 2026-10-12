@@ -140,12 +140,14 @@ module "kms" {
 module "storage" {
   source = "../../modules/storage"
 
-  bucket_name        = local.platform_bucket
-  kms_key_arn        = module.kms.key_arn
-  aws_account_id     = var.aws_account_id
-  aws_region         = var.aws_region
-  bedrock_log_prefix = "bedrock-model-invocations"
-  tags               = var.mandatory_tags
+  bucket_name              = local.platform_bucket
+  kms_key_arn              = module.kms.key_arn
+  aws_account_id           = var.aws_account_id
+  aws_region               = var.aws_region
+  bedrock_log_prefix       = "bedrock-model-invocations"
+  data_zone_prefixes       = var.w7_data_zone_prefixes
+  data_zone_retention_days = var.w7_data_zone_retention_days
+  tags                     = var.mandatory_tags
 }
 
 module "secrets" {
@@ -163,6 +165,7 @@ module "iam" {
   aws_account_id                 = var.aws_account_id
   aws_region                     = var.aws_region
   platform_bucket_name           = local.platform_bucket
+  data_zone_prefixes             = var.w7_data_zone_prefixes
   kms_key_arn                    = module.kms.key_arn
   opensearch_domain_name         = local.opensearch_domain
   bedrock_inference_profile_id   = var.bedrock_model_id

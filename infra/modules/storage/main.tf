@@ -3,7 +3,6 @@ locals {
 }
 
 resource "aws_s3_bucket" "this" {
-  #checkov:skip=CKV2_AWS_62:No event-notification destination is approved for the bounded learning-sandbox platform bucket.
   #checkov:skip=CKV_AWS_144:Cross-region replication conflicts with the approved single-region sandbox and no-fallback design.
   #checkov:skip=CKV_AWS_18:Access-log destination resources and their recurring cost are not approved for this bounded learning sandbox.
   bucket        = var.bucket_name
@@ -109,7 +108,34 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     }
   }
 
+  dynamic "rule" {
+    for_each = var.data_zone_retention_days
+    content {
+      id     = "expire-w7-${rule.key}"
+      status = "Enabled"
+
+      filter {
+        prefix = var.data_zone_prefixes[rule.key]
+      }
+
+      expiration {
+        days = rule.value
+      }
+
+      noncurrent_version_expiration {
+        noncurrent_days = rule.value
+      }
+    }
+  }
+
   depends_on = [aws_s3_bucket_versioning.this]
+}
+
+resource "aws_s3_bucket_notification" "eventbridge" {
+  bucket      = aws_s3_bucket.this.id
+  eventbridge = true
+
+  depends_on = [aws_s3_bucket_public_access_block.this]
 }
 
 data "aws_iam_policy_document" "tls_only" {

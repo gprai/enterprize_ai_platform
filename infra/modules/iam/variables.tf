@@ -10,6 +10,20 @@ variable "platform_bucket_name" {
   type = string
 }
 
+variable "data_zone_prefixes" {
+  type        = map(string)
+  description = "Exact W7-001 governed prefixes used for least-privilege S3 policies."
+  validation {
+    condition = var.data_zone_prefixes == {
+      raw        = "raw/"
+      quarantine = "quarantine/"
+      processed  = "processed/"
+      evidence   = "evidence/"
+    }
+    error_message = "data_zone_prefixes must contain the exact four W7-001 prefixes."
+  }
+}
+
 variable "kms_key_arn" {
   type = string
 }

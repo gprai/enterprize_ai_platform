@@ -229,13 +229,55 @@ EXPECTED_W3_004_EDITABLE_PATHS = (
     "tests/teardown/test_w3_003_guardrails_cleanliness.py",
 )
 _W3_004_EDITABLE_PATH_SET = frozenset(EXPECTED_W3_004_EDITABLE_PATHS)
-EXPECTED_RAG_IMPLEMENTATION_PATHS = (
+EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS = (
     tuple(
         path
         for path in EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS
         if path not in _W3_004_EDITABLE_PATH_SET
     )
     + EXPECTED_W3_004_EDITABLE_PATHS
+)
+EXPECTED_W7_001_EDITABLE_PATHS = (
+    "configs/ingestion/w7-001.yaml",
+    "src/enterprise_ai_platform/ingestion/governance.py",
+    "src/enterprise_ai_platform/ingestion/workflow.py",
+    "tests/fakes/w7_001_data_foundation.py",
+    "tests/unit/test_w7_001_data_foundation.py",
+    "tests/contract/test_w7_001_data_contract.py",
+    "tests/integration/test_w7_001_ingestion_composition.py",
+    "tests/feature/test_w7_001_data_platform.py",
+    "tests/security/test_w7_001_data_security.py",
+    "tests/rollback/test_w7_001_data_rollback.py",
+    "tests/teardown/test_w7_001_data_cleanliness.py",
+    "src/enterprise_ai_platform/ingestion/__init__.py",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+    "Makefile",
+    "infra/modules/storage/main.tf",
+    "infra/modules/storage/variables.tf",
+    "infra/modules/storage/outputs.tf",
+    "infra/modules/iam/main.tf",
+    "infra/modules/iam/variables.tf",
+    "infra/environments/sandbox/main.tf",
+    "infra/environments/sandbox/variables.tf",
+    "infra/environments/sandbox/outputs.tf",
+    "infra/environments/sandbox/terraform.tfvars.example",
+    "policies/opa/terraform_plan.rego",
+    "policies/opa/terraform_plan_test.rego",
+    "tools/platformctl/policy_runner.py",
+    "tests/contract/test_terraform_module_contract.py",
+    "tests/security/test_terraform_security.py",
+    "tests/feature/test_terraform_sandbox_plan.py",
+    "tests/feature/test_policy_gate.py",
+    "tests/security/test_policy_pack.py",
+)
+EXPECTED_RAG_IMPLEMENTATION_PATHS = EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS + tuple(
+    path
+    for path in EXPECTED_W7_001_EDITABLE_PATHS
+    if path not in EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS
 )
 EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W2-03",
@@ -255,6 +297,7 @@ EXPECTED_RAG_LINKED_TRACKER_STEPS = (
     "W3-05",
     "W3-08",
     "W3-11",
+    "W7-001",
 )
 EXPECTED_RAG_FEATURE = {
     "id": "RAG-001",

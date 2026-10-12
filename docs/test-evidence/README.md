@@ -35,6 +35,16 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W7-001 governed data foundation](W7/W7-001.md) — deterministic governed
+  ingestion, canonical lineage, quarantine, idempotency, embedding-eligibility,
+  existing-bucket storage/IAM and policy contracts. Local TEST-001 passed
+  within its recorded scope: 2302 tests passed, 8 skipped, 4 deselected, 1
+  warning and 10 subtests passed; OPA passed 193/193; TFLint passed both roots;
+  Terraform Checkov recorded 340 passed, 0 failed and 26 skipped; Kubernetes
+  Checkov recorded 108 passed, 0 failed and 1 skipped. Real AWS integration,
+  deployment, live rollback, cloud teardown and cost validation remain **NOT
+  RUN**. **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai on
+  2026-10-12 at 11:41:00 SGT. See the [Week 7 evidence index](W7/README.md).
 - [W1-001](W1-001.md) — approved aggregate repository-foundation evidence; final task approval recorded, with deployment and live lifecycle work NOT RUN.
 - [W1-002](W1-002.md) — approved aggregate typed-configuration and local application-foundation evidence, preserving the dependency-install summary gap and accepted warning.
 - [W1-003](W1-003.md) — local testing structure, deterministic providers, opt-in markers, redacted stdout metadata, and cleanliness controls.
@@ -94,6 +104,71 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 - [W6-004 conditional sign-off](../deployment-records/W6-signoff.md) — final approval remains pending billing reconciliation and physical KMS deletion verification.
 - [W6-004 final cleanliness](../resource-cleanliness/W6-final.json) — machine-readable zero-live-residue result, two expected KMS `PendingDeletion` tails and scheduled billing checks.
 - [Week 6 learning review](../learning/W6-learning-review.md) — business, architecture, security, resilience, rollback, teardown and evidence-preservation lessons from the complete lifecycle.
+
+## W7-001 governed data foundation — Column M record
+
+W7-001 extends RAG-001 with a deterministic governance boundary before the
+existing embedding and indexing pipeline. The implementation uses the existing
+platform bucket with `raw/`, `quarantine/`, `processed/` and `evidence/`
+prefixes; strict synthetic PUBLIC/INTERNAL contracts; canonical identity and
+lineage; fail-closed malware and PII decisions; exact replay; conflicting
+duplicate quarantine; and an explicit `EmbeddingEligibility` handoff.
+
+The approved 40-path non-governance implementation manifest has SHA-256
+`a55115600f1843ec0162c01f5efcfc2238af3af9e78c12ab8275fb866d6c8f39`.
+Owner-governed workbook changes are excluded. The final local quality, test,
+policy and cleanliness results are recorded in [W7-001](W7/W7-001.md).
+Configured skips, deselections and the retained warning remain visible and are
+not PASS. No cloud operation or cost was authorized.
+
+### Final Owner Approval — W7-001
+
+- Prompt/task ID: `W7-001`.
+- Reviewer: **Gyan Prakash Rai**.
+- Reviewer role: **Project Owner and Final Approval Reviewer**.
+- Owner decision: **FINAL APPROVAL AFTER OWNER TEST — APPROVED**.
+- Approval date and time/timezone: **2026-10-12 11:41:00 SGT**.
+- Final status: **APPROVED FOR USER TRACKER UPDATE — W7-001** within the
+  recorded local governed-ingestion scope.
+- Code and evidence review status: **APPROVED** for the exact 40-path baseline
+  and owner-reported results recorded in the canonical evidence.
+- Documentation review status: **APPROVED**. All three Column M manifest
+  documents close together with no partial closure.
+- Owner-executed test status: **PASS within the recorded local, offline and
+  native-tool scopes**. The 8 skips, 4 deselections, warning and Checkov skips
+  retain their recorded non-PASS classifications.
+- Accepted warnings, risks, evidence gaps and scope limitations: **All items
+  recorded in the approved W7-001 Column M manifest are accepted; no
+  additional item is silently accepted.**
+- NOT RUN and INDETERMINATE activities: Every recorded NOT RUN remains NOT RUN;
+  every historical INDETERMINATE result remains preserved. **Remaining open
+  INDETERMINATE activities: None.**
+- Deployment facts: No local application/service, image, registry artifact,
+  AWS service, infrastructure or cloud resource was deployed. Cloud and
+  production deployment remain **NOT RUN**.
+- Rollback facts: Automated local handoff-disable rollback contract **PASS**;
+  live application, Terraform, infrastructure and cloud rollback/restoration
+  remain **NOT RUN**.
+- Teardown, cleanup and residual-resource facts: Local task/pre-commit cache
+  removal and repository zero-residue verification **PASS**; protected state
+  identity remained unchanged. Retained TFLint and Checkov tooling is
+  owner-managed. Cloud teardown and native cloud-residue verification remain
+  **NOT RUN** because no W7-001 cloud resource was created.
+- Cost facts: No cloud or pricing execution occurred; cloud-cost validation
+  remains **NOT RUN**.
+- Deferred actions and responsible owner: GAP-01 through GAP-04, W6 coordinated
+  closure, additional W7-001 documents, Git action, tracker action and all
+  recorded technology/lifecycle deferrals remain open. Responsible owner:
+  **Gyan Prakash Rai**, unless separately assigned.
+- Conditions attached to approval: Preserve every PASS, FAIL, NOT RUN,
+  INDETERMINATE, warning, risk, limitation, deferred-work and residual-resource
+  fact; infer no production or cloud readiness from local, fake, mocked,
+  injected, static or offline evidence; only the owner updates Excel and
+  performs Git mutation.
+- Next-task handover: The owner may update the W7-001 tracker row. Any Git,
+  cloud, deployment, rollback, teardown, cost, W6 closure or deferred
+  technology work remains separately governed.
+- Tracker update responsibility: **Owner**.
 
 The W6-003 records prove deterministic local pre-deployment readiness only.
 They do not prove live AWS, ECR, EKS, OpenSearch, Bedrock, observability, FIS,

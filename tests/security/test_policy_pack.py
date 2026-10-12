@@ -102,7 +102,6 @@ EXPECTED_SKIPS = {
         "CKV_AWS_18",
     ),
     "infra/modules/storage/main.tf": (
-        "CKV2_AWS_62",
         "CKV_AWS_144",
         "CKV_AWS_18",
     ),
@@ -227,7 +226,7 @@ def test_inline_checkov_skip_inventory_and_rationales_are_exact() -> None:
         rationales.extend(item[1] for item in directives)
 
     assert observed == EXPECTED_SKIPS
-    assert sum(len(items) for items in observed.values()) == 26
+    assert sum(len(items) for items in observed.values()) == 25
     weighted_skips = 17 + 3
     assert weighted_skips == 20
     opensearch = (ROOT / "infra/modules/opensearch/main.tf").read_text(encoding="utf-8")
@@ -285,3 +284,15 @@ def test_committed_policy_fixtures_contain_no_complete_secret_value() -> None:
         combined,
     )
     assert 'concat("", ["runtime", "-", "only"])' in combined
+
+
+def test_w7_policy_extension_is_offline_and_rejects_unapproved_services() -> None:
+    combined = POLICY.read_text(encoding="utf-8") + POLICY_TEST.read_text(encoding="utf-8")
+    assert "w7_001_findings" in combined
+    for resource_type in (
+        "aws_glue_catalog_database",
+        "aws_cloudwatch_event_rule",
+        "aws_sfn_state_machine",
+    ):
+        assert resource_type in combined
+    assert "http.send" not in combined

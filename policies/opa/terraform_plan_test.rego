@@ -2,6 +2,30 @@ package enterprise_ai.terraform.plan
 
 import rego.v1
 
+test_w7_001_rejects_contract_only_cloud_resources if {
+	plan := {
+		"resource_changes": [{
+			"address": "aws_sfn_state_machine.unapproved",
+			"type": "aws_sfn_state_machine",
+			"change": {"after": {}},
+		}],
+	}
+	findings := w7_001_findings with input as plan
+	some finding in findings
+	finding.code == "W7_UNAUTHORIZED_RESOURCE"
+}
+
+test_w7_001_permits_s3_eventbridge_notification_shape if {
+	plan := {
+		"resource_changes": [{
+			"address": "aws_s3_bucket_notification.eventbridge",
+			"type": "aws_s3_bucket_notification",
+			"change": {"after": {"eventbridge": true}},
+		}],
+	}
+	count(w7_001_findings) == 0 with input as plan
+}
+
 test_w6_004_resource_types_are_explicitly_supported if {
 	every resource_type in {
 		"aws_bedrock_model_invocation_logging_configuration",

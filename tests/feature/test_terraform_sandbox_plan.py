@@ -60,3 +60,20 @@ def test_policy_as_code_uses_only_inline_synthetic_plan_inputs() -> None:
     assert "terraform.tfplan" not in tests
     assert "terraform show" not in tests
     assert "http.send" not in policy + tests
+
+
+def test_w7_plan_source_uses_existing_bucket_and_exact_retention_contract() -> None:
+    storage = (ROOT / "infra/modules/storage/main.tf").read_text(encoding="utf-8")
+    variables = (ROOT / "infra/environments/sandbox/variables.tf").read_text(encoding="utf-8")
+    iam = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    assert storage.count('resource "aws_s3_bucket"') == 1
+    assert 'resource "aws_s3_bucket_notification" "eventbridge"' in storage
+    for expected in (
+        "raw        = 7",
+        "quarantine = 7",
+        "processed  = 30",
+        "evidence   = 30",
+    ):
+        assert expected in variables
+    assert "RuntimeReadGovernedObjects" in iam
+    assert "IngestionWriteQuarantineObjects" in iam

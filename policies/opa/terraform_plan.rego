@@ -135,6 +135,7 @@ supported_aws_resource_types := {
 	"aws_route_table_association",
 	"aws_s3_bucket",
 	"aws_s3_bucket_lifecycle_configuration",
+	"aws_s3_bucket_notification",
 	"aws_s3_bucket_ownership_controls",
 	"aws_s3_bucket_policy",
 	"aws_s3_bucket_public_access_block",
@@ -2790,6 +2791,35 @@ finding_map[key] |
 deny := findings
 
 allow if count(findings) == 0
+
+# W7-001 is an additive source-only contract. These findings are deliberately
+# separate from the historical W5 production decision until an owner-approved
+# cloud-plan gate activates them.
+w7_001_prohibited_resource_types := {
+	"aws_glue_catalog_database",
+	"aws_glue_catalog_table",
+	"aws_cloudwatch_event_rule",
+	"aws_cloudwatch_event_target",
+	"aws_sfn_state_machine",
+	"aws_kms_key",
+}
+
+w7_001_findings contains {"code": "W7_UNAUTHORIZED_RESOURCE", "resource_address": change.address} if {
+	some change in object.get(input, "resource_changes", [])
+	change.type in w7_001_prohibited_resource_types
+}
+
+w7_001_findings contains {"code": "W7_MULTIPLE_PLATFORM_BUCKETS", "resource_address": "policy.w7_data_foundation"} if {
+	buckets := [change | some change in object.get(input, "resource_changes", []); change.type == "aws_s3_bucket"]
+	count(buckets) > 1
+}
+
+w7_001_findings contains {"code": "W7_EVENTBRIDGE_NOTIFICATION_REQUIRED", "resource_address": change.address} if {
+	some change in object.get(input, "resource_changes", [])
+	change.type == "aws_s3_bucket_notification"
+	after_values := object.get(object.get(change, "change", {}), "after", {})
+	object.get(after_values, "eventbridge", false) != true
+}
 
 policy_evaluated := true
 

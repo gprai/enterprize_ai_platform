@@ -12,6 +12,8 @@ SANDBOX = ROOT / "infra/environments/sandbox"
 EXPECTED_INPUT_KEYS = (
     "aws_account_id",
     "aws_region",
+    "w7_data_zone_prefixes",
+    "w7_data_zone_retention_days",
     "aws_fallback_region",
     "network_ownership_mode",
     "vpc_id",
@@ -85,12 +87,12 @@ MODULES = (
 )
 
 
-def test_exact_45_key_tfvars_schema_is_preserved_without_az_key() -> None:
+def test_exact_47_key_tfvars_schema_is_preserved_without_az_key() -> None:
     source = (SANDBOX / "variables.tf").read_text(encoding="utf-8")
     variables = tuple(re.findall(r'^variable "([^"]+)"', source, flags=re.MULTILINE))
 
     assert variables == EXPECTED_INPUT_KEYS
-    assert len(variables) == 45
+    assert len(variables) == 47
     assert "availability_zones" not in variables
     assert 'allowed_data_regions == tolist(["Global Cross-Region"])' in source
     assert "aws_region must equal ap-southeast-1" in source
@@ -249,3 +251,16 @@ def test_future_backend_contract_rejects_deprecated_or_dual_locking() -> None:
     assert b"use_lockfile = true" in _backend_bytes(valid)
     with pytest.raises(ContractError, match="LOCKFILE"):
         _backend_bytes({**valid, "dynamodb_table": "historical-lock-table"})
+
+
+def test_w7_existing_bucket_zones_and_notification_are_declared_once() -> None:
+    storage = (ROOT / "infra/modules/storage/main.tf").read_text(encoding="utf-8")
+    variables = (ROOT / "infra/modules/storage/variables.tf").read_text(encoding="utf-8")
+    sandbox = (ROOT / "infra/environments/sandbox/main.tf").read_text(encoding="utf-8")
+    assert storage.count('resource "aws_s3_bucket" "this"') == 1
+    assert storage.count('resource "aws_s3_bucket_notification" "eventbridge"') == 1
+    assert "eventbridge = true" in storage
+    for prefix in ("raw/", "quarantine/", "processed/", "evidence/"):
+        assert prefix in variables
+    assert "w7_data_zone_prefixes" in sandbox
+    assert "w7_data_zone_retention_days" in sandbox

@@ -31,6 +31,7 @@ from tools.platformctl.validate import (
     EXPECTED_W3_004_EDITABLE_PATHS,
     EXPECTED_W6_003_IMPLEMENTATION_PATHS,
     EXPECTED_W6_004_IMPLEMENTATION_PATHS,
+    EXPECTED_W7_001_EDITABLE_PATHS,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -266,7 +267,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "W3-08",
                 "W3-11",
             ],
-            rag_feature["linked_tracker_steps"][-7:],
+            rag_feature["linked_tracker_steps"][-8:-1],
         )
         self.assertEqual(
             list(EXPECTED_W3_003_EDITABLE_PATHS),
@@ -274,7 +275,11 @@ class FeatureMatrixTests(unittest.TestCase):
         )
         self.assertEqual(
             list(EXPECTED_W3_004_EDITABLE_PATHS),
-            rag_feature["implementation_paths"][-28:],
+            [
+                path
+                for path in rag_feature["implementation_paths"]
+                if path in EXPECTED_W3_004_EDITABLE_PATHS
+            ],
         )
         self.assertEqual(
             len(rag_feature["implementation_paths"]),
@@ -283,6 +288,10 @@ class FeatureMatrixTests(unittest.TestCase):
         for path in EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS:
             self.assertIn(path, rag_feature["implementation_paths"])
         self.assertNotIn("W3-06", rag_feature["linked_tracker_steps"])
+        self.assertEqual("W7-001", rag_feature["linked_tracker_steps"][-1])
+        self.assertTrue(
+            set(EXPECTED_W7_001_EDITABLE_PATHS).issubset(rag_feature["implementation_paths"])
+        )
         self.assertEqual("EVAL-001", eval_feature["id"])
         self.assertEqual("API-001", api_feature["id"])
         self.assertEqual("OBS-001", observability_feature["id"])

@@ -23,6 +23,20 @@ aws_account_id = "526338061652"
 
 aws_region = "ap-southeast-1"
 
+w7_data_zone_prefixes = {
+  raw        = "raw/"
+  quarantine = "quarantine/"
+  processed  = "processed/"
+  evidence   = "evidence/"
+}
+
+w7_data_zone_retention_days = {
+  raw        = 7
+  quarantine = 7
+  processed  = 30
+  evidence   = 30
+}
+
 aws_fallback_region = null
 
 network_ownership_mode = "project_owned"

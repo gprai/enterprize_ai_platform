@@ -30,7 +30,6 @@ EXPECTED_CHECKOV_SKIPS = {
     ("infra/modules/secrets/main.tf", "CKV2_AWS_57"),
     ("infra/modules/storage/main.tf", "CKV_AWS_18"),
     ("infra/modules/storage/main.tf", "CKV_AWS_144"),
-    ("infra/modules/storage/main.tf", "CKV2_AWS_62"),
 }
 
 
@@ -74,7 +73,10 @@ def test_only_approved_resource_and_principal_wildcards_exist() -> None:
         not in source
     )
     assert '"${local.state_bucket_arn}/*"' in source
-    assert '"${local.platform_bucket_arn}/*"' in source
+    for prefix in ("raw", "quarantine", "processed", "evidence"):
+        assert (
+            f'"${{local.platform_bucket_arn}}/${{var.data_zone_prefixes["{prefix}"]}}*"' in source
+        )
     assert '"${local.domain_arn}/*"' in source
 
 
@@ -162,3 +164,20 @@ def test_secrets_module_has_no_value_bearing_surface() -> None:
     assert 'resource "aws_secretsmanager_secret_version"' not in source
     for prohibited in ('variable "secret_value"', 'variable "password"', 'variable "token"'):
         assert prohibited not in source
+
+
+def test_w7_prefix_access_prevents_raw_or_quarantine_retrieval() -> None:
+    source = (INFRA / "modules/iam/main.tf").read_text(encoding="utf-8")
+    runtime = source.split('data "aws_iam_policy_document" "runtime"', maxsplit=1)[1].split(
+        'resource "aws_iam_role_policy" "runtime"', maxsplit=1
+    )[0]
+    ingestion = source.split('data "aws_iam_policy_document" "ingestion"', maxsplit=1)[1]
+    assert 'var.data_zone_prefixes["raw"]' not in runtime
+    assert 'var.data_zone_prefixes["quarantine"]' not in runtime
+    assert 'var.data_zone_prefixes["processed"]' in runtime
+    assert 'var.data_zone_prefixes["evidence"]' in runtime
+    quarantine = ingestion.split('"IngestionWriteQuarantineObjects"', maxsplit=1)[1].split(
+        "\n  }", maxsplit=1
+    )[0]
+    assert '"s3:GetObject"' not in quarantine
+    assert '"s3:PutObject"' in quarantine

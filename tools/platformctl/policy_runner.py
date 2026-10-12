@@ -99,7 +99,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "e935f916e5a27f838279845a516c32dd31641cc2ed98f1a3929e476327ec6645",
+        "9d01bb694a60477637a10cf931c0b78cf4d5d953ea12f2c25022985f5e636396",
     ),
     (
         "infra/modules/ecr/main.tf",
@@ -188,7 +188,9 @@ PLATFORM_POLICY_DOCUMENT_BINDINGS = {
         "module.iam.data.aws_iam_policy_document.ingestion",
         frozenset(
             {
-                "IngestionPlatformObjects",
+                "IngestionReadRawObjects",
+                "IngestionWriteQuarantineObjects",
+                "IngestionWriteProcessedAndEvidenceObjects",
                 "IngestionListPlatformBucket",
                 "IngestionUsePlatformKey",
                 "IngestionOpenSearchDataPlane",
@@ -203,8 +205,8 @@ PLATFORM_POLICY_DOCUMENT_BINDINGS = {
                 "InvokeExactGlobalInferenceProfile",
                 "InvokeExactGlobalInferenceProfileRegionalModel",
                 "InvokeExactGlobalInferenceProfileGlobalModel",
-                "RuntimeReadPlatformObjects",
-                "RuntimeListPlatformBucket",
+                "RuntimeReadGovernedObjects",
+                "RuntimeListGovernedObjects",
                 "RuntimeUsePlatformKey",
                 "RuntimeOpenSearchHealthRead",
                 "RuntimeOpenSearchExactIndexQuery",
@@ -360,23 +362,23 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime": (
         "infra/modules/iam/main.tf",
-        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
+        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
     ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
         "infra/modules/iam/main.tf",
-        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
+        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
         "infra/modules/iam/main.tf",
-        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
+        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
         "infra/modules/iam/main.tf",
-        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
+        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
         "infra/modules/iam/main.tf",
-        "2f73a589d53e5285bfa59bbcf10f3a212f3ee370dc1e075656bf920a331dbde6",
+        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
     ),
     "module.opensearch.data.aws_iam_policy_document.domain_access": (
         "infra/modules/opensearch/main.tf",
@@ -2470,3 +2472,44 @@ def policy_semantic_value(raw: str) -> object:
     if all_identified:
         document["Statement"] = sorted(statements, key=lambda statement: statement["Sid"])
     return document
+
+
+W7_001_PROHIBITED_RESOURCE_TYPES = frozenset(
+    {
+        "aws_cloudwatch_event_rule",
+        "aws_cloudwatch_event_target",
+        "aws_glue_catalog_database",
+        "aws_glue_catalog_table",
+        "aws_kms_key",
+        "aws_sfn_state_machine",
+    }
+)
+
+
+def validate_w7_001_data_foundation_plan(plan: object) -> tuple[str, ...]:
+    """Return stable safe codes for the source-only W7-001 plan shape."""
+
+    if not isinstance(plan, dict) or not isinstance(plan.get("resource_changes"), list):
+        return ("W7_PLAN_SHAPE_INVALID",)
+    findings: set[str] = set()
+    bucket_count = 0
+    for change in plan["resource_changes"]:
+        if not isinstance(change, dict):
+            findings.add("W7_PLAN_SHAPE_INVALID")
+            continue
+        resource_type = change.get("type")
+        if resource_type in W7_001_PROHIBITED_RESOURCE_TYPES:
+            findings.add("W7_UNAUTHORIZED_RESOURCE")
+        if resource_type == "aws_s3_bucket":
+            bucket_count += 1
+        if resource_type == "aws_s3_bucket_notification":
+            change_body = change.get("change")
+            if not isinstance(change_body, dict):
+                findings.add("W7_PLAN_SHAPE_INVALID")
+                continue
+            after = change_body.get("after")
+            if not isinstance(after, dict) or after.get("eventbridge") is not True:
+                findings.add("W7_EVENTBRIDGE_NOTIFICATION_REQUIRED")
+    if bucket_count > 1:
+        findings.add("W7_MULTIPLE_PLATFORM_BUCKETS")
+    return tuple(sorted(findings))

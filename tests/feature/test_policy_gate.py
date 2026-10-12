@@ -1784,7 +1784,7 @@ def test_current_terraform_checkov_baseline_is_exact() -> None:
 
     assert completed.returncode == 0, combined
     assert counts is not None, "Checkov did not emit the required complete scan counts"
-    assert tuple(map(int, counts.groups())) == (339, 0, 27)
+    assert tuple(map(int, counts.groups())) == (340, 0, 26)
 
 
 def test_production_decision_requires_one_defined_consistent_value() -> None:
@@ -1808,3 +1808,19 @@ def test_statement_reordering_does_not_permit_policy_broadening() -> None:
     ) == policy_semantic_value(json.dumps({"Statement": [second, first]}))
     with pytest.raises(ValueError):
         policy_semantic_value(json.dumps({"Statement": [first, first]}))
+
+
+def test_w7_data_foundation_plan_shape_is_fail_closed() -> None:
+    from tools.platformctl.policy_runner import validate_w7_001_data_foundation_plan
+
+    secure = {
+        "resource_changes": [
+            {
+                "type": "aws_s3_bucket_notification",
+                "change": {"after": {"eventbridge": True}},
+            }
+        ]
+    }
+    prohibited = {"resource_changes": [{"type": "aws_sfn_state_machine", "change": {"after": {}}}]}
+    assert validate_w7_001_data_foundation_plan(secure) == ()
+    assert validate_w7_001_data_foundation_plan(prohibited) == ("W7_UNAUTHORIZED_RESOURCE",)

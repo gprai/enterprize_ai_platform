@@ -34,6 +34,34 @@ variable "bedrock_log_prefix" {
   }
 }
 
+variable "data_zone_prefixes" {
+  type        = map(string)
+  description = "Exact W7-001 governed data-zone prefixes in the existing platform bucket."
+  validation {
+    condition = var.data_zone_prefixes == {
+      raw        = "raw/"
+      quarantine = "quarantine/"
+      processed  = "processed/"
+      evidence   = "evidence/"
+    }
+    error_message = "data_zone_prefixes must contain the exact four W7-001 prefixes."
+  }
+}
+
+variable "data_zone_retention_days" {
+  type        = map(number)
+  description = "Exact W7-001 object-zone retention periods."
+  validation {
+    condition = var.data_zone_retention_days == {
+      raw        = 7
+      quarantine = 7
+      processed  = 30
+      evidence   = 30
+    }
+    error_message = "data_zone_retention_days must equal raw/quarantine 7 and processed/evidence 30."
+  }
+}
+
 variable "tags" {
   type = map(string)
 }

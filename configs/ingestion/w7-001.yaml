@@ -1,0 +1,33 @@
+schema_version: "w7-001.data-foundation.v1"
+feature_id: "RAG-001"
+region: "ap-southeast-1"
+synthetic_only: true
+classifications:
+  - "PUBLIC"
+  - "INTERNAL"
+bucket_name: "enterprise-ai-platform-526338061652-ap-southeast-1-sandbox"
+zones:
+  raw:
+    prefix: "raw/"
+    retention_days: 7
+  quarantine:
+    prefix: "quarantine/"
+    retention_days: 7
+  processed:
+    prefix: "processed/"
+    retention_days: 30
+  evidence:
+    prefix: "evidence/"
+    retention_days: 30
+retry:
+  maximum_embedding_attempts: 2
+  base_seconds: 0.1
+  maximum_jitter_seconds: 0.05
+  document_deadline_seconds: 120.0
+  vector_operation_timeout_seconds: 60.0
+capabilities:
+  malware: "protocol_fake_only"
+  glue_catalog: "contract_only"
+  eventbridge: "s3_notification_iac_only"
+  step_functions: "contract_only"
+  idempotency: "protocol_in_memory_fake_only"

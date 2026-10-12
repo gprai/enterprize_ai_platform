@@ -155,3 +155,15 @@ def test_approved_corpus_and_five_question_fixture_remain_exact() -> None:
     )
     assert all(question.tenant_id == "tenant-a" for question in questions)
     assert questions[-1].expected_source_ids == ()
+
+
+def test_w7_governed_boundary_does_not_replace_w2_direct_ingestion() -> None:
+    pipeline = (ROOT / "src/enterprise_ai_platform/ingestion/pipeline.py").read_text(
+        encoding="utf-8"
+    )
+    governed = (ROOT / "src/enterprise_ai_platform/ingestion/workflow.py").read_text(
+        encoding="utf-8"
+    )
+    assert "class IngestionPipeline" in pipeline
+    assert "class GovernedIngestionWorkflow" in governed
+    assert "EmbeddingEligibility" in governed

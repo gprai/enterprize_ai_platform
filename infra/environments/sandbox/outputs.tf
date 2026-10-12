@@ -13,6 +13,16 @@ output "platform_bucket_name" {
   description = "Exact encrypted platform bucket."
 }
 
+output "w7_data_zone_prefixes" {
+  value       = module.storage.data_zone_prefixes
+  description = "Exact non-secret W7-001 prefixes in the existing platform bucket."
+}
+
+output "w7_s3_eventbridge_notifications_enabled" {
+  value       = module.storage.eventbridge_notifications_enabled
+  description = "S3 EventBridge notification contract; no rule or target is created."
+}
+
 output "runtime_role_arn" {
   value       = module.iam.runtime_role_arn
   description = "Least-privilege runtime workload role."

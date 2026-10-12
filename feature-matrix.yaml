@@ -193,7 +193,35 @@
         "tests/unit/test_prompt_template.py",
         "tests/unit/test_evaluation_runner.py",
         "tests/teardown/test_w3_002_evaluation_cleanliness.py",
-        "tests/teardown/test_w3_003_guardrails_cleanliness.py"
+          "tests/teardown/test_w3_003_guardrails_cleanliness.py",
+          "configs/ingestion/w7-001.yaml",
+          "src/enterprise_ai_platform/ingestion/governance.py",
+          "src/enterprise_ai_platform/ingestion/workflow.py",
+          "tests/fakes/w7_001_data_foundation.py",
+          "tests/unit/test_w7_001_data_foundation.py",
+          "tests/contract/test_w7_001_data_contract.py",
+          "tests/integration/test_w7_001_ingestion_composition.py",
+          "tests/feature/test_w7_001_data_platform.py",
+          "tests/security/test_w7_001_data_security.py",
+          "tests/rollback/test_w7_001_data_rollback.py",
+          "tests/teardown/test_w7_001_data_cleanliness.py",
+          "infra/modules/storage/main.tf",
+          "infra/modules/storage/variables.tf",
+          "infra/modules/storage/outputs.tf",
+          "infra/modules/iam/main.tf",
+          "infra/modules/iam/variables.tf",
+          "infra/environments/sandbox/main.tf",
+          "infra/environments/sandbox/variables.tf",
+          "infra/environments/sandbox/outputs.tf",
+          "infra/environments/sandbox/terraform.tfvars.example",
+          "policies/opa/terraform_plan.rego",
+          "policies/opa/terraform_plan_test.rego",
+          "tools/platformctl/policy_runner.py",
+          "tests/contract/test_terraform_module_contract.py",
+          "tests/security/test_terraform_security.py",
+          "tests/feature/test_terraform_sandbox_plan.py",
+          "tests/feature/test_policy_gate.py",
+          "tests/security/test_policy_pack.py"
       ],
       "status": "In Progress",
       "linked_tracker_steps": [
@@ -213,7 +241,8 @@
         "W3-04",
         "W3-05",
         "W3-08",
-        "W3-11"
+          "W3-11",
+          "W7-001"
       ]
     },
     {

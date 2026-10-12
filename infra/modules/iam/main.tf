@@ -285,17 +285,28 @@ data "aws_iam_policy_document" "runtime" {
   }
 
   statement {
-    sid       = "RuntimeReadPlatformObjects"
-    effect    = "Allow"
-    actions   = ["s3:GetObject"]
-    resources = ["${local.platform_bucket_arn}/*"]
+    sid     = "RuntimeReadGovernedObjects"
+    effect  = "Allow"
+    actions = ["s3:GetObject"]
+    resources = [
+      "${local.platform_bucket_arn}/${var.data_zone_prefixes["processed"]}*",
+      "${local.platform_bucket_arn}/${var.data_zone_prefixes["evidence"]}*",
+    ]
   }
 
   statement {
-    sid       = "RuntimeListPlatformBucket"
+    sid       = "RuntimeListGovernedObjects"
     effect    = "Allow"
     actions   = ["s3:ListBucket"]
     resources = [local.platform_bucket_arn]
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values = [
+        "${var.data_zone_prefixes["processed"]}*",
+        "${var.data_zone_prefixes["evidence"]}*",
+      ]
+    }
   }
 
   statement {
@@ -367,16 +378,34 @@ resource "aws_iam_role_policy" "runtime" {
 
 data "aws_iam_policy_document" "ingestion" {
   statement {
-    sid    = "IngestionPlatformObjects"
+    sid    = "IngestionReadRawObjects"
     effect = "Allow"
     actions = [
       "s3:AbortMultipartUpload",
-      "s3:DeleteObject",
       "s3:GetObject",
       "s3:ListMultipartUploadParts",
       "s3:PutObject",
     ]
-    resources = ["${local.platform_bucket_arn}/*"]
+    resources = ["${local.platform_bucket_arn}/${var.data_zone_prefixes["raw"]}*"]
+  }
+
+  statement {
+    sid     = "IngestionWriteQuarantineObjects"
+    effect  = "Allow"
+    actions = ["s3:AbortMultipartUpload", "s3:ListMultipartUploadParts", "s3:PutObject"]
+    resources = [
+      "${local.platform_bucket_arn}/${var.data_zone_prefixes["quarantine"]}*",
+    ]
+  }
+
+  statement {
+    sid     = "IngestionWriteProcessedAndEvidenceObjects"
+    effect  = "Allow"
+    actions = ["s3:AbortMultipartUpload", "s3:ListMultipartUploadParts", "s3:PutObject"]
+    resources = [
+      "${local.platform_bucket_arn}/${var.data_zone_prefixes["processed"]}*",
+      "${local.platform_bucket_arn}/${var.data_zone_prefixes["evidence"]}*",
+    ]
   }
 
   statement {
@@ -384,6 +413,16 @@ data "aws_iam_policy_document" "ingestion" {
     effect    = "Allow"
     actions   = ["s3:ListBucket", "s3:ListBucketMultipartUploads"]
     resources = [local.platform_bucket_arn]
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values = [
+        "${var.data_zone_prefixes["raw"]}*",
+        "${var.data_zone_prefixes["quarantine"]}*",
+        "${var.data_zone_prefixes["processed"]}*",
+        "${var.data_zone_prefixes["evidence"]}*",
+      ]
+    }
   }
 
   statement {
