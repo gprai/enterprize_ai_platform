@@ -25,11 +25,11 @@ from enterprise_ai_platform.rag_rollback.service import (
 
 ROOT = Path(__file__).resolve().parents[2]
 AUTHORITIES = (
-    "configs/rag/versions/w3-002-v1.json",
-    "configs/rag/versions/w3-004-synthetic-regression-v1.json",
+    "configs/rag/versions/known-good-v2.json",
+    "configs/rag/versions/synthetic-regression-v2.json",
     "configs/eval/baselines/w3-002-v1.json",
     "configs/eval/golden.jsonl",
-    "configs/eval/w3-002.yaml",
+    "configs/eval/cited-rag-evaluation-policy.yaml",
     "configs/rag.yaml",
     "reports/eval.json",
     "reports/eval-repeat.json",

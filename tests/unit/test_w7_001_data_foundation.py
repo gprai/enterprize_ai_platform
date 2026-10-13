@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_approved_configuration_is_exact() -> None:
-    config = load_data_foundation_config(ROOT / "configs/ingestion/w7-001.yaml")
+    config = load_data_foundation_config(ROOT / "configs/ingestion/governed-data-foundation.yaml")
     assert config.region == "ap-southeast-1"
     assert config.classifications == ("PUBLIC", "INTERNAL")
     assert {zone.value: item.retention_days for zone, item in config.zones.items()} == {

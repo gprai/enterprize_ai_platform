@@ -148,7 +148,7 @@ def test_runner_parser_supports_canonical_owner_interface() -> None:
     arguments = build_parser().parse_args(
         [
             "--config",
-            "configs/eval/w3-002.yaml",
+            "configs/eval/cited-rag-evaluation-policy.yaml",
             "--dataset",
             "configs/eval/golden.jsonl",
             "--baseline",

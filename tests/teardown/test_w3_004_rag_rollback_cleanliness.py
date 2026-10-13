@@ -14,7 +14,7 @@ PROTECTED_HASHES = {
     "configs/eval/golden.jsonl": (
         "809aac88f84dd44aeb96c676f3bad229164a0767c6fc9d0ebeeb01b6823c06c2"
     ),
-    "configs/eval/w3-002.yaml": (
+    "configs/eval/cited-rag-evaluation-policy.yaml": (
         "4564b1935c1c072281f90a63c1ac80315709e35e6aab8e0803d0a9abf5c189df"
     ),
     "configs/rag.yaml": ("5cb62932bbc0a0c11e494912bdcc5b4b48bd4195e3ca58bda2df27227070b27e"),

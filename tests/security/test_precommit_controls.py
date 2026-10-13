@@ -76,9 +76,11 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tools/w6_003_readiness.py": {"Hex High Entropy String": 1},
     "configs/ci/w5-002.json": {"Hex High Entropy String": 12},
     "configs/eval/baselines/w3-002-v1.json": {"Hex High Entropy String": 6},
-    "configs/readiness/w6-003.yaml": {"Hex High Entropy String": 1},
+    "configs/readiness/local-integrated-readiness.yaml": {"Hex High Entropy String": 1},
     "configs/rag/versions/w3-002-v1.json": {"Hex High Entropy String": 14},
     "configs/rag/versions/w3-004-synthetic-regression-v1.json": {"Hex High Entropy String": 14},
+    "configs/rag/versions/known-good-v2.json": {"Hex High Entropy String": 14},
+    "configs/rag/versions/synthetic-regression-v2.json": {"Hex High Entropy String": 14},
     "configs/releases/versions/w4-known-good-v1.json": {"Hex High Entropy String": 101},
     "configs/releases/versions/w4-synthetic-regression-v1.json": {"Hex High Entropy String": 101},
     "docker-compose.w2-004.yml": {"Base64 High Entropy String": 1},
@@ -114,7 +116,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/ci/w5-002.json": {1: 12},
     "configs/eval/baselines/w3-002-v1.json": {1: 6},
     "configs/lifecycle/w5-004.json": {6: 1, 7: 1, 86: 1, 90: 1, 91: 1},
-    "configs/readiness/w6-003.yaml": {4: 1},
+    "configs/readiness/local-integrated-readiness.yaml": {4: 1},
     "configs/rag/versions/w3-002-v1.json": {
         6: 1,
         9: 1,
@@ -131,7 +133,39 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         52: 1,
         53: 1,
     },
+    "configs/rag/versions/known-good-v2.json": {
+        6: 1,
+        9: 1,
+        13: 1,
+        17: 1,
+        18: 1,
+        33: 1,
+        34: 1,
+        36: 1,
+        41: 1,
+        45: 1,
+        47: 1,
+        48: 1,
+        52: 1,
+        53: 1,
+    },
     "configs/rag/versions/w3-004-synthetic-regression-v1.json": {
+        6: 1,
+        9: 1,
+        13: 1,
+        17: 1,
+        18: 1,
+        33: 1,
+        34: 1,
+        36: 1,
+        41: 1,
+        45: 1,
+        47: 1,
+        48: 1,
+        52: 1,
+        53: 1,
+    },
+    "configs/rag/versions/synthetic-regression-v2.json": {
         6: 1,
         9: 1,
         13: 1,
@@ -390,8 +424,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 43
-    assert sum(len(findings) for findings in results.values()) == 370
+    assert len(results) == 45
+    assert sum(len(findings) for findings in results.values()) == 398
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

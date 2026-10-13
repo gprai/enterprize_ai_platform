@@ -20,7 +20,7 @@ from enterprise_ai_platform.evaluation.errors import (
 
 ROOT = Path(__file__).resolve().parents[2]
 DATASET = ROOT / "configs" / "eval" / "golden.jsonl"
-CONFIG = ROOT / "configs" / "eval" / "w3-002.yaml"
+CONFIG = ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
 
 
 def test_golden_dataset_has_exact_owner_inventory() -> None:

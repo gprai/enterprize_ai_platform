@@ -35,6 +35,24 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W8-001 production serving architecture](W8/W8-001.md) — provider-neutral
+  artifact, request, response, routing and normalized-error contracts with
+  Bedrock retained for approved foundation models, SageMaker real-time as the
+  managed default for justified custom/fine-tuned artifacts, and EKS allowed
+  only with documented workload evidence and explicit approval. Local/offline
+  TEST-001 passed after preserved intermediate failures and bounded
+  remediations: YAML parsing, platform/readiness validation, Ruff, MyPy, full
+  Pytest (2,358 passed, 8 skipped, 4 deselected, 1 warning and 10 subtests),
+  secret scanning, isolated all-files pre-commit behavior, boundary checks and
+  cleanup passed. The decision is in [ADR-019](../adr/ADR-019-serving-architecture.md),
+  and the pending teach-back handover is in the
+  [Week 8 learning review](../learning/W8-learning-review.md). No live provider,
+  cloud, deployment, rollback, restore, operational teardown, native-residue,
+  performance, or cost validation ran. **FINAL APPROVAL AFTER OWNER TEST —
+  APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval Reviewer,
+  on 2026-10-13 at 14:01:00 SGT. This local/offline documentation closure does
+  not establish cloud or production readiness. See the
+  [Week 8 evidence index](W8/README.md).
 - [W7-001 remediation](W7/W7-001-remediation.md) — W6 issue-prevention and
   hardening evidence; historical classifications, open GAP-01 through GAP-04,
   deferred work, and local-versus-cloud boundaries remain as recorded. See the
@@ -81,11 +99,22 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
   1 warning; Ruff, MyPy, validation, scoped secret scanning and pre-commit
   passed. Live feature-store/AWS activity, deployment, quantified feature-store
   cost, rollback, restore and teardown remain **NOT RUN** or deferred. W7-003
-  remains **Blocked**; owner teach-back remains pending. Column N documentation
+  remains **Blocked**. The later owner teach-back is recorded in
+  [W7-LEARN-001](../learning/W7-learning-review.md); this does not change
+  W7-003 or close GAP-01 through GAP-04. Column N documentation
   closure was approved by Gyan Prakash Rai, Project Owner and Final Approval
   Reviewer, on 2026-10-12 at 18:11:00 SGT. This local/offline evidence does not
   imply cloud or production readiness. See the
   [Week 7 evidence index](W7/README.md).
+- [W7-LEARN-001 Week 7 learning review](../learning/W7-learning-review.md) —
+  owner-provided teach-back on the governed document supply chain, its trust
+  boundaries, W7-004 decision, failure/recovery distinctions, security,
+  privacy, reliability, cost, and five interview answers. **FINAL APPROVAL
+  AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final
+  Approval Reviewer, on 2026-10-12 at 21:11:00 SGT. Learning-only; TEST-001 is
+  N/A. W7-003 remains **Blocked** and GAP-01 through GAP-04 remain open; this
+  record claims no deployment or cloud readiness. See the canonical record
+  for final approval and limitations.
 - [W1-001](W1/W1-001.md) — approved aggregate repository-foundation evidence; final task approval recorded, with deployment and live lifecycle work NOT RUN.
 - [W1-002](W1/W1-002.md) — approved aggregate typed-configuration and local application-foundation evidence, preserving the dependency-install summary gap and accepted warning.
 - [W1-003](W1/W1-003.md) — local testing structure, deterministic providers, opt-in markers, redacted stdout metadata, and cleanliness controls.

@@ -17,7 +17,9 @@ def test_w7_003_source_has_no_live_sdk_or_repository_persistence() -> None:
 
 
 def test_config_keeps_cloud_and_destructive_retry_disabled() -> None:
-    config = (ROOT / "configs/ingestion/w7-003.yaml").read_text(encoding="utf-8")
+    config = (ROOT / "configs/ingestion/privacy-retention-lifecycle.yaml").read_text(
+        encoding="utf-8"
+    )
     assert 'live_cloud_execution: "separate_owner_approval_required"' in config
     assert 'destructive_retry: "disabled"' in config
     assert 'shared_resource_deletion: "prohibited"' in config

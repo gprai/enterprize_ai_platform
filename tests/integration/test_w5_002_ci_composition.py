@@ -137,8 +137,8 @@ def test_w6_003_ci_extension_validates_only_the_local_readiness_contract() -> No
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
 
     assert (
-        "-m tools.w6_003_readiness validate-config --root . --config configs/readiness/w6-003.yaml"
-        in workflow
+        "-m tools.w6_003_readiness validate-config --root . --config "
+        "configs/readiness/local-integrated-readiness.yaml" in workflow
     )
     assert (
         "-m tools.platformctl w6-004-validate-source --config configs/lifecycle/w6-004.json"

@@ -593,7 +593,7 @@ def test_run_evidence_records_runtime_events_result_and_integrity(
     source_files = (
         "configs/verification/bedrock-owner-test.json",
         "configs/eval/golden.jsonl",
-        "configs/eval/w3-002.yaml",
+        "configs/eval/cited-rag-evaluation-policy.yaml",
         "configs/eval/baselines/w3-002-v1.json",
         "configs/rag.yaml",
         "requirements.txt",

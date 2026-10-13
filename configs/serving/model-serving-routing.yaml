@@ -1,0 +1,20 @@
+schema_version: w8-001.serving.v1
+region: ap-southeast-1
+processing_policy: Global Cross-Region
+foundation_provider: bedrock
+custom_artifact_provider: sagemaker_realtime
+eks_provider_condition: documented_workload_or_platform_control_requirement
+connect_timeout_seconds: 3
+read_timeout_seconds: 20
+request_timeout_seconds: 25
+maximum_attempts: 2
+circuit_breaker_failure_threshold: 5
+circuit_breaker_open_seconds: 30
+circuit_breaker_half_open_probes: 1
+maximum_concurrent_calls: 4
+autoscaling_min_replicas: 2
+autoscaling_max_replicas: 4
+autoscaling_cpu_target_percent: 70
+live_cost_ceiling: OWNER_BINDING_REQUIRED
+live_execution: NOT_AUTHORIZED
+provisioning: NOT_RUN

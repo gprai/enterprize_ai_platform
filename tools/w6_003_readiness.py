@@ -100,7 +100,7 @@ REQUIRED_REPOSITORY_PATHS = (
     "configs/releases/versions/w4-synthetic-regression-v1.json",
     "tools/w6_001_k8s.py",
     "tools/w6_002_observability.py",
-    "configs/readiness/w6-003.yaml",
+    "configs/readiness/local-integrated-readiness.yaml",
     "tools/w6_003_readiness.py",
 )
 COMPOSITION_PATHS = tuple(

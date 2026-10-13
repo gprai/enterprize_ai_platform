@@ -14,8 +14,8 @@ from enterprise_ai_platform.rag_rollback.identity import validate_identity_pair
 
 ROOT = Path(__file__).resolve().parents[2]
 DESCRIPTORS = (
-    ROOT / "configs/rag/versions/w3-002-v1.json",
-    ROOT / "configs/rag/versions/w3-004-synthetic-regression-v1.json",
+    ROOT / "configs/rag/versions/known-good-v2.json",
+    ROOT / "configs/rag/versions/synthetic-regression-v2.json",
 )
 
 

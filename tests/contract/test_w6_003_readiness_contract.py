@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_exact_repository_readiness_contract_is_local_and_closed() -> None:
     result = w6_003_readiness.validate_config(
         ROOT,
-        ROOT / "configs/readiness/w6-003.yaml",
+        ROOT / "configs/readiness/local-integrated-readiness.yaml",
     )
 
     assert result == w6_003_readiness.VALIDATION_MESSAGE
@@ -24,7 +24,9 @@ def test_exact_repository_readiness_contract_is_local_and_closed() -> None:
 
 
 def test_cloud_lifecycle_and_known_good_creation_remain_w6_004_work() -> None:
-    config = w6_003_readiness.load_config(ROOT / "configs/readiness/w6-003.yaml")
+    config = w6_003_readiness.load_config(
+        ROOT / "configs/readiness/local-integrated-readiness.yaml"
+    )
     w6_003_readiness.validate_config_values(config)
 
     execution = config["execution"]

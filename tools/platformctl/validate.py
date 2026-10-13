@@ -32,7 +32,7 @@ PERMITTED_STATUSES = (
     "Deferred",
 )
 EXPECTED_W6_003_IMPLEMENTATION_PATHS = (
-    "configs/readiness/w6-003.yaml",
+    "configs/readiness/local-integrated-readiness.yaml",
     "tools/w6_003_readiness.py",
     "tests/fakes/readiness.py",
     "tests/unit/test_w6_003_readiness.py",
@@ -199,8 +199,8 @@ EXPECTED_RAG_PRE_W3_004_IMPLEMENTATION_PATHS = (
     + EXPECTED_W3_003_EDITABLE_PATHS
 )
 EXPECTED_W3_004_EDITABLE_PATHS = (
-    "configs/rag/versions/w3-002-v1.json",
-    "configs/rag/versions/w3-004-synthetic-regression-v1.json",
+    "configs/rag/versions/known-good-v2.json",
+    "configs/rag/versions/synthetic-regression-v2.json",
     "src/enterprise_ai_platform/rag_rollback/__init__.py",
     "src/enterprise_ai_platform/rag_rollback/errors.py",
     "src/enterprise_ai_platform/rag_rollback/models.py",
@@ -238,7 +238,7 @@ EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS = (
     + EXPECTED_W3_004_EDITABLE_PATHS
 )
 EXPECTED_W7_001_EDITABLE_PATHS = (
-    "configs/ingestion/w7-001.yaml",
+    "configs/ingestion/governed-data-foundation.yaml",
     "src/enterprise_ai_platform/ingestion/governance.py",
     "src/enterprise_ai_platform/ingestion/workflow.py",
     "tests/fakes/w7_001_data_foundation.py",
@@ -280,7 +280,7 @@ EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS = EXPECTED_RAG_PRE_W7_001_IMPLEMENT
     if path not in EXPECTED_RAG_PRE_W7_001_IMPLEMENTATION_PATHS
 )
 EXPECTED_W7_002_EDITABLE_PATHS = (
-    "configs/processing/w7-002.yaml",
+    "configs/processing/document-quality-replay.yaml",
     "src/enterprise_ai_platform/processing/__init__.py",
     "src/enterprise_ai_platform/processing/contracts.py",
     "src/enterprise_ai_platform/processing/quality.py",
@@ -305,7 +305,7 @@ EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS = EXPECTED_RAG_PRE_W7_002_IMPLEMENT
     if path not in EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS
 )
 EXPECTED_W7_003_EDITABLE_PATHS = (
-    "configs/ingestion/w7-003.yaml",
+    "configs/ingestion/privacy-retention-lifecycle.yaml",
     "src/enterprise_ai_platform/ingestion/privacy_lifecycle.py",
     "tests/fakes/w7_003_privacy_lifecycle.py",
     "tests/unit/test_w7_003_privacy_lifecycle.py",
@@ -369,7 +369,7 @@ EXPECTED_RAG_FEATURE = {
 }
 EXPECTED_EVAL_IMPLEMENTATION_PATHS = (
     ".gitignore",
-    "configs/eval/w3-002.yaml",
+    "configs/eval/cited-rag-evaluation-policy.yaml",
     "configs/eval/golden.jsonl",
     "src/enterprise_ai_platform/evaluation/__init__.py",
     "src/enterprise_ai_platform/evaluation/errors.py",

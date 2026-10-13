@@ -19,7 +19,9 @@ def test_readiness_validation_creates_no_file_thread_or_external_residue(tmp_pat
     rollback = readiness.local_rollback()
 
     assert (
-        w6_003_readiness.validate_config(ROOT, ROOT / "configs/readiness/w6-003.yaml")
+        w6_003_readiness.validate_config(
+            ROOT, ROOT / "configs/readiness/local-integrated-readiness.yaml"
+        )
         == w6_003_readiness.VALIDATION_MESSAGE
     )
     w6_003_readiness.validate_local_proof(proof, now=readiness.NOW)

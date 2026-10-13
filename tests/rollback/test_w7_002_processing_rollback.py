@@ -11,7 +11,7 @@ def test_last_approved_w7_001_runner_contract_remains_unchanged_and_available() 
     workflow = (ROOT / "src/enterprise_ai_platform/ingestion/workflow.py").read_text(
         encoding="utf-8"
     )
-    config = (ROOT / "configs/ingestion/w7-001.yaml").read_text(encoding="utf-8")
+    config = (ROOT / "configs/ingestion/governed-data-foundation.yaml").read_text(encoding="utf-8")
 
     assert "async def run(self, eligibility: EmbeddingEligibility) -> object" in workflow
     assert "raw:" in config

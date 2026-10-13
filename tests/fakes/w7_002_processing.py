@@ -104,7 +104,7 @@ class StaticRequestResolver:
 def processing_config() -> ProcessingConfig:
     from pathlib import Path
 
-    return load_processing_config(Path("configs/processing/w7-002.yaml"))
+    return load_processing_config(Path("configs/processing/document-quality-replay.yaml"))
 
 
 def make_document(

@@ -30,8 +30,8 @@ from .errors import (
 from .models import IdentityAlias, RAGIdentityDescriptor
 
 REPOSITORY_ROOT: Final[Path] = Path(__file__).resolve().parents[3]
-KNOWN_GOOD_PATH: Final[Path] = Path("configs/rag/versions/w3-002-v1.json")
-REGRESSION_PATH: Final[Path] = Path("configs/rag/versions/w3-004-synthetic-regression-v1.json")
+KNOWN_GOOD_PATH: Final[Path] = Path("configs/rag/versions/known-good-v2.json")
+REGRESSION_PATH: Final[Path] = Path("configs/rag/versions/synthetic-regression-v2.json")
 
 _IDENTITY_PATHS: Final[dict[IdentityAlias, Path]] = {
     "known-good": KNOWN_GOOD_PATH,
@@ -126,7 +126,7 @@ def _require_exact_references(identity: RAGIdentityDescriptor) -> None:
             _FIXTURE_SOURCE_SHA256,
         ),
         "evaluation": (
-            "configs/eval/w3-002.yaml",
+            "configs/eval/cited-rag-evaluation-policy.yaml",
             _EVALUATION_CONFIG_SHA256,
             "w3-002.v1",
             "w3-002.metrics.v1",

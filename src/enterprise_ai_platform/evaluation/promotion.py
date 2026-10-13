@@ -24,7 +24,7 @@ from .report import _atomic_write_no_overwrite, load_evaluation_report
 
 _APPROVED_TARGET = Path("configs/eval/baselines/w3-002-v1.json")
 _APPROVED_DATASET = Path("configs/eval/golden.jsonl")
-_APPROVED_CONFIG = Path("configs/eval/w3-002.yaml")
+_APPROVED_CONFIG = Path("configs/eval/cited-rag-evaluation-policy.yaml")
 _APPROVED_CANDIDATE = Path("reports/eval.json")
 _APPROVED_REPEAT = Path("reports/eval-repeat.json")
 

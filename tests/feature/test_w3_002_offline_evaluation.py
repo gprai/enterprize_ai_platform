@@ -20,7 +20,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def _evaluate() -> tuple[object, ...]:
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
-    config, config_checksum = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
+    config, config_checksum = load_evaluation_config(
+        ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
+    )
     policy = load_rag_policy(ROOT / "configs" / "rag.yaml")
     executions = asyncio.run(DeterministicRAGEvaluator().evaluate(dataset, policy))
     assessments = tuple(

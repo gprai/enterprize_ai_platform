@@ -35,15 +35,15 @@ W2_004_RUNNER_IMAGE = enterprise-ai-w2-004a-local_retrieval_runner:latest
 W6_001_TEMPLATE = deploy/k8s
 W6_001_BINDING ?= owner-must-supply-exact-external-w6-001-release-binding.json
 W6_001_RELEASE_ROOT ?= owner-must-supply-exact-external-w6-001-release-root
-W6_003_CONFIG = configs/readiness/w6-003.yaml
+W6_003_CONFIG = configs/readiness/local-integrated-readiness.yaml
 W6_003_EVIDENCE_ROOT ?= E:/AI/.runtime/enterprise_ai_platform/w6-003/owner-test-01
 W6_003_LOCAL_PROOF ?= $(W6_003_EVIDENCE_ROOT)/local-proof.json
 W6_003_LOCAL_ROLLBACK ?= $(W6_003_EVIDENCE_ROOT)/local-rollback-rehearsal.json
 W6_003_HANDOVER ?= $(W6_003_EVIDENCE_ROOT)/w6-004-readiness-manifest.json
 W6_004_CONFIG = configs/lifecycle/w6-004.json
-W7_001_CONFIG = configs/ingestion/w7-001.yaml
-W7_002_CONFIG = configs/processing/w7-002.yaml
-W7_003_CONFIG = configs/ingestion/w7-003.yaml
+W7_001_CONFIG = configs/ingestion/governed-data-foundation.yaml
+W7_002_CONFIG = configs/processing/document-quality-replay.yaml
+W7_003_CONFIG = configs/ingestion/privacy-retention-lifecycle.yaml
 
 .PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke terraform-fmt-check terraform-validate-bootstrap terraform-validate-sandbox tflint-bootstrap tflint-sandbox checkov-config checkov-terraform opa-policy-check opa-terraform-policy w5-policy-tests w5-policy-rollback bedrock-owner-dry-run w5-static-tests w5-002-validate-config w5-002-validate-locks w5-002-static w5-002-workflow-contract w5-002-build w5-002-scan w5-002-sbom w5-002-clean-runtime w5-002-reconcile w5-002-rollback-identity w5-002-clean w5-002-verify-clean
 .PHONY: plan-sandbox w5-004-bootstrap-plan w5-004-bootstrap-apply w5-004-platform-plan w5-004-policy-review w5-004-cost-review w5-004-platform-apply w5-004-aws-verify w5-004-infrastructure-rollback w5-004-destroy-plan w5-004-purge-sandbox w5-004-platform-destroy w5-004-bootstrap-destroy w5-004-verify-clean
@@ -86,7 +86,7 @@ test-teardown:
 	$(PYTHON) -m unittest tests.teardown.test_repository_cleanliness
 
 evaluate:
-	$(PYTHON) -B tools/evaluationctl.py candidate --config configs/eval/w3-002.yaml --dataset configs/eval/golden.jsonl --baseline configs/eval/baselines/w3-002-v1.json --out reports/eval.json
+	$(PYTHON) -B tools/evaluationctl.py candidate --config configs/eval/cited-rag-evaluation-policy.yaml --dataset configs/eval/golden.jsonl --baseline configs/eval/baselines/w3-002-v1.json --out reports/eval.json
 
 local-retrieval-config:
 	$(W2_004_COMPOSE) config --quiet

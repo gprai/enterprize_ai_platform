@@ -38,10 +38,20 @@ does not contain source code, cloud output, tracker state or Git approval.
   10 subtests and 1 warning; Ruff, MyPy, validation, scoped secret scanning and
   pre-commit passed. Live feature-store integration, deployment, cost estimate,
   rollback, restore and teardown remain **NOT RUN** or deferred. W7-003 remains
-  **Blocked** and owner teach-back remains pending. Column N documentation
+  **Blocked**. The later W7-LEARN-001 owner teach-back is recorded in
+  [the learning review](../../learning/W7-learning-review.md); this does not
+  change W7-003 or close GAP-01 through GAP-04. Column N documentation
   closure was approved by Gyan Prakash Rai, Project Owner and Final Approval
   Reviewer, on 2026-10-12 at 18:11:00 SGT. This local/offline evidence does not
   imply cloud or production readiness.
+- [W7-LEARN-001 Week 7 learning review](../../learning/W7-learning-review.md) —
+  owner-provided teach-back covering the governed document supply chain,
+  trust boundaries, W7-004 decision, failure/recovery distinctions, and five
+  interview answers. **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan
+  Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-10-12 at
+  21:11:00 SGT. Learning-only; TEST-001 is N/A. W7-003 remains **Blocked**,
+  GAP-01 through GAP-04 remain open, and no readiness or dependency closure is
+  claimed. See the canonical record for final approval and limitations.
 
 ## Week 7 boundary
 
@@ -69,7 +79,9 @@ source and index versions, redacted archive evidence, one-time owner approval,
 retained KMS usability and native absence checks. The record-office analogy is
 used for learning: every copy is tracked, and only the specifically approved
 record is destroyed after a witnessed chain of custody. Live cloud behavior
-and weekly owner teach-back remain NOT RUN / owner-led, respectively.
+  and W7-003-specific weekly owner teach-back remain NOT RUN / owner-led,
+  respectively. The separate W7-LEARN-001 teach-back is recorded in the
+  learning review; it does not alter W7-003 status.
 
 W7-004 records a separate feature-management decision under RAG-001 without
 creating a new feature runtime or placing a feature store in document RAG.
@@ -78,8 +90,9 @@ owner-approved outcome is **NOT ADOPTED** for this scope. SageMaker Feature
 Store remains a conditional AWS-first candidate and Feast a conditional
 portability candidate only after a proven use case, controls and cost boundary
 are supplied. The shared-pantry analogy is the learning anchor: prove who
-supplies and uses the pantry before building and stocking it. Owner teach-back
-remains pending; no cloud or live feature-store behavior was tested.
+supplies and uses the pantry before building and stocking it. The owner
+teach-back was subsequently supplied under W7-LEARN-001; no cloud or live
+feature-store behavior was tested.
 
 The factory-line analogy is the W7-002 learning anchor: every batch has a
 recipe, inspection station and traceable reject bin. The implemented quality

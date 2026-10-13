@@ -328,7 +328,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertEqual(
             (
                 ".gitignore",
-                "configs/eval/w3-002.yaml",
+                "configs/eval/cited-rag-evaluation-policy.yaml",
                 "configs/eval/golden.jsonl",
             ),
             EXPECTED_EVAL_IMPLEMENTATION_PATHS[:3],

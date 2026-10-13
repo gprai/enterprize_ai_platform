@@ -21,7 +21,7 @@ def test_w7_002_source_declares_no_cloud_or_repository_persistence() -> None:
 
 
 def test_w7_002_config_keeps_external_runtime_capabilities_deferred() -> None:
-    config = (ROOT / "configs/processing/w7-002.yaml").read_text(encoding="utf-8")
+    config = (ROOT / "configs/processing/document-quality-replay.yaml").read_text(encoding="utf-8")
 
     assert 'quality_engine: "provider_neutral_compatible"' in config
     assert 'checkpoint_store: "protocol_in_memory_fake_only"' in config

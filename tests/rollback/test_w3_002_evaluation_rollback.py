@@ -83,7 +83,9 @@ def _baseline(metrics: EvaluationMetrics) -> ApprovedBaseline:
 
 
 def test_recall_tolerance_and_incompatible_baseline_fail_closed() -> None:
-    config, config_checksum = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
+    config, config_checksum = load_evaluation_config(
+        ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
+    )
     baseline = _baseline(_metrics(_metric(18, 20)))
     within_tolerance = compare_with_baseline(
         candidate=_metrics(_metric(17, 20)),
@@ -116,7 +118,7 @@ def _promotion_arguments(target: Path) -> argparse.Namespace:
         repository_sha="a" * 40,
         dataset=Path("configs/eval/golden.jsonl"),
         dataset_sha256="0" * 64,
-        config=Path("configs/eval/w3-002.yaml"),
+        config=Path("configs/eval/cited-rag-evaluation-policy.yaml"),
         candidate=Path("reports/eval.json"),
         candidate_sha256="1" * 64,
         repeat_report=Path("reports/eval-repeat.json"),

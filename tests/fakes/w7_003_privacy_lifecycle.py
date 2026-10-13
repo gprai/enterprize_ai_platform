@@ -27,7 +27,7 @@ KMS_ARN = "arn:aws:kms:ap-southeast-1:526338061652:key/shared-platform-key"
 def config():
     from pathlib import Path
 
-    return load_privacy_lifecycle_config(Path("configs/ingestion/w7-003.yaml"))
+    return load_privacy_lifecycle_config(Path("configs/ingestion/privacy-retention-lifecycle.yaml"))
 
 
 def pii_policy() -> PiiPolicy:

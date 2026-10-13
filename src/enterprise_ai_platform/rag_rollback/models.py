@@ -69,7 +69,7 @@ class EvidenceReference(StrictRollbackModel):
 
 
 class EvaluationReference(StrictRollbackModel):
-    config_path: Literal["configs/eval/w3-002.yaml"]
+    config_path: Literal["configs/eval/cited-rag-evaluation-policy.yaml"]
     config_sha256: HexDigest
     evaluator_version: Literal["w3-002.v1"]
     metric_version: Literal["w3-002.metrics.v1"]

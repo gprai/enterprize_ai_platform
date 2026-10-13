@@ -43,7 +43,7 @@ jobs:
       - name: Validate the non-deployable W6-001 source template
         run: python -B -m tools.w6_001_k8s validate-template --template-root deploy/k8s
       - name: Validate the local-only W6-003 readiness contract
-        run: python -B -m tools.w6_003_readiness validate-config --root . --config configs/readiness/w6-003.yaml
+        run: python -B -m tools.w6_003_readiness validate-config --root . --config configs/readiness/local-integrated-readiness.yaml
       - name: Validate the inert W6-004 lifecycle source contract
         run: python -B -m tools.platformctl w6-004-validate-source --config configs/lifecycle/w6-004.json
       - name: Run bounded quality and secret gates

@@ -68,7 +68,7 @@ Mode = Literal[
     "paid-evaluation",
     "reconcile-owner-review",
 ]
-EXPECTED_CONTRACT_SHA256 = "6b5fb7ce364918b6dcb7443999686e67adf314e359566486ab1f251700a3e97f"
+EXPECTED_CONTRACT_SHA256 = "4b81fdb63f9001881b6b7c9ebf1efa038cf545c4746898016482b01a3d4622cd"
 PROVIDER_ERROR_SAFE_CODES = {
     "AccessDeniedException": "provider_access_denied",
     "ExpiredTokenException": "provider_authentication_failed",

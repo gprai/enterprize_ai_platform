@@ -91,7 +91,9 @@ def test_fact_normalization_and_contiguous_whole_tokens_are_exact() -> None:
 
 def test_perfect_inventory_passes_exact_gates_and_macro_metrics() -> None:
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
-    config, _ = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
+    config, _ = load_evaluation_config(
+        ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
+    )
     executions = tuple(_perfect_execution(case) for case in dataset.cases)
     assessments = tuple(
         assess_case(case, execution)
@@ -239,7 +241,9 @@ def test_case_assessment_rejects_inconsistent_retrieval_credit(
 
 def test_exact_case_thresholds_and_mandatory_gates_do_not_compensate() -> None:
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
-    config, _ = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
+    config, _ = load_evaluation_config(
+        ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
+    )
     perfect = [_perfect_execution(case) for case in dataset.cases]
 
     one_answer_failure = list(perfect)
@@ -289,7 +293,9 @@ def test_missing_or_unauthorized_source_has_zero_recall_and_mrr_credit() -> None
 
 def test_exposed_invalid_citation_is_a_non_compensable_hard_blocker() -> None:
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
-    config, _ = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
+    config, _ = load_evaluation_config(
+        ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
+    )
     executions = [_perfect_execution(case) for case in dataset.cases]
     executions[0] = executions[0].model_copy(
         update={
@@ -317,7 +323,9 @@ def test_exposed_invalid_citation_is_a_non_compensable_hard_blocker() -> None:
 
 def test_one_expected_error_mismatch_fails_the_three_of_three_gate() -> None:
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
-    config, _ = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
+    config, _ = load_evaluation_config(
+        ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
+    )
     executions = [_perfect_execution(case) for case in dataset.cases]
     error_index = next(
         index for index, case in enumerate(dataset.cases) if case.expected_outcome == "ERROR"
@@ -337,7 +345,9 @@ def test_one_expected_error_mismatch_fails_the_three_of_three_gate() -> None:
 
 def test_release_blocking_answer_failure_cannot_use_the_one_case_tolerance() -> None:
     dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden.jsonl")
-    config, _ = load_evaluation_config(ROOT / "configs" / "eval" / "w3-002.yaml")
+    config, _ = load_evaluation_config(
+        ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
+    )
     executions = [_perfect_execution(case) for case in dataset.cases]
     q39_index = next(index for index, case in enumerate(dataset.cases) if case.case_id == "Q39")
     executions[q39_index] = executions[q39_index].model_copy(
