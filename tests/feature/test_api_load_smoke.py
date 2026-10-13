@@ -18,7 +18,7 @@ from uuid import UUID
 import httpx
 import pytest
 
-from enterprise_ai_platform.api.runtime import QueryCapacityLimiter
+from enterprise_ai_platform.api.runtime import QueryCapacityLimiter, TenantRateLimiter
 from enterprise_ai_platform.app import create_app
 from enterprise_ai_platform.config import Settings
 from enterprise_ai_platform.rag.models import AbstentionResult
@@ -239,6 +239,11 @@ async def _run_level(
         authenticator=authenticator,
         rag_service=rag,
         readiness_probe=FakeReadinessProbe(),
+    )
+    application.state.api_tenant_rate_limiter = TenantRateLimiter(
+        maximum_requests=1000,
+        window_seconds=60,
+        maximum_tenants=1024,
     )
     transport = httpx.ASGITransport(app=application)
     async with httpx.AsyncClient(

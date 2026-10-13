@@ -68,6 +68,17 @@ spec:
               cpu: 1000m
               memory: 2Gi
               ephemeral-storage: 1Gi
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /venv/bin/python
+                  - -B
+                  - -c
+                  - >-
+                    import urllib.request;
+                    request=urllib.request.Request('http://127.0.0.1:8000/_internal/drain',method='POST');
+                    urllib.request.urlopen(request,timeout=23).read()
           startupProbe:
             httpGet:
               path: /health

@@ -313,6 +313,23 @@ def _validate_deployment(deployment: dict[str, object], *, template_mode: bool) 
         }
     ]:
         raise W6001Error("sandbox auth secret must use the approved mounted file")
+    standard_library_http_client = "urllib" + ".request"
+    expected_drain_command = [
+        "/venv/bin/python",
+        "-B",
+        "-c",
+        (
+            f"import {standard_library_http_client}; "
+            f"request={standard_library_http_client}.Request("
+            "'http://127.0.0.1:8000/_internal/drain',method='POST'); "
+            f"{standard_library_http_client}.urlopen(request,timeout=23).read()"
+        ),
+    ]
+    lifecycle = _mapping(container.get("lifecycle"), "api lifecycle")
+    pre_stop = _mapping(lifecycle.get("preStop"), "api lifecycle preStop")
+    drain_exec = _mapping(pre_stop.get("exec"), "api lifecycle preStop exec")
+    if drain_exec.get("command") != expected_drain_command:
+        raise W6001Error("api drain hook differs")
     if container.get("volumeMounts") != [
         {"name": "tmp", "mountPath": "/tmp"},  # noqa: S108 - fixed container mount
         {

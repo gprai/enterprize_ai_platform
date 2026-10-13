@@ -13,6 +13,7 @@ from uuid import UUID
 from enterprise_ai_platform.config import Settings
 
 from .models import (
+    RuntimeConfigurationHashes,
     SafeLogRecord,
     SafeTelemetryAttributes,
     TelemetryEventName,
@@ -242,6 +243,7 @@ class ExportingTelemetryRuntime:
         result_count: int | None = None,
         step_count: int | None = None,
         tool_call_count: int | None = None,
+        runtime_configuration: RuntimeConfigurationHashes | None = None,
     ) -> None:
         self._delegate.emit_event(
             event_name,
@@ -253,7 +255,14 @@ class ExportingTelemetryRuntime:
             result_count=result_count,
             step_count=step_count,
             tool_call_count=tool_call_count,
+            runtime_configuration=runtime_configuration,
         )
+
+    def record_runtime_configuration(
+        self,
+        configuration: RuntimeConfigurationHashes,
+    ) -> None:
+        self._delegate.record_runtime_configuration(configuration)
 
     def force_flush(self) -> bool:
         return self._queue.force_flush() and self._delegate.force_flush()

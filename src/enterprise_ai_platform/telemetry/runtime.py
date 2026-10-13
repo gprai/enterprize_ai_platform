@@ -38,6 +38,7 @@ from .models import (
     SPAN_CAPACITY,
     SPAN_NAMES,
     DropReason,
+    RuntimeConfigurationHashes,
     SafeLogRecord,
     SafeTelemetryAttributes,
     TelemetryEventName,
@@ -131,6 +132,12 @@ class TelemetryRuntime(Protocol):
         result_count: int | None = None,
         step_count: int | None = None,
         tool_call_count: int | None = None,
+        runtime_configuration: RuntimeConfigurationHashes | None = None,
+    ) -> None: ...
+
+    def record_runtime_configuration(
+        self,
+        configuration: RuntimeConfigurationHashes,
     ) -> None: ...
 
     def force_flush(self) -> bool: ...
@@ -236,6 +243,7 @@ class NullTelemetryRuntime:
         result_count: int | None = None,
         step_count: int | None = None,
         tool_call_count: int | None = None,
+        runtime_configuration: RuntimeConfigurationHashes | None = None,
     ) -> None:
         del (
             event_name,
@@ -247,7 +255,14 @@ class NullTelemetryRuntime:
             result_count,
             step_count,
             tool_call_count,
+            runtime_configuration,
         )
+
+    def record_runtime_configuration(
+        self,
+        configuration: RuntimeConfigurationHashes,
+    ) -> None:
+        del configuration
 
     def force_flush(self) -> bool:
         return True
@@ -613,6 +628,7 @@ class OpenTelemetryRuntime:
         tool_call_count: int | None = None,
         trace_id: str | None = None,
         span_id: str | None = None,
+        runtime_configuration: RuntimeConfigurationHashes | None = None,
     ) -> None:
         try:
             outcome = attributes.outcome or TelemetryOutcome.SUCCESS
@@ -633,6 +649,8 @@ class OpenTelemetryRuntime:
             ):
                 if value is not None:
                     event_attributes[key] = value
+            if runtime_configuration is not None:
+                event_attributes.update(runtime_configuration.model_dump(mode="json"))
             if active_span.get_span_context().is_valid:
                 active_span.add_event(
                     event_name.value,
@@ -661,6 +679,11 @@ class OpenTelemetryRuntime:
                 graph_version=attributes.graph_version,
                 tool_name=attributes.tool_name,
                 tool_version=attributes.tool_version,
+                **(
+                    runtime_configuration.model_dump(mode="python")
+                    if runtime_configuration is not None
+                    else {}
+                ),
             )
             dropped = self._log_sink.emit(record)
             if dropped:
@@ -672,6 +695,20 @@ class OpenTelemetryRuntime:
                 self._export_sink.emit(record)
         except Exception:
             self._safe_invalid_observation()
+
+    def record_runtime_configuration(
+        self,
+        configuration: RuntimeConfigurationHashes,
+    ) -> None:
+        self.emit_event(
+            TelemetryEventName.RUNTIME_CONFIGURATION,
+            SafeTelemetryAttributes(
+                stage=TelemetryStage.API,
+                operation=TelemetryOperation.VALIDATE,
+                outcome=TelemetryOutcome.SUCCESS,
+            ),
+            runtime_configuration=configuration,
+        )
 
     def record_tokens(
         self,

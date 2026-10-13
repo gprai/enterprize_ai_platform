@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Literal
@@ -14,7 +15,7 @@ from .agent.contracts import AgentController
 from .api.aws_composition import AWSRuntimeComposition, compose_aws_runtime
 from .api.dependencies import Authenticator, RAGAnswerService, ReadinessProbe
 from .api.routes import register_api_boundary
-from .api.runtime import RequestIdMiddleware
+from .api.runtime import ApplicationDrainController, RequestIdMiddleware
 from .api.sandbox_auth import SandboxTokenAuthenticator
 from .config import Settings
 from .telemetry.export import ExportingTelemetryRuntime
@@ -83,17 +84,39 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
-        del application
         try:
             if aws_runtime is not None:
                 await aws_runtime.start()
+                configuration_hashes = getattr(aws_runtime, "configuration_hashes", None)
+                if configuration_hashes is not None:
+                    resolved_telemetry.record_runtime_configuration(configuration_hashes)
             yield
         finally:
+            drain_controller = getattr(application.state, "api_drain_controller", None)
+            if isinstance(drain_controller, ApplicationDrainController):
+                await drain_controller.drain(
+                    completion_timeout_seconds=resolved_settings.api_drain_timeout_seconds,
+                    cancellation_timeout_seconds=(
+                        resolved_settings.api_cancellation_timeout_seconds
+                    ),
+                )
             if aws_runtime is not None:
-                await aws_runtime.close()
+                try:
+                    async with asyncio.timeout(
+                        resolved_settings.api_dependency_close_timeout_seconds
+                    ):
+                        await aws_runtime.close()
+                except TimeoutError:
+                    pass
             if telemetry_runtime_owned:
-                resolved_telemetry.force_flush()
-                resolved_telemetry.shutdown()
+                try:
+                    async with asyncio.timeout(
+                        resolved_settings.api_dependency_close_timeout_seconds
+                    ):
+                        await asyncio.to_thread(resolved_telemetry.force_flush)
+                        await asyncio.to_thread(resolved_telemetry.shutdown)
+                except TimeoutError:
+                    pass
 
     application = FastAPI(
         title=resolved_settings.app_name,

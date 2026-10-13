@@ -31,7 +31,7 @@ class APIModel(BaseModel):
 class QueryRequest(APIModel):
     """Untrusted query transport; identity fields are intentionally absent."""
 
-    query: str
+    query: str = Field(min_length=1, max_length=10_000)
 
 
 class StartAgentRequest(APIModel):
@@ -67,6 +67,15 @@ class LivenessResponse(APIModel):
 class ReadinessResponse(APIModel):
     request_id: UUID
     status: Literal["ready"] = "ready"
+
+
+class DrainResponse(APIModel):
+    """Content-free acknowledgement for the loopback termination hook."""
+
+    request_id: UUID
+    status: Literal["draining"] = "draining"
+    completed_requests: int = Field(ge=0)
+    cancelled_requests: int = Field(ge=0)
 
 
 class AnsweredQueryResponse(APIModel):

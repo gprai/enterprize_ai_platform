@@ -874,6 +874,69 @@ EXPECTED_EKS_FEATURE = {
     },
 }
 
+EXPECTED_SERVE_IMPLEMENTATION_PATHS = (
+    ".env.example",
+    "Makefile",
+    "deploy/k8s/configmap.yaml",
+    "deploy/k8s/deployment.yaml",
+    "feature-matrix.yaml",
+    "src/enterprise_ai_platform/app.py",
+    "src/enterprise_ai_platform/config.py",
+    "src/enterprise_ai_platform/api/aws_composition.py",
+    "src/enterprise_ai_platform/api/errors.py",
+    "src/enterprise_ai_platform/api/models.py",
+    "src/enterprise_ai_platform/api/routes.py",
+    "src/enterprise_ai_platform/api/runtime.py",
+    "src/enterprise_ai_platform/telemetry/__init__.py",
+    "src/enterprise_ai_platform/telemetry/export.py",
+    "src/enterprise_ai_platform/telemetry/models.py",
+    "src/enterprise_ai_platform/telemetry/runtime.py",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/plan.py",
+    "tools/w6_001_k8s.py",
+    "tests/unit/test_aws_composition.py",
+    "tests/contract/test_api_schema.py",
+    "tests/feature/test_api_load_smoke.py",
+    "tests/teardown/test_w4_001_api_cleanliness.py",
+    "tests/unit/test_config.py",
+    "tests/security/test_configuration_security.py",
+    "tests/contract/test_telemetry_schema.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/unit/test_w8_002_inference_api.py",
+    "tests/contract/test_w8_002_inference_api_contract.py",
+    "tests/integration/test_w8_002_inference_api_composition.py",
+    "tests/feature/test_w8_002_inference_api.py",
+    "tests/security/test_w8_002_inference_api_security.py",
+    "tests/rollback/test_w8_002_inference_api_rollback.py",
+    "tests/teardown/test_w8_002_inference_api_cleanliness.py",
+)
+EXPECTED_SERVE_FEATURE = {
+    "id": "SERVE-002",
+    "implementation_paths": list(EXPECTED_SERVE_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W8-002"],
+    "control_contract": {
+        "api": (
+            "one existing FastAPI surface with strict non-streaming request and response contracts"
+        ),
+        "reliability": (
+            "bounded payload, deadline, concurrency, tenant rate, circuit and drain controls"
+        ),
+        "security": (
+            "authentication and tenant authorization precede dependency calls; "
+            "telemetry is content-free"
+        ),
+        "operations": (
+            "readiness withdrawal, bounded in-flight cancellation and dependency closure "
+            "precede termination"
+        ),
+        "owner_execution": (
+            "tests, deployment, rollback and teardown remain separately owner-controlled"
+        ),
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -886,6 +949,7 @@ EXPECTED_FEATURES = (
     EXPECTED_BEDROCK_FEATURE,
     EXPECTED_GHA_FEATURE,
     EXPECTED_EKS_FEATURE,
+    EXPECTED_SERVE_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",

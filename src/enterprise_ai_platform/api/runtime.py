@@ -2,16 +2,23 @@
 
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import json
 import threading
-from typing import cast
+import time
+from collections import OrderedDict
+from collections.abc import Callable, Coroutine
+from dataclasses import dataclass
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 from pydantic import TypeAdapter, ValidationError
 from starlette.datastructures import MutableHeaders
-from starlette.requests import Request
+from starlette.requests import ClientDisconnect, Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from enterprise_ai_platform.guardrails.errors import GuardrailInputError
 from enterprise_ai_platform.json_contracts import (
     DuplicateJSONKeyError,
     strict_json_loads,
@@ -127,6 +134,218 @@ class QueryCapacityLimiter:
             self._active -= 1
 
 
+class TenantRateLimiter:
+    """Bounded, process-local fixed-window limits keyed by a tenant digest."""
+
+    def __init__(
+        self,
+        *,
+        maximum_requests: int,
+        window_seconds: int,
+        maximum_tenants: int,
+        monotonic: Callable[[], float] = time.monotonic,
+    ) -> None:
+        if min(maximum_requests, window_seconds, maximum_tenants) < 1:
+            raise ValueError("rate-limit values must be positive")
+        self._maximum_requests = maximum_requests
+        self._window_seconds = window_seconds
+        self._maximum_tenants = maximum_tenants
+        self._monotonic = monotonic
+        self._windows: OrderedDict[bytes, tuple[float, int]] = OrderedDict()
+        self._lock = threading.Lock()
+
+    @property
+    def tenant_count(self) -> int:
+        with self._lock:
+            return len(self._windows)
+
+    def try_consume(self, tenant_id: str) -> tuple[bool, int]:
+        """Consume one request or return a bounded Retry-After value."""
+
+        tenant_key = hashlib.sha256(tenant_id.encode("utf-8")).digest()
+        now = self._monotonic()
+        with self._lock:
+            expired = [
+                key
+                for key, (started, _count) in self._windows.items()
+                if now - started >= self._window_seconds
+            ]
+            for key in expired:
+                del self._windows[key]
+
+            current = self._windows.get(tenant_key)
+            if current is None:
+                if len(self._windows) >= self._maximum_tenants:
+                    return False, self._window_seconds
+                self._windows[tenant_key] = (now, 1)
+                return True, 0
+
+            started, count = current
+            if count >= self._maximum_requests:
+                retry_after = max(1, int(self._window_seconds - (now - started) + 0.999))
+                return False, retry_after
+            self._windows[tenant_key] = (started, count + 1)
+            self._windows.move_to_end(tenant_key)
+            return True, 0
+
+
+class RAGCircuitBreaker:
+    """Aggregate process-local circuit with one bounded half-open probe."""
+
+    def __init__(
+        self,
+        *,
+        failure_threshold: int,
+        open_seconds: int,
+        half_open_probes: int,
+        monotonic: Callable[[], float] = time.monotonic,
+    ) -> None:
+        if min(failure_threshold, open_seconds, half_open_probes) < 1:
+            raise ValueError("circuit-breaker values must be positive")
+        self._failure_threshold = failure_threshold
+        self._open_seconds = open_seconds
+        self._half_open_probes = half_open_probes
+        self._monotonic = monotonic
+        self._state = "closed"
+        self._failures = 0
+        self._open_until = 0.0
+        self._active_probes = 0
+        self._lock = threading.Lock()
+
+    @property
+    def state(self) -> str:
+        with self._lock:
+            if self._state == "open" and self._monotonic() >= self._open_until:
+                self._state = "half_open"
+                self._active_probes = 0
+            return self._state
+
+    def try_acquire(self) -> tuple[bool, int]:
+        now = self._monotonic()
+        with self._lock:
+            if self._state == "open":
+                if now < self._open_until:
+                    return False, max(1, int(self._open_until - now + 0.999))
+                self._state = "half_open"
+                self._active_probes = 0
+            if self._state == "half_open":
+                if self._active_probes >= self._half_open_probes:
+                    return False, 1
+                self._active_probes += 1
+            return True, 0
+
+    def record_success(self) -> None:
+        with self._lock:
+            self._state = "closed"
+            self._failures = 0
+            self._open_until = 0.0
+            self._active_probes = 0
+
+    def record_failure(self) -> None:
+        now = self._monotonic()
+        with self._lock:
+            self._active_probes = 0
+            self._failures += 1
+            if self._state == "half_open" or self._failures >= self._failure_threshold:
+                self._state = "open"
+                self._open_until = now + self._open_seconds
+
+    def release_probe(self) -> None:
+        with self._lock:
+            if self._state == "half_open" and self._active_probes:
+                self._active_probes -= 1
+
+
+@dataclass(frozen=True, slots=True)
+class DrainResult:
+    completed_requests: int
+    cancelled_requests: int
+
+
+class ApplicationDrainController:
+    """Withdraw readiness, reject new work, and bound in-flight cancellation."""
+
+    def __init__(self) -> None:
+        self._draining = False
+        self._tasks: set[asyncio.Task[object]] = set()
+
+    @property
+    def is_draining(self) -> bool:
+        return self._draining
+
+    @property
+    def active(self) -> int:
+        return sum(not task.done() for task in self._tasks)
+
+    def try_register_current(self) -> bool:
+        if self._draining:
+            return False
+        task = asyncio.current_task()
+        if task is None:
+            raise RuntimeError("request execution requires an asyncio task")
+        self._tasks.add(cast(asyncio.Task[object], task))
+        return True
+
+    def unregister_current(self) -> None:
+        task = asyncio.current_task()
+        if task is not None:
+            self._tasks.discard(cast(asyncio.Task[object], task))
+
+    async def drain(
+        self,
+        *,
+        completion_timeout_seconds: float,
+        cancellation_timeout_seconds: float,
+    ) -> DrainResult:
+        self._draining = True
+        current = asyncio.current_task()
+        pending = {task for task in self._tasks if task is not current and not task.done()}
+        initial = len(pending)
+        if pending:
+            _done, pending = await asyncio.wait(
+                pending,
+                timeout=completion_timeout_seconds,
+            )
+        cancelled = len(pending)
+        for task in pending:
+            task.cancel()
+        if pending:
+            await asyncio.wait(pending, timeout=cancellation_timeout_seconds)
+        self._tasks.difference_update(task for task in self._tasks if task.done())
+        return DrainResult(
+            completed_requests=initial - cancelled,
+            cancelled_requests=cancelled,
+        )
+
+
+async def await_with_disconnect[ResultT](
+    request: Request,
+    operation: Coroutine[Any, Any, ResultT],
+    *,
+    timeout_seconds: float,
+    poll_seconds: float,
+) -> ResultT:
+    """Cancel one scoped dependency call on deadline or client disconnect."""
+
+    task = asyncio.create_task(operation)
+    try:
+        async with asyncio.timeout(timeout_seconds):
+            while not task.done():
+                done, _pending = await asyncio.wait({task}, timeout=poll_seconds)
+                if done:
+                    break
+                if await request.is_disconnected():
+                    task.cancel()
+                    await asyncio.gather(task, return_exceptions=True)
+                    raise ClientDisconnect
+            return await task
+    except BaseException:
+        if not task.done():
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        raise
+
+
 def _validate_media_type(request: Request) -> None:
     content_type = request.headers.get("content-type", "")
     media_type = content_type.partition(";")[0].strip().casefold()
@@ -143,6 +362,7 @@ async def _read_json_request[RequestT](
     *,
     maximum_bytes: int,
     adapter: TypeAdapter[RequestT],
+    bounded_text_field: str | None = None,
 ) -> RequestT:
     """Count raw bytes, reject unsafe JSON, then validate its JSON representation."""
 
@@ -161,7 +381,18 @@ async def _read_json_request[RequestT](
 
     try:
         return adapter.validate_json(text, strict=True)
-    except ValidationError:
+    except ValidationError as error:
+        validation_errors = error.errors()
+        if (
+            bounded_text_field is not None
+            and validation_errors
+            and all(
+                tuple(item.get("loc", ())) == (bounded_text_field,)
+                and item.get("type") in {"string_too_short", "string_too_long"}
+                for item in validation_errors
+            )
+        ):
+            raise GuardrailInputError from None
         raise api_error(422, "api_request_invalid") from None
 
 
@@ -170,6 +401,7 @@ async def read_query_request(request: Request, *, maximum_bytes: int) -> QueryRe
         request,
         maximum_bytes=maximum_bytes,
         adapter=TypeAdapter(QueryRequest),
+        bounded_text_field="query",
     )
 
 

@@ -48,12 +48,25 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     host: IPvAnyAddress = IPv4Address("127.0.0.1")
     port: int = Field(default=8000, ge=1, le=65535)
-    request_timeout_seconds: int = Field(default=30, ge=1, le=120)
+    request_timeout_seconds: int = Field(default=25, ge=1, le=25)
     api_routes_enabled: bool = False
     api_max_request_body_bytes: int = Field(default=131_072, ge=1, le=131_072)
+    api_max_query_characters: Literal[10_000] = 10_000
     api_readiness_timeout_seconds: float = Field(default=1.0, gt=0, le=1.0)
     api_max_inflight_queries: int = Field(default=4, ge=1, le=4)
     api_query_queue_capacity: Literal[0] = 0
+    api_rate_limit_requests: Literal[60] = 60
+    api_rate_limit_window_seconds: Literal[60] = 60
+    api_rate_limit_maximum_tenants: Literal[1024] = 1024
+    api_circuit_breaker_failure_threshold: Literal[5] = 5
+    api_circuit_breaker_open_seconds: Literal[30] = 30
+    api_circuit_breaker_half_open_probes: Literal[1] = 1
+    api_retry_attempts: Literal[0] = 0
+    api_response_streaming_enabled: Literal[False] = False
+    api_drain_timeout_seconds: Literal[20] = 20
+    api_cancellation_timeout_seconds: Literal[2] = 2
+    api_dependency_close_timeout_seconds: Literal[2] = 2
+    api_disconnect_poll_seconds: float = Field(default=0.05, ge=0.05, le=0.05)
     sandbox_auth_enabled: bool = False
     sandbox_auth_issuer: str | None = Field(default=None, min_length=1, max_length=200)
     sandbox_auth_audience: str | None = Field(default=None, min_length=1, max_length=200)
@@ -274,8 +287,8 @@ class Settings(BaseSettings):
                 raise ValueError("AWS composition requires the exact owner-bound W6-004 profile")
         if not self.agent_store_path.is_absolute():
             raise ValueError("agent_store_path must be absolute")
-        if self.agent_enabled and self.agent_deadline_seconds >= self.request_timeout_seconds:
-            raise ValueError("agent deadline must remain inside the API deadline")
+        if self.agent_enabled and self.agent_deadline_seconds > self.request_timeout_seconds:
+            raise ValueError("agent deadline must not exceed the API deadline")
         if self.telemetry_enabled and not self.api_routes_enabled:
             raise ValueError("enabled telemetry requires the W4 API boundary")
         disabled_profile = (

@@ -3,10 +3,14 @@
 ## Learning status and boundary
 
 - **Task/week:** W8-LEARN-001 / Week 8.
-- **Source task:** W8-001 production serving architecture and adapter decision.
+- **Source tasks:** W8-001 production serving architecture and adapter decision;
+  W8-002 inference API hardening.
 - **Status:** Supporting learning handover reviewed as part of W8-001
   documentation closure. Owner teach-back has **not yet been supplied** and
-  remains open.
+  remains open. W8-002 factual learning is included in the documentation
+  closure approved by Gyan Prakash Rai, Project Owner and Final Approval
+  Reviewer, on 2026-10-13 at 16:01:00 SGT. This does not complete or infer the
+  owner teach-back.
 - **Evidence rule:** This learning record does not create a new TEST-001 PASS,
   authorize deployment, prove cloud behavior, close dependencies, or update
   the tracker.
@@ -136,3 +140,73 @@ The owner teach-back remains pending. Suggested questions are:
 
 Answers must come from the owner. This document does not pre-fill or infer
 them.
+
+## W8-002 learning handover — reinforcing the existing inference counter
+
+W8-002 answers a different question from W8-001. W8-001 chose the governed
+serving lanes; W8-002 reinforces the application counter through which an
+authorized caller reaches the existing RAG dependency. It does not create a
+second counter, change the provider decision, or prove that a cloud lane is
+deployed.
+
+The end-to-end runtime flow is:
+
+`bounded request → authentication/tenant authorization → tenant-rate check → drain/capacity/circuit admission → existing RAG call under deadline and disconnect cancellation → normalized response or safe error → content-free telemetry`
+
+Each control protects a different failure mode:
+
+- the body and query limits bound memory and parsing work;
+- the per-process tenant window bounds one tenant's local request rate without
+  retaining the raw tenant identifier;
+- concurrency four with a zero queue prevents unbounded waiting;
+- the five-failure, 30-second circuit stops repeated calls to an unhealthy RAG
+  dependency and admits one half-open probe;
+- the 25-second request deadline bounds the API operation while API retries
+  remain zero, avoiding attempt multiplication with the provider SDK;
+- readiness withdrawal prevents new traffic while the process drains or the
+  dependency circuit is open; and
+- disconnect-aware cancellation prevents abandoned client work from running
+  indefinitely.
+
+Graceful shutdown is a state transition, not merely a process signal. The
+loopback-only drain endpoint first withdraws readiness and rejects new work,
+then allows registered work 20 seconds to finish, cancels remaining work with
+a two-second bound, and closes dependencies with another two-second bound. The
+Kubernetes `preStop` caller uses 23 seconds inside the existing 30-second
+termination grace period. Local tests proved source behavior and manifest
+composition; no real pod, load balancer, provider, or multi-replica drain was
+run.
+
+The safe `runtime.configuration` event carries four SHA-256 identities for the
+model, prompt, embedding artifact, and retrieval configuration. They are
+low-cardinality event fields, not metric labels. The event deliberately omits
+raw prompts, tenant identifiers, endpoints, provider exceptions, model output,
+and secrets.
+
+W8-002's final local evidence passed after preserved formatter, lint, typing,
+focused/full-test, Windows temp-drive, validator-literal, feature-count, and
+secret-scan remediations. Eight opt-in/live tests remained skipped, four tests
+remained deselected, and one third-party Starlette deprecation warning remained.
+Deployment, live load, rollback, restore, operational teardown, cloud residue,
+billing, and cleanup of the named local test artifacts were NOT RUN.
+
+### Additional pending owner teach-back
+
+7. Explain why payload limits, rate limits, concurrency limits, a circuit
+   breaker, and a deadline are complementary rather than interchangeable.
+8. Trace the shutdown states from the Kubernetes `preStop` call through
+   readiness withdrawal, in-flight completion, bounded cancellation, and
+   dependency closure.
+9. Explain why a process-local tenant rate limiter is not a global ingress
+   quota and what evidence would be needed before calling it one.
+10. Explain why API retries are zero while the Bedrock SDK has one total
+    attempt, and how layered retries could increase cost and overload.
+11. State what the local PASS proves, what the eight skips/four deselections/
+    warning preserve, and why none proves production readiness.
+12. Distinguish source rollback instructions from an executed deployment
+    rollback, restore, teardown, residue check, and billing reconciliation.
+
+As with the earlier questions, answers must come from the owner. This handover
+does not infer the teach-back. W8-002 is final-approved within its recorded
+local/offline source and contract boundary; all deferred live, lifecycle, cost,
+and residue work remains open.

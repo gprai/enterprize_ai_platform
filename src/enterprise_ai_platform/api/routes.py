@@ -68,6 +68,7 @@ from .models import (
     APIErrorDetail,
     APIErrorResponse,
     DecideAgentRequest,
+    DrainResponse,
     LivenessResponse,
     QueryResponse,
     ReadinessResponse,
@@ -75,7 +76,11 @@ from .models import (
 )
 from .runtime import (
     REQUEST_ID_HEADER,
+    ApplicationDrainController,
     QueryCapacityLimiter,
+    RAGCircuitBreaker,
+    TenantRateLimiter,
+    await_with_disconnect,
     overload_error,
     read_agent_request,
     read_query_request,
@@ -293,6 +298,12 @@ async def ready(
     """Check one injected local wiring seam under a short deadline."""
 
     settings = cast(Settings, request.app.state.settings)
+    drain = cast(ApplicationDrainController, request.app.state.api_drain_controller)
+    if drain.is_draining:
+        raise api_error(503, "service_not_ready")
+    circuit = cast(RAGCircuitBreaker, request.app.state.api_rag_circuit_breaker)
+    if circuit.state == "open":
+        raise api_error(503, "service_not_ready")
     try:
         async with asyncio.timeout(settings.api_readiness_timeout_seconds):
             is_ready = await probe.check()
@@ -323,22 +334,87 @@ async def query(
         maximum_bytes=settings.api_max_request_body_bytes,
     )
     auth_context = await _trusted_auth_context(request, authenticator)
+    rate_limiter = cast(TenantRateLimiter, request.app.state.api_tenant_rate_limiter)
+    rate_allowed, retry_after = rate_limiter.try_consume(auth_context.tenant_id)
+    if not rate_allowed:
+        raise api_error(
+            429,
+            "api_rate_limited",
+            retryable=True,
+            headers={"Retry-After": str(retry_after)},
+        )
+    drain = cast(ApplicationDrainController, request.app.state.api_drain_controller)
+    if not drain.try_register_current():
+        raise api_error(503, "api_draining", retryable=True)
     limiter = cast(QueryCapacityLimiter, request.app.state.api_query_limiter)
     if not limiter.try_acquire():
+        drain.unregister_current()
         raise overload_error()
+    circuit = cast(RAGCircuitBreaker, request.app.state.api_rag_circuit_breaker)
+    circuit_allowed, circuit_retry_after = circuit.try_acquire()
+    if not circuit_allowed:
+        limiter.release()
+        drain.unregister_current()
+        raise api_error(
+            503,
+            "rag_circuit_open",
+            retryable=True,
+            headers={"Retry-After": str(circuit_retry_after)},
+        )
     try:
         try:
-            async with asyncio.timeout(float(settings.request_timeout_seconds)):
-                result = await rag_service.answer(
+            result = await await_with_disconnect(
+                request,
+                rag_service.answer(
                     auth_context,
                     transport.query,
                     content_type="text/plain",
-                )
+                ),
+                timeout_seconds=float(settings.request_timeout_seconds),
+                poll_seconds=settings.api_disconnect_poll_seconds,
+            )
+            normalized = _normalized_result(request, result)
+        except ClientDisconnect:
+            circuit.release_probe()
+            raise
+        except asyncio.CancelledError:
+            circuit.release_probe()
+            raise
         except TimeoutError:
+            circuit.record_failure()
             raise api_error(504, "api_query_deadline_exceeded") from None
-        return _normalized_result(request, result)
+        except Exception:
+            circuit.record_failure()
+            raise
+        circuit.record_success()
+        return normalized
     finally:
         limiter.release()
+        drain.unregister_current()
+
+
+@router.post(
+    "/_internal/drain",
+    response_model=DrainResponse,
+    include_in_schema=False,
+)
+async def drain(request: Request) -> DrainResponse:
+    """Withdraw readiness and drain work only from the container loopback."""
+
+    client = request.client
+    if client is None or client.host not in {"127.0.0.1", "::1"}:
+        raise api_error(403, "authorization_denied")
+    settings = cast(Settings, request.app.state.settings)
+    controller = cast(ApplicationDrainController, request.app.state.api_drain_controller)
+    result = await controller.drain(
+        completion_timeout_seconds=settings.api_drain_timeout_seconds,
+        cancellation_timeout_seconds=settings.api_cancellation_timeout_seconds,
+    )
+    return DrainResponse(
+        request_id=request_id_for(request),
+        completed_requests=result.completed_requests,
+        cancelled_requests=result.cancelled_requests,
+    )
 
 
 @router.post("/v1/agent", response_model=AgentResponse, tags=["agent"])
@@ -354,6 +430,15 @@ async def agent(request: Request, response: Response) -> Response | AgentRespons
     )
     authenticator = get_authenticator(request)
     auth_context = await _trusted_auth_context(request, authenticator)
+    rate_limiter = cast(TenantRateLimiter, request.app.state.api_tenant_rate_limiter)
+    rate_allowed, retry_after = rate_limiter.try_consume(auth_context.tenant_id)
+    if not rate_allowed:
+        raise api_error(
+            429,
+            "api_rate_limited",
+            retryable=True,
+            headers={"Retry-After": str(retry_after)},
+        )
     command: StartAgentCommand | DecideAgentCommand
     telemetry = _telemetry_for(request)
     with telemetry.start_scope(
@@ -403,8 +488,15 @@ async def agent(request: Request, response: Response) -> Response | AgentRespons
                 outcome=TelemetryOutcome.SUCCESS,
             ),
         )
+    drain_controller = cast(
+        ApplicationDrainController,
+        request.app.state.api_drain_controller,
+    )
+    if not drain_controller.try_register_current():
+        raise api_error(503, "api_draining", retryable=True)
     outer_limiter = cast(QueryCapacityLimiter, request.app.state.api_query_limiter)
     if not outer_limiter.try_acquire():
+        drain_controller.unregister_current()
         raise api_error(
             503,
             "agent_overloaded",
@@ -421,6 +513,7 @@ async def agent(request: Request, response: Response) -> Response | AgentRespons
         )
     finally:
         outer_limiter.release()
+        drain_controller.unregister_current()
     if result.outcome is AgentOutcome.APPROVAL_REQUIRED:
         response.status_code = 202
     if result.request_id != server_request_id:
@@ -463,5 +556,16 @@ def register_api_boundary(
             agent_controller if agent_controller is not None else UnconfiguredAgentController()
         )
     application.state.api_query_limiter = QueryCapacityLimiter(settings.api_max_inflight_queries)
+    application.state.api_tenant_rate_limiter = TenantRateLimiter(
+        maximum_requests=settings.api_rate_limit_requests,
+        window_seconds=settings.api_rate_limit_window_seconds,
+        maximum_tenants=settings.api_rate_limit_maximum_tenants,
+    )
+    application.state.api_rag_circuit_breaker = RAGCircuitBreaker(
+        failure_threshold=settings.api_circuit_breaker_failure_threshold,
+        open_seconds=settings.api_circuit_breaker_open_seconds,
+        half_open_probes=settings.api_circuit_breaker_half_open_probes,
+    )
+    application.state.api_drain_controller = ApplicationDrainController()
     register_exception_handlers(application)
     application.include_router(router)

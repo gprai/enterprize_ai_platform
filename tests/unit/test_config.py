@@ -32,11 +32,25 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.embedding_model_id == "sentence-transformers/all-MiniLM-L6-v2"
     assert settings.qdrant_url.host == "127.0.0.1"
     assert settings.opensearch_url.host == "opensearch.invalid"
+    assert settings.request_timeout_seconds == 25
     assert settings.api_routes_enabled is False
     assert settings.api_max_request_body_bytes == 131_072
+    assert settings.api_max_query_characters == 10_000
     assert settings.api_readiness_timeout_seconds == 1.0
     assert settings.api_max_inflight_queries == 4
     assert settings.api_query_queue_capacity == 0
+    assert settings.api_rate_limit_requests == 60
+    assert settings.api_rate_limit_window_seconds == 60
+    assert settings.api_rate_limit_maximum_tenants == 1024
+    assert settings.api_circuit_breaker_failure_threshold == 5
+    assert settings.api_circuit_breaker_open_seconds == 30
+    assert settings.api_circuit_breaker_half_open_probes == 1
+    assert settings.api_retry_attempts == 0
+    assert settings.api_response_streaming_enabled is False
+    assert settings.api_drain_timeout_seconds == 20
+    assert settings.api_cancellation_timeout_seconds == 2
+    assert settings.api_dependency_close_timeout_seconds == 2
+    assert settings.api_disconnect_poll_seconds == 0.05
     assert settings.telemetry_enabled is False
     assert settings.telemetry_service_name == "enterprise-ai-api"
     assert settings.telemetry_exporter == "none"
@@ -313,7 +327,7 @@ def test_external_plain_http_endpoint_is_rejected(
         Settings(_env_file=None, **values)
 
 
-@pytest.mark.parametrize("timeout", [0, 121])
+@pytest.mark.parametrize("timeout", [0, 26])
 def test_timeout_must_remain_bounded(
     timeout: int,
     valid_settings_values: dict[str, object],
@@ -335,6 +349,19 @@ def test_timeout_must_remain_bounded(
         ("api_max_inflight_queries", 0),
         ("api_max_inflight_queries", 5),
         ("api_query_queue_capacity", 1),
+        ("api_max_query_characters", 10_001),
+        ("api_rate_limit_requests", 61),
+        ("api_rate_limit_window_seconds", 61),
+        ("api_rate_limit_maximum_tenants", 1025),
+        ("api_circuit_breaker_failure_threshold", 6),
+        ("api_circuit_breaker_open_seconds", 31),
+        ("api_circuit_breaker_half_open_probes", 2),
+        ("api_retry_attempts", 1),
+        ("api_response_streaming_enabled", True),
+        ("api_drain_timeout_seconds", 21),
+        ("api_cancellation_timeout_seconds", 3),
+        ("api_dependency_close_timeout_seconds", 3),
+        ("api_disconnect_poll_seconds", 0.1),
         ("telemetry_span_capacity", 511),
         ("telemetry_log_capacity", 513),
         ("telemetry_queue_capacity", 1),
@@ -377,7 +404,7 @@ def test_agent_store_path_cannot_move_into_repository(
         Settings(_env_file=None, **values)
 
 
-def test_enabled_agent_deadline_must_remain_inside_api_deadline(
+def test_enabled_agent_deadline_may_equal_but_not_exceed_api_deadline(
     valid_settings_values: dict[str, object],
 ) -> None:
     values = dict(valid_settings_values)
@@ -387,7 +414,11 @@ def test_enabled_agent_deadline_must_remain_inside_api_deadline(
         request_timeout_seconds=25,
     )
 
-    with pytest.raises(ValidationError, match="agent deadline"):
+    settings = Settings(_env_file=None, **values)
+    assert settings.agent_deadline_seconds == settings.request_timeout_seconds == 25
+
+    values["request_timeout_seconds"] = 24
+    with pytest.raises(ValidationError, match="must not exceed"):
         Settings(_env_file=None, **values)
 
 

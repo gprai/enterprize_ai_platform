@@ -13,6 +13,7 @@ from enterprise_ai_platform.telemetry.models import (
     STRUCTURED_LOG_FIELD_ALLOWLIST,
     TELEMETRY_ATTRIBUTE_ALLOWLIST,
     TELEMETRY_SCHEMA_VERSION,
+    RuntimeConfigurationHashes,
     SafeLogRecord,
     SafeTelemetryAttributes,
     TelemetryEventName,
@@ -47,6 +48,7 @@ def test_schema_version_events_and_fields_are_exact() -> None:
         "approval.decision",
         "telemetry.export_failure",
         "telemetry.record_dropped",
+        "runtime.configuration",
     }
     assert TELEMETRY_ATTRIBUTE_ALLOWLIST == frozenset(SafeTelemetryAttributes.model_fields)
     assert STRUCTURED_LOG_FIELD_ALLOWLIST == frozenset(SafeLogRecord.model_fields)
@@ -185,3 +187,24 @@ def test_alert_contract_uses_stable_role_and_external_references() -> None:
             destination_reference="synthetic-receiver",
             delivery_status=EvidenceStatus.NOT_RUN,
         )
+
+
+def test_runtime_configuration_hashes_are_complete_and_not_metric_labels() -> None:
+    hashes = RuntimeConfigurationHashes(
+        model_config_sha256="a" * 64,
+        prompt_config_sha256="b" * 64,
+        embedding_config_sha256="c" * 64,
+        retrieval_config_sha256="d" * 64,
+    )
+    record = SafeLogRecord(
+        timestamp_unix_nano=1,
+        event_name=TelemetryEventName.RUNTIME_CONFIGURATION,
+        service_name="enterprise-ai-api",
+        stage=TelemetryStage.API,
+        operation=TelemetryOperation.VALIDATE,
+        outcome=TelemetryOutcome.SUCCESS,
+        **hashes.model_dump(mode="python"),
+    )
+
+    assert set(hashes.model_dump(mode="json")).isdisjoint(SafeTelemetryAttributes.model_fields)
+    assert record.model_config_sha256 == "a" * 64

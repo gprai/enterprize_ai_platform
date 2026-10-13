@@ -80,6 +80,7 @@ class TelemetryEventName(StrEnum):
     APPROVAL_DECISION = "approval.decision"
     EXPORT_FAILURE = "telemetry.export_failure"
     RECORD_DROPPED = "telemetry.record_dropped"
+    RUNTIME_CONFIGURATION = "runtime.configuration"
 
 
 class TokenType(StrEnum):
@@ -142,6 +143,9 @@ APPROVED_SAFE_ERROR_CODES: Final = frozenset(
         "authorization_denied",
         "api_query_deadline_exceeded",
         "api_overloaded",
+        "api_rate_limited",
+        "api_draining",
+        "rag_circuit_open",
         "service_not_ready",
         "agent_disabled",
         "agent_not_configured",
@@ -196,6 +200,15 @@ class TelemetryModel(BaseModel):
         strict=True,
         validate_default=True,
     )
+
+
+class RuntimeConfigurationHashes(TelemetryModel):
+    """Content-free immutable identities for the active inference composition."""
+
+    model_config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    prompt_config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    embedding_config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    retrieval_config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 class SafeTelemetryAttributes(TelemetryModel):
@@ -315,6 +328,10 @@ class SafeLogRecord(TelemetryModel):
     graph_version: str | None = Field(default=None, max_length=32)
     tool_name: str | None = Field(default=None, max_length=32)
     tool_version: str | None = Field(default=None, max_length=16)
+    model_config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    prompt_config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    embedding_config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    retrieval_config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
     @field_validator("duration_ms")
     @classmethod
@@ -366,6 +383,17 @@ class SafeLogRecord(TelemetryModel):
             raise ValueError("trace and span identifiers must be supplied together")
         if (self.tool_name is None) != (self.tool_version is None):
             raise ValueError("tool name and version must be supplied together")
+        configuration_hashes = (
+            self.model_config_sha256,
+            self.prompt_config_sha256,
+            self.embedding_config_sha256,
+            self.retrieval_config_sha256,
+        )
+        if self.event_name is TelemetryEventName.RUNTIME_CONFIGURATION:
+            if any(value is None for value in configuration_hashes):
+                raise ValueError("runtime configuration requires all four hashes")
+        elif any(value is not None for value in configuration_hashes):
+            raise ValueError("configuration hashes are limited to runtime configuration events")
         return self
 
 

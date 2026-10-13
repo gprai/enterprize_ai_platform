@@ -16,6 +16,7 @@ from enterprise_ai_platform.api.models import (
     APIErrorDetail,
     APIErrorResponse,
     DecideAgentRequest,
+    DrainResponse,
     LivenessResponse,
     QueryRequest,
     QueryResponse,
@@ -40,6 +41,7 @@ REQUEST_ID = UUID("12345678-1234-4678-9234-567812345678")
         APIErrorResponse,
         StartAgentRequest,
         DecideAgentRequest,
+        DrainResponse,
         AgentResponse,
     ],
 )
@@ -62,6 +64,10 @@ def test_query_transport_contains_only_untrusted_query_text() -> None:
         )
     with pytest.raises(ValidationError):
         QueryRequest.model_validate({"query": 1}, strict=True)
+    with pytest.raises(ValidationError):
+        QueryRequest(query="")
+    with pytest.raises(ValidationError):
+        QueryRequest(query="x" * 10_001)
 
 
 def test_agent_transport_is_an_exact_discriminated_union() -> None:

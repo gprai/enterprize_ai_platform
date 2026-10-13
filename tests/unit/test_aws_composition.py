@@ -9,8 +9,11 @@ import pytest
 
 import enterprise_ai_platform.api.aws_composition as composition_module
 from enterprise_ai_platform.api.aws_composition import (
+    AWS_CONNECT_TIMEOUT_SECONDS,
+    AWS_READ_TIMEOUT_SECONDS,
     AWS_RETRIEVAL_TIMEOUT_SECONDS,
     AWS_STARTUP_WARMUP_TEXT,
+    RUNTIME_CONFIGURATION_HASHES,
     AWSRuntimeComposition,
     compose_aws_runtime,
 )
@@ -111,3 +114,18 @@ def test_aws_runtime_uses_fifteen_second_retrieval_budget(
 
     assert captured["timeout_seconds"] == AWS_RETRIEVAL_TIMEOUT_SECONDS == 15.0
     assert runtime.embedder is embedder
+    assert runtime.configuration_hashes == RUNTIME_CONFIGURATION_HASHES
+    assert runtime.configuration_hashes.model_config_sha256 == "".join(
+        (
+            "36ea47e1",
+            "3ee1109f",
+            "5500b7c4",
+            "74ac0452",
+            "4404b98f",
+            "6fae3600",
+            "5aa37dbe",
+            "cc2d558f",
+        )
+    )
+    assert AWS_CONNECT_TIMEOUT_SECONDS == 3
+    assert AWS_READ_TIMEOUT_SECONDS == 20

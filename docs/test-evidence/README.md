@@ -35,6 +35,22 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W8-002 inference API hardening](W8/W8-002.md) — hardens the existing
+  FastAPI service with strict request bounds, non-streaming responses,
+  process-local tenant rate limiting, concurrency/backpressure, an aggregate
+  RAG circuit, truthful readiness, disconnect cancellation, safe
+  configuration telemetry, and bounded graceful shutdown. Local/offline
+  TEST-001 passed after the canonical record's preserved failures and bounded
+  remediations: YAML and source-template validation, platform validation,
+  Ruff, MyPy, focused and full Pytest (2,388 passed, 8 skipped, 4 deselected,
+  1 warning), targeted integrity/security tests, isolated secret scanning, and
+  isolated all-files pre-commit. Deployment, cloud/provider execution, live
+  load, rollback, restore, operational teardown, residue cleanup, and cost
+  validation remain NOT RUN. **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by
+  Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-10-13 at
+  16:01:00 SGT, with all recorded warnings, risks, skips, deselections,
+  limitations, deferred work, and retained local residue accepted and
+  preserved. This evidence does not establish production or cloud readiness.
 - [W8-001 production serving architecture](W8/W8-001.md) — provider-neutral
   artifact, request, response, routing and normalized-error contracts with
   Bedrock retained for approved foundation models, SageMaker real-time as the

@@ -54,7 +54,6 @@ def test_api_source_creates_no_background_or_persistent_runtime_work() -> None:
         "Popen",
         "create_subprocess_exec",
         "create_subprocess_shell",
-        "create_task",
         "ensure_future",
         "open_connection",
         "start_server",
@@ -123,5 +122,8 @@ def test_in_process_requests_leave_no_file_socket_or_process_residue(
         "api_rag_service",
         "api_readiness_probe",
         "api_query_limiter",
+        "api_tenant_rate_limiter",
+        "api_rag_circuit_breaker",
+        "api_drain_controller",
         "telemetry_runtime",
     }

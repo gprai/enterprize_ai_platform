@@ -29,6 +29,8 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS,
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
+    EXPECTED_SERVE_FEATURE,
+    EXPECTED_SERVE_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
     EXPECTED_W6_003_IMPLEMENTATION_PATHS,
@@ -124,6 +126,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_BEDROCK_FEATURE,
                 EXPECTED_GHA_FEATURE,
                 platform_validate.EXPECTED_EKS_FEATURE,
+                EXPECTED_SERVE_FEATURE,
             ],
             matrix["features"],
         )
@@ -144,6 +147,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "BED-001",
                 "GHA-001",
                 "EKS-001",
+                "SERVE-002",
             ],
             [feature["id"] for feature in features],
         )
@@ -192,6 +196,14 @@ class FeatureMatrixTests(unittest.TestCase):
             ["W6-02", "W6-03", "W6-04", "W6-05", "W6-004"],
             features[10]["linked_tracker_steps"],
         )
+        self.assertEqual(["W8-002"], features[11]["linked_tracker_steps"])
+
+    def test_w8_002_paths_are_owned_by_the_serving_hardening_feature(self) -> None:
+        feature = read_matrix()["features"][-1]
+
+        self.assertEqual(EXPECTED_SERVE_FEATURE, feature)
+        self.assertEqual(35, len(EXPECTED_SERVE_IMPLEMENTATION_PATHS))
+        self.assertEqual(35, len(set(EXPECTED_SERVE_IMPLEMENTATION_PATHS)))
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -229,6 +241,7 @@ class FeatureMatrixTests(unittest.TestCase):
             bedrock_feature,
             gha_feature,
             eks_feature,
+            serve_feature,
         ) = features
 
         self.assertEqual(
@@ -244,6 +257,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "BED-001",
                 "GHA-001",
                 "EKS-001",
+                "SERVE-002",
             ],
             [item["id"] for item in features],
         )
@@ -261,6 +275,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertTrue(
             set(EXPECTED_W6_004_IMPLEMENTATION_PATHS).issubset(eks_feature["implementation_paths"])
         )
+        self.assertEqual("SERVE-002", serve_feature["id"])
         self.assertEqual(
             [
                 "W3-01",

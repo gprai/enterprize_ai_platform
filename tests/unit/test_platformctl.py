@@ -41,6 +41,7 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS,
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
+    EXPECTED_SERVE_IMPLEMENTATION_PATHS,
     EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
@@ -104,10 +105,17 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "BED-001",
                 "GHA-001",
                 "EKS-001",
+                "SERVE-002",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
         self.assertEqual([], validate_feature_matrix(approved_matrix()))
+
+    def test_w8_002_inference_hardening_manifest_is_exact(self) -> None:
+        self.assertEqual(35, len(EXPECTED_SERVE_IMPLEMENTATION_PATHS))
+        self.assertEqual(35, len(set(EXPECTED_SERVE_IMPLEMENTATION_PATHS)))
+        self.assertEqual("SERVE-002", EXPECTED_FEATURES[-1]["id"])
+        self.assertEqual(["W8-002"], EXPECTED_FEATURES[-1]["linked_tracker_steps"])
 
     def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:
         self.assertEqual(20, len(EXPECTED_W6_003_IMPLEMENTATION_PATHS))

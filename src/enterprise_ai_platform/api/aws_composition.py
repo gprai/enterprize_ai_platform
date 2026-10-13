@@ -23,6 +23,7 @@ from enterprise_ai_platform.rag.service import RAGService
 from enterprise_ai_platform.retrieval.adapters.opensearch import OpenSearchVectorStore
 from enterprise_ai_platform.retrieval.models import CollectionSpec
 from enterprise_ai_platform.retrieval.service import RetrievalService
+from enterprise_ai_platform.telemetry.models import RuntimeConfigurationHashes
 from enterprise_ai_platform.telemetry.runtime import (
     EmbeddingTelemetryRecorder,
     OTLPTelemetryRuntime,
@@ -33,6 +34,47 @@ from enterprise_ai_platform.telemetry.runtime import (
 AWS_STARTUP_WARMUP_TIMEOUT_SECONDS = 30.0
 AWS_RETRIEVAL_TIMEOUT_SECONDS = 15.0
 AWS_STARTUP_WARMUP_TEXT = "enterprise ai platform startup readiness warmup"
+AWS_CONNECT_TIMEOUT_SECONDS = 3
+AWS_READ_TIMEOUT_SECONDS = 20
+RUNTIME_CONFIGURATION_HASHES = RuntimeConfigurationHashes(
+    model_config_sha256="".join(
+        (
+            "36ea47e1",
+            "3ee1109f",
+            "5500b7c4",
+            "74ac0452",
+            "4404b98f",
+            "6fae3600",
+            "5aa37dbe",
+            "cc2d558f",
+        )
+    ),
+    prompt_config_sha256="".join(
+        (
+            "db2319cc",
+            "4ab4ca7f",
+            "7ecffba1",
+            "80210711",
+            "f2c699ad",
+            "571a37bf",
+            "77277167",
+            "3bb402bd",
+        )
+    ),
+    embedding_config_sha256=APPROVED_SAFETENSORS_SHA256,
+    retrieval_config_sha256="".join(
+        (
+            "5cb62932",
+            "bbc0a0c1",
+            "1e494912",
+            "bdcc5b4b",
+            "48bd4195",
+            "e3ca58bd",
+            "a2df2722",
+            "7070b27e",
+        )
+    ),
+)
 
 
 class _AsyncMethodGroup:
@@ -135,6 +177,7 @@ class AWSRuntimeComposition:
     telemetry: TelemetryRuntime
     opensearch_client: object
     embedder: Embedder
+    configuration_hashes: RuntimeConfigurationHashes = RUNTIME_CONFIGURATION_HASHES
 
     async def start(self) -> None:
         """Load and exercise the local embedding model before serving traffic."""
@@ -211,8 +254,8 @@ def _default_clients(settings: Settings) -> tuple[_AsyncOpenSearchClient, Bedroc
         "bedrock-runtime",
         config=Config(
             region_name=region,
-            connect_timeout=1,
-            read_timeout=25,
+            connect_timeout=AWS_CONNECT_TIMEOUT_SECONDS,
+            read_timeout=AWS_READ_TIMEOUT_SECONDS,
             retries={"mode": "standard", "total_max_attempts": 1},
         ),
     )
