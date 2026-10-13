@@ -4,13 +4,15 @@
 
 - **Task/week:** W8-LEARN-001 / Week 8.
 - **Source tasks:** W8-001 production serving architecture and adapter decision;
-  W8-002 inference API hardening.
+  W8-002 inference API hardening; W8-003 asynchronous workflow orchestration.
 - **Status:** Supporting learning handover reviewed as part of W8-001
   documentation closure. Owner teach-back has **not yet been supplied** and
   remains open. W8-002 factual learning is included in the documentation
   closure approved by Gyan Prakash Rai, Project Owner and Final Approval
   Reviewer, on 2026-10-13 at 16:01:00 SGT. This does not complete or infer the
-  owner teach-back.
+  owner teach-back. W8-003 factual learning is included in the documentation
+  closure approved by the same owner and role on 2026-10-13 at 20:20:00 SGT;
+  the owner teach-back remains a separate open learning obligation.
 - **Evidence rule:** This learning record does not create a new TEST-001 PASS,
   authorize deployment, prove cloud behavior, close dependencies, or update
   the tracker.
@@ -210,3 +212,70 @@ As with the earlier questions, answers must come from the owner. This handover
 does not infer the teach-back. W8-002 is final-approved within its recorded
 local/offline source and contract boundary; all deferred live, lifecycle, cost,
 and residue work remains open.
+
+## W8-003 learning handover — the tracked parcel workflow
+
+W8-003 answers what happens when work cannot finish inside one synchronous API
+request. The parcel analogy is useful: each workflow is a uniquely identified
+shipment; authorization and tenant checks control admission; idempotency stops
+duplicate shipment; quota limits the loading bay; approval holds sensitive or
+high-cost cargo; retry handles a bounded temporary delay; compensation reverses
+a known partial effect; reconciliation handles an unknown outcome; and the
+dead-letter destination preserves exact failed work for governed review.
+
+The source flow is:
+
+`strict event → authorization/provider admission → idempotency → quota → approval when required → bounded execution → explicit terminal, compensation, reconciliation, or dead-letter state → hash-linked audit`
+
+Asynchronous inference, long-running ingestion, and model training share the
+same control vocabulary but retain different task/workflow timeouts. Model
+training always requires approval. Confidential/restricted or high-cost work
+also requires approval. Three total attempts, 1- and 2-second delays, eight
+cumulative fan-out operations, four global active workflows, and two active
+workflows per tenant are fixed source limits. They are not production capacity
+claims.
+
+An exact redelivery returns the prior terminal state without dispatching work
+again. Reusing an idempotency key for altered input fails closed. A dependency
+whose outcome is unknown is not automatically retried because the first call
+may already have taken effect. It enters `RECONCILIATION_REQUIRED`, and a later
+action must match workflow identity, state revision, resume token, tenant, and
+authorization. This is the difference between safe durability and an infinite
+agent loop.
+
+W8-003 composes W8-001 artifact authorization/routing and W8-002 provider
+circuit ownership; it does not duplicate either. It defines injected protocols
+for storage, approval, quota, execution, audit, dead-letter, and compensation,
+but tests use deterministic in-memory fakes. EventBridge and Step Functions are
+compatibility contracts only. No event, state machine, provider, queue, DLQ,
+database, deployment, rollback, teardown, or paid cloud operation ran.
+
+Local TEST-001 passed after preserved formatter, typing, serialization,
+focused-test, source-composition, cache-permission, and hook-interpreter
+failures were remediated and rerun. The final W8-focused result was 33 passed;
+the final repository result was 2,423 passed, 8 skipped, 4 deselected, and one
+third-party warning. Those results prove local contract consistency, not live
+durability, cross-process quota, IAM, network isolation, service retention,
+production SLO, cost, deployment, or operational recovery.
+
+### Additional pending owner teach-back
+
+13. Trace one asynchronous inference request from its strict event through
+    authorization, idempotency, quota, approval, execution, and terminal audit.
+14. Explain why exact redelivery can return prior state while the same
+    idempotency key with changed input must fail closed.
+15. Distinguish retryable failure, permanent failure, partial effect, and
+    unknown outcome. State why an unknown outcome is not automatically retried.
+16. Explain when work is compensated, reconciled, or dead-lettered and what
+    identity is required before a resume action is accepted.
+17. Explain why task timeout, workflow timeout, attempt count, transition count,
+    fan-out, tenant quota, and global concurrency are separate controls.
+18. State what the 33 focused tests and complete local suite proved, then name
+    the EventBridge, Step Functions, provider, deployment, rollback, teardown,
+    residue, performance, and cost facts that remain NOT RUN or deferred.
+
+Answers must come from the owner. W8-003 is final-approved within its recorded
+local/offline source, contract, and fake-adapter boundary. This supporting
+handover does not infer teach-back completion, live integration, deployment,
+cloud behavior, operational recovery, cost validation, or production
+readiness.

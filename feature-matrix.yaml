@@ -812,6 +812,75 @@
         "operations": "readiness withdrawal, bounded in-flight cancellation and dependency closure precede termination",
         "owner_execution": "tests, deployment, rollback and teardown remain separately owner-controlled"
       }
+    },
+    {
+      "id": "ORCH-001",
+      "implementation_paths": [
+        "configs/orchestration/async-workflow-policy.yaml",
+        "src/enterprise_ai_platform/orchestration/__init__.py",
+        "src/enterprise_ai_platform/orchestration/errors.py",
+        "src/enterprise_ai_platform/orchestration/models.py",
+        "src/enterprise_ai_platform/orchestration/serialization.py",
+        "src/enterprise_ai_platform/orchestration/contracts.py",
+        "src/enterprise_ai_platform/orchestration/policy.py",
+        "src/enterprise_ai_platform/orchestration/engine.py",
+        "tests/fakes/w8_003_orchestration.py",
+        "tests/unit/test_w8_003_orchestration.py",
+        "tests/contract/test_w8_003_orchestration_contract.py",
+        "tests/integration/test_w8_003_orchestration_composition.py",
+        "tests/feature/test_w8_003_async_orchestration.py",
+        "tests/security/test_w8_003_orchestration_security.py",
+        "tests/rollback/test_w8_003_orchestration_rollback.py",
+        "tests/teardown/test_w8_003_orchestration_cleanliness.py",
+        "Makefile",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tools/platformctl/plan.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/feature/test_w2_002_embedder_contract.py",
+        "tests/feature/test_w2_003_ingestion_contract.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W8-003"
+      ],
+      "control_contract": {
+        "workflows": "asynchronous inference, long-running ingestion and model training share one bounded provider-neutral engine",
+        "reliability": "typed states, idempotency, three total attempts, exponential backoff, deadlines, compensation, resume and dead-letter routing",
+        "security": "tenant authorization, classification, quota, approval and artifact/provider admission precede task dispatch",
+        "operations": "source-only EventBridge and Step Functions-compatible contracts; no live workflow resource is created",
+        "owner_execution": "tests, cloud integration, deployment, rollback and teardown remain separately owner-controlled"
+      }
+    },
+    {
+      "id": "COST-004",
+      "implementation_paths": [
+        "configs/orchestration/async-workflow-policy.yaml",
+        "feature-matrix.yaml",
+        "src/enterprise_ai_platform/orchestration/models.py",
+        "src/enterprise_ai_platform/orchestration/contracts.py",
+        "src/enterprise_ai_platform/orchestration/policy.py",
+        "src/enterprise_ai_platform/orchestration/engine.py",
+        "tools/platformctl/validate.py",
+        "tools/platformctl/plan.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/unit/test_w8_003_orchestration.py",
+        "tests/contract/test_w8_003_orchestration_contract.py",
+        "tests/feature/test_w8_003_async_orchestration.py",
+        "tests/security/test_w8_003_orchestration_security.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W8-003"
+      ],
+      "control_contract": {
+        "quota": "four active globally, two active and eight pending per tenant, eight nonrecursive fan-out maximum",
+        "approval": "sensitive, high-cost and training work requires a same-tenant independent reviewer",
+        "cost": "live cost ceiling remains owner-bound and live execution remains unauthorized",
+        "teardown": "only exact task-specific external test/cache paths may be removed after owner evidence capture"
+      }
     }
   ]
 }

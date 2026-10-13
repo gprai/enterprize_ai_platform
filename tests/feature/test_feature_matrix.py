@@ -17,11 +17,15 @@ from tools.platformctl.validate import (
     EXPECTED_AWS_IMPLEMENTATION_PATHS,
     EXPECTED_BEDROCK_FEATURE,
     EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
+    EXPECTED_COST_004_FEATURE,
+    EXPECTED_COST_004_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_GHA_FEATURE,
     EXPECTED_GHA_IMPLEMENTATION_PATHS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
+    EXPECTED_ORCH_FEATURE,
+    EXPECTED_ORCH_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
@@ -127,6 +131,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_GHA_FEATURE,
                 platform_validate.EXPECTED_EKS_FEATURE,
                 EXPECTED_SERVE_FEATURE,
+                EXPECTED_ORCH_FEATURE,
+                EXPECTED_COST_004_FEATURE,
             ],
             matrix["features"],
         )
@@ -148,6 +154,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "GHA-001",
                 "EKS-001",
                 "SERVE-002",
+                "ORCH-001",
+                "COST-004",
             ],
             [feature["id"] for feature in features],
         )
@@ -197,13 +205,25 @@ class FeatureMatrixTests(unittest.TestCase):
             features[10]["linked_tracker_steps"],
         )
         self.assertEqual(["W8-002"], features[11]["linked_tracker_steps"])
+        self.assertEqual(["W8-003"], features[12]["linked_tracker_steps"])
+        self.assertEqual(["W8-003"], features[13]["linked_tracker_steps"])
 
     def test_w8_002_paths_are_owned_by_the_serving_hardening_feature(self) -> None:
-        feature = read_matrix()["features"][-1]
+        feature = read_matrix()["features"][11]
 
         self.assertEqual(EXPECTED_SERVE_FEATURE, feature)
         self.assertEqual(35, len(EXPECTED_SERVE_IMPLEMENTATION_PATHS))
         self.assertEqual(35, len(set(EXPECTED_SERVE_IMPLEMENTATION_PATHS)))
+
+    def test_w8_003_paths_are_owned_by_orchestration_and_cost_features(self) -> None:
+        orch_feature, cost_feature = read_matrix()["features"][-2:]
+
+        self.assertEqual(EXPECTED_ORCH_FEATURE, orch_feature)
+        self.assertEqual(EXPECTED_COST_004_FEATURE, cost_feature)
+        self.assertEqual(24, len(EXPECTED_ORCH_IMPLEMENTATION_PATHS))
+        self.assertEqual(24, len(set(EXPECTED_ORCH_IMPLEMENTATION_PATHS)))
+        self.assertEqual(14, len(EXPECTED_COST_004_IMPLEMENTATION_PATHS))
+        self.assertEqual(14, len(set(EXPECTED_COST_004_IMPLEMENTATION_PATHS)))
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -242,6 +262,8 @@ class FeatureMatrixTests(unittest.TestCase):
             gha_feature,
             eks_feature,
             serve_feature,
+            orch_feature,
+            cost_feature,
         ) = features
 
         self.assertEqual(
@@ -258,6 +280,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "GHA-001",
                 "EKS-001",
                 "SERVE-002",
+                "ORCH-001",
+                "COST-004",
             ],
             [item["id"] for item in features],
         )
@@ -276,6 +300,8 @@ class FeatureMatrixTests(unittest.TestCase):
             set(EXPECTED_W6_004_IMPLEMENTATION_PATHS).issubset(eks_feature["implementation_paths"])
         )
         self.assertEqual("SERVE-002", serve_feature["id"])
+        self.assertEqual("ORCH-001", orch_feature["id"])
+        self.assertEqual("COST-004", cost_feature["id"])
         self.assertEqual(
             [
                 "W3-01",

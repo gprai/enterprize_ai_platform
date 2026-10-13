@@ -5,6 +5,17 @@ rebuilding the existing API, RAG, authorization, LangGraph, or Bedrock layers.
 
 ## Records
 
+- [W8-003 asynchronous workflow orchestration](W8-003.md) — strict
+  EventBridge-compatible events, typed durable states, idempotency, tenant
+  quotas, approvals, bounded retries/fan-out, reconciliation, compensation,
+  dead-lettering, cancellation, and content-free audit contracts. Local/offline
+  TEST-001 passed after the canonical record's preserved failures and bounded
+  remediations. EventBridge, Step Functions, provider, deployment, lifecycle,
+  cost, and production-readiness evidence remain NOT RUN or deferred.
+  **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project
+  Owner and Final Approval Reviewer, on 2026-10-13 at 20:20:00 SGT, with all
+  recorded warnings, failures/remediations, skips, deselections, limitations,
+  deferred work, and residual-resource facts preserved.
 - [W8-002 inference API hardening](W8-002.md) — bounded request, tenant-rate,
   concurrency, circuit, readiness, drain, cancellation, telemetry, and
   graceful-shutdown contracts on the existing FastAPI service. Local/offline
@@ -22,14 +33,19 @@ rebuilding the existing API, RAG, authorization, LangGraph, or Bedrock layers.
 
 ## Current boundary
 
-Local/offline validation passed for W8-001 and W8-002 after the intermediate
-failures and bounded remediations preserved in their canonical records. No live Bedrock,
-SageMaker, EKS, Ray Serve, Triton, AWS, network, model-download, deployment,
+Local/offline validation passed for W8-001, W8-002, and W8-003 after the
+intermediate failures and bounded remediations preserved in their canonical
+records. W8-003 recorded 33 focused tests and a final full-suite result of
+2,423 passed, 8 skipped, 4 deselected, and 1 warning. It has **FINAL APPROVAL
+AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final
+Approval Reviewer, on 2026-10-13 at 20:20:00 SGT. No live Bedrock, SageMaker,
+EKS, Ray Serve,
+Triton, EventBridge, Step Functions, AWS, network, model-download, deployment,
 rollback, restore, operational teardown, native cloud-residue, or billing-cost
 test ran. W8-001 has **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan
 Prakash Rai, Project Owner and Final Approval Reviewer, on 2026-10-13 at
 14:01:00 SGT. W8-002 has **FINAL APPROVAL AFTER OWNER TEST — APPROVED** by Gyan
 Prakash Rai in the same role on 2026-10-13 at 16:01:00 SGT, with all recorded
 warnings, skips, deselections, NOT RUN work, deferred actions, and retained
-local residue preserved. Neither local/offline record establishes cloud or
-production readiness.
+local residue preserved. None of the local/offline records establishes cloud
+or production readiness.

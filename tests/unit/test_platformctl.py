@@ -29,10 +29,12 @@ from tools.platformctl.validate import (
     EXPECTED_API_LINKED_TRACKER_STEPS,
     EXPECTED_AWS_IMPLEMENTATION_PATHS,
     EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
+    EXPECTED_COST_004_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_GHA_IMPLEMENTATION_PATHS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
+    EXPECTED_ORCH_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
@@ -106,6 +108,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "GHA-001",
                 "EKS-001",
                 "SERVE-002",
+                "ORCH-001",
+                "COST-004",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -114,8 +118,18 @@ class PlatformCtlUnitTests(unittest.TestCase):
     def test_w8_002_inference_hardening_manifest_is_exact(self) -> None:
         self.assertEqual(35, len(EXPECTED_SERVE_IMPLEMENTATION_PATHS))
         self.assertEqual(35, len(set(EXPECTED_SERVE_IMPLEMENTATION_PATHS)))
-        self.assertEqual("SERVE-002", EXPECTED_FEATURES[-1]["id"])
-        self.assertEqual(["W8-002"], EXPECTED_FEATURES[-1]["linked_tracker_steps"])
+        self.assertEqual("SERVE-002", EXPECTED_FEATURES[11]["id"])
+        self.assertEqual(["W8-002"], EXPECTED_FEATURES[11]["linked_tracker_steps"])
+
+    def test_w8_003_orchestration_and_cost_manifests_are_exact(self) -> None:
+        self.assertEqual(24, len(EXPECTED_ORCH_IMPLEMENTATION_PATHS))
+        self.assertEqual(24, len(set(EXPECTED_ORCH_IMPLEMENTATION_PATHS)))
+        self.assertEqual(14, len(EXPECTED_COST_004_IMPLEMENTATION_PATHS))
+        self.assertEqual(14, len(set(EXPECTED_COST_004_IMPLEMENTATION_PATHS)))
+        self.assertEqual("ORCH-001", EXPECTED_FEATURES[12]["id"])
+        self.assertEqual("COST-004", EXPECTED_FEATURES[13]["id"])
+        self.assertEqual(["W8-003"], EXPECTED_FEATURES[12]["linked_tracker_steps"])
+        self.assertEqual(["W8-003"], EXPECTED_FEATURES[13]["linked_tracker_steps"])
 
     def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:
         self.assertEqual(20, len(EXPECTED_W6_003_IMPLEMENTATION_PATHS))

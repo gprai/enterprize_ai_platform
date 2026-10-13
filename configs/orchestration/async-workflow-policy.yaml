@@ -1,0 +1,52 @@
+schema_version: "w8-003.orchestration-policy.v1"
+feature_ids:
+  - "ORCH-001"
+  - "COST-004"
+region: "ap-southeast-1"
+execution_mode: "offline_contract_only"
+eventbridge: "compatible_contract_only"
+step_functions: "compatible_contract_only"
+limits:
+  maximum_event_bytes: 65536
+  maximum_state_bytes: 65536
+  maximum_transitions: 32
+  maximum_fanout: 8
+  maximum_active_global: 4
+  maximum_active_per_tenant: 2
+  maximum_pending_per_tenant: 8
+retry:
+  maximum_attempts: 3
+  backoff_seconds:
+    - 1
+    - 2
+  multiplier: 2.0
+  jitter: "none"
+timeouts:
+  asynchronous_inference:
+    task_seconds: 120
+    workflow_seconds: 300
+  long_running_ingestion:
+    task_seconds: 120
+    workflow_seconds: 900
+  model_training:
+    task_seconds: 60
+    workflow_seconds: 21600
+approval:
+  ttl_seconds: 600
+  sensitive_classifications:
+    - "CONFIDENTIAL"
+    - "RESTRICTED"
+  always_required_workflows:
+    - "model_training"
+  high_cost_requires_approval: true
+retention:
+  state_and_audit_days: 30
+  dead_letter_days: 7
+provider_circuit:
+  owner: "w8-002-serving"
+  failure_threshold: 5
+  open_seconds: 30
+  half_open_probes: 1
+live_cost_ceiling: "OWNER_BINDING_REQUIRED"
+live_execution: "NOT_AUTHORIZED"
+provisioning: "NOT_RUN"

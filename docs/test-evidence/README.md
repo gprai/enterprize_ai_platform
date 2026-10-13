@@ -35,6 +35,27 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W8-003 asynchronous workflow orchestration](W8/W8-003.md) — implements
+  provider-neutral source contracts for asynchronous inference, long-running
+  ingestion, and model training through strict EventBridge-compatible events,
+  typed states, idempotency, tenant quotas, approvals, bounded retry/fan-out,
+  reconciliation, compensation, dead-lettering, cancellation, and hash-linked
+  content-free audit. TEST-001 passed within the local/offline fake-adapter
+  boundary: 33 focused tests passed; the final full suite recorded 2,423
+  passed, 8 skipped, 4 deselected, and 1 warning; Ruff, MyPy, YAML parsing,
+  platform validation, secret scanning, scoped and isolated all-files
+  pre-commit, boundary, whitespace, staging, and local-residue checks passed
+  after preserved intermediate failures and bounded remediation. EventBridge,
+  Step Functions, live provider/cloud execution, deployment, rollback,
+  restore, operational teardown, native cloud-residue inspection, performance,
+  and cost validation remain NOT RUN or deferred. **FINAL APPROVAL AFTER OWNER
+  TEST — APPROVED** by Gyan Prakash Rai, Project Owner and Final Approval
+  Reviewer, on 2026-10-13 at 20:20:00 SGT, with all recorded warnings,
+  failures/remediations, skips, deselections, risks, limitations, deferred work,
+  and residual-resource facts accepted and preserved. This evidence does not
+  establish cloud or production readiness. See the
+  [Week 8 evidence index](W8/README.md) and
+  [Week 8 learning handover](../learning/W8-learning-review.md).
 - [W8-002 inference API hardening](W8/W8-002.md) — hardens the existing
   FastAPI service with strict request bounds, non-streaming responses,
   process-local tenant rate limiting, concurrency/backpressure, an aggregate

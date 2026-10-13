@@ -57,6 +57,8 @@ def test_rag_feature_matrix_preserves_structured_w2_002_ownership() -> None:
         "GHA-001",
         "EKS-001",
         "SERVE-002",
+        "ORCH-001",
+        "COST-004",
     ]
     assert "W2-05" not in features[0]["linked_tracker_steps"]
     rag_steps = features[1]["linked_tracker_steps"]

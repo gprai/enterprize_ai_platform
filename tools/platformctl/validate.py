@@ -937,6 +937,97 @@ EXPECTED_SERVE_FEATURE = {
     },
 }
 
+EXPECTED_ORCH_IMPLEMENTATION_PATHS = (
+    "configs/orchestration/async-workflow-policy.yaml",
+    "src/enterprise_ai_platform/orchestration/__init__.py",
+    "src/enterprise_ai_platform/orchestration/errors.py",
+    "src/enterprise_ai_platform/orchestration/models.py",
+    "src/enterprise_ai_platform/orchestration/serialization.py",
+    "src/enterprise_ai_platform/orchestration/contracts.py",
+    "src/enterprise_ai_platform/orchestration/policy.py",
+    "src/enterprise_ai_platform/orchestration/engine.py",
+    "tests/fakes/w8_003_orchestration.py",
+    "tests/unit/test_w8_003_orchestration.py",
+    "tests/contract/test_w8_003_orchestration_contract.py",
+    "tests/integration/test_w8_003_orchestration_composition.py",
+    "tests/feature/test_w8_003_async_orchestration.py",
+    "tests/security/test_w8_003_orchestration_security.py",
+    "tests/rollback/test_w8_003_orchestration_rollback.py",
+    "tests/teardown/test_w8_003_orchestration_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/plan.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+)
+EXPECTED_ORCH_FEATURE = {
+    "id": "ORCH-001",
+    "implementation_paths": list(EXPECTED_ORCH_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W8-003"],
+    "control_contract": {
+        "workflows": (
+            "asynchronous inference, long-running ingestion and model training share one "
+            "bounded provider-neutral engine"
+        ),
+        "reliability": (
+            "typed states, idempotency, three total attempts, exponential backoff, deadlines, "
+            "compensation, resume and dead-letter routing"
+        ),
+        "security": (
+            "tenant authorization, classification, quota, approval and artifact/provider "
+            "admission precede task dispatch"
+        ),
+        "operations": (
+            "source-only EventBridge and Step Functions-compatible contracts; no live workflow "
+            "resource is created"
+        ),
+        "owner_execution": (
+            "tests, cloud integration, deployment, rollback and teardown remain separately "
+            "owner-controlled"
+        ),
+    },
+}
+EXPECTED_COST_004_IMPLEMENTATION_PATHS = (
+    "configs/orchestration/async-workflow-policy.yaml",
+    "feature-matrix.yaml",
+    "src/enterprise_ai_platform/orchestration/models.py",
+    "src/enterprise_ai_platform/orchestration/contracts.py",
+    "src/enterprise_ai_platform/orchestration/policy.py",
+    "src/enterprise_ai_platform/orchestration/engine.py",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/plan.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/unit/test_w8_003_orchestration.py",
+    "tests/contract/test_w8_003_orchestration_contract.py",
+    "tests/feature/test_w8_003_async_orchestration.py",
+    "tests/security/test_w8_003_orchestration_security.py",
+)
+EXPECTED_COST_004_FEATURE = {
+    "id": "COST-004",
+    "implementation_paths": list(EXPECTED_COST_004_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W8-003"],
+    "control_contract": {
+        "quota": (
+            "four active globally, two active and eight pending per tenant, eight nonrecursive "
+            "fan-out maximum"
+        ),
+        "approval": (
+            "sensitive, high-cost and training work requires a same-tenant independent reviewer"
+        ),
+        "cost": "live cost ceiling remains owner-bound and live execution remains unauthorized",
+        "teardown": (
+            "only exact task-specific external test/cache paths may be removed after owner "
+            "evidence capture"
+        ),
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -950,6 +1041,8 @@ EXPECTED_FEATURES = (
     EXPECTED_GHA_FEATURE,
     EXPECTED_EKS_FEATURE,
     EXPECTED_SERVE_FEATURE,
+    EXPECTED_ORCH_FEATURE,
+    EXPECTED_COST_004_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -978,6 +1071,7 @@ REQUIRED_DIRECTORIES = (
     "configs/verification",
     "configs/ci",
     "configs/processing",
+    "configs/orchestration",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -990,6 +1084,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/llm",
     "src/enterprise_ai_platform/api",
     "src/enterprise_ai_platform/agent",
+    "src/enterprise_ai_platform/orchestration",
     "src/enterprise_ai_platform/telemetry",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
@@ -1099,6 +1194,7 @@ REQUIRED_FILES = (
     *EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     *EXPECTED_W6_003_IMPLEMENTATION_PATHS,
     *EXPECTED_W6_004_IMPLEMENTATION_PATHS,
+    *EXPECTED_ORCH_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
