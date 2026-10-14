@@ -439,13 +439,37 @@ def _validate_scaling(hpa: dict[str, object], pdb: dict[str, object]) -> None:
                 "name": "cpu",
                 "target": {"type": "Utilization", "averageUtilization": 70},
             },
-        }
+        },
+        {
+            "type": "Resource",
+            "resource": {
+                "name": "memory",
+                "target": {"type": "Utilization", "averageUtilization": 75},
+            },
+        },
     ]
     if metrics != expected_metrics:
         raise W6001Error("HPA metric contract differs")
+    expected_behavior = {
+        "scaleUp": {
+            "stabilizationWindowSeconds": 0,
+            "selectPolicy": "Max",
+            "policies": [
+                {"type": "Pods", "value": 1, "periodSeconds": 60},
+                {"type": "Percent", "value": 100, "periodSeconds": 60},
+            ],
+        },
+        "scaleDown": {
+            "stabilizationWindowSeconds": 300,
+            "selectPolicy": "Min",
+            "policies": [{"type": "Pods", "value": 1, "periodSeconds": 60}],
+        },
+    }
+    if hpa_spec.get("behavior") != expected_behavior:
+        raise W6001Error("HPA behavior contract differs")
     pdb_spec = _mapping(pdb.get("spec"), "PDB spec")
     expected_pdb = {
-        "minAvailable": 1,
+        "maxUnavailable": 1,
         "selector": {"matchLabels": {"app.kubernetes.io/name": APP_NAME}},
     }
     if pdb_spec != expected_pdb:

@@ -2278,7 +2278,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "feature-matrix.yaml",
         # pragma: allowlist nextline secret
-        "9a33f206e0a4d509035dc061074bb6351cbaec39760309c392ccfa19923f3b0b",
+        "c5c65f1aae5c89286da185012036a83afcfa994004ed4b4953d11409eaf3848e",
     ),
     (
         "configs/lifecycle/w6-004.json",
@@ -2313,7 +2313,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/feature/test_feature_matrix.py",
         # pragma: allowlist nextline secret
-        "64b1f1812602e53692ab4869af75b739883f7fc54f26df5513b37c78b8c2c40f",
+        "dd0ab8f1f2981f6cb08075d0d5e80bf59d2fb7ad87aa4fa8823f3a0988b3bc49",
     ),
     (
         "tests/feature/test_mvp_001_platformctl.py",

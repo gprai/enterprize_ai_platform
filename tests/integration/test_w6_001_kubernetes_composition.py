@@ -18,6 +18,25 @@ def test_manifest_consumers_share_exact_identity() -> None:
     assert service["spec"]["selector"] == label
     assert hpa["spec"]["scaleTargetRef"]["name"] == deployment["metadata"]["name"]
     assert pdb["spec"]["selector"]["matchLabels"] == label
+    assert hpa["spec"]["metrics"] == [
+        {
+            "type": "Resource",
+            "resource": {
+                "name": "cpu",
+                "target": {"type": "Utilization", "averageUtilization": 70},
+            },
+        },
+        {
+            "type": "Resource",
+            "resource": {
+                "name": "memory",
+                "target": {"type": "Utilization", "averageUtilization": 75},
+            },
+        },
+    ]
+    assert hpa["spec"]["behavior"]["scaleDown"]["stabilizationWindowSeconds"] == 300
+    assert pdb["spec"]["maxUnavailable"] == 1
+    assert "minAvailable" not in pdb["spec"]
 
 
 def test_make_ci_checkov_and_opa_have_offline_w6_consumers() -> None:

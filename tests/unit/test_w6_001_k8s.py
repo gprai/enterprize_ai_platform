@@ -319,6 +319,25 @@ def test_manifest_security_scaling_and_probe_contracts_fail_closed() -> None:
             w6_001_k8s.validate_documents(documents, template_mode=True)
 
 
+@pytest.mark.parametrize(
+    ("kind", "mutation"),
+    [
+        ("HorizontalPodAutoscaler", ("metrics", [])),
+        ("HorizontalPodAutoscaler", ("behavior", {})),
+        ("PodDisruptionBudget", ("maxUnavailable", 0)),
+    ],
+)
+def test_capacity_scaling_contract_drift_fails_closed(
+    kind: str, mutation: tuple[str, object]
+) -> None:
+    documents = copy.deepcopy(template_documents())
+    resource = next(document for document in documents if document["kind"] == kind)
+    resource["spec"][mutation[0]] = mutation[1]  # type: ignore[index]
+
+    with pytest.raises(w6_001_k8s.W6001Error):
+        w6_001_k8s.validate_documents(documents, template_mode=True)
+
+
 def test_source_template_pass_wording_cannot_be_mistaken_for_release_or_deployment() -> None:
     assert w6_001_k8s.TEMPLATE_STATUS == "SOURCE TEMPLATE VALID — NOT DEPLOYABLE"
     assert w6_001_k8s.RELEASE_STATUS == "IMMUTABLE RELEASE PACKAGE VALID — NOT DEPLOYED"

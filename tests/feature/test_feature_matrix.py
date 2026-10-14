@@ -17,8 +17,12 @@ from tools.platformctl.validate import (
     EXPECTED_AWS_IMPLEMENTATION_PATHS,
     EXPECTED_BEDROCK_FEATURE,
     EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
+    EXPECTED_CAP_FEATURE,
+    EXPECTED_CAP_IMPLEMENTATION_PATHS,
     EXPECTED_COST_004_FEATURE,
     EXPECTED_COST_004_IMPLEMENTATION_PATHS,
+    EXPECTED_COST_005_FEATURE,
+    EXPECTED_COST_005_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_GHA_FEATURE,
@@ -133,6 +137,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_SERVE_FEATURE,
                 EXPECTED_ORCH_FEATURE,
                 EXPECTED_COST_004_FEATURE,
+                EXPECTED_CAP_FEATURE,
+                EXPECTED_COST_005_FEATURE,
             ],
             matrix["features"],
         )
@@ -156,6 +162,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "SERVE-002",
                 "ORCH-001",
                 "COST-004",
+                "CAP-001",
+                "COST-005",
             ],
             [feature["id"] for feature in features],
         )
@@ -207,6 +215,8 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(["W8-002"], features[11]["linked_tracker_steps"])
         self.assertEqual(["W8-003"], features[12]["linked_tracker_steps"])
         self.assertEqual(["W8-003"], features[13]["linked_tracker_steps"])
+        self.assertEqual(["W8-004"], features[14]["linked_tracker_steps"])
+        self.assertEqual(["W8-004"], features[15]["linked_tracker_steps"])
 
     def test_w8_002_paths_are_owned_by_the_serving_hardening_feature(self) -> None:
         feature = read_matrix()["features"][11]
@@ -216,7 +226,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(35, len(set(EXPECTED_SERVE_IMPLEMENTATION_PATHS)))
 
     def test_w8_003_paths_are_owned_by_orchestration_and_cost_features(self) -> None:
-        orch_feature, cost_feature = read_matrix()["features"][-2:]
+        orch_feature, cost_feature = read_matrix()["features"][12:14]
 
         self.assertEqual(EXPECTED_ORCH_FEATURE, orch_feature)
         self.assertEqual(EXPECTED_COST_004_FEATURE, cost_feature)
@@ -224,6 +234,16 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(24, len(set(EXPECTED_ORCH_IMPLEMENTATION_PATHS)))
         self.assertEqual(14, len(EXPECTED_COST_004_IMPLEMENTATION_PATHS))
         self.assertEqual(14, len(set(EXPECTED_COST_004_IMPLEMENTATION_PATHS)))
+
+    def test_w8_004_paths_are_owned_by_capacity_and_cost_features(self) -> None:
+        capacity_feature, cost_feature = read_matrix()["features"][-2:]
+
+        self.assertEqual(EXPECTED_CAP_FEATURE, capacity_feature)
+        self.assertEqual(EXPECTED_COST_005_FEATURE, cost_feature)
+        self.assertEqual(25, len(EXPECTED_CAP_IMPLEMENTATION_PATHS))
+        self.assertEqual(25, len(set(EXPECTED_CAP_IMPLEMENTATION_PATHS)))
+        self.assertEqual(20, len(EXPECTED_COST_005_IMPLEMENTATION_PATHS))
+        self.assertEqual(20, len(set(EXPECTED_COST_005_IMPLEMENTATION_PATHS)))
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -263,7 +283,9 @@ class FeatureMatrixTests(unittest.TestCase):
             eks_feature,
             serve_feature,
             orch_feature,
-            cost_feature,
+            cost_004_feature,
+            capacity_feature,
+            cost_005_feature,
         ) = features
 
         self.assertEqual(
@@ -282,6 +304,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "SERVE-002",
                 "ORCH-001",
                 "COST-004",
+                "CAP-001",
+                "COST-005",
             ],
             [item["id"] for item in features],
         )
@@ -301,7 +325,9 @@ class FeatureMatrixTests(unittest.TestCase):
         )
         self.assertEqual("SERVE-002", serve_feature["id"])
         self.assertEqual("ORCH-001", orch_feature["id"])
-        self.assertEqual("COST-004", cost_feature["id"])
+        self.assertEqual("COST-004", cost_004_feature["id"])
+        self.assertEqual("CAP-001", capacity_feature["id"])
+        self.assertEqual("COST-005", cost_005_feature["id"])
         self.assertEqual(
             [
                 "W3-01",

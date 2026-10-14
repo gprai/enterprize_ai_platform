@@ -1,0 +1,86 @@
+schema_version: "w8-004.capacity-cost-policy.v1"
+feature_ids:
+  - "CAP-001"
+  - "COST-005"
+region: "ap-southeast-1"
+evidence_scope: "offline_synthetic_only"
+demand:
+  sustained_requests_per_second: 1
+  spike_requests_per_second: 3
+  spike_duration_seconds: 30
+  concurrency_levels:
+    - 1
+    - 4
+    - 8
+  warmup_requests: 20
+  measured_requests_per_level: 200
+  assumed_input_tokens_per_request: 2048
+  assumed_output_tokens_per_request: 256
+  sustained_input_tokens_per_second: 2048
+  sustained_output_tokens_per_second: 256
+  spike_input_tokens_per_second: 6144
+  spike_output_tokens_per_second: 768
+  maximum_input_tokens: 16384
+  maximum_output_tokens: 512
+latency:
+  p95_milliseconds_less_than: 4000
+  p99_milliseconds_less_than: 10000
+  request_timeout_seconds: 25
+  cold_start_ceiling_seconds: 120
+compute:
+  per_pod_inflight_requests: 4
+  queue_capacity: 0
+  minimum_replicas: 2
+  maximum_replicas: 4
+  cpu_request_millicores: 500
+  cpu_limit_millicores: 1000
+  memory_request_mebibytes: 1024
+  memory_limit_mebibytes: 2048
+  gpu_required: false
+  gpu_count: 0
+scaling:
+  cpu_target_percent: 70
+  memory_target_percent: 75
+  scale_up_stabilization_seconds: 0
+  scale_up_pods: 1
+  scale_up_percent: 100
+  scale_up_period_seconds: 60
+  scale_up_select_policy: "Max"
+  scale_down_stabilization_seconds: 300
+  scale_down_pods: 1
+  scale_down_period_seconds: 60
+  scale_down_select_policy: "Min"
+  pod_disruption_max_unavailable: 1
+failure:
+  circuit_breaker_failure_threshold: 5
+  circuit_breaker_open_seconds: 30
+  circuit_breaker_half_open_probes: 1
+  api_retry_attempts: 0
+  provider_maximum_attempts: 2
+cost:
+  monthly_budget_usd: 60
+  daily_alert_usd: 3
+  maximum_paid_evaluation_usd: 5
+  cost_per_successful_request_ceiling: "OWNER_BINDING_REQUIRED"
+  price_maximum_age_hours: 24
+serving_engines:
+  - engine: "bedrock"
+    decision: "selected"
+    reason_code: "APPROVED_FOUNDATION_MODEL_PATH"
+  - engine: "sagemaker_realtime"
+    decision: "conditional_not_selected"
+    reason_code: "OWNER_CONTROLLED_OR_FINE_TUNED_ARTIFACT_REQUIRED"
+  - engine: "eks_model_serving"
+    decision: "conditional_not_selected"
+    reason_code: "WORKLOAD_OR_PLATFORM_CONTROL_JUSTIFICATION_REQUIRED"
+  - engine: "karpenter"
+    decision: "conditional_not_selected"
+    reason_code: "EKS_MODEL_SERVING_SELECTION_REQUIRED"
+  - engine: "ray_serve"
+    decision: "not_adopted"
+    reason_code: "NO_PROGRAMMABLE_MULTI_MODEL_REQUIREMENT"
+  - engine: "triton"
+    decision: "not_adopted"
+    reason_code: "NO_GPU_BATCHING_OR_OPTIMIZED_RUNTIME_REQUIREMENT"
+live_execution: "NOT_AUTHORIZED"
+provisioning: "NOT_RUN"

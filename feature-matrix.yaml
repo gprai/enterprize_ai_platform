@@ -881,6 +881,83 @@
         "cost": "live cost ceiling remains owner-bound and live execution remains unauthorized",
         "teardown": "only exact task-specific external test/cache paths may be removed after owner evidence capture"
       }
+    },
+    {
+      "id": "CAP-001",
+      "implementation_paths": [
+        "configs/capacity/inference-capacity-cost-policy.yaml",
+        "src/enterprise_ai_platform/capacity/__init__.py",
+        "src/enterprise_ai_platform/capacity/errors.py",
+        "src/enterprise_ai_platform/capacity/models.py",
+        "src/enterprise_ai_platform/capacity/serialization.py",
+        "src/enterprise_ai_platform/capacity/policy.py",
+        "src/enterprise_ai_platform/capacity/evaluator.py",
+        "tests/fakes/w8_004_capacity.py",
+        "tests/unit/test_w8_004_capacity.py",
+        "tests/contract/test_w8_004_capacity_contract.py",
+        "tests/integration/test_w8_004_capacity_composition.py",
+        "tests/feature/test_w8_004_capacity_cost.py",
+        "tests/security/test_w8_004_capacity_security.py",
+        "tests/rollback/test_w8_004_capacity_rollback.py",
+        "tests/teardown/test_w8_004_capacity_cleanliness.py",
+        "Makefile",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "deploy/k8s/hpa.yaml",
+        "deploy/k8s/pdb.yaml",
+        "tools/w6_001_k8s.py",
+        "tests/unit/test_w6_001_k8s.py",
+        "tests/integration/test_w6_001_kubernetes_composition.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W8-004"
+      ],
+      "control_contract": {
+        "demand": "one sustained request per second, three-request spike and concurrency one, four and eight synthetic scenarios",
+        "scaling": "existing two-to-four replica HPA adds CPU, memory and bounded scale behavior; PDB allows at most one unavailable pod",
+        "reliability": "cold start, saturation, queue, timeout, dependency loss and safe termination fail closed",
+        "scope": "offline aggregate evidence cannot claim production capacity",
+        "owner_execution": "tests, live load, cloud, deployment, rollback and teardown remain separately owner-controlled"
+      }
+    },
+    {
+      "id": "COST-005",
+      "implementation_paths": [
+        "configs/capacity/inference-capacity-cost-policy.yaml",
+        "src/enterprise_ai_platform/capacity/__init__.py",
+        "src/enterprise_ai_platform/capacity/errors.py",
+        "src/enterprise_ai_platform/capacity/models.py",
+        "src/enterprise_ai_platform/capacity/serialization.py",
+        "src/enterprise_ai_platform/capacity/policy.py",
+        "src/enterprise_ai_platform/capacity/evaluator.py",
+        "tests/fakes/w8_004_capacity.py",
+        "tests/unit/test_w8_004_capacity.py",
+        "tests/contract/test_w8_004_capacity_contract.py",
+        "tests/integration/test_w8_004_capacity_composition.py",
+        "tests/feature/test_w8_004_capacity_cost.py",
+        "tests/security/test_w8_004_capacity_security.py",
+        "tests/rollback/test_w8_004_capacity_rollback.py",
+        "tests/teardown/test_w8_004_capacity_cleanliness.py",
+        "Makefile",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": [
+        "W8-004"
+      ],
+      "control_contract": {
+        "formula": "provider token plus allocated compute plus observability and network cost divided by successful responses",
+        "guardrails": "sixty-dollar monthly budget, three-dollar daily alert and five-dollar maximum paid evaluation",
+        "prices": "price evidence must be no more than twenty-four hours old",
+        "engines": "Bedrock selected; SageMaker, EKS and Karpenter conditional; Ray Serve and Triton not adopted",
+        "live_cost": "cost-per-successful-request ceiling remains owner-bound"
+      }
     }
   ]
 }

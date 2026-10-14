@@ -1028,6 +1028,103 @@ EXPECTED_COST_004_FEATURE = {
     },
 }
 
+EXPECTED_CAP_IMPLEMENTATION_PATHS = (
+    "configs/capacity/inference-capacity-cost-policy.yaml",
+    "src/enterprise_ai_platform/capacity/__init__.py",
+    "src/enterprise_ai_platform/capacity/errors.py",
+    "src/enterprise_ai_platform/capacity/models.py",
+    "src/enterprise_ai_platform/capacity/serialization.py",
+    "src/enterprise_ai_platform/capacity/policy.py",
+    "src/enterprise_ai_platform/capacity/evaluator.py",
+    "tests/fakes/w8_004_capacity.py",
+    "tests/unit/test_w8_004_capacity.py",
+    "tests/contract/test_w8_004_capacity_contract.py",
+    "tests/integration/test_w8_004_capacity_composition.py",
+    "tests/feature/test_w8_004_capacity_cost.py",
+    "tests/security/test_w8_004_capacity_security.py",
+    "tests/rollback/test_w8_004_capacity_rollback.py",
+    "tests/teardown/test_w8_004_capacity_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "deploy/k8s/hpa.yaml",
+    "deploy/k8s/pdb.yaml",
+    "tools/w6_001_k8s.py",
+    "tests/unit/test_w6_001_k8s.py",
+    "tests/integration/test_w6_001_kubernetes_composition.py",
+)
+EXPECTED_CAP_FEATURE = {
+    "id": "CAP-001",
+    "implementation_paths": list(EXPECTED_CAP_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W8-004"],
+    "control_contract": {
+        "demand": (
+            "one sustained request per second, three-request spike and concurrency one, "
+            "four and eight synthetic scenarios"
+        ),
+        "scaling": (
+            "existing two-to-four replica HPA adds CPU, memory and bounded scale behavior; "
+            "PDB allows at most one unavailable pod"
+        ),
+        "reliability": (
+            "cold start, saturation, queue, timeout, dependency loss and safe termination "
+            "fail closed"
+        ),
+        "scope": "offline aggregate evidence cannot claim production capacity",
+        "owner_execution": (
+            "tests, live load, cloud, deployment, rollback and teardown remain separately "
+            "owner-controlled"
+        ),
+    },
+}
+EXPECTED_COST_005_IMPLEMENTATION_PATHS = (
+    "configs/capacity/inference-capacity-cost-policy.yaml",
+    "src/enterprise_ai_platform/capacity/__init__.py",
+    "src/enterprise_ai_platform/capacity/errors.py",
+    "src/enterprise_ai_platform/capacity/models.py",
+    "src/enterprise_ai_platform/capacity/serialization.py",
+    "src/enterprise_ai_platform/capacity/policy.py",
+    "src/enterprise_ai_platform/capacity/evaluator.py",
+    "tests/fakes/w8_004_capacity.py",
+    "tests/unit/test_w8_004_capacity.py",
+    "tests/contract/test_w8_004_capacity_contract.py",
+    "tests/integration/test_w8_004_capacity_composition.py",
+    "tests/feature/test_w8_004_capacity_cost.py",
+    "tests/security/test_w8_004_capacity_security.py",
+    "tests/rollback/test_w8_004_capacity_rollback.py",
+    "tests/teardown/test_w8_004_capacity_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+)
+EXPECTED_COST_005_FEATURE = {
+    "id": "COST-005",
+    "implementation_paths": list(EXPECTED_COST_005_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W8-004"],
+    "control_contract": {
+        "formula": (
+            "provider token plus allocated compute plus observability and network cost divided "
+            "by successful responses"
+        ),
+        "guardrails": (
+            "sixty-dollar monthly budget, three-dollar daily alert and five-dollar maximum "
+            "paid evaluation"
+        ),
+        "prices": "price evidence must be no more than twenty-four hours old",
+        "engines": (
+            "Bedrock selected; SageMaker, EKS and Karpenter conditional; Ray Serve and Triton "
+            "not adopted"
+        ),
+        "live_cost": "cost-per-successful-request ceiling remains owner-bound",
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -1043,6 +1140,8 @@ EXPECTED_FEATURES = (
     EXPECTED_SERVE_FEATURE,
     EXPECTED_ORCH_FEATURE,
     EXPECTED_COST_004_FEATURE,
+    EXPECTED_CAP_FEATURE,
+    EXPECTED_COST_005_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1072,6 +1171,7 @@ REQUIRED_DIRECTORIES = (
     "configs/ci",
     "configs/processing",
     "configs/orchestration",
+    "configs/capacity",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -1085,6 +1185,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/api",
     "src/enterprise_ai_platform/agent",
     "src/enterprise_ai_platform/orchestration",
+    "src/enterprise_ai_platform/capacity",
     "src/enterprise_ai_platform/telemetry",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
@@ -1195,6 +1296,7 @@ REQUIRED_FILES = (
     *EXPECTED_W6_003_IMPLEMENTATION_PATHS,
     *EXPECTED_W6_004_IMPLEMENTATION_PATHS,
     *EXPECTED_ORCH_IMPLEMENTATION_PATHS,
+    *EXPECTED_CAP_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1248,7 +1350,8 @@ def validate_feature_matrix(data: object) -> list[str]:
         errors.append(
             "features must exactly match the owner-approved ordered feature set: "
             "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001, "
-            "REL-001, AWS-001, BED-001, GHA-001, EKS-001"
+            "REL-001, AWS-001, BED-001, GHA-001, EKS-001, SERVE-002, ORCH-001, "
+            "COST-004, CAP-001, COST-005"
         )
 
     return errors

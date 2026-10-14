@@ -35,6 +35,32 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W8-LEARN-001 production-inference learning review](../learning/W8-learning-review.md)
+  — consolidates W8-001 through W8-004 into thirty-second, two-minute,
+  five-minute, five-question, and scenario-based interview guidance.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-14 at 11:15:00 SGT. No owner-authored teach-back or W8-LEARN-specific
+  TEST-001 output was supplied, so both remain **NOT RUN / OWNER-DEFERRED** and
+  are not converted to PASS. No deployment, cloud, production-readiness,
+  lifecycle, or new cost claim is inferred. Tracker update responsibility is
+  **Owner**.
+- [W8-004 capacity, autoscaling, cost, and serving-engine evaluation](W8/W8-004.md)
+  — adds strict offline aggregate capacity/cost contracts, deterministic
+  fail-closed evaluation, bounded HPA/PDB source configuration, and explicit
+  engine decisions. Bedrock remains selected; SageMaker, EKS, and Karpenter
+  remain conditional; Ray Serve and Triton are NOT ADOPTED. Local/offline
+  TEST-001 passed after preserved failures and bounded remediations: 19 focused
+  tests passed; affected consumers recorded 117 tests and 10 subtests passed;
+  the final suite recorded 2,447 passed, 8 skipped, 4 deselected, and 1 warning.
+  Live load, provider, cluster, deployment, production capacity, rollback,
+  teardown, native residue, and billing-cost evidence remain NOT RUN. **FINAL
+  APPROVAL AFTER OWNER TEST — APPROVED** by Gyan Prakash Rai, Project Owner and
+  Final Approval Reviewer, on 2026-10-14 at 10:20:00 SGT, with all recorded
+  warnings, failures/remediations, skips, deselections, limitations, deferred
+  work, and residual-resource facts preserved. See the
+  [Week 8 evidence index](W8/README.md) and
+  [Week 8 learning handover](../learning/W8-learning-review.md).
 - [W8-003 asynchronous workflow orchestration](W8/W8-003.md) — implements
   provider-neutral source contracts for asynchronous inference, long-running
   ingestion, and model training through strict EventBridge-compatible events,

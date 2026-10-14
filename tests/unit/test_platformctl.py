@@ -29,7 +29,9 @@ from tools.platformctl.validate import (
     EXPECTED_API_LINKED_TRACKER_STEPS,
     EXPECTED_AWS_IMPLEMENTATION_PATHS,
     EXPECTED_BEDROCK_IMPLEMENTATION_PATHS,
+    EXPECTED_CAP_IMPLEMENTATION_PATHS,
     EXPECTED_COST_004_IMPLEMENTATION_PATHS,
+    EXPECTED_COST_005_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_GHA_IMPLEMENTATION_PATHS,
@@ -110,6 +112,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "SERVE-002",
                 "ORCH-001",
                 "COST-004",
+                "CAP-001",
+                "COST-005",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -130,6 +134,20 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertEqual("COST-004", EXPECTED_FEATURES[13]["id"])
         self.assertEqual(["W8-003"], EXPECTED_FEATURES[12]["linked_tracker_steps"])
         self.assertEqual(["W8-003"], EXPECTED_FEATURES[13]["linked_tracker_steps"])
+
+    def test_w8_004_capacity_and_cost_manifests_are_exact(self) -> None:
+        self.assertEqual(25, len(EXPECTED_CAP_IMPLEMENTATION_PATHS))
+        self.assertEqual(25, len(set(EXPECTED_CAP_IMPLEMENTATION_PATHS)))
+        self.assertEqual(20, len(EXPECTED_COST_005_IMPLEMENTATION_PATHS))
+        self.assertEqual(20, len(set(EXPECTED_COST_005_IMPLEMENTATION_PATHS)))
+        self.assertEqual("CAP-001", EXPECTED_FEATURES[14]["id"])
+        self.assertEqual("COST-005", EXPECTED_FEATURES[15]["id"])
+        self.assertEqual(["W8-004"], EXPECTED_FEATURES[14]["linked_tracker_steps"])
+        self.assertEqual(["W8-004"], EXPECTED_FEATURES[15]["linked_tracker_steps"])
+        self.assertIn("configs/capacity", REQUIRED_DIRECTORIES)
+        self.assertIn("src/enterprise_ai_platform/capacity", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_CAP_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
 
     def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:
         self.assertEqual(20, len(EXPECTED_W6_003_IMPLEMENTATION_PATHS))
