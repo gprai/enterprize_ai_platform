@@ -50,7 +50,7 @@ W7_003_CONFIG = configs/ingestion/privacy-retention-lifecycle.yaml
 .PHONY: w6-001-template-validate w6-001-policy w6-001-checkov w6-001-tests w6-001-release-bind w6-001-release-validate
 .PHONY: w6-002-validate w6-002-promtool w6-002-tests
 .PHONY: w6-003-validate w6-003-source-identity w6-003-tests w6-003-evidence-validate
-.PHONY: w6-004-source-validate w6-004-tests w7-001-tests w7-002-tests w7-003-tests w7-004-tests w8-002-tests w8-003-tests w8-004-tests
+.PHONY: w6-004-source-validate w6-004-tests w7-001-tests w7-002-tests w7-003-tests w7-004-tests w8-002-tests w8-003-tests w8-004-tests w9-001-tests w9-002-tests
 
 help:
 	@echo "Available targets include W5-002 supply-chain controls and separately owner-gated W5-004 plan, apply, rollback, destroy, and cleanliness phases."
@@ -70,6 +70,12 @@ w8-003-tests:
 
 w8-004-tests:
 	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/unit/test_w8_004_capacity.py tests/contract/test_w8_004_capacity_contract.py tests/integration/test_w8_004_capacity_composition.py tests/feature/test_w8_004_capacity_cost.py tests/security/test_w8_004_capacity_security.py tests/rollback/test_w8_004_capacity_rollback.py tests/teardown/test_w8_004_capacity_cleanliness.py
+
+w9-001-tests:
+	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/unit/test_w9_001_training.py tests/contract/test_w9_001_training_contract.py tests/integration/test_w9_001_training_composition.py tests/feature/test_w9_001_governed_training.py tests/security/test_w9_001_training_security.py tests/rollback/test_w9_001_training_rollback.py tests/teardown/test_w9_001_training_cleanliness.py tests/integration/test_w8_003_orchestration_composition.py tests/feature/test_feature_matrix.py
+
+w9-002-tests:
+	$(PYTHON) -B -m pytest -q -p no:cacheprovider tests/unit/test_w9_002_experiment_tracking.py tests/contract/test_w9_002_experiment_tracking_contract.py tests/integration/test_w9_002_experiment_tracking_composition.py tests/feature/test_w9_002_experiment_lineage.py tests/security/test_w9_002_experiment_tracking_security.py tests/rollback/test_w9_002_experiment_tracking_rollback.py tests/teardown/test_w9_002_experiment_tracking_cleanliness.py tests/feature/test_feature_matrix.py
 
 validate:
 	$(PYTHON) -m tools.platformctl validate

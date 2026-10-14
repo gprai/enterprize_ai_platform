@@ -1,0 +1,36 @@
+schema_version: "w9-001.governed-training-policy.v1"
+feature_ids:
+  - "TRAIN-001"
+  - "COST-006"
+region: "ap-southeast-1"
+execution_scope: "offline_contract_only"
+limits:
+  global_active_training_jobs: 1
+  per_tenant_active_training_jobs: 1
+  maximum_instance_count: 1
+  maximum_runtime_seconds: 21600
+  maximum_volume_gib: 100
+  maximum_lora_rank: 64
+  automatic_retry_attempts: 0
+security:
+  network_isolation_required: true
+  inter_container_encryption_required: true
+  plaintext_secrets_forbidden: true
+  trust_remote_code: false
+  local_files_only: true
+  safetensors_required: true
+bindings:
+  aws_account: "OWNER_BINDING_REQUIRED"
+  training_role: "OWNER_BINDING_REQUIRED"
+  input_bucket: "OWNER_BINDING_REQUIRED"
+  output_bucket: "OWNER_BINDING_REQUIRED"
+  kms_key: "OWNER_BINDING_REQUIRED"
+  private_network: "OWNER_BINDING_REQUIRED"
+  instance_type: "OWNER_BINDING_REQUIRED"
+  runtime_seconds: "OWNER_BINDING_REQUIRED"
+  training_budget_usd: "OWNER_BINDING_REQUIRED"
+peft:
+  enabled_by_default: false
+  owner_approval_required: true
+live_execution: "NOT_AUTHORIZED"
+provisioning: "NOT_RUN"

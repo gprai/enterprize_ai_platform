@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 PASS_STATUS = "W6-002 OBSERVABILITY CONTRACT VALID — NOT DEPLOYED"  # noqa: S105
 REQUIRED_PATHS = (

@@ -1125,6 +1125,197 @@ EXPECTED_COST_005_FEATURE = {
     },
 }
 
+EXPECTED_TRAIN_IMPLEMENTATION_PATHS = (
+    "configs/training/governed-sagemaker-training.yaml",
+    "src/enterprise_ai_platform/training/__init__.py",
+    "src/enterprise_ai_platform/training/errors.py",
+    "src/enterprise_ai_platform/training/models.py",
+    "src/enterprise_ai_platform/training/serialization.py",
+    "src/enterprise_ai_platform/training/policy.py",
+    "src/enterprise_ai_platform/training/contracts.py",
+    "src/enterprise_ai_platform/training/capabilities.py",
+    "src/enterprise_ai_platform/training/sagemaker.py",
+    "src/enterprise_ai_platform/training/service.py",
+    "tests/fakes/w9_001_training.py",
+    "tests/unit/test_w9_001_training.py",
+    "tests/contract/test_w9_001_training_contract.py",
+    "tests/integration/test_w9_001_training_composition.py",
+    "tests/feature/test_w9_001_governed_training.py",
+    "tests/security/test_w9_001_training_security.py",
+    "tests/rollback/test_w9_001_training_rollback.py",
+    "tests/teardown/test_w9_001_training_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/plan.py",
+    "tools/w5_002_ci.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+    "src/enterprise_ai_platform/orchestration/models.py",
+    "src/enterprise_ai_platform/orchestration/engine.py",
+    "tests/fakes/w8_003_orchestration.py",
+    "tests/integration/test_w8_003_orchestration_composition.py",
+)
+EXPECTED_TRAIN_FEATURE = {
+    "id": "TRAIN-001",
+    "implementation_paths": list(EXPECTED_TRAIN_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W9-001"],
+    "control_contract": {
+        "identities": (
+            "model, data, code, container, hyperparameters, cache, policy, approval and "
+            "budget are immutable and digest-bound"
+        ),
+        "compute": (
+            "CPU or GPU capability must match before provider preparation; one active job "
+            "globally and per tenant"
+        ),
+        "security": (
+            "tenant authorization, classification, license, network isolation and secret "
+            "rejection fail closed"
+        ),
+        "operations": (
+            "offline SageMaker-compatible request rendering only; no job, model download, "
+            "registry access or cloud mutation"
+        ),
+        "owner_execution": (
+            "tests, live training, rollback and teardown remain separately owner-controlled"
+        ),
+    },
+}
+EXPECTED_COST_006_IMPLEMENTATION_PATHS = (
+    "configs/training/governed-sagemaker-training.yaml",
+    "src/enterprise_ai_platform/training/models.py",
+    "src/enterprise_ai_platform/training/policy.py",
+    "src/enterprise_ai_platform/training/sagemaker.py",
+    "src/enterprise_ai_platform/training/service.py",
+    "tests/contract/test_w9_001_training_contract.py",
+    "tests/integration/test_w9_001_training_composition.py",
+    "tests/feature/test_w9_001_governed_training.py",
+    "tests/security/test_w9_001_training_security.py",
+    "tests/rollback/test_w9_001_training_rollback.py",
+    "tests/teardown/test_w9_001_training_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/plan.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "src/enterprise_ai_platform/orchestration/models.py",
+    "src/enterprise_ai_platform/orchestration/engine.py",
+    "tests/integration/test_w8_003_orchestration_composition.py",
+)
+EXPECTED_COST_006_FEATURE = {
+    "id": "COST-006",
+    "implementation_paths": list(EXPECTED_COST_006_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W9-001"],
+    "control_contract": {
+        "budget": "training budget and instance price remain owner-bound",
+        "limits": (
+            "one instance, twenty-one-thousand-six-hundred-second runtime ceiling, "
+            "one-hundred-GiB volume ceiling and zero automatic retries"
+        ),
+        "peft": "PEFT is disabled by default and LoRA rank cannot exceed sixty-four",
+        "live_cost": "no paid training is authorized by the source contract",
+    },
+}
+
+EXPECTED_MLFLOW_IMPLEMENTATION_PATHS = (
+    "configs/experiments/governed-mlflow-experiment-lineage.yaml",
+    "src/enterprise_ai_platform/experiment_tracking/__init__.py",
+    "src/enterprise_ai_platform/experiment_tracking/errors.py",
+    "src/enterprise_ai_platform/experiment_tracking/models.py",
+    "src/enterprise_ai_platform/experiment_tracking/serialization.py",
+    "src/enterprise_ai_platform/experiment_tracking/policy.py",
+    "src/enterprise_ai_platform/experiment_tracking/contracts.py",
+    "src/enterprise_ai_platform/experiment_tracking/redaction.py",
+    "src/enterprise_ai_platform/experiment_tracking/mlflow.py",
+    "src/enterprise_ai_platform/experiment_tracking/service.py",
+    "tests/fakes/w9_002_experiment_tracking.py",
+    "tests/unit/test_w9_002_experiment_tracking.py",
+    "tests/contract/test_w9_002_experiment_tracking_contract.py",
+    "tests/integration/test_w9_002_experiment_tracking_composition.py",
+    "tests/feature/test_w9_002_experiment_lineage.py",
+    "tests/security/test_w9_002_experiment_tracking_security.py",
+    "tests/rollback/test_w9_002_experiment_tracking_rollback.py",
+    "tests/teardown/test_w9_002_experiment_tracking_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/plan.py",
+    "tools/w5_002_ci.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+)
+EXPECTED_MLFLOW_FEATURE = {
+    "id": "MLFLOW-001",
+    "implementation_paths": list(EXPECTED_MLFLOW_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W9-002"],
+    "control_contract": {
+        "identities": (
+            "run, dataset, code, prompt, model, embedding, retrieval, evaluation, parameter, "
+            "metric and artifact identities are canonical and digest-bound"
+        ),
+        "privacy": (
+            "synthetic PUBLIC or INTERNAL inputs only; raw prompts, responses, questions, "
+            "evidence, secrets and production data are forbidden"
+        ),
+        "reliability": (
+            "one active run globally and per tenant, nine-hundred-second deadline, one hundred "
+            "retained runs and zero automatic retries"
+        ),
+        "operations": (
+            "process-local MLflow-compatible behavior only; no SDK, server, file store, "
+            "environment binding, network or cloud mutation"
+        ),
+        "approval": "experiment metrics never authorize model promotion or deployment",
+    },
+}
+EXPECTED_RET_003_IMPLEMENTATION_PATHS = (
+    "configs/experiments/governed-mlflow-experiment-lineage.yaml",
+    "src/enterprise_ai_platform/experiment_tracking/models.py",
+    "src/enterprise_ai_platform/experiment_tracking/serialization.py",
+    "src/enterprise_ai_platform/experiment_tracking/policy.py",
+    "src/enterprise_ai_platform/experiment_tracking/contracts.py",
+    "src/enterprise_ai_platform/experiment_tracking/mlflow.py",
+    "src/enterprise_ai_platform/experiment_tracking/service.py",
+    "tests/contract/test_w9_002_experiment_tracking_contract.py",
+    "tests/integration/test_w9_002_experiment_tracking_composition.py",
+    "tests/feature/test_w9_002_experiment_lineage.py",
+    "tests/security/test_w9_002_experiment_tracking_security.py",
+    "tests/rollback/test_w9_002_experiment_tracking_rollback.py",
+    "tests/teardown/test_w9_002_experiment_tracking_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/plan.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+)
+EXPECTED_RET_003_FEATURE = {
+    "id": "RET-003",
+    "implementation_paths": list(EXPECTED_RET_003_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W9-002"],
+    "control_contract": {
+        "retention": "approved redacted lineage exports retain one-hundred-eighty days",
+        "ordering": "disable tracking, export and verify identity before exact-run purge",
+        "scope": (
+            "shared resources are never deleted and managed-backend teardown remains unauthorized"
+        ),
+        "owner_execution": (
+            "tests, export retention, purge, rollback and teardown remain separately "
+            "owner-controlled"
+        ),
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -1142,6 +1333,10 @@ EXPECTED_FEATURES = (
     EXPECTED_COST_004_FEATURE,
     EXPECTED_CAP_FEATURE,
     EXPECTED_COST_005_FEATURE,
+    EXPECTED_TRAIN_FEATURE,
+    EXPECTED_COST_006_FEATURE,
+    EXPECTED_MLFLOW_FEATURE,
+    EXPECTED_RET_003_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1172,6 +1367,8 @@ REQUIRED_DIRECTORIES = (
     "configs/processing",
     "configs/orchestration",
     "configs/capacity",
+    "configs/training",
+    "configs/experiments",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -1186,6 +1383,8 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/agent",
     "src/enterprise_ai_platform/orchestration",
     "src/enterprise_ai_platform/capacity",
+    "src/enterprise_ai_platform/training",
+    "src/enterprise_ai_platform/experiment_tracking",
     "src/enterprise_ai_platform/telemetry",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
@@ -1297,6 +1496,8 @@ REQUIRED_FILES = (
     *EXPECTED_W6_004_IMPLEMENTATION_PATHS,
     *EXPECTED_ORCH_IMPLEMENTATION_PATHS,
     *EXPECTED_CAP_IMPLEMENTATION_PATHS,
+    *EXPECTED_TRAIN_IMPLEMENTATION_PATHS,
+    *EXPECTED_MLFLOW_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1352,6 +1553,7 @@ def validate_feature_matrix(data: object) -> list[str]:
             "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001, "
             "REL-001, AWS-001, BED-001, GHA-001, EKS-001, SERVE-002, ORCH-001, "
             "COST-004, CAP-001, COST-005"
+            ", TRAIN-001, COST-006, MLFLOW-001, RET-003"
         )
 
     return errors

@@ -35,6 +35,53 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W9-001 governed SageMaker training contracts](W9/W9-001.md) — adds strict
+  immutable training identities; tenant/classification authorization; exact
+  policy, independent approval, budget, PEFT, resource, concurrency,
+  capability, and idempotency gates; deterministic SageMaker-compatible
+  rendering; and source-only cleanup planning. Local/offline TEST-001 passed
+  after preserved Ruff, MyPy, and temporary-path remediation. Across the two
+  Pytest marker selections, all 2,484 collected items were exercised: 2,473
+  passed and 11 remained intentionally skipped. Ruff, MyPy, platform
+  validation, duplicate-safe YAML parsing, changed-scope secret scanning,
+  changed/untracked and full tracked-repository pre-commit, whitespace, and
+  index checks passed. The literal complete-inventory secret scan remains
+  **INDETERMINATE** because the owner-controlled Excel lock filename was
+  rejected as `UNSAFE_PATH`; no secret finding was emitted. No live SageMaker
+  adapter or job exists, and no model download, registry, Docker/service, AWS,
+  deployment, rollback, operational teardown, native-residue, or billing test
+  ran. See the [Week 9 evidence index](W9/README.md). Final owner approval
+  was recorded in the canonical evidence document, whose post-closure SHA-256
+  is `6489203ef3c74f10d59ec16c107d71baa52f85ab8771dc423b2f2cd3ee03fcdd`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-14 at 15:20:00 SGT. All recorded warnings, historical failures and
+  remediations, skips, NOT RUN/INDETERMINATE items, limitations, deferred work,
+  lifecycle facts, retained resources, and cost boundaries remain preserved.
+  Tracker update responsibility is **Owner**.
+- [W9-002 experiment evaluation and lineage contracts](W9/W9-002.md) — adds
+  strict immutable experiment identities, privacy-safe parameter/metric/artifact
+  admission, authorization-first process-local tracking, reproducible
+  compatible-context comparison, terminal-record immutability, and exact
+  disable/export/purge lifecycle contracts. Local/offline TEST-001 passed after
+  bounded formatting and import-order remediation. Across both Pytest marker
+  selections, all 2,511 collected items were selected: 2,500 passed and 11
+  remained intentionally skipped. Ruff, MyPy, platform validation,
+  duplicate-safe YAML parsing, exact-manifest secret scanning, both pre-commit
+  scopes, whitespace, and staged-path checks passed. The literal
+  complete-inventory secret scan remains **INDETERMINATE** because the active
+  owner-controlled Excel lock filename was rejected as `UNSAFE_PATH`; no
+  secret finding was emitted. No MLflow server/backend, production data,
+  registry, model download, Docker/service, AWS, deployment, promotion,
+  operational teardown, or paid test ran. See the
+  [Week 9 evidence index](W9/README.md). The canonical evidence identity after
+  closure is
+  `0129bf26358d526ac360fe7c7074a10ad9b2186d6712ee8830c7c55b1b4d618b`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-14 at 21:20:00 SGT. Every warning, skip, NOT RUN/INDETERMINATE item,
+  limitation, deferred action, lifecycle fact, retained resource, and cost
+  boundary remains preserved. Tracker update responsibility is **Owner**.
 - [W8-LEARN-001 production-inference learning review](../learning/W8-learning-review.md)
   — consolidates W8-001 through W8-004 into thirty-second, two-minute,
   five-minute, five-question, and scenario-based interview guidance.

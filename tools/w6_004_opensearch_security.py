@@ -241,7 +241,7 @@ def reconcile_security(
 
 def _client(endpoint: str, region: str) -> tuple[Any, OpenSearchTransport]:
     try:
-        import boto3
+        import boto3  # type: ignore[import-untyped]
         from opensearchpy import AWSV4SignerAuth, OpenSearch, RequestsHttpConnection
     except ImportError as error:
         raise W6004OpenSearchSecurityError(

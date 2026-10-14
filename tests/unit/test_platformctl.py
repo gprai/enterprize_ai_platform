@@ -32,9 +32,11 @@ from tools.platformctl.validate import (
     EXPECTED_CAP_IMPLEMENTATION_PATHS,
     EXPECTED_COST_004_IMPLEMENTATION_PATHS,
     EXPECTED_COST_005_IMPLEMENTATION_PATHS,
+    EXPECTED_COST_006_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_GHA_IMPLEMENTATION_PATHS,
+    EXPECTED_MLFLOW_IMPLEMENTATION_PATHS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     EXPECTED_ORCH_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
@@ -45,7 +47,9 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS,
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
+    EXPECTED_RET_003_IMPLEMENTATION_PATHS,
     EXPECTED_SERVE_IMPLEMENTATION_PATHS,
+    EXPECTED_TRAIN_IMPLEMENTATION_PATHS,
     EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
@@ -114,6 +118,10 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "COST-004",
                 "CAP-001",
                 "COST-005",
+                "TRAIN-001",
+                "COST-006",
+                "MLFLOW-001",
+                "RET-003",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -147,6 +155,34 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertIn("configs/capacity", REQUIRED_DIRECTORIES)
         self.assertIn("src/enterprise_ai_platform/capacity", REQUIRED_DIRECTORIES)
         for path in EXPECTED_CAP_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w9_001_training_and_cost_manifests_are_exact(self) -> None:
+        self.assertEqual(31, len(EXPECTED_TRAIN_IMPLEMENTATION_PATHS))
+        self.assertEqual(31, len(set(EXPECTED_TRAIN_IMPLEMENTATION_PATHS)))
+        self.assertEqual(20, len(EXPECTED_COST_006_IMPLEMENTATION_PATHS))
+        self.assertEqual(20, len(set(EXPECTED_COST_006_IMPLEMENTATION_PATHS)))
+        self.assertEqual("TRAIN-001", EXPECTED_FEATURES[16]["id"])
+        self.assertEqual("COST-006", EXPECTED_FEATURES[17]["id"])
+        self.assertEqual(["W9-001"], EXPECTED_FEATURES[16]["linked_tracker_steps"])
+        self.assertEqual(["W9-001"], EXPECTED_FEATURES[17]["linked_tracker_steps"])
+        self.assertIn("configs/training", REQUIRED_DIRECTORIES)
+        self.assertIn("src/enterprise_ai_platform/training", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_TRAIN_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w9_002_lineage_and_retention_manifests_are_exact(self) -> None:
+        self.assertEqual(27, len(EXPECTED_MLFLOW_IMPLEMENTATION_PATHS))
+        self.assertEqual(27, len(set(EXPECTED_MLFLOW_IMPLEMENTATION_PATHS)))
+        self.assertEqual(19, len(EXPECTED_RET_003_IMPLEMENTATION_PATHS))
+        self.assertEqual(19, len(set(EXPECTED_RET_003_IMPLEMENTATION_PATHS)))
+        self.assertEqual("MLFLOW-001", EXPECTED_FEATURES[18]["id"])
+        self.assertEqual("RET-003", EXPECTED_FEATURES[19]["id"])
+        self.assertEqual(["W9-002"], EXPECTED_FEATURES[18]["linked_tracker_steps"])
+        self.assertEqual(["W9-002"], EXPECTED_FEATURES[19]["linked_tracker_steps"])
+        self.assertIn("configs/experiments", REQUIRED_DIRECTORIES)
+        self.assertIn("src/enterprise_ai_platform/experiment_tracking", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_MLFLOW_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
     def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:

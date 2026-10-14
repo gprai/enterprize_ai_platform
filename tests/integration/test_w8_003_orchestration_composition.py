@@ -38,7 +38,9 @@ def test_all_three_workflow_kinds_use_one_bounded_engine() -> None:
 
         assert state.state is WorkflowState.SUCCEEDED
         if kind is WorkflowKind.MODEL_TRAINING:
-            assert state.provider is ServingProvider.SAGEMAKER_REALTIME
+            assert state.provider is None
+            assert state.artifact_identity_sha256 is None
+            assert state.training_request_identity_sha256 == "7" * 64
             assert harness.approval.calls == 1
         else:
             assert state.provider is expected_provider

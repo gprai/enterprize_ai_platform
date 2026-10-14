@@ -23,10 +23,14 @@ from tools.platformctl.validate import (
     EXPECTED_COST_004_IMPLEMENTATION_PATHS,
     EXPECTED_COST_005_FEATURE,
     EXPECTED_COST_005_IMPLEMENTATION_PATHS,
+    EXPECTED_COST_006_FEATURE,
+    EXPECTED_COST_006_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_GHA_FEATURE,
     EXPECTED_GHA_IMPLEMENTATION_PATHS,
+    EXPECTED_MLFLOW_FEATURE,
+    EXPECTED_MLFLOW_IMPLEMENTATION_PATHS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     EXPECTED_ORCH_FEATURE,
     EXPECTED_ORCH_IMPLEMENTATION_PATHS,
@@ -37,8 +41,12 @@ from tools.platformctl.validate import (
     EXPECTED_RAG_PRE_W7_002_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_PRE_W7_003_IMPLEMENTATION_PATHS,
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
+    EXPECTED_RET_003_FEATURE,
+    EXPECTED_RET_003_IMPLEMENTATION_PATHS,
     EXPECTED_SERVE_FEATURE,
     EXPECTED_SERVE_IMPLEMENTATION_PATHS,
+    EXPECTED_TRAIN_FEATURE,
+    EXPECTED_TRAIN_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
     EXPECTED_W3_004_EDITABLE_PATHS,
     EXPECTED_W6_003_IMPLEMENTATION_PATHS,
@@ -139,6 +147,10 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_COST_004_FEATURE,
                 EXPECTED_CAP_FEATURE,
                 EXPECTED_COST_005_FEATURE,
+                EXPECTED_TRAIN_FEATURE,
+                EXPECTED_COST_006_FEATURE,
+                EXPECTED_MLFLOW_FEATURE,
+                EXPECTED_RET_003_FEATURE,
             ],
             matrix["features"],
         )
@@ -164,6 +176,10 @@ class FeatureMatrixTests(unittest.TestCase):
                 "COST-004",
                 "CAP-001",
                 "COST-005",
+                "TRAIN-001",
+                "COST-006",
+                "MLFLOW-001",
+                "RET-003",
             ],
             [feature["id"] for feature in features],
         )
@@ -236,7 +252,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(14, len(set(EXPECTED_COST_004_IMPLEMENTATION_PATHS)))
 
     def test_w8_004_paths_are_owned_by_capacity_and_cost_features(self) -> None:
-        capacity_feature, cost_feature = read_matrix()["features"][-2:]
+        capacity_feature, cost_feature = read_matrix()["features"][-6:-4]
 
         self.assertEqual(EXPECTED_CAP_FEATURE, capacity_feature)
         self.assertEqual(EXPECTED_COST_005_FEATURE, cost_feature)
@@ -244,6 +260,26 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(25, len(set(EXPECTED_CAP_IMPLEMENTATION_PATHS)))
         self.assertEqual(20, len(EXPECTED_COST_005_IMPLEMENTATION_PATHS))
         self.assertEqual(20, len(set(EXPECTED_COST_005_IMPLEMENTATION_PATHS)))
+
+    def test_w9_001_paths_are_owned_by_training_and_cost_features(self) -> None:
+        training_feature, cost_feature = read_matrix()["features"][-4:-2]
+
+        self.assertEqual(EXPECTED_TRAIN_FEATURE, training_feature)
+        self.assertEqual(EXPECTED_COST_006_FEATURE, cost_feature)
+        self.assertEqual(31, len(EXPECTED_TRAIN_IMPLEMENTATION_PATHS))
+        self.assertEqual(31, len(set(EXPECTED_TRAIN_IMPLEMENTATION_PATHS)))
+        self.assertEqual(20, len(EXPECTED_COST_006_IMPLEMENTATION_PATHS))
+        self.assertEqual(20, len(set(EXPECTED_COST_006_IMPLEMENTATION_PATHS)))
+
+    def test_w9_002_paths_are_owned_by_lineage_and_retention_features(self) -> None:
+        lineage_feature, retention_feature = read_matrix()["features"][-2:]
+
+        self.assertEqual(EXPECTED_MLFLOW_FEATURE, lineage_feature)
+        self.assertEqual(EXPECTED_RET_003_FEATURE, retention_feature)
+        self.assertEqual(27, len(EXPECTED_MLFLOW_IMPLEMENTATION_PATHS))
+        self.assertEqual(27, len(set(EXPECTED_MLFLOW_IMPLEMENTATION_PATHS)))
+        self.assertEqual(19, len(EXPECTED_RET_003_IMPLEMENTATION_PATHS))
+        self.assertEqual(19, len(set(EXPECTED_RET_003_IMPLEMENTATION_PATHS)))
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -286,6 +322,10 @@ class FeatureMatrixTests(unittest.TestCase):
             cost_004_feature,
             capacity_feature,
             cost_005_feature,
+            training_feature,
+            cost_006_feature,
+            mlflow_feature,
+            ret_003_feature,
         ) = features
 
         self.assertEqual(
@@ -306,6 +346,10 @@ class FeatureMatrixTests(unittest.TestCase):
                 "COST-004",
                 "CAP-001",
                 "COST-005",
+                "TRAIN-001",
+                "COST-006",
+                "MLFLOW-001",
+                "RET-003",
             ],
             [item["id"] for item in features],
         )
@@ -328,6 +372,10 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual("COST-004", cost_004_feature["id"])
         self.assertEqual("CAP-001", capacity_feature["id"])
         self.assertEqual("COST-005", cost_005_feature["id"])
+        self.assertEqual("TRAIN-001", training_feature["id"])
+        self.assertEqual("COST-006", cost_006_feature["id"])
+        self.assertEqual("MLFLOW-001", mlflow_feature["id"])
+        self.assertEqual("RET-003", ret_003_feature["id"])
         self.assertEqual(
             [
                 "W3-01",

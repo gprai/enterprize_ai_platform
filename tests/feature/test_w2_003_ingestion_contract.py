@@ -71,6 +71,10 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         cost_feature,
         capacity_feature,
         capacity_cost_feature,
+        training_feature,
+        training_cost_feature,
+        experiment_feature,
+        retention_feature,
     ) = matrix["features"]
 
     assert [
@@ -90,6 +94,10 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         cost_feature["id"],
         capacity_feature["id"],
         capacity_cost_feature["id"],
+        training_feature["id"],
+        training_cost_feature["id"],
+        experiment_feature["id"],
+        retention_feature["id"],
     ] == [
         "MVP-001",
         "RAG-001",
@@ -107,6 +115,10 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         "COST-004",
         "CAP-001",
         "COST-005",
+        "TRAIN-001",
+        "COST-006",
+        "MLFLOW-001",
+        "RET-003",
     ]
     implementation_paths = rag["implementation_paths"]
     w2_003_start = implementation_paths.index(W2_003_IMPLEMENTATION_PATHS[0])

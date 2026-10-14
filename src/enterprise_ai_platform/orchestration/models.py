@@ -136,6 +136,7 @@ class WorkflowRequest(OrchestrationModel):
     policy_sha256: str = Field(pattern=SHA256_PATTERN)
     artifact: ArtifactIdentity | None = None
     requested_provider: ServingProvider | None = None
+    training_request_identity_sha256: str | None = Field(default=None, pattern=SHA256_PATTERN)
     approval_requirement: ApprovalRequirement = ApprovalRequirement.NONE
     cost_class: CostClass = CostClass.STANDARD
     cost_estimate_reference_sha256: str | None = Field(default=None, pattern=SHA256_PATTERN)
@@ -153,19 +154,24 @@ class WorkflowRequest(OrchestrationModel):
     def require_consistent_admission(self) -> WorkflowRequest:
         if self.deadline_at <= self.requested_at:
             raise ValueError("workflow deadline must follow request time")
-        if (
-            self.workflow_kind
-            in {
-                WorkflowKind.ASYNCHRONOUS_INFERENCE,
-                WorkflowKind.MODEL_TRAINING,
-            }
-            and self.artifact is None
+        if self.workflow_kind is WorkflowKind.ASYNCHRONOUS_INFERENCE and self.artifact is None:
+            raise ValueError("inference workflows require an approved artifact identity")
+        if self.workflow_kind is WorkflowKind.MODEL_TRAINING and (
+            self.artifact is not None
+            or self.requested_provider is not None
+            or self.training_request_identity_sha256 is None
         ):
-            raise ValueError("model workflows require an approved artifact identity")
+            raise ValueError("training requires its own request identity without a serving route")
         if self.workflow_kind is WorkflowKind.LONG_RUNNING_INGESTION and (
-            self.artifact is not None or self.requested_provider is not None
+            self.artifact is not None
+            or self.requested_provider is not None
+            or self.training_request_identity_sha256 is not None
         ):
             raise ValueError("ingestion cannot select a model provider")
+        if self.workflow_kind is not WorkflowKind.MODEL_TRAINING and (
+            self.training_request_identity_sha256 is not None
+        ):
+            raise ValueError("only training workflows may contain a training request identity")
         if self.requested_provider is not None and self.artifact is None:
             raise ValueError("provider selection requires an artifact identity")
         sensitive = self.classification in {
@@ -255,6 +261,7 @@ class WorkflowExecutionState(OrchestrationModel):
     policy_sha256: str = Field(pattern=SHA256_PATTERN)
     request_identity_sha256: str = Field(pattern=SHA256_PATTERN)
     artifact_identity_sha256: str | None = Field(default=None, pattern=SHA256_PATTERN)
+    training_request_identity_sha256: str | None = Field(default=None, pattern=SHA256_PATTERN)
     provider: ServingProvider | None = None
     attempt_count: int = Field(default=0, ge=0, le=MAXIMUM_ATTEMPTS)
     transition_count: int = Field(default=1, ge=1, le=MAXIMUM_TRANSITIONS)

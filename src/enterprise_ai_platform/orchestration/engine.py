@@ -44,6 +44,7 @@ from .models import (
     TaskDisposition,
     TaskResult,
     WorkflowExecutionState,
+    WorkflowKind,
     WorkflowState,
     WorkflowTransition,
 )
@@ -176,7 +177,9 @@ class OrchestrationEngine:
             classification=request.classification,
             auth_context=auth_context,
         )
-        provider, artifact_identity = self._admit_provider(event, auth_context)
+        provider, artifact_identity, training_request_identity = self._admit_provider(
+            event, auth_context
+        )
         request_identity = fingerprint(request)
         reservation = await self._idempotency_store.reserve(
             request.idempotency_key,
@@ -201,6 +204,7 @@ class OrchestrationEngine:
             event,
             request_identity=request_identity,
             artifact_identity=artifact_identity,
+            training_request_identity=training_request_identity,
             provider=provider,
             task_timeout_seconds=timeout.task_seconds,
         )
@@ -338,10 +342,14 @@ class OrchestrationEngine:
 
     def _admit_provider(
         self, event: EventBridgeEnvelope, auth_context: AuthContext
-    ) -> tuple[ServingProvider | None, str | None]:
+    ) -> tuple[ServingProvider | None, str | None, str | None]:
         request = event.detail
+        if request.workflow_kind is WorkflowKind.MODEL_TRAINING:
+            if request.training_request_identity_sha256 is None:
+                raise OrchestrationProviderError
+            return None, None, request.training_request_identity_sha256
         if request.artifact is None:
-            return None, None
+            return None, None, None
         try:
             serving_request = ServingRequest(
                 request_id=str(event.id),
@@ -357,7 +365,7 @@ class OrchestrationEngine:
             raise OrchestrationProviderError from None
         if request.requested_provider is not None and request.requested_provider is not provider:
             raise OrchestrationProviderError
-        return provider, request.artifact.canonical_digest()
+        return provider, request.artifact.canonical_digest(), None
 
     def _initial_state(
         self,
@@ -365,6 +373,7 @@ class OrchestrationEngine:
         *,
         request_identity: str,
         artifact_identity: str | None,
+        training_request_identity: str | None,
         provider: ServingProvider | None,
         task_timeout_seconds: int,
     ) -> WorkflowExecutionState:
@@ -397,6 +406,7 @@ class OrchestrationEngine:
             policy_sha256=request.policy_sha256,
             request_identity_sha256=request_identity,
             artifact_identity_sha256=artifact_identity,
+            training_request_identity_sha256=training_request_identity,
             provider=provider,
             task_timeout_seconds=task_timeout_seconds,
             deadline_at=request.deadline_at,

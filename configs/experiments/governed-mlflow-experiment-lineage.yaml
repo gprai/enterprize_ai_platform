@@ -1,0 +1,35 @@
+schema_version: "w9-002.experiment-policy.v1"
+feature_ids:
+  - "MLFLOW-001"
+  - "RET-003"
+region: "ap-southeast-1"
+operating_mode: "process_local_memory"
+limits:
+  global_active_runs: 1
+  per_tenant_active_runs: 1
+  maximum_retained_runs: 100
+  maximum_parameters: 128
+  maximum_metrics: 32
+  maximum_artifacts: 16
+  maximum_comparison_runs: 16
+  maximum_run_seconds: 900
+  automatic_retry_attempts: 0
+security:
+  allowed_classifications:
+    - "PUBLIC"
+    - "INTERNAL"
+  production_data_allowed: false
+  raw_content_allowed: false
+  hashed_principal_references_only: true
+retention:
+  redacted_export_days: 180
+  export_before_purge: true
+  delete_shared_resources: false
+approvals:
+  deployment_approval: "NOT_AUTHORIZED"
+  promotion_approval: "NOT_AUTHORIZED"
+backend:
+  tracking_uri_binding: "OWNER_BINDING_REQUIRED"
+  network_access: false
+  managed_backend: "NOT_AUTHORIZED"
+

@@ -328,13 +328,9 @@ def make_event(
     cost_class: CostClass = CostClass.STANDARD,
 ) -> EventBridgeEnvelope:
     artifact = None
-    if kind is not WorkflowKind.LONG_RUNNING_INGESTION:
+    if kind is WorkflowKind.ASYNCHRONOUS_INFERENCE:
         artifact = make_artifact(
-            model_class=(
-                ModelClass.FOUNDATION
-                if kind is WorkflowKind.ASYNCHRONOUS_INFERENCE
-                else ModelClass.CUSTOM
-            ),
+            model_class=ModelClass.FOUNDATION,
             tenant_id=auth.tenant_id,
             classification=classification,
             approval_state=approval_state_artifact,
@@ -360,6 +356,9 @@ def make_event(
         policy_sha256=policy.identity_sha256,
         artifact=artifact,
         requested_provider=requested_provider,
+        training_request_identity_sha256=(
+            "7" * 64 if kind is WorkflowKind.MODEL_TRAINING else None
+        ),
         approval_requirement=approval_requirement,
         cost_class=cost_class,
         cost_estimate_reference_sha256=("8" * 64 if cost_class is CostClass.HIGH else None),

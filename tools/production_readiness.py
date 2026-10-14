@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Final
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 SCHEMA_VERSION: Final = "w7-001.production-readiness.v1"
 REVIEWER: Final = "Gyan Prakash Rai"
