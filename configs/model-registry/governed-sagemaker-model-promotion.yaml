@@ -1,0 +1,40 @@
+schema_version: "w9-003.model-registry-policy.v1"
+feature_ids:
+  - "REGISTRY-001"
+region: "ap-southeast-1"
+operating_mode: "process_local_memory"
+limits:
+  global_active_mutations: 1
+  per_tenant_active_mutations: 1
+  maximum_retained_packages: 100
+  maximum_audit_events: 1000
+  maximum_request_seconds: 900
+  automatic_retry_attempts: 0
+security:
+  allowed_classifications:
+    - "PUBLIC"
+    - "INTERNAL"
+  hashed_principal_references_only: true
+  raw_content_allowed: false
+  mutable_model_tags_allowed: false
+approvals:
+  separation_of_duties_required: true
+  deployment_approval: "NOT_AUTHORIZED"
+  live_registry_mutation: "NOT_AUTHORIZED"
+promotion:
+  stages:
+    - "CANDIDATE"
+    - "STAGING"
+    - "PRODUCTION"
+  direct_candidate_to_production: false
+  exact_reviewed_package_required: true
+  known_good_rollback_required: true
+retention:
+  audit_export_days: 180
+  export_before_deletion: true
+  preserve_failed_candidates: true
+  delete_shared_resources: false
+bindings:
+  model_package_group_name: "OWNER_BINDING_REQUIRED"
+network_access: false
+

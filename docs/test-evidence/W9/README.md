@@ -1,8 +1,8 @@
 # Week 9 test evidence
 
-Week 9 introduces governed training contracts while preserving the platform's
-existing authorization, orchestration, serving, lifecycle, and evidence
-boundaries.
+Week 9 introduces governed training, experiment-lineage, and model-registry
+contracts while preserving the platform's existing authorization,
+orchestration, serving, lifecycle, and evidence boundaries.
 
 ## Records
 
@@ -47,15 +47,41 @@ boundaries.
   2026-10-14 at 21:20:00 SGT. Every warning, skip, NOT RUN/INDETERMINATE item,
   limitation, deferred action, lifecycle fact, retained resource, and cost
   boundary remains preserved.
+- [W9-003 governed model registry, promotion, and rollback contracts](W9-003.md)
+  — exact artifact, container, code, training, experiment/evaluation,
+  model-card, policy, approval, stage, current-target, and known-good
+  identities; authorization-first process-local registration; independent
+  review and promotion approvals; adjacent environment promotion; exact
+  rollback; hash-linked audit export; and bounded cleanup planning.
+  Local/offline TEST-001 passed after bounded formatting, import-order,
+  assertion, protected-hash, and stale-consumer remediation. The default suite
+  and explicit execution of its four opt-in deselections accounted for all
+  2,529 default-collected items: 2,518 passed and 11 remained intentionally
+  skipped. Ruff, MyPy, platform
+  validation, duplicate-safe YAML parsing, exact-manifest secret scanning,
+  both pre-commit scopes, patch/path/index checks, and task-cache cleanup
+  passed. The literal complete-inventory secret scan remains
+  **INDETERMINATE** because the active owner-controlled Excel lock filename is
+  rejected as `UNSAFE_PATH`; no secret finding was emitted. No SageMaker
+  registry mutation, model download, Docker/service, AWS, deployment,
+  operational rollback/restore/teardown, or paid test ran. The canonical
+  evidence identity after closure is
+  `547c8d3d7db7414597d4543320d3efe5d862c8b683620b5f04135b0e06ba2527`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-15 at 10:46:00 SGT. Every warning, unsuccessful attempt, skip,
+  NOT RUN/INDETERMINATE item, limitation, deferred action, lifecycle fact,
+  retained resource, and cost boundary remains preserved.
 
 ## Current boundary
 
 W9-001 is an offline contract, not a training deployment. W9-002 is a
-process-local experiment-lineage contract, not a live MLflow service, registry,
-promotion, or deployment. `TRAIN-001`, `COST-006`, `MLFLOW-001`, and `RET-003`
-remain `In Progress`. Live training, tracking, deployment, and promotion are
-`NOT_AUTHORIZED`; environment-specific bindings remain
-`OWNER_BINDING_REQUIRED`.
+process-local experiment-lineage contract, not a live MLflow service. W9-003
+is a process-local registry contract, not a live SageMaker Model Registry,
+deployment, or endpoint. `TRAIN-001`, `COST-006`, `MLFLOW-001`, `RET-003`, and
+`REGISTRY-001` remain `In Progress`. Live training, tracking, registry
+mutation, deployment, and inference are `NOT_AUTHORIZED`; environment-specific
+bindings remain `OWNER_BINDING_REQUIRED`.
 
 W9-002 limits active runs to one globally and one per tenant, retains at most
 100 in-memory records, bounds a run to 900 seconds with zero automatic retries,
@@ -64,12 +90,21 @@ requires disablement plus a latest verified redacted export before exact purge.
 Metrics remain evidence for review and cannot authorize deployment or
 promotion.
 
+W9-003 limits active registry mutations to one globally and one per tenant,
+retains at most 100 process-local packages and 1,000 audit events, bounds a
+request to 900 seconds with zero automatic retries, requires independent
+review and promotion approvals, and permits only adjacent
+`CANDIDATE → STAGING → PRODUCTION` movement. Exact known-good rollback
+preserves the failed candidate and audit evidence. SageMaker-compatible request
+rendering and serving-artifact projection remain non-submitting and cannot
+authorize deployment.
+
 The W9-001 Column M approval carries W7-001-remediation and W8-004 / Blocked as
 dependencies. The W9-002 Column M approval carries W7-001-remediation and
-W9-001 / Blocked. Neither task rewrites historical evidence or updates the
-tracker. W9-001 documentation is final-approved within its recorded boundary;
-W9-002 documentation is final-approved within its recorded process-local
-boundary. Tracker update responsibility remains with the owner; no production,
-cloud, managed-MLflow, deployment, promotion, model-training, lifecycle, or
-cost readiness is inferred.
+W9-001 / Blocked. The W9-003 Column M approval carries W7-001-remediation and
+W9-002 / Blocked. None rewrites historical evidence or updates the tracker.
+W9-001, W9-002, and W9-003 documentation are final-approved within their
+recorded boundaries. Tracker update responsibility remains with the owner; no
+production, cloud, managed-MLflow, SageMaker-registry, deployment, promotion,
+model-training, lifecycle, or cost readiness is inferred.
 

@@ -82,6 +82,32 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
   2026-10-14 at 21:20:00 SGT. Every warning, skip, NOT RUN/INDETERMINATE item,
   limitation, deferred action, lifecycle fact, retained resource, and cost
   boundary remains preserved. Tracker update responsibility is **Owner**.
+- [W9-003 governed model registry, promotion, and rollback contracts](W9/W9-003.md)
+  — adds strict immutable package and lineage identities,
+  authorization-first process-local registration, independent package review
+  and promotion approvals, adjacent candidate/staging/production movement,
+  exact known-good rollback, hash-linked audit export, and bounded cleanup
+  planning. Local/offline TEST-001 passed after bounded formatting,
+  import-order, assertion, protected-hash, and stale-consumer remediation.
+  The default suite and explicit execution of its four opt-in deselections
+  accounted for all 2,529 default-collected items: 2,518 passed and 11 remained
+  intentionally skipped. Ruff, MyPy,
+  platform validation, duplicate-safe YAML parsing, exact-manifest secret
+  scanning, both pre-commit scopes, patch/path/index checks, and task-cache
+  cleanup passed. The literal complete-inventory secret scan remains
+  **INDETERMINATE** because the active owner-controlled Excel lock filename was
+  rejected as `UNSAFE_PATH`; no secret finding was emitted. No SageMaker
+  registry mutation, model download, Docker/service, AWS, deployment,
+  operational rollback/restore/teardown, or paid test ran. See the
+  [Week 9 evidence index](W9/README.md). The canonical evidence identity after
+  closure is
+  `547c8d3d7db7414597d4543320d3efe5d862c8b683620b5f04135b0e06ba2527`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-15 at 10:46:00 SGT. Every warning, unsuccessful attempt, skip,
+  NOT RUN/INDETERMINATE item, limitation, deferred action, lifecycle fact,
+  retained resource, and cost boundary remains preserved. Tracker update
+  responsibility is **Owner**.
 - [W8-LEARN-001 production-inference learning review](../learning/W8-learning-review.md)
   — consolidates W8-001 through W8-004 into thirty-second, two-minute,
   five-minute, five-question, and scenario-based interview guidance.

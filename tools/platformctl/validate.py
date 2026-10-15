@@ -1316,6 +1316,68 @@ EXPECTED_RET_003_FEATURE = {
     },
 }
 
+EXPECTED_REGISTRY_IMPLEMENTATION_PATHS = (
+    "configs/model-registry/governed-sagemaker-model-promotion.yaml",
+    "src/enterprise_ai_platform/model_registry/__init__.py",
+    "src/enterprise_ai_platform/model_registry/errors.py",
+    "src/enterprise_ai_platform/model_registry/models.py",
+    "src/enterprise_ai_platform/model_registry/serialization.py",
+    "src/enterprise_ai_platform/model_registry/policy.py",
+    "src/enterprise_ai_platform/model_registry/contracts.py",
+    "src/enterprise_ai_platform/model_registry/sagemaker.py",
+    "src/enterprise_ai_platform/model_registry/registry.py",
+    "src/enterprise_ai_platform/model_registry/service.py",
+    "tests/fakes/w9_003_model_registry.py",
+    "tests/unit/test_w9_003_model_registry.py",
+    "tests/contract/test_w9_003_model_registry_contract.py",
+    "tests/integration/test_w9_003_model_registry_composition.py",
+    "tests/feature/test_w9_003_model_promotion.py",
+    "tests/security/test_w9_003_model_registry_security.py",
+    "tests/rollback/test_w9_003_model_registry_rollback.py",
+    "tests/teardown/test_w9_003_model_registry_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tools/platformctl/plan.py",
+    "tools/w5_002_ci.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/feature/test_w2_002_embedder_contract.py",
+    "tests/feature/test_w2_003_ingestion_contract.py",
+)
+EXPECTED_REGISTRY_FEATURE = {
+    "id": "REGISTRY-001",
+    "implementation_paths": list(EXPECTED_REGISTRY_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W9-003"],
+    "control_contract": {
+        "identities": (
+            "package, artifact, training, experiment, approval, policy, promotion, "
+            "known-good, rollback and audit identities are immutable and digest-bound"
+        ),
+        "approval": (
+            "separate reviewer approval is required for package review, promotion and "
+            "rollback; registry approval never authorizes deployment"
+        ),
+        "promotion": (
+            "candidate-to-staging-to-production transitions are adjacent, exact-target "
+            "compared, idempotent and auditable"
+        ),
+        "rollback": (
+            "rollback restores only an exact recorded known-good identity and preserves "
+            "the failed candidate"
+        ),
+        "operations": (
+            "process-local SageMaker-compatible behavior only; no SDK, network, file store, "
+            "registry mutation, model download, cloud mutation or deployment"
+        ),
+        "retention": (
+            "disable, export and verify the audit identity before exact owner-approved "
+            "deletion after one-hundred-eighty days; shared resources are never deleted"
+        ),
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -1337,6 +1399,7 @@ EXPECTED_FEATURES = (
     EXPECTED_COST_006_FEATURE,
     EXPECTED_MLFLOW_FEATURE,
     EXPECTED_RET_003_FEATURE,
+    EXPECTED_REGISTRY_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1369,6 +1432,7 @@ REQUIRED_DIRECTORIES = (
     "configs/capacity",
     "configs/training",
     "configs/experiments",
+    "configs/model-registry",
     "data/sample",
     "data/sample/approved",
     "data/sample/restricted-fixtures",
@@ -1385,6 +1449,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/capacity",
     "src/enterprise_ai_platform/training",
     "src/enterprise_ai_platform/experiment_tracking",
+    "src/enterprise_ai_platform/model_registry",
     "src/enterprise_ai_platform/telemetry",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
@@ -1498,6 +1563,7 @@ REQUIRED_FILES = (
     *EXPECTED_CAP_IMPLEMENTATION_PATHS,
     *EXPECTED_TRAIN_IMPLEMENTATION_PATHS,
     *EXPECTED_MLFLOW_IMPLEMENTATION_PATHS,
+    *EXPECTED_REGISTRY_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1553,7 +1619,7 @@ def validate_feature_matrix(data: object) -> list[str]:
             "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001, "
             "REL-001, AWS-001, BED-001, GHA-001, EKS-001, SERVE-002, ORCH-001, "
             "COST-004, CAP-001, COST-005"
-            ", TRAIN-001, COST-006, MLFLOW-001, RET-003"
+            ", TRAIN-001, COST-006, MLFLOW-001, RET-003, REGISTRY-001"
         )
 
     return errors
