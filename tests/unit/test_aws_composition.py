@@ -18,6 +18,7 @@ from enterprise_ai_platform.api.aws_composition import (
     compose_aws_runtime,
 )
 from enterprise_ai_platform.config import Settings
+from enterprise_ai_platform.retrieval.hybrid import RetrievalMode
 from enterprise_ai_platform.retrieval.models import APPROVED_EMBEDDING_DIMENSION
 from enterprise_ai_platform.telemetry.runtime import NullTelemetryRuntime
 
@@ -100,6 +101,7 @@ def test_aws_runtime_uses_fifteen_second_retrieval_budget(
             "aws_composition_enabled": True,
             "aws_region": "ap-southeast-1",
             "llm_model_id": "approved-inference-profile",
+            "rag_retrieval_mode": RetrievalMode.HYBRID,
         }
     )
     embedder = FakeEmbedder()
@@ -113,6 +115,7 @@ def test_aws_runtime_uses_fifteen_second_retrieval_budget(
     )
 
     assert captured["timeout_seconds"] == AWS_RETRIEVAL_TIMEOUT_SECONDS == 15.0
+    assert captured["vector_store"].retrieval_mode is RetrievalMode.HYBRID
     assert runtime.embedder is embedder
     assert runtime.configuration_hashes == RUNTIME_CONFIGURATION_HASHES
     assert runtime.configuration_hashes.model_config_sha256 == "".join(

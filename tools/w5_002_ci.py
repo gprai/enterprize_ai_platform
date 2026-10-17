@@ -1348,8 +1348,8 @@ def source_composition_sha256(repository_root: Path) -> str:
         if path.is_file()
     )
     ordered = sorted(relative_paths, key=lambda path: path.as_posix())
-    if len(ordered) != 158:
-        raise ContractError("source composition must contain the approved 158 paths")
+    if len(ordered) != 159:
+        raise ContractError("source composition must contain the approved 159 paths")
     digest = hashlib.sha256()
     for relative in ordered:
         absolute = repository_root / relative

@@ -21,10 +21,20 @@ from ..authorization import (
 )
 from ..errors import (
     CollectionMismatchError,
+    VectorStoreAuthorizationError,
     VectorStoreError,
     VectorStoreTimeoutError,
     VectorStoreUnavailableError,
     VectorStoreValidationError,
+)
+from ..hybrid import (
+    APPROVED_HYBRID_POLICY,
+    OPENSEARCH_CAPABILITIES,
+    HybridRetrievalPolicy,
+    RankedCandidate,
+    RetrievalMode,
+    build_retrieval_identity,
+    fuse_ranked_candidates,
 )
 from ..models import AuthContext, Chunk, CollectionSpec, PiiStatus, Query, RetrievedChunk
 from ..vector_store import (
@@ -36,8 +46,18 @@ from ..vector_store import (
 
 _T = TypeVar("_T")
 _SPEC_META_KEY = "enterprise_ai_collection_spec"
+_RETRIEVAL_META_KEY = "enterprise_ai_retrieval_identity"
 _RETRY_BASE_SECONDS = 0.1
 _RETRY_JITTER_MILLISECONDS = 50
+_AUTHORIZATION_MAPPING_FIELDS = (
+    "tenant_id",
+    "classification",
+    "allowed_roles",
+    "allowed_groups",
+    "pii_status",
+    "ingestion_status",
+    "approved_exception",
+)
 
 
 def _retry_delay_seconds() -> float:
@@ -51,16 +71,33 @@ class OpenSearchVectorStore:
         self,
         client: Any,
         *,
+        retrieval_mode: RetrievalMode = RetrievalMode.VECTOR,
+        hybrid_policy: HybridRetrievalPolicy = APPROVED_HYBRID_POLICY,
         max_attempts: int = DEFAULT_MAX_ATTEMPTS,
         retry_delay: Callable[[], float] = _retry_delay_seconds,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
     ) -> None:
         if max_attempts < 1 or max_attempts > DEFAULT_MAX_ATTEMPTS:
             raise ValueError("max_attempts must be between 1 and 2")
+        if (
+            not isinstance(retrieval_mode, RetrievalMode)
+            or not isinstance(hybrid_policy, HybridRetrievalPolicy)
+            or hybrid_policy != APPROVED_HYBRID_POLICY
+        ):
+            raise VectorStoreValidationError
+        OPENSEARCH_CAPABILITIES.require(retrieval_mode)
         self._client = client
+        self._retrieval_mode = retrieval_mode
+        self._hybrid_policy = hybrid_policy
         self._max_attempts = max_attempts
         self._retry_delay = retry_delay
         self._sleep = sleep
+
+    @property
+    def retrieval_mode(self) -> RetrievalMode:
+        """Expose the immutable configured capability for composition checks."""
+
+        return self._retrieval_mode
 
     async def _wait_before_retry(self, deadline: float) -> None:
         delay = self._retry_delay()
@@ -112,10 +149,27 @@ class OpenSearchVectorStore:
         except Exception:
             raise VectorStoreUnavailableError from None
 
-    @staticmethod
-    def _mapping(specification: CollectionSpec) -> dict[str, Any]:
+    def _mapping(self, specification: CollectionSpec) -> dict[str, Any]:
+        retrieval_identity = build_retrieval_identity(
+            specification,
+            self._retrieval_mode,
+            self._hybrid_policy,
+        )
+        text_mapping: dict[str, Any]
+        if self._retrieval_mode is RetrievalMode.HYBRID:
+            text_mapping = {
+                "type": "text",
+                "analyzer": self._hybrid_policy.lexical_analyzer,
+                "search_analyzer": self._hybrid_policy.lexical_analyzer,
+                "similarity": self._hybrid_policy.lexical_similarity,
+            }
+        else:
+            text_mapping = {"type": "text", "index": False}
         return {
-            "_meta": {_SPEC_META_KEY: specification.model_dump(mode="json")},
+            "_meta": {
+                _SPEC_META_KEY: specification.model_dump(mode="json"),
+                _RETRIEVAL_META_KEY: retrieval_identity.model_dump(mode="json"),
+            },
             "properties": {
                 "embedding": {
                     "type": "knn_vector",
@@ -149,7 +203,7 @@ class OpenSearchVectorStore:
                     }
                 },
                 "chunk_index": {"type": "integer"},
-                "text": {"type": "text", "index": False},
+                "text": text_mapping,
             },
         }
 
@@ -169,14 +223,31 @@ class OpenSearchVectorStore:
             lambda: self._client.indices.get_mapping(index=specification.name),
             timeout_seconds,
         )
-        index_mapping = response.get(specification.name, {}).get("mappings", {})
+        if not isinstance(response, dict):
+            raise CollectionMismatchError
+        index_entry = response.get(specification.name)
+        if not isinstance(index_entry, dict):
+            raise CollectionMismatchError
+        index_mapping = index_entry.get("mappings")
+        if not isinstance(index_mapping, dict):
+            raise CollectionMismatchError
         expected = self._mapping(specification)
         if index_mapping.get("_meta") != expected["_meta"]:
             raise CollectionMismatchError
-        vector_mapping = index_mapping.get("properties", {}).get("embedding", {})
+        properties = index_mapping.get("properties", {})
+        if not isinstance(properties, dict):
+            raise CollectionMismatchError
+        expected_properties = expected["properties"]
+        vector_mapping = properties.get("embedding", {})
+        text_mapping = properties.get("text", {})
         if (
             vector_mapping.get("dimension") != specification.dimension
             or vector_mapping.get("method", {}).get("space_type") != "cosinesimil"
+            or text_mapping != expected_properties["text"]
+            or any(
+                properties.get(field) != expected_properties[field]
+                for field in _AUTHORIZATION_MAPPING_FIELDS
+            )
         ):
             raise CollectionMismatchError
 
@@ -293,6 +364,15 @@ class OpenSearchVectorStore:
         vector = validated_query_vector(query_vector)
         policy = build_retrieval_policy(auth_context)
         await self._ensure_collection(specification, timeout)
+        if self._retrieval_mode is RetrievalMode.HYBRID:
+            return await self._hybrid_search(
+                specification=specification,
+                query=query,
+                vector=vector,
+                auth_context=auth_context,
+                policy=policy,
+                timeout_seconds=timeout,
+            )
         body = {
             "size": query.top_k,
             "min_score": query.min_score,
@@ -328,6 +408,142 @@ class OpenSearchVectorStore:
                     RetrievedChunk(**chunk.model_dump(), score=float(hit.get("_score", 0.0)))
                 )
         return tuple(results)
+
+    async def _hybrid_search(
+        self,
+        *,
+        specification: CollectionSpec,
+        query: Query,
+        vector: tuple[float, ...],
+        auth_context: AuthContext,
+        policy: RetrievalPolicy,
+        timeout_seconds: float,
+    ) -> tuple[RetrievedChunk, ...]:
+        candidate_limit = self._hybrid_policy.candidate_limit(query.top_k)
+        filters = self._filters(policy)
+        vector_body = {
+            "size": candidate_limit,
+            "query": {
+                "bool": {
+                    "filter": filters,
+                    "must": [
+                        {
+                            "knn": {
+                                "embedding": {
+                                    "vector": list(vector),
+                                    "k": candidate_limit,
+                                }
+                            }
+                        }
+                    ],
+                }
+            },
+        }
+        lexical_body = {
+            "size": candidate_limit,
+            "query": {
+                "bool": {
+                    "filter": filters,
+                    "must": [{"match": {"text": {"query": query.text}}}],
+                }
+            },
+        }
+        vector_response, lexical_response = await self._execute_hybrid_channels(
+            specification.name,
+            vector_body,
+            lexical_body,
+            timeout_seconds,
+        )
+        vector_candidates = self._parse_hybrid_candidates(
+            vector_response,
+            auth_context,
+            policy,
+        )
+        lexical_candidates = self._parse_hybrid_candidates(
+            lexical_response,
+            auth_context,
+            policy,
+        )
+        return fuse_ranked_candidates(
+            vector_candidates=vector_candidates,
+            lexical_candidates=lexical_candidates,
+            top_k=query.top_k,
+            min_score=query.min_score,
+            policy=self._hybrid_policy,
+        )
+
+    async def _execute_hybrid_channels(
+        self,
+        index_name: str,
+        vector_body: dict[str, Any],
+        lexical_body: dict[str, Any],
+        timeout_seconds: float,
+    ) -> tuple[Any, Any]:
+        tasks = (
+            asyncio.create_task(
+                self._execute(
+                    lambda: self._client.search(index=index_name, body=vector_body),
+                    timeout_seconds,
+                )
+            ),
+            asyncio.create_task(
+                self._execute(
+                    lambda: self._client.search(index=index_name, body=lexical_body),
+                    timeout_seconds,
+                )
+            ),
+        )
+        try:
+            async with asyncio.timeout(timeout_seconds):
+                vector_response, lexical_response = await asyncio.gather(*tasks)
+                return vector_response, lexical_response
+        except TimeoutError:
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            raise VectorStoreTimeoutError from None
+        except (Exception, asyncio.CancelledError):
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            raise
+
+    @staticmethod
+    def _parse_hybrid_candidates(
+        response: Any,
+        auth_context: AuthContext,
+        policy: RetrievalPolicy,
+    ) -> tuple[RankedCandidate, ...]:
+        if not isinstance(response, dict):
+            raise VectorStoreValidationError
+        hits_container = response.get("hits")
+        if not isinstance(hits_container, dict):
+            raise VectorStoreValidationError
+        hits = hits_container.get("hits")
+        if not isinstance(hits, list):
+            raise VectorStoreValidationError
+        candidates: list[RankedCandidate] = []
+        for hit in hits:
+            if not isinstance(hit, dict):
+                raise VectorStoreValidationError
+            source = hit.get("_source")
+            score = hit.get("_score")
+            if (
+                not isinstance(source, dict)
+                or isinstance(score, bool)
+                or not isinstance(score, (int, float))
+            ):
+                raise VectorStoreValidationError
+            try:
+                chunk = Chunk.model_validate_json(json.dumps(source))
+            except ValidationError:
+                raise VectorStoreValidationError from None
+            if hit.get("_id") != chunk.chunk_id:
+                raise VectorStoreValidationError
+            if not is_retrieval_authorized(chunk, auth_context, now=policy.evaluated_at):
+                raise VectorStoreAuthorizationError
+            candidates.append(RankedCandidate(chunk=chunk, raw_score=float(score)))
+        return tuple(candidates)
 
     async def delete_by_document_id(
         self,

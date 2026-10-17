@@ -35,6 +35,35 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W10-001 authorized deterministic hybrid retrieval](W10/W10-001.md) — adds
+  bounded vector KNN and lexical BM25 channels inside the existing OpenSearch
+  adapter; applies identical authorization filters before both searches;
+  reauthorizes every returned chunk; binds collection, embedding, retrieval
+  mode, analyzer, and policy identities; and returns existing provider-neutral
+  cited candidates through deterministic min-max normalization, equal-weight
+  fusion, and stable tie-breaking. Final local/offline TEST-001 passed after
+  preserved formatter, import-order, circular-import, stale-consumer,
+  protected-identity, timing-assertion, interrupted-run, and Excel-lock
+  remediation. The affected scope recorded 163 passed and 1 deselected; the
+  complete non-AWS/non-paid suite recorded 2,557 passed, 8 skipped,
+  4 deselected, 1 third-party warning, and 10 passing subtests. Ruff, MyPy,
+  platform and YAML/config validation, strict OPA and 196 OPA tests, Terraform
+  and Kubernetes Checkov, exact-manifest secret scanning and pre-commit,
+  complete-inventory secret scanning, boundary checks, and external-cache
+  cleanup passed. No live OpenSearch/AWS operation, index mutation, deployment,
+  Docker/service, model download, operational rollback, cloud teardown,
+  billing, or paid test ran. See the [Week 10 evidence index](W10/README.md).
+  `RAG-002` remains `In Progress`; the carried Column M dependency/status
+  `W7-001-remediation; W9-004 / Blocked` remains unresolved. The canonical
+  post-closure evidence identity is
+  `c3378176664c41a8a58a8e57b9a2429d0beee076413d7be83618ce6468b2737a`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-17 at 22:10:00 SGT. Every warning, historical failure,
+  INDETERMINATE event, remediation, skip, deselection, NOT RUN item,
+  limitation, dependency, deferred action, lifecycle fact, retained resource,
+  and cost boundary remains preserved. Tracker update responsibility is
+  **Owner**; no production or cloud readiness is inferred.
 - [W9-001 governed SageMaker training contracts](W9/W9-001.md) — adds strict
   immutable training identities; tenant/classification authorization; exact
   policy, independent approval, budget, PEFT, resource, concurrency,

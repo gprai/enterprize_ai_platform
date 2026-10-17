@@ -13,6 +13,7 @@ from enterprise_ai_platform.config import (
     WINDOWS_AGENT_STORE_PATH,
     Settings,
 )
+from enterprise_ai_platform.retrieval.hybrid import RetrievalMode
 
 REQUIRED_ENVIRONMENT_KEYS = (
     "ENTERPRISE_AI_EMBEDDING_MODEL_ID",
@@ -89,6 +90,25 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.agent_maximum_serialized_state_bytes == 16_384
     assert settings.agent_maximum_concurrent_runs == 1
     assert settings.agent_queue_capacity == 0
+    assert settings.rag_retrieval_mode is RetrievalMode.VECTOR
+
+
+def test_retrieval_mode_accepts_only_explicit_vector_or_hybrid_values(
+    valid_settings_values: dict[str, object],
+) -> None:
+    hybrid = Settings(
+        _env_file=None,
+        rag_retrieval_mode="hybrid",  # type: ignore[arg-type]
+        **valid_settings_values,
+    )
+    assert hybrid.rag_retrieval_mode is RetrievalMode.HYBRID
+
+    with pytest.raises(ValidationError):
+        Settings(
+            _env_file=None,
+            rag_retrieval_mode="automatic",  # type: ignore[arg-type]
+            **valid_settings_values,
+        )
 
 
 def test_w6_002_export_profile_is_exact(

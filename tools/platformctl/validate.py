@@ -367,6 +367,59 @@ EXPECTED_RAG_FEATURE = {
     "status": "In Progress",
     "linked_tracker_steps": list(EXPECTED_RAG_LINKED_TRACKER_STEPS),
 }
+EXPECTED_W10_001_IMPLEMENTATION_PATHS = (
+    "src/enterprise_ai_platform/retrieval/hybrid.py",
+    "tests/fakes/w10_001_hybrid_retrieval.py",
+    "tests/unit/test_w10_001_hybrid_retrieval.py",
+    "tests/contract/test_w10_001_hybrid_retrieval_contract.py",
+    "tests/integration/test_w10_001_hybrid_retrieval_composition.py",
+    "tests/feature/test_w10_001_hybrid_retrieval.py",
+    "tests/security/test_w10_001_hybrid_retrieval_security.py",
+    "tests/rollback/test_w10_001_hybrid_retrieval_rollback.py",
+    "tests/teardown/test_w10_001_hybrid_retrieval_cleanliness.py",
+    ".env.example",
+    "Makefile",
+    "deploy/k8s/configmap.yaml",
+    "feature-matrix.yaml",
+    "src/enterprise_ai_platform/api/aws_composition.py",
+    "src/enterprise_ai_platform/config.py",
+    "src/enterprise_ai_platform/retrieval/__init__.py",
+    "src/enterprise_ai_platform/retrieval/adapters/opensearch.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/security/test_configuration_security.py",
+    "tests/unit/test_aws_composition.py",
+    "tests/unit/test_config.py",
+    "tests/unit/test_platformctl.py",
+    "tools/platformctl/validate.py",
+)
+EXPECTED_RAG_002_FEATURE = {
+    "id": "RAG-002",
+    "implementation_paths": list(EXPECTED_W10_001_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W10-001"],
+    "control_contract": {
+        "capabilities": (
+            "OpenSearch supports vector and hybrid retrieval; Qdrant and in-memory "
+            "backends remain vector-only and never silently downgrade"
+        ),
+        "authorization": (
+            "tenant, classification, role and group filters are identical before both "
+            "channels; every returned chunk is reauthorized and failures abort the request"
+        ),
+        "fusion": (
+            "bounded lexical and vector candidates use deterministic min-max normalization, "
+            "equal weights and stable lexical-vector-chunk identity tie-breaking"
+        ),
+        "identity": (
+            "collection, embedding, retrieval mode, standard analyzer, BM25 similarity and "
+            "policy SHA-256 are bound to the OpenSearch mapping"
+        ),
+        "operations": (
+            "two concurrent channels, two total attempts per channel, no partial results, "
+            "no live index mutation and no raw vendor object escapes the adapter"
+        ),
+    },
+}
 EXPECTED_EVAL_IMPLEMENTATION_PATHS = (
     ".gitignore",
     "configs/eval/cited-rag-evaluation-policy.yaml",
@@ -1477,6 +1530,7 @@ EXPECTED_FEATURES = (
     EXPECTED_REGISTRY_FEATURE,
     EXPECTED_SUPPLY_002_FEATURE,
     EXPECTED_GHA_002_FEATURE,
+    EXPECTED_RAG_002_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1643,6 +1697,7 @@ REQUIRED_FILES = (
     *EXPECTED_MLFLOW_IMPLEMENTATION_PATHS,
     *EXPECTED_REGISTRY_IMPLEMENTATION_PATHS,
     *EXPECTED_W9_004_IMPLEMENTATION_PATHS,
+    *EXPECTED_W10_001_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1699,7 +1754,7 @@ def validate_feature_matrix(data: object) -> list[str]:
             "REL-001, AWS-001, BED-001, GHA-001, EKS-001, SERVE-002, ORCH-001, "
             "COST-004, CAP-001, COST-005"
             ", TRAIN-001, COST-006, MLFLOW-001, RET-003, REGISTRY-001, "
-            "SUPPLY-002, GHA-002"
+            "SUPPLY-002, GHA-002, RAG-002"
         )
 
     return errors

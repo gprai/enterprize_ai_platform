@@ -21,6 +21,7 @@ from enterprise_ai_platform.llm.bedrock import BedrockLLMProvider, BedrockRuntim
 from enterprise_ai_platform.rag.config import APPROVED_RAG_POLICY, RAGPolicy
 from enterprise_ai_platform.rag.service import RAGService
 from enterprise_ai_platform.retrieval.adapters.opensearch import OpenSearchVectorStore
+from enterprise_ai_platform.retrieval.hybrid import RetrievalMode
 from enterprise_ai_platform.retrieval.models import CollectionSpec
 from enterprise_ai_platform.retrieval.service import RetrievalService
 from enterprise_ai_platform.telemetry.models import RuntimeConfigurationHashes
@@ -200,6 +201,7 @@ def compose_aws_adapters(
     bedrock_client: BedrockRuntimeClient,
     bedrock_inference_profile: str,
     region: str,
+    retrieval_mode: RetrievalMode = RetrievalMode.VECTOR,
 ) -> AWSComposition:
     """Construct adapters from injected Pod-Identity-backed clients only."""
 
@@ -211,7 +213,10 @@ def compose_aws_adapters(
     ):
         raise ValueError("owner-approved Bedrock inference profile is required")
     return AWSComposition(
-        vector_store=OpenSearchVectorStore(opensearch_client),
+        vector_store=OpenSearchVectorStore(
+            opensearch_client,
+            retrieval_mode=retrieval_mode,
+        ),
         llm_provider=BedrockLLMProvider(
             model_id=bedrock_inference_profile,
             region=region,
@@ -288,6 +293,7 @@ def compose_aws_runtime(
         bedrock_client=bedrock_client,
         bedrock_inference_profile=settings.llm_model_id,
         region=settings.aws_region,
+        retrieval_mode=settings.rag_retrieval_mode,
     )
     resolved_embedder = embedder or SentenceTransformerEmbedder(
         settings.embedding_snapshot_path,

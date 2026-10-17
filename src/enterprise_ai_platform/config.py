@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from enum import StrEnum
 from ipaddress import IPv4Address
 from pathlib import Path
 from typing import Literal
@@ -29,6 +30,13 @@ W6_004_EMBEDDING_SNAPSHOT_PATH = Path(
 )
 SANDBOX_AUTH_SIGNING_KEY_FILE_PATH = Path("/var/run/secrets/enterprise-ai/sandbox-auth-signing-key")
 MAX_SECRET_FILE_BYTES = 4096
+
+
+class RetrievalMode(StrEnum):
+    """Supported retrieval strategies selected by typed configuration."""
+
+    VECTOR = "vector"
+    HYBRID = "hybrid"
 
 
 class Settings(BaseSettings):
@@ -76,6 +84,7 @@ class Settings(BaseSettings):
     aws_composition_enabled: bool = False
     embedding_snapshot_path: Path = W6_004_EMBEDDING_SNAPSHOT_PATH
     opensearch_index_name: Literal["enterprise_ai_sandbox"] = "enterprise_ai_sandbox"
+    rag_retrieval_mode: RetrievalMode = RetrievalMode.VECTOR
     telemetry_enabled: bool = False
     telemetry_service_name: str = Field(
         default="enterprise-ai-api",

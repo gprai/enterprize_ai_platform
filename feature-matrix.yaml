@@ -1253,6 +1253,43 @@
         "privacy": "raw hosted-runner artifacts are PUBLIC-only; INTERNAL requires a separately approved in-region runner",
         "retention": "transient workflow evidence seven days; canonical evidence 180 days"
       }
+    },
+    {
+      "id": "RAG-002",
+      "implementation_paths": [
+        "src/enterprise_ai_platform/retrieval/hybrid.py",
+        "tests/fakes/w10_001_hybrid_retrieval.py",
+        "tests/unit/test_w10_001_hybrid_retrieval.py",
+        "tests/contract/test_w10_001_hybrid_retrieval_contract.py",
+        "tests/integration/test_w10_001_hybrid_retrieval_composition.py",
+        "tests/feature/test_w10_001_hybrid_retrieval.py",
+        "tests/security/test_w10_001_hybrid_retrieval_security.py",
+        "tests/rollback/test_w10_001_hybrid_retrieval_rollback.py",
+        "tests/teardown/test_w10_001_hybrid_retrieval_cleanliness.py",
+        ".env.example",
+        "Makefile",
+        "deploy/k8s/configmap.yaml",
+        "feature-matrix.yaml",
+        "src/enterprise_ai_platform/api/aws_composition.py",
+        "src/enterprise_ai_platform/config.py",
+        "src/enterprise_ai_platform/retrieval/__init__.py",
+        "src/enterprise_ai_platform/retrieval/adapters/opensearch.py",
+        "tests/feature/test_feature_matrix.py",
+        "tests/security/test_configuration_security.py",
+        "tests/unit/test_aws_composition.py",
+        "tests/unit/test_config.py",
+        "tests/unit/test_platformctl.py",
+        "tools/platformctl/validate.py"
+      ],
+      "status": "In Progress",
+      "linked_tracker_steps": ["W10-001"],
+      "control_contract": {
+        "capabilities": "OpenSearch supports vector and hybrid retrieval; Qdrant and in-memory backends remain vector-only and never silently downgrade",
+        "authorization": "tenant, classification, role and group filters are identical before both channels; every returned chunk is reauthorized and failures abort the request",
+        "fusion": "bounded lexical and vector candidates use deterministic min-max normalization, equal weights and stable lexical-vector-chunk identity tie-breaking",
+        "identity": "collection, embedding, retrieval mode, standard analyzer, BM25 similarity and policy SHA-256 are bound to the OpenSearch mapping",
+        "operations": "two concurrent channels, two total attempts per channel, no partial results, no live index mutation and no raw vendor object escapes the adapter"
+      }
     }
   ]
 }

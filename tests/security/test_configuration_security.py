@@ -32,7 +32,8 @@ def test_environment_example_contains_only_approved_values() -> None:
     assert values["ENTERPRISE_AI_LLM_PROVIDER"] == "fake"
     assert values["ENTERPRISE_AI_LLM_MODEL_ID"] == ""
     assert values["ENTERPRISE_AI_AWS_REGION"] == ""
-    assert values["ENTERPRISE_AI_EMBEDDING_MODEL_ID"] == "sentence-transformers/all-MiniLM-L6-v2"
+    assert values["ENTERPRISE_AI_EMBEDDING_MODEL_ID"] == ("sentence-transformers/all-MiniLM-L6-v2")
+    assert values["ENTERPRISE_AI_RAG_RETRIEVAL_MODE"] == "vector"
     assert values["ENTERPRISE_AI_QDRANT_URL"] == "http://127.0.0.1:6333"
     assert values["ENTERPRISE_AI_OPENSEARCH_URL"] == "TODO_USER"
     assert values["ENTERPRISE_AI_QDRANT_API_KEY"] == ""

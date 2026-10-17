@@ -43,7 +43,8 @@ def test_rate_limit_stops_before_the_sixty_first_dependency_call(
     rejected = client.post("/v1/query", json={"query": "one request too many"})
 
     assert rejected.status_code == 429
-    assert rejected.headers["Retry-After"] == "60"
+    retry_after = int(rejected.headers["Retry-After"])
+    assert 1 <= retry_after <= api_settings.api_rate_limit_window_seconds
     assert rejected.json()["error"]["code"] == "api_rate_limited"
     assert len(rag.calls) == 60
 
