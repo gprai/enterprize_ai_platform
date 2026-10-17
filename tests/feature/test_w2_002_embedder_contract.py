@@ -44,7 +44,7 @@ def test_rag_feature_matrix_preserves_structured_w2_002_ownership() -> None:
     matrix = json.loads((ROOT / "feature-matrix.yaml").read_text(encoding="utf-8"))
     features = matrix["features"]
 
-    assert [feature["id"] for feature in features] == [
+    assert [feature["id"] for feature in features[:21]] == [
         "MVP-001",
         "RAG-001",
         "EVAL-001",

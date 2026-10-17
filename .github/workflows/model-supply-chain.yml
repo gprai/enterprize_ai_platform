@@ -1,0 +1,121 @@
+name: W9-004 model supply-chain evidence gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifest_bucket:
+        description: Exact approved S3 bucket containing the eligibility record
+        required: true
+        type: string
+      manifest_key:
+        description: Exact credential-free object key for the eligibility record
+        required: true
+        type: string
+      manifest_version_id:
+        description: Exact immutable S3 object version
+        required: true
+        type: string
+      manifest_sha256:
+        description: Exact lowercase SHA-256 of the eligibility record
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: w9-004-${{ inputs.manifest_sha256 }}
+  cancel-in-progress: false
+
+jobs:
+  evidence-gate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: sandbox
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ap-southeast-1
+    steps:
+      - name: Validate non-secret dispatch identities
+        shell: bash
+        env:
+          MANIFEST_BUCKET: ${{ inputs.manifest_bucket }}
+          MANIFEST_KEY: ${{ inputs.manifest_key }}
+          MANIFEST_VERSION_ID: ${{ inputs.manifest_version_id }}
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+        run: |
+          [[ "$MANIFEST_BUCKET" =~ ^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$ ]]
+          [[ "$MANIFEST_KEY" =~ ^[A-Za-z0-9][A-Za-z0-9._/+\-=]{0,1023}$ ]]
+          [[ "$MANIFEST_VERSION_ID" =~ ^[A-Za-z0-9._-]{1,256}$ ]]
+          [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+      - name: Check out the exact workflow commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Set up exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.13.15"
+          cache: ""
+      - name: Install the hash-locked validation environment
+        shell: bash
+        run: |
+          python --version | grep -Fx "Python 3.13.15"
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m pip check
+          python -B tools/w9_004_supply_chain.py validate-config \
+            --config configs/ci/w9-004.json
+      - name: Verify immutable local policy tools
+        shell: bash
+        run: |
+          opa version | grep -Fx "Version: 1.20.0"
+          actionlint -version | grep -Fx "1.7.12"
+      - name: Obtain short-lived read-only AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: ${{ vars.W9_004_READ_ROLE_ARN }}
+          role-duration-seconds: 900
+          aws-region: ap-southeast-1
+      - name: Fetch the exact versioned eligibility record
+        shell: bash
+        env:
+          ELIGIBILITY_PATH: ${{ runner.temp }}/w9-004/eligibility.json
+          MANIFEST_BUCKET: ${{ inputs.manifest_bucket }}
+          MANIFEST_KEY: ${{ inputs.manifest_key }}
+          MANIFEST_VERSION_ID: ${{ inputs.manifest_version_id }}
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+        run: |
+          install -d -m 700 "$(dirname "$ELIGIBILITY_PATH")"
+          aws s3api get-object --no-cli-pager \
+            --bucket "$MANIFEST_BUCKET" --key "$MANIFEST_KEY" \
+            --version-id "$MANIFEST_VERSION_ID" "$ELIGIBILITY_PATH" >/dev/null
+          test "$(stat -c %s "$ELIGIBILITY_PATH")" -le 52428800
+          echo "$MANIFEST_SHA256  $ELIGIBILITY_PATH" | sha256sum --check --strict
+      - name: Enforce schema and OPA admission policy
+        shell: bash
+        env:
+          ELIGIBILITY_PATH: ${{ runner.temp }}/w9-004/eligibility.json
+        run: |
+          python -B tools/w9_004_supply_chain.py validate-eligibility \
+            --input "$ELIGIBILITY_PATH"
+          opa check --strict policies/opa/model_supply_chain.rego
+          opa eval --fail --data policies/opa/model_supply_chain.rego \
+            --input "$ELIGIBILITY_PATH" \
+            'data.enterprise_ai.model_supply_chain.w9_004.allow == true'
+      - name: Upload transient non-secret gate evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w9-004-${{ inputs.manifest_sha256 }}
+          path: ${{ runner.temp }}/w9-004/eligibility.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Remove the downloaded evidence
+        if: always()
+        shell: bash
+        env:
+          ELIGIBILITY_PATH: ${{ runner.temp }}/w9-004/eligibility.json
+        run: |
+          rm -f -- "$ELIGIBILITY_PATH"
+          rmdir --ignore-fail-on-non-empty "$(dirname "$ELIGIBILITY_PATH")"

@@ -46,6 +46,10 @@ def test_sagemaker_requests_are_exactly_bound_but_never_submitted() -> None:
     assert registration["model_approval_status"] == "PendingManualApproval"
     assert registration["submission_status"] == "NOT_AUTHORIZED"
     assert registration["deployment_approval"] == "NOT_AUTHORIZED"
+    assert registration["customer_metadata"]["supply_chain_status"] == "PASS"
+    assert registration["customer_metadata"]["supply_chain_policy_sha256"] == (
+        record.package.supply_chain_eligibility.policy_sha256
+    )
 
     reviewed = service.review(
         record.package.package_id,

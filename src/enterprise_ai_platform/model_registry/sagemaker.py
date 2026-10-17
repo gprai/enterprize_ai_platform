@@ -36,6 +36,11 @@ def render_register_model_package_request(
             "model_card_sha256": package.model_card.evaluation_report_sha256,
             "package_identity_sha256": record.package_identity_sha256,
             "policy_sha256": package.policy_sha256,
+            "supply_chain_eligibility_sha256": (
+                package.supply_chain_eligibility.opa_decision.decision_sha256
+            ),
+            "supply_chain_policy_sha256": package.supply_chain_eligibility.policy_sha256,
+            "supply_chain_status": package.supply_chain_eligibility.status.value,
         },
         "submission_status": "NOT_AUTHORIZED",
         "deployment_approval": "NOT_AUTHORIZED",

@@ -8,6 +8,7 @@ from typing import TypeVar, cast
 
 from enterprise_ai_platform.agent.authorization import authorization_reference
 from enterprise_ai_platform.agent.serialization import hash_identifier
+from enterprise_ai_platform.model_supply_chain import SupplyChainPolicy, require_registry_eligible
 from enterprise_ai_platform.retrieval.models import (
     CLASSIFICATION_RANK,
     AuthContext,
@@ -84,10 +85,12 @@ class ModelRegistryService:
         self,
         *,
         policy: RegistryPolicy,
+        supply_chain_policy: SupplyChainPolicy,
         authorizer: RegistryAuthorizer,
         store: ModelPackageStore,
     ) -> None:
         self._policy = policy
+        self._supply_chain_policy = supply_chain_policy
         self._authorizer = authorizer
         self._store = store
         self._active_global = 0
@@ -101,6 +104,25 @@ class ModelRegistryService:
     def _require_utc(now: datetime) -> None:
         if now.tzinfo is None or now.utcoffset() != UTC.utcoffset(now):
             raise RegistryValidationError("service time must use UTC")
+
+    def _require_supply_chain(self, package: ModelPackageManifest, now: datetime) -> None:
+        if (
+            package.supply_chain_eligibility.policy_sha256
+            != self._supply_chain_policy.identity_sha256
+        ):
+            raise RegistryValidationError("supply-chain policy identity differs")
+        require_registry_eligible(
+            package.supply_chain_eligibility,
+            artifact_source_uri=package.artifact.source_uri,
+            artifact_sha256=package.artifact.sha256,
+            container_image_digest=package.container.image_digest,
+            training_request_identity_sha256=package.training_request_identity_sha256,
+            experiment_run_identity_sha256=package.experiment_run_identity_sha256,
+            evaluation_report_sha256=package.model_card.evaluation_report_sha256,
+            tenant_reference_sha256=package.tenant_reference_sha256,
+            classification=package.classification.value,
+            now=now,
+        )
 
     def _start(self, tenant_reference_sha256: str) -> None:
         with self._lock:
@@ -156,6 +178,7 @@ class ModelRegistryService:
             raise RegistryValidationError("package policy identity differs")
         if now >= package.deadline_at:
             raise RegistryAdmissionError("package registration deadline has expired")
+        self._require_supply_chain(package, now)
         identity = fingerprint(package)
         with self._lock:
             prior = self._replay(self._registration_results, package.idempotency_key, identity)
@@ -238,6 +261,7 @@ class ModelRegistryService:
         )
         if record.package.tenant_reference_sha256 != request.tenant_reference_sha256:
             raise RegistryAuthorizationError("promotion package tenant differs")
+        self._require_supply_chain(record.package, now)
         if request.policy_sha256 != self._policy.identity_sha256:
             raise RegistryValidationError("promotion policy identity differs")
         if approval.decided_at > now:

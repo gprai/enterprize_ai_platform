@@ -32,6 +32,7 @@ from enterprise_ai_platform.model_registry import (
     fingerprint,
     load_registry_policy,
 )
+from enterprise_ai_platform.model_supply_chain import load_supply_chain_policy
 from enterprise_ai_platform.retrieval.models import AuthContext, Classification, Role
 from enterprise_ai_platform.training import (
     TrainingCodeIdentity,
@@ -40,6 +41,7 @@ from enterprise_ai_platform.training import (
     TrainingResult,
 )
 from tests.fakes.w9_002_experiment_tracking import make_input
+from tests.fakes.w9_004_model_supply_chain import make_eligibility
 
 NOW = datetime(2026, 10, 14, 0, 0, tzinfo=UTC)
 
@@ -107,6 +109,9 @@ def make_package(
         completed_at=NOW - timedelta(minutes=1),
     )
     training_request_identity = "a" * 64
+    experiment_run_identity = fingerprint(run)
+    container_digest = f"sha256:{'6' * 64}"
+    artifact_source_uri = f"s3://approved-model-artifacts/model-{package_number}.tar.gz"
     return ModelPackageManifest(
         package_id=str(UUID(f"00000000-0000-4000-8002-{package_number:012d}")),
         correlation_id=str(UUID("00000000-0000-4000-8002-000000000903")),
@@ -116,7 +121,7 @@ def make_package(
         authorization_reference_sha256=authorization_reference(auth),
         classification=Classification.INTERNAL,
         artifact=ModelArtifactIdentity(
-            source_uri=f"s3://approved-model-artifacts/model-{package_number}.tar.gz",
+            source_uri=artifact_source_uri,
             object_version_id=f"object-version-{package_number}",
             sha256=artifact_character * 64,
             size_bytes=1024,
@@ -126,7 +131,7 @@ def make_package(
             registry_uri=(
                 f"000000000000.dkr.ecr.ap-southeast-1.amazonaws.com/training@sha256:{'6' * 64}"
             ),
-            image_digest=f"sha256:{'6' * 64}",
+            image_digest=container_digest,
         ),
         training_request_identity_sha256=training_request_identity,
         training_result=TrainingResult(
@@ -136,7 +141,7 @@ def make_package(
             candidate_artifact_sha256=artifact_character * 64,
             safe_reason_code="CANDIDATE_READY",
         ),
-        experiment_run_identity_sha256=fingerprint(run),
+        experiment_run_identity_sha256=experiment_run_identity,
         experiment_run=run,
         lineage_export_identity_sha256="f" * 64,
         model_card=ModelCard(
@@ -150,6 +155,16 @@ def make_package(
             owner_reference_sha256=hash_identifier(auth.subject_id),
             license="Apache-2.0",
         ),
+        supply_chain_eligibility=make_eligibility(
+            artifact_character=artifact_character,
+            tenant_reference_sha256=hash_identifier(auth.tenant_id),
+            container_image_digest=container_digest,
+            training_request_identity_sha256=training_request_identity,
+            experiment_run_identity_sha256=experiment_run_identity,
+            evaluation_report_sha256="c" * 64,
+            generated_at=NOW - timedelta(minutes=3),
+            artifact_source_uri=artifact_source_uri,
+        ),
         policy_sha256=policy.identity_sha256,
         requested_at=NOW - timedelta(minutes=2),
         deadline_at=NOW + timedelta(minutes=13),
@@ -162,6 +177,7 @@ def make_service() -> tuple[ModelRegistryService, InMemoryModelRegistry]:
     return (
         ModelRegistryService(
             policy=policy,
+            supply_chain_policy=load_supply_chain_policy(),
             authorizer=TenantRegistryAuthorizer(),
             store=store,
         ),

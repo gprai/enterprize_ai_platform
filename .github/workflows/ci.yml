@@ -46,6 +46,11 @@ jobs:
         run: python -B -m tools.w6_003_readiness validate-config --root . --config configs/readiness/local-integrated-readiness.yaml
       - name: Validate the inert W6-004 lifecycle source contract
         run: python -B -m tools.platformctl w6-004-validate-source --config configs/lifecycle/w6-004.json
+      - name: Validate the W9-004 model supply-chain source contract
+        shell: bash
+        run: |
+          python -B tools/w9_004_supply_chain.py validate-config --config configs/ci/w9-004.json
+          python -B tools/w9_004_supply_chain.py validate-yaml --root .
       - name: Run bounded quality and secret gates
         shell: bash
         run: |
@@ -115,5 +120,7 @@ jobs:
           opa test policies/opa/terraform_plan.rego policies/opa/terraform_plan_test.rego \
             policies/opa/exceptions.json --verbose
           opa test policies/opa/kubernetes.rego policies/opa/kubernetes_test.rego --verbose
+          opa test policies/opa/model_supply_chain.rego \
+            policies/opa/model_supply_chain_test.rego --verbose
           actionlint .github/workflows/ci.yml .github/workflows/plan-sandbox.yml \
-            .github/workflows/security-scan.yml
+            .github/workflows/security-scan.yml .github/workflows/model-supply-chain.yml

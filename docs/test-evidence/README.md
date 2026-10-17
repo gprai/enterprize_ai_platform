@@ -108,6 +108,42 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
   NOT RUN/INDETERMINATE item, limitation, deferred action, lifecycle fact,
   retained resource, and cost boundary remains preserved. Tracker update
   responsibility is **Owner**.
+- [W9-004 governed model supply-chain and CI/CD evidence gates](W9/W9-004.md)
+  — adds immutable model artifact, container, source/license, evaluation,
+  training, experiment, SBOM, scanner, provenance, policy, tenant, and
+  classification identities; fail-closed reconciliation and registry
+  admission; and a manually dispatched OIDC-based GitHub evidence gate. The
+  final local/offline default suite recorded 2,530 passed, 8 skipped,
+  4 deselected, 1 third-party warning, and 10 subtests. Its explicit opt-in
+  complement recorded 1 passed and 3 intentionally skipped, accounting for
+  all 2,542 collected items across both selections. Ruff, MyPy, platform
+  validation, duplicate-safe YAML/config validation, actionlint, strict OPA
+  validation and 196 OPA tests, Checkov, exact-manifest secret scanning, both
+  pre-commit scopes, whitespace, and residue checks passed after preserved
+  bounded remediations. The literal complete-inventory secret scan remains
+  **INDETERMINATE** because the active owner-controlled Excel lock filename was
+  rejected as `UNSAFE_PATH`; no secret finding was emitted. No hosted workflow,
+  AWS/OIDC/S3 operation, real candidate/scanner run, registry mutation,
+  Docker/service, deployment, operational rollback/teardown, or paid test ran.
+  See the [Week 9 evidence index](W9/README.md). The canonical evidence
+  identity after closure is
+  `ec4149986ac1837e75a09c443bb2fd3aa5a5afc37b09a5baab95c3744a592726`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-15 at 13:33:00 SGT. Every warning, unsuccessful attempt, remediation,
+  skip, NOT RUN/INDETERMINATE item, limitation, concurrency gap, deferred
+  action, lifecycle fact, retained resource, and cost boundary remains
+  preserved. Tracker update responsibility is **Owner**; no production
+  readiness is inferred.
+- [W9-LEARN-001 governed-MLOps learning review](../learning/W9-learning-review.md)
+  — consolidates W9-001 through W9-004 into business, technical, architecture,
+  five-answer, scenario, and STAR teach-back guidance. Predecessor results
+  retain their canonical scope. No owner-authored teach-back or
+  W9-LEARN-specific TEST-001 output was supplied, so both remain **NOT RUN /
+  OWNER-DEFERRED** and are not converted to PASS. Final reviewer, decision,
+  timestamp/timezone, accepted limitations, and closure remain **DEFERRED TO
+  COLUMN N**. No deployment, cloud, lifecycle, tracker, production-readiness,
+  or new cost claim is inferred.
 - [W8-LEARN-001 production-inference learning review](../learning/W8-learning-review.md)
   — consolidates W8-001 through W8-004 into thirty-second, two-minute,
   five-minute, five-question, and scenario-based interview guidance.

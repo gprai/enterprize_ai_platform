@@ -1378,6 +1378,81 @@ EXPECTED_REGISTRY_FEATURE = {
     },
 }
 
+EXPECTED_W9_004_IMPLEMENTATION_PATHS = (
+    ".github/workflows/model-supply-chain.yml",
+    "configs/ci/w9-004.json",
+    "policies/opa/model_supply_chain.rego",
+    "policies/opa/model_supply_chain_test.rego",
+    "src/enterprise_ai_platform/model_supply_chain/__init__.py",
+    "src/enterprise_ai_platform/model_supply_chain/errors.py",
+    "src/enterprise_ai_platform/model_supply_chain/models.py",
+    "src/enterprise_ai_platform/model_supply_chain/serialization.py",
+    "src/enterprise_ai_platform/model_supply_chain/policy.py",
+    "src/enterprise_ai_platform/model_supply_chain/service.py",
+    "tools/w9_004_supply_chain.py",
+    "tests/fakes/w9_004_model_supply_chain.py",
+    "tests/unit/test_w9_004_model_supply_chain.py",
+    "tests/contract/test_w9_004_model_supply_chain_contract.py",
+    "tests/integration/test_w9_004_model_supply_chain_composition.py",
+    "tests/feature/test_w9_004_model_supply_chain.py",
+    "tests/security/test_w9_004_model_supply_chain_security.py",
+    "tests/rollback/test_w9_004_model_supply_chain_rollback.py",
+    "tests/teardown/test_w9_004_model_supply_chain_cleanliness.py",
+    ".github/workflows/ci.yml",
+    ".gitignore",
+    "Makefile",
+    "pyproject.toml",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "src/enterprise_ai_platform/model_registry/models.py",
+    "src/enterprise_ai_platform/model_registry/service.py",
+    "src/enterprise_ai_platform/model_registry/sagemaker.py",
+    "tests/fakes/w9_003_model_registry.py",
+    "tests/contract/test_w9_003_model_registry_contract.py",
+)
+EXPECTED_SUPPLY_002_FEATURE = {
+    "id": "SUPPLY-002",
+    "implementation_paths": list(EXPECTED_W9_004_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W9-004"],
+    "control_contract": {
+        "identity": (
+            "model, container, source, license, evaluation, training, experiment, "
+            "SBOM, scan, provenance, policy and OPA decision identities are digest-bound"
+        ),
+        "admission": (
+            "critical findings block; high findings require current candidate-specific "
+            "owner treatment; disagreement and stale evidence block"
+        ),
+        "formats": (
+            "safetensors-only weights, bounded archive inspection and executable or "
+            "pickle formats denied"
+        ),
+        "registry": (
+            "W9-003 registration and promotion require current PASS supply-chain evidence"
+        ),
+        "deployment": "model deployment remains NOT_AUTHORIZED",
+    },
+}
+EXPECTED_GHA_002_FEATURE = {
+    "id": "GHA-002",
+    "implementation_paths": list(EXPECTED_W9_004_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W9-004"],
+    "control_contract": {
+        "trigger": "manual workflow_dispatch on the exact main ref and sandbox environment",
+        "identity": "OIDC only, nine-hundred-second session and no static cloud credentials",
+        "concurrency": "one candidate, no automatic retry and no cancel-in-progress",
+        "privacy": (
+            "raw hosted-runner artifacts are PUBLIC-only; INTERNAL requires a separately "
+            "approved in-region runner"
+        ),
+        "retention": "transient workflow evidence seven days; canonical evidence 180 days",
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -1400,6 +1475,8 @@ EXPECTED_FEATURES = (
     EXPECTED_MLFLOW_FEATURE,
     EXPECTED_RET_003_FEATURE,
     EXPECTED_REGISTRY_FEATURE,
+    EXPECTED_SUPPLY_002_FEATURE,
+    EXPECTED_GHA_002_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1450,6 +1527,7 @@ REQUIRED_DIRECTORIES = (
     "src/enterprise_ai_platform/training",
     "src/enterprise_ai_platform/experiment_tracking",
     "src/enterprise_ai_platform/model_registry",
+    "src/enterprise_ai_platform/model_supply_chain",
     "src/enterprise_ai_platform/telemetry",
     "src/enterprise_ai_platform/rag",
     "src/enterprise_ai_platform/rag_rollback",
@@ -1564,6 +1642,7 @@ REQUIRED_FILES = (
     *EXPECTED_TRAIN_IMPLEMENTATION_PATHS,
     *EXPECTED_MLFLOW_IMPLEMENTATION_PATHS,
     *EXPECTED_REGISTRY_IMPLEMENTATION_PATHS,
+    *EXPECTED_W9_004_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1619,7 +1698,8 @@ def validate_feature_matrix(data: object) -> list[str]:
             "MVP-001, RAG-001, EVAL-001, API-001, AGENT-001, OBS-001, "
             "REL-001, AWS-001, BED-001, GHA-001, EKS-001, SERVE-002, ORCH-001, "
             "COST-004, CAP-001, COST-005"
-            ", TRAIN-001, COST-006, MLFLOW-001, RET-003, REGISTRY-001"
+            ", TRAIN-001, COST-006, MLFLOW-001, RET-003, REGISTRY-001, "
+            "SUPPLY-002, GHA-002"
         )
 
     return errors

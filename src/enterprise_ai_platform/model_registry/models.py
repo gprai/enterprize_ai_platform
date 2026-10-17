@@ -10,6 +10,10 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from enterprise_ai_platform.experiment_tracking.models import ExperimentRun, RunStatus
+from enterprise_ai_platform.model_supply_chain.models import (
+    EligibilityStatus,
+    SupplyChainEligibility,
+)
 from enterprise_ai_platform.retrieval.models import Classification
 from enterprise_ai_platform.training.models import (
     TrainingCodeIdentity,
@@ -143,6 +147,7 @@ class ModelPackageManifest(RegistryModel):
     experiment_run: ExperimentRun
     lineage_export_identity_sha256: str = Field(pattern=SHA256_PATTERN)
     model_card: ModelCard
+    supply_chain_eligibility: SupplyChainEligibility
     policy_sha256: str = Field(pattern=SHA256_PATTERN)
     requested_at: datetime
     deadline_at: datetime
@@ -197,6 +202,28 @@ class ModelPackageManifest(RegistryModel):
         }
         if self.model_card.evaluation_report_sha256 not in report_hashes:
             raise ValueError("model-card evaluation report is not in experiment lineage")
+        eligibility = self.supply_chain_eligibility
+        candidate = eligibility.candidate
+        if eligibility.status is not EligibilityStatus.PASS:
+            raise ValueError("model supply-chain eligibility must pass")
+        if eligibility.tenant_reference_sha256 != self.tenant_reference_sha256:
+            raise ValueError("supply-chain and registry tenants differ")
+        if eligibility.classification != self.classification:
+            raise ValueError("supply-chain and registry classifications differ")
+        if candidate.artifact_sha256 != self.artifact.sha256:
+            raise ValueError("supply-chain and registry artifact identities differ")
+        if candidate.artifact_source_uri != self.artifact.source_uri:
+            raise ValueError("supply-chain and registry artifact locations differ")
+        if candidate.container_image_digest != self.container.image_digest:
+            raise ValueError("supply-chain and registry container identities differ")
+        if candidate.training_request_identity_sha256 != self.training_request_identity_sha256:
+            raise ValueError("supply-chain and training request identities differ")
+        if candidate.experiment_run_identity_sha256 != self.experiment_run_identity_sha256:
+            raise ValueError("supply-chain and experiment identities differ")
+        if candidate.evaluation_report_sha256 != self.model_card.evaluation_report_sha256:
+            raise ValueError("supply-chain and evaluation report identities differ")
+        if candidate.license_spdx != self.model_card.license:
+            raise ValueError("supply-chain and model-card licenses differ")
         return self
 
 

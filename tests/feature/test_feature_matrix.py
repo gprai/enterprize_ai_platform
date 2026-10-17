@@ -27,6 +27,7 @@ from tools.platformctl.validate import (
     EXPECTED_COST_006_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
+    EXPECTED_GHA_002_FEATURE,
     EXPECTED_GHA_FEATURE,
     EXPECTED_GHA_IMPLEMENTATION_PATHS,
     EXPECTED_MLFLOW_FEATURE,
@@ -47,6 +48,7 @@ from tools.platformctl.validate import (
     EXPECTED_RET_003_IMPLEMENTATION_PATHS,
     EXPECTED_SERVE_FEATURE,
     EXPECTED_SERVE_IMPLEMENTATION_PATHS,
+    EXPECTED_SUPPLY_002_FEATURE,
     EXPECTED_TRAIN_FEATURE,
     EXPECTED_TRAIN_IMPLEMENTATION_PATHS,
     EXPECTED_W3_003_EDITABLE_PATHS,
@@ -56,6 +58,7 @@ from tools.platformctl.validate import (
     EXPECTED_W7_001_EDITABLE_PATHS,
     EXPECTED_W7_002_EDITABLE_PATHS,
     EXPECTED_W7_003_EDITABLE_PATHS,
+    EXPECTED_W9_004_IMPLEMENTATION_PATHS,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -154,6 +157,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_MLFLOW_FEATURE,
                 EXPECTED_RET_003_FEATURE,
                 EXPECTED_REGISTRY_FEATURE,
+                EXPECTED_SUPPLY_002_FEATURE,
+                EXPECTED_GHA_002_FEATURE,
             ],
             matrix["features"],
         )
@@ -184,6 +189,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "MLFLOW-001",
                 "RET-003",
                 "REGISTRY-001",
+                "SUPPLY-002",
+                "GHA-002",
             ],
             [feature["id"] for feature in features],
         )
@@ -256,7 +263,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(14, len(set(EXPECTED_COST_004_IMPLEMENTATION_PATHS)))
 
     def test_w8_004_paths_are_owned_by_capacity_and_cost_features(self) -> None:
-        capacity_feature, cost_feature = read_matrix()["features"][-7:-5]
+        capacity_feature, cost_feature = read_matrix()["features"][-9:-7]
 
         self.assertEqual(EXPECTED_CAP_FEATURE, capacity_feature)
         self.assertEqual(EXPECTED_COST_005_FEATURE, cost_feature)
@@ -266,7 +273,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(20, len(set(EXPECTED_COST_005_IMPLEMENTATION_PATHS)))
 
     def test_w9_001_paths_are_owned_by_training_and_cost_features(self) -> None:
-        training_feature, cost_feature = read_matrix()["features"][-5:-3]
+        training_feature, cost_feature = read_matrix()["features"][-7:-5]
 
         self.assertEqual(EXPECTED_TRAIN_FEATURE, training_feature)
         self.assertEqual(EXPECTED_COST_006_FEATURE, cost_feature)
@@ -276,7 +283,7 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(20, len(set(EXPECTED_COST_006_IMPLEMENTATION_PATHS)))
 
     def test_w9_002_paths_are_owned_by_lineage_and_retention_features(self) -> None:
-        lineage_feature, retention_feature = read_matrix()["features"][-3:-1]
+        lineage_feature, retention_feature = read_matrix()["features"][-5:-3]
 
         self.assertEqual(EXPECTED_MLFLOW_FEATURE, lineage_feature)
         self.assertEqual(EXPECTED_RET_003_FEATURE, retention_feature)
@@ -286,11 +293,19 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(19, len(set(EXPECTED_RET_003_IMPLEMENTATION_PATHS)))
 
     def test_w9_003_paths_are_owned_by_model_registry_feature(self) -> None:
-        registry_feature = read_matrix()["features"][-1]
+        registry_feature = read_matrix()["features"][-3]
 
         self.assertEqual(EXPECTED_REGISTRY_FEATURE, registry_feature)
         self.assertEqual(27, len(EXPECTED_REGISTRY_IMPLEMENTATION_PATHS))
         self.assertEqual(27, len(set(EXPECTED_REGISTRY_IMPLEMENTATION_PATHS)))
+
+    def test_w9_004_paths_are_owned_by_supply_chain_and_workflow_features(self) -> None:
+        supply_feature, workflow_feature = read_matrix()["features"][-2:]
+
+        self.assertEqual(EXPECTED_SUPPLY_002_FEATURE, supply_feature)
+        self.assertEqual(EXPECTED_GHA_002_FEATURE, workflow_feature)
+        self.assertEqual(32, len(EXPECTED_W9_004_IMPLEMENTATION_PATHS))
+        self.assertEqual(32, len(set(EXPECTED_W9_004_IMPLEMENTATION_PATHS)))
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -338,6 +353,8 @@ class FeatureMatrixTests(unittest.TestCase):
             mlflow_feature,
             ret_003_feature,
             registry_feature,
+            supply_feature,
+            gha_002_feature,
         ) = features
 
         self.assertEqual(
@@ -363,6 +380,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "MLFLOW-001",
                 "RET-003",
                 "REGISTRY-001",
+                "SUPPLY-002",
+                "GHA-002",
             ],
             [item["id"] for item in features],
         )
@@ -390,6 +409,8 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual("MLFLOW-001", mlflow_feature["id"])
         self.assertEqual("RET-003", ret_003_feature["id"])
         self.assertEqual("REGISTRY-001", registry_feature["id"])
+        self.assertEqual("SUPPLY-002", supply_feature["id"])
+        self.assertEqual("GHA-002", gha_002_feature["id"])
         self.assertEqual(
             [
                 "W3-01",

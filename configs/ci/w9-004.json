@@ -1,0 +1,62 @@
+{
+  "schema_version": "w9-004.policy.v1",
+  "feature_ids": ["SUPPLY-002", "GHA-002"],
+  "region": "ap-southeast-1",
+  "operating_mode": "source_and_manual_workflow",
+  "limits": {
+    "maximum_artifact_bytes": 10737418240,
+    "maximum_archive_entries": 10000,
+    "maximum_report_bytes": 52428800,
+    "maximum_run_evidence_bytes": 104857600,
+    "workflow_timeout_minutes": 60,
+    "oidc_session_seconds": 900,
+    "evidence_freshness_hours": 24,
+    "automatic_retry_attempts": 0,
+    "concurrent_candidates": 1
+  },
+  "security": {
+    "allowed_classifications": ["PUBLIC", "INTERNAL"],
+    "hosted_runner_raw_artifact_classifications": ["PUBLIC"],
+    "allowed_licenses": ["Apache-2.0"],
+    "allowed_weight_extensions": [".safetensors"],
+    "denied_extensions": [".bat", ".bin", ".ckpt", ".cmd", ".com", ".dill", ".dll", ".exe", ".jar", ".joblib", ".js", ".pickle", ".pkl", ".ps1", ".pt", ".pth", ".py", ".pyc", ".sh", ".so"],
+    "critical_findings_allowed": 0,
+    "high_findings_require_owner_treatment": true,
+    "scanner_disagreement": "BLOCK",
+    "static_cloud_credentials_allowed": false
+  },
+  "github": {
+    "repository": "gprai/enterprise_ai_platform",
+    "ref": "refs/heads/main",
+    "environment": "sandbox",
+    "event": "workflow_dispatch",
+    "role_variable": "W9_004_READ_ROLE_ARN",
+    "oidc_audience": "sts.amazonaws.com",
+    "required_reviewers": true,
+    "cancel_in_progress": false
+  },
+  "tools": {
+    "python": "3.13.15",
+    "trivy": "0.74.0",
+    "grype": "0.118.0",
+    "syft": "1.51.1",
+    "cosign": "3.1.2",
+    "opa": "1.20.0",
+    "checkov": "3.3.16",
+    "actionlint": "1.7.12"
+  },
+  "retention": {
+    "transient_github_artifact_days": 7,
+    "canonical_evidence_days": 180,
+    "preserve_failed_candidates": true,
+    "delete_shared_resources": false
+  },
+  "bindings": {
+    "manifest_bucket": "OWNER_BINDING_REQUIRED",
+    "read_role_arn": "OWNER_BINDING_REQUIRED",
+    "signer_issuer": "OWNER_BINDING_REQUIRED",
+    "signer_subject": "OWNER_BINDING_REQUIRED"
+  },
+  "network_access": "OWNER_APPROVED_WORKFLOW_ONLY",
+  "deployment_approval": "NOT_AUTHORIZED"
+}

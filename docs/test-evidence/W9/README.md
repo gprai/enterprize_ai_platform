@@ -72,6 +72,40 @@ orchestration, serving, lifecycle, and evidence boundaries.
   2026-10-15 at 10:46:00 SGT. Every warning, unsuccessful attempt, skip,
   NOT RUN/INDETERMINATE item, limitation, deferred action, lifecycle fact,
   retained resource, and cost boundary remains preserved.
+- [W9-004 governed model supply-chain and CI/CD evidence gates](W9-004.md) —
+  exact model artifact, container, source, license, evaluation, training,
+  experiment, SBOM, scanner, provenance, policy, tenant, and classification
+  identities; fail-closed archive inspection and evidence reconciliation;
+  registry-admission binding; and a manual, OIDC-based GitHub evidence gate.
+  The final local/offline TEST-001 suite recorded 2,530 passed, 8 skipped,
+  4 deselected, 1 third-party warning, and 10 subtests; its explicit opt-in
+  complement recorded 1 passed and 3 intentionally skipped, accounting for
+  all 2,542 collected items across the two selections. Ruff, MyPy, platform
+  validation, duplicate-safe YAML/config validation, actionlint, strict OPA
+  validation and 196 OPA tests, Checkov, exact-manifest secret scanning, both
+  pre-commit scopes, whitespace, and residue checks passed after preserved
+  bounded remediations. The literal complete-inventory secret scan remains
+  **INDETERMINATE** because the active owner-controlled Excel lock filename is
+  rejected as `UNSAFE_PATH`; no secret finding was emitted. No GitHub-hosted
+  workflow, AWS/OIDC/S3 operation, real artifact or scanner run, registry
+  mutation, Docker/service, deployment, operational rollback/teardown, or paid
+  test ran. The canonical evidence identity after closure is
+  `ec4149986ac1837e75a09c443bb2fd3aa5a5afc37b09a5baab95c3744a592726`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-15 at 13:33:00 SGT. Every warning, unsuccessful attempt, remediation,
+  skip, NOT RUN/INDETERMINATE item, limitation, concurrency gap, deferred
+  action, lifecycle fact, retained resource, and cost boundary remains
+  preserved.
+- [W9-LEARN-001 governed-MLOps learning review](../../learning/W9-learning-review.md)
+  — consolidates W9-001 through W9-004 into business, technical, architecture,
+  five-answer, scenario, and STAR teach-back guidance. The predecessor
+  local/offline results remain governed by their canonical records. No
+  owner-authored teach-back or W9-LEARN-specific TEST-001 output was supplied,
+  so both remain **NOT RUN / OWNER-DEFERRED** and are not converted to PASS.
+  Final reviewer, decision, timestamp/timezone, accepted limitations, and
+  closure remain **DEFERRED TO COLUMN N**. No deployment, cloud, lifecycle,
+  tracker, or new cost claim is inferred.
 
 ## Current boundary
 
@@ -99,12 +133,23 @@ preserves the failed candidate and audit evidence. SageMaker-compatible request
 rendering and serving-artifact projection remain non-submitting and cannot
 authorize deployment.
 
+W9-004 allows one candidate workflow per immutable digest, zero automatic
+retries, a 60-minute workflow limit, 900-second OIDC sessions, and evidence no
+older than 24 hours. It accepts only `PUBLIC` or `INTERNAL` evidence and only
+`PUBLIC` raw artifacts on hosted runners; requires Apache-2.0, `.safetensors`,
+two SBOM formats, four ordered scanner records, current signed provenance,
+zero critical findings, current owner treatment for every high finding,
+scanner agreement, and OPA allow; and fixes deployment approval to
+`NOT_AUTHORIZED`.
+
 The W9-001 Column M approval carries W7-001-remediation and W8-004 / Blocked as
 dependencies. The W9-002 Column M approval carries W7-001-remediation and
 W9-001 / Blocked. The W9-003 Column M approval carries W7-001-remediation and
-W9-002 / Blocked. None rewrites historical evidence or updates the tracker.
-W9-001, W9-002, and W9-003 documentation are final-approved within their
-recorded boundaries. Tracker update responsibility remains with the owner; no
-production, cloud, managed-MLflow, SageMaker-registry, deployment, promotion,
-model-training, lifecycle, or cost readiness is inferred.
+W9-002 / Blocked. The W9-004 Column M approval carries W7-001-remediation and
+W9-003 / Blocked. None rewrites historical evidence or updates the tracker.
+W9-001, W9-002, W9-003, and W9-004 documentation are final-approved within
+their recorded boundaries. Tracker update responsibility remains with the
+owner; no production, cloud, managed-MLflow, SageMaker-registry,
+hosted-workflow, deployment, promotion, model-training, lifecycle, or cost
+readiness is inferred.
 

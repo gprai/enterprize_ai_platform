@@ -76,7 +76,7 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
         experiment_feature,
         retention_feature,
         registry_feature,
-    ) = matrix["features"]
+    ) = matrix["features"][:21]
 
     assert [
         mvp["id"],

@@ -59,6 +59,7 @@ from tools.platformctl.validate import (
     EXPECTED_W7_001_EDITABLE_PATHS,
     EXPECTED_W7_002_EDITABLE_PATHS,
     EXPECTED_W7_003_EDITABLE_PATHS,
+    EXPECTED_W9_004_IMPLEMENTATION_PATHS,
 )
 
 
@@ -124,6 +125,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "MLFLOW-001",
                 "RET-003",
                 "REGISTRY-001",
+                "SUPPLY-002",
+                "GHA-002",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -195,6 +198,17 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertIn("configs/model-registry", REQUIRED_DIRECTORIES)
         self.assertIn("src/enterprise_ai_platform/model_registry", REQUIRED_DIRECTORIES)
         for path in EXPECTED_REGISTRY_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w9_004_model_supply_chain_manifest_is_exact(self) -> None:
+        self.assertEqual(32, len(EXPECTED_W9_004_IMPLEMENTATION_PATHS))
+        self.assertEqual(32, len(set(EXPECTED_W9_004_IMPLEMENTATION_PATHS)))
+        self.assertEqual("SUPPLY-002", EXPECTED_FEATURES[21]["id"])
+        self.assertEqual("GHA-002", EXPECTED_FEATURES[22]["id"])
+        self.assertEqual(["W9-004"], EXPECTED_FEATURES[21]["linked_tracker_steps"])
+        self.assertEqual(["W9-004"], EXPECTED_FEATURES[22]["linked_tracker_steps"])
+        self.assertIn("src/enterprise_ai_platform/model_supply_chain", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_W9_004_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
     def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:
