@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 
 from enterprise_ai_platform.retrieval.adapters.opensearch import OpenSearchVectorStore
+from enterprise_ai_platform.retrieval.errors import VectorStoreAuthorizationError
 from enterprise_ai_platform.retrieval.models import (
     APPROVED_EMBEDDING_DIMENSION,
     AuthContext,
@@ -26,10 +27,10 @@ def vector() -> tuple[float, ...]:
     return tuple([1.0] + [0.0] * (APPROVED_EMBEDDING_DIMENSION - 1))
 
 
-def chunk() -> Chunk:
+def chunk(tenant_id: str = "tenant-a") -> Chunk:
     content_hash = "c" * 64
     return Chunk(
-        tenant_id="tenant-a",
+        tenant_id=tenant_id,
         source_id="DOC-OPENSEARCH-POLICY",
         media_type="text/plain",
         document_id="policy-opensearch",
@@ -42,7 +43,7 @@ def chunk() -> Chunk:
         pii_status=PiiStatus.REDACTED,
         ingestion_status=IngestionStatus.INDEXED,
         chunk_id=deterministic_chunk_id(
-            tenant_id="tenant-a",
+            tenant_id=tenant_id,
             document_id="policy-opensearch",
             document_version="v1",
             content_hash=content_hash,
@@ -237,6 +238,26 @@ def test_opensearch_retry_is_bounded_and_uses_injected_approved_delay() -> None:
         assert await store.healthcheck()
         assert client.cluster.calls == 2
         assert delays == [0.1]
+
+    asyncio.run(scenario())
+
+
+def test_opensearch_aborts_when_provider_returns_an_unauthorized_hit() -> None:
+    async def scenario() -> None:
+        client = FakeOpenSearchClient()
+        store = OpenSearchVectorStore(client)
+        specification = CollectionSpec(name="w10_002_opensearch_authorization")
+        await store.create_or_validate_collection(specification)
+        unauthorized = chunk("tenant-b")
+        client.documents[unauthorized.chunk_id] = unauthorized.model_dump(mode="json")
+
+        with pytest.raises(VectorStoreAuthorizationError):
+            await store.search(
+                specification,
+                Query(text="policy"),
+                vector(),
+                auth(Role.READER),
+            )
 
     asyncio.run(scenario())
 

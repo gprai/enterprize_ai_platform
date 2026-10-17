@@ -91,6 +91,7 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.agent_maximum_concurrent_runs == 1
     assert settings.agent_queue_capacity == 0
     assert settings.rag_retrieval_mode is RetrievalMode.VECTOR
+    assert settings.rag_reranker_enabled is False
 
 
 def test_retrieval_mode_accepts_only_explicit_vector_or_hybrid_values(
@@ -107,6 +108,24 @@ def test_retrieval_mode_accepts_only_explicit_vector_or_hybrid_values(
         Settings(
             _env_file=None,
             rag_retrieval_mode="automatic",  # type: ignore[arg-type]
+            **valid_settings_values,
+        )
+
+
+def test_reranker_requires_explicit_boolean_activation(
+    valid_settings_values: dict[str, object],
+) -> None:
+    enabled = Settings(
+        _env_file=None,
+        rag_reranker_enabled="true",  # type: ignore[arg-type]
+        **valid_settings_values,
+    )
+    assert enabled.rag_reranker_enabled is True
+
+    with pytest.raises(ValidationError):
+        Settings(
+            _env_file=None,
+            rag_reranker_enabled="automatic",  # type: ignore[arg-type]
             **valid_settings_values,
         )
 

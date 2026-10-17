@@ -23,6 +23,10 @@ from enterprise_ai_platform.rag.service import RAGService
 from enterprise_ai_platform.retrieval.adapters.opensearch import OpenSearchVectorStore
 from enterprise_ai_platform.retrieval.hybrid import RetrievalMode
 from enterprise_ai_platform.retrieval.models import CollectionSpec
+from enterprise_ai_platform.retrieval.reranking import (
+    APPROVED_RETRIEVAL_CONFIGURATION_SHA256,
+    DeterministicTokenOverlapReranker,
+)
 from enterprise_ai_platform.retrieval.service import RetrievalService
 from enterprise_ai_platform.telemetry.models import RuntimeConfigurationHashes
 from enterprise_ai_platform.telemetry.runtime import (
@@ -63,18 +67,7 @@ RUNTIME_CONFIGURATION_HASHES = RuntimeConfigurationHashes(
         )
     ),
     embedding_config_sha256=APPROVED_SAFETENSORS_SHA256,
-    retrieval_config_sha256="".join(
-        (
-            "5cb62932",
-            "bbc0a0c1",
-            "1e494912",
-            "bdcc5b4b",
-            "48bd4195",
-            "e3ca58bd",
-            "a2df2722",
-            "7070b27e",
-        )
-    ),
+    retrieval_config_sha256=APPROVED_RETRIEVAL_CONFIGURATION_SHA256,
 )
 
 
@@ -305,6 +298,7 @@ def compose_aws_runtime(
         collection_spec=CollectionSpec(name=settings.opensearch_index_name),
         timeout_seconds=AWS_RETRIEVAL_TIMEOUT_SECONDS,
         telemetry=resolved_telemetry,
+        reranker=(DeterministicTokenOverlapReranker() if settings.rag_reranker_enabled else None),
     )
     rag_service = RAGService(
         retrieval_service=retrieval,

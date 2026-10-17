@@ -14,6 +14,7 @@ from ..authorization import (
 )
 from ..errors import (
     CollectionMismatchError,
+    VectorStoreAuthorizationError,
     VectorStoreUnavailableError,
     VectorStoreValidationError,
 )
@@ -135,7 +136,7 @@ class InMemoryVectorStore:
                     auth_context,
                     now=policy.evaluated_at,
                 ):
-                    continue
+                    raise VectorStoreAuthorizationError
                 results.append(
                     RetrievedChunk(**chunk.model_dump(), score=max(-1.0, min(1.0, score)))
                 )

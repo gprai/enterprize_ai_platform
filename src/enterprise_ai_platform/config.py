@@ -85,6 +85,7 @@ class Settings(BaseSettings):
     embedding_snapshot_path: Path = W6_004_EMBEDDING_SNAPSHOT_PATH
     opensearch_index_name: Literal["enterprise_ai_sandbox"] = "enterprise_ai_sandbox"
     rag_retrieval_mode: RetrievalMode = RetrievalMode.VECTOR
+    rag_reranker_enabled: bool = False
     telemetry_enabled: bool = False
     telemetry_service_name: str = Field(
         default="enterprise-ai-api",

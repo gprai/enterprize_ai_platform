@@ -420,6 +420,69 @@ EXPECTED_RAG_002_FEATURE = {
         ),
     },
 }
+EXPECTED_W10_002_IMPLEMENTATION_PATHS = (
+    "src/enterprise_ai_platform/retrieval/reranking.py",
+    "tests/fakes/w10_002_reranking.py",
+    "tests/unit/test_w10_002_reranking.py",
+    "tests/contract/test_w10_002_reranking_contract.py",
+    "tests/integration/test_w10_002_reranking_composition.py",
+    "tests/feature/test_w10_002_reranking_parity_load_cost.py",
+    "tests/security/test_w10_002_reranking_security.py",
+    "tests/rollback/test_w10_002_reranking_rollback.py",
+    "tests/teardown/test_w10_002_reranking_cleanliness.py",
+    ".env.example",
+    "Makefile",
+    "deploy/k8s/configmap.yaml",
+    "feature-matrix.yaml",
+    "src/enterprise_ai_platform/api/aws_composition.py",
+    "src/enterprise_ai_platform/config.py",
+    "src/enterprise_ai_platform/retrieval/__init__.py",
+    "src/enterprise_ai_platform/retrieval/adapters/fake.py",
+    "src/enterprise_ai_platform/retrieval/adapters/opensearch.py",
+    "src/enterprise_ai_platform/retrieval/adapters/qdrant.py",
+    "src/enterprise_ai_platform/retrieval/errors.py",
+    "src/enterprise_ai_platform/retrieval/service.py",
+    "tests/feature/test_feature_matrix.py",
+    "tests/integration/test_opensearch.py",
+    "tests/integration/test_qdrant.py",
+    "tests/security/test_configuration_security.py",
+    "tests/unit/test_aws_composition.py",
+    "tests/unit/test_config.py",
+    "tests/unit/test_platformctl.py",
+    "tools/platformctl/validate.py",
+)
+EXPECTED_RAG_003_FEATURE = {
+    "id": "RAG-003",
+    "implementation_paths": list(EXPECTED_W10_002_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W10-002"],
+    "control_contract": {
+        "identity": (
+            "provider-neutral local deterministic token-overlap reranker w10-002.v1 "
+            "with no network, model download or managed fallback"
+        ),
+        "bounds": (
+            "twenty candidates and results, 256 query tokens, 384 tokens per candidate, "
+            "8192 total tokens, 250 ms timeout, four concurrent calls, zero queue and zero retries"
+        ),
+        "authorization": (
+            "every provider result and reranked output is reauthorized; any unauthorized "
+            "provider candidate aborts the whole request"
+        ),
+        "adoption": (
+            "representative owner-approved evidence must meet recall, precision, MRR, citation, "
+            "authorization, latency and paid-cost gates; synthetic evidence remains indeterminate"
+        ),
+        "operations": (
+            "default-off activation; timeout, unavailable, saturation or malformed output returns "
+            "the exact authorized baseline order without another provider call"
+        ),
+        "backend_differences": (
+            "OpenSearch supports hybrid candidates; Qdrant and in-memory remain vector-only; "
+            "reranking preserves original provider-neutral chunks"
+        ),
+    },
+}
 EXPECTED_EVAL_IMPLEMENTATION_PATHS = (
     ".gitignore",
     "configs/eval/cited-rag-evaluation-policy.yaml",
@@ -1531,6 +1594,7 @@ EXPECTED_FEATURES = (
     EXPECTED_SUPPLY_002_FEATURE,
     EXPECTED_GHA_002_FEATURE,
     EXPECTED_RAG_002_FEATURE,
+    EXPECTED_RAG_003_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1698,6 +1762,7 @@ REQUIRED_FILES = (
     *EXPECTED_REGISTRY_IMPLEMENTATION_PATHS,
     *EXPECTED_W9_004_IMPLEMENTATION_PATHS,
     *EXPECTED_W10_001_IMPLEMENTATION_PATHS,
+    *EXPECTED_W10_002_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1754,7 +1819,7 @@ def validate_feature_matrix(data: object) -> list[str]:
             "REL-001, AWS-001, BED-001, GHA-001, EKS-001, SERVE-002, ORCH-001, "
             "COST-004, CAP-001, COST-005"
             ", TRAIN-001, COST-006, MLFLOW-001, RET-003, REGISTRY-001, "
-            "SUPPLY-002, GHA-002, RAG-002"
+            "SUPPLY-002, GHA-002, RAG-002, RAG-003"
         )
 
     return errors

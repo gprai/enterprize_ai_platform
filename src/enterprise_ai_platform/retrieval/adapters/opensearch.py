@@ -403,10 +403,11 @@ class OpenSearchVectorStore:
                 chunk = Chunk.model_validate_json(json.dumps(source))
             except ValidationError:
                 raise VectorStoreValidationError from None
-            if is_retrieval_authorized(chunk, auth_context, now=policy.evaluated_at):
-                results.append(
-                    RetrievedChunk(**chunk.model_dump(), score=float(hit.get("_score", 0.0)))
-                )
+            if not is_retrieval_authorized(chunk, auth_context, now=policy.evaluated_at):
+                raise VectorStoreAuthorizationError
+            results.append(
+                RetrievedChunk(**chunk.model_dump(), score=float(hit.get("_score", 0.0)))
+            )
         return tuple(results)
 
     async def _hybrid_search(

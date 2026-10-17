@@ -20,6 +20,10 @@ from enterprise_ai_platform.api.aws_composition import (
 from enterprise_ai_platform.config import Settings
 from enterprise_ai_platform.retrieval.hybrid import RetrievalMode
 from enterprise_ai_platform.retrieval.models import APPROVED_EMBEDDING_DIMENSION
+from enterprise_ai_platform.retrieval.reranking import (
+    APPROVED_RETRIEVAL_CONFIGURATION_SHA256,
+    DeterministicTokenOverlapReranker,
+)
 from enterprise_ai_platform.telemetry.runtime import NullTelemetryRuntime
 
 
@@ -116,6 +120,7 @@ def test_aws_runtime_uses_fifteen_second_retrieval_budget(
 
     assert captured["timeout_seconds"] == AWS_RETRIEVAL_TIMEOUT_SECONDS == 15.0
     assert captured["vector_store"].retrieval_mode is RetrievalMode.HYBRID
+    assert captured["reranker"] is None
     assert runtime.embedder is embedder
     assert runtime.configuration_hashes == RUNTIME_CONFIGURATION_HASHES
     assert runtime.configuration_hashes.model_config_sha256 == "".join(
@@ -132,3 +137,38 @@ def test_aws_runtime_uses_fifteen_second_retrieval_budget(
     )
     assert AWS_CONNECT_TIMEOUT_SECONDS == 3
     assert AWS_READ_TIMEOUT_SECONDS == 20
+    assert (
+        runtime.configuration_hashes.retrieval_config_sha256
+        == APPROVED_RETRIEVAL_CONFIGURATION_SHA256
+    )
+
+
+def test_aws_runtime_composes_only_the_local_reranker_when_explicitly_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+    valid_settings: Settings,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class CapturingRetrievalService:
+        def __init__(self, **kwargs: Any) -> None:
+            captured.update(kwargs)
+
+    monkeypatch.setattr(composition_module, "RetrievalService", CapturingRetrievalService)
+    settings = valid_settings.model_copy(
+        update={
+            "aws_composition_enabled": True,
+            "aws_region": "ap-southeast-1",
+            "llm_model_id": "approved-inference-profile",
+            "rag_reranker_enabled": True,
+        }
+    )
+
+    compose_aws_runtime(
+        settings,
+        opensearch_client=FakeOpenSearchClient(),
+        bedrock_client=object(),  # type: ignore[arg-type]
+        embedder=FakeEmbedder(),
+        telemetry=NullTelemetryRuntime(),  # type: ignore[arg-type]
+    )
+
+    assert isinstance(captured["reranker"], DeterministicTokenOverlapReranker)

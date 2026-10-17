@@ -35,6 +35,34 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W10-002 bounded reranking and backend parity](W10/W10-002.md) — adds a
+  default-off provider-neutral local reranker after complete candidate
+  authorization; bounds candidates, tokens, deadline, concurrency, queue, and
+  retries; requires an exact response identity set; reauthorizes final results;
+  and safely degrades to the authorized baseline for bounded operational
+  reranker failures. Final local/offline TEST-001 passed after preserved test,
+  formatting, import-order, environment, OPA process-start, and Excel-lock
+  remediation. The focused scope recorded 157 passed, 1 skipped, 1 deselected,
+  1 warning, and 10 subtests; the full non-AWS/non-paid suite recorded 2,578
+  passed, 8 skipped, 4 deselected, 1 warning, and 10 subtests. Ruff, MyPy,
+  platform/YAML validation, strict OPA and 196 policy tests, Checkov, exact
+  31-path and owner-completed 836-file secret scans, pre-commit, boundary
+  checks, and external-cache cleanup passed. Reranker adoption remains
+  **INDETERMINATE** because representative owner-approved relevance, live
+  workload, and monetized production-cost evidence did not run. `RAG-003`
+  remains `In Progress`; the carried `W7-001-remediation; W10-001 / Blocked`
+  input remains unresolved. No Docker/model/cloud/deployment/live rollback/
+  teardown/billing/paid test ran. See the [Week 10 evidence index](W10/README.md).
+  The canonical post-closure evidence identity is
+  `d6773665c296ec752a00722602265536bee094966c3f5e064dc5f96670a51ab2`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-18 at 00:01:00 SGT. Every warning, historical INDETERMINATE event,
+  remediation, skip, deselection, NOT RUN item, limitation, adoption gap,
+  dependency, deferred action, lifecycle fact, retained resource, and cost
+  boundary remains preserved. Tracker update responsibility is **Owner**; no
+  activation, adoption, deployment, cloud, cost, or production readiness is
+  inferred.
 - [W10-001 authorized deterministic hybrid retrieval](W10/W10-001.md) — adds
   bounded vector KNN and lexical BM25 channels inside the existing OpenSearch
   adapter; applies identical authorization filters before both searches;

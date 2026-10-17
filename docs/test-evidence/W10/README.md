@@ -7,6 +7,31 @@ deployment, production-quality, lifecycle, or cost readiness.
 
 ## Records
 
+- [W10-002 bounded reranking and backend parity](W10-002.md) — adds a
+  default-off provider-neutral reranking stage that receives only authorized
+  backend candidates, binds an immutable local deterministic identity, limits
+  candidates/tokens/time/concurrency/queue/retries, validates the exact
+  response identity set, and reauthorizes final results. Timeout,
+  unavailability, saturation, or malformed output returns the exact authorized
+  baseline; backend authorization defects still fail closed. Final local/offline
+  TEST-001 passed: the focused scope recorded 157 passed, 1 skipped,
+  1 deselected, 1 warning, and 10 passing subtests; the full non-AWS/non-paid
+  suite recorded 2,578 passed, 8 skipped, 4 deselected, 1 warning, and
+  10 passing subtests. Ruff, MyPy, platform and YAML/config validation, strict
+  OPA and 196 OPA tests, Terraform and Kubernetes Checkov, exact-manifest and
+  owner-completed 836-file secret scanning, pre-commit, boundary checks, and
+  external-cache cleanup passed after all failures and retries were preserved.
+  Adoption remains **INDETERMINATE** because no representative owner-approved
+  corpus, measured live workload, or monetized production-cost evidence ran.
+  No Docker/service, model, cloud, deployment, operational rollback, teardown,
+  billing, or paid test ran. The canonical post-closure evidence identity is
+  `d6773665c296ec752a00722602265536bee094966c3f5e064dc5f96670a51ab2`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-18 at 00:01:00 SGT. Every warning, historical INDETERMINATE event,
+  remediation, skip, deselection, NOT RUN item, limitation, adoption gap,
+  dependency, deferred action, lifecycle fact, retained resource, and cost
+  boundary remains preserved. Tracker update responsibility is **Owner**.
 - [W10-001 authorized deterministic hybrid retrieval](W10-001.md) — combines
   bounded vector KNN and lexical BM25 channels behind the existing
   provider-neutral contract; applies identical authorization filters before
@@ -51,4 +76,14 @@ grant Git, cloud, deployment, rollback, teardown, or Column N closure authority.
 W10-001 documentation is now closed under Column N within the recorded
 local/offline boundary; this does not authorize or establish any of those
 excluded activities.
+
+`RAG-003` also remains `In Progress`. The approved W10-002 local identity is
+`enterprise-ai/deterministic-token-overlap` revision `w10-002.v1`; reranking is
+default-off, permits at most 20 candidates, four concurrent calls, no queue,
+no retries, and one 250 ms local call. Synthetic comparison tests prove the
+adoption gate but do not supply an adoption decision. The carried W10-002
+dependency/status input `W7-001-remediation; W10-001 / Blocked` remains
+unresolved. W10-002 documentation is closed under Column N within the recorded
+local/offline boundary; this does not activate reranking, adopt it for
+production, or authorize any excluded operational activity.
 

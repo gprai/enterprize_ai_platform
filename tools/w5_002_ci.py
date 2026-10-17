@@ -1341,15 +1341,16 @@ def file_sha256(path: Path) -> str:
 
 def source_composition_sha256(repository_root: Path) -> str:
     """Bind the Dockerfile, runtime lock, and tracked application Python composition."""
-    relative_paths = [Path("docker/application.Dockerfile"), Path("requirements-runtime.lock")]
-    relative_paths.extend(
+    source_paths = [
         path.relative_to(repository_root)
         for path in (repository_root / "src").rglob("*.py")
         if path.is_file()
-    )
+    ]
+    if len(source_paths) != 158:
+        raise ContractError("source composition must contain the approved 158 Python paths")
+    relative_paths = [Path("docker/application.Dockerfile"), Path("requirements-runtime.lock")]
+    relative_paths.extend(source_paths)
     ordered = sorted(relative_paths, key=lambda path: path.as_posix())
-    if len(ordered) != 159:
-        raise ContractError("source composition must contain the approved 159 paths")
     digest = hashlib.sha256()
     for relative in ordered:
         absolute = repository_root / relative

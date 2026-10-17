@@ -22,6 +22,7 @@ from ..authorization import (
 )
 from ..errors import (
     CollectionMismatchError,
+    VectorStoreAuthorizationError,
     VectorStoreError,
     VectorStoreTimeoutError,
     VectorStoreUnavailableError,
@@ -328,8 +329,9 @@ class QdrantVectorStore:
                 )
             except ValidationError:
                 raise VectorStoreValidationError from None
-            if is_retrieval_authorized(chunk, auth_context, now=policy.evaluated_at):
-                results.append(RetrievedChunk(**chunk.model_dump(), score=float(point.score)))
+            if not is_retrieval_authorized(chunk, auth_context, now=policy.evaluated_at):
+                raise VectorStoreAuthorizationError
+            results.append(RetrievedChunk(**chunk.model_dump(), score=float(point.score)))
         return tuple(results)
 
     async def delete_by_document_id(

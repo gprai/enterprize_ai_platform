@@ -40,6 +40,7 @@ from tools.platformctl.validate import (
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     EXPECTED_ORCH_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_002_FEATURE,
+    EXPECTED_RAG_003_FEATURE,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
     EXPECTED_RAG_LINKED_TRACKER_STEPS,
     EXPECTED_RAG_PRE_W3_003_IMPLEMENTATION_PATHS,
@@ -62,6 +63,7 @@ from tools.platformctl.validate import (
     EXPECTED_W7_003_EDITABLE_PATHS,
     EXPECTED_W9_004_IMPLEMENTATION_PATHS,
     EXPECTED_W10_001_IMPLEMENTATION_PATHS,
+    EXPECTED_W10_002_IMPLEMENTATION_PATHS,
 )
 
 
@@ -130,6 +132,7 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "SUPPLY-002",
                 "GHA-002",
                 "RAG-002",
+                "RAG-003",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -220,6 +223,14 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertEqual(EXPECTED_RAG_002_FEATURE, EXPECTED_FEATURES[23])
         self.assertEqual(["W10-001"], EXPECTED_FEATURES[23]["linked_tracker_steps"])
         for path in EXPECTED_W10_001_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w10_002_reranking_manifest_is_exact(self) -> None:
+        self.assertEqual(29, len(EXPECTED_W10_002_IMPLEMENTATION_PATHS))
+        self.assertEqual(29, len(set(EXPECTED_W10_002_IMPLEMENTATION_PATHS)))
+        self.assertEqual(EXPECTED_RAG_003_FEATURE, EXPECTED_FEATURES[24])
+        self.assertEqual(["W10-002"], EXPECTED_FEATURES[24]["linked_tracker_steps"])
+        for path in EXPECTED_W10_002_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
     def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:

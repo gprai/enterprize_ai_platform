@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import os
+from types import SimpleNamespace
 
 import pytest
 from qdrant_client import AsyncQdrantClient
 
 from enterprise_ai_platform.retrieval.adapters.qdrant import QdrantVectorStore
+from enterprise_ai_platform.retrieval.errors import VectorStoreAuthorizationError
 from enterprise_ai_platform.retrieval.models import (
     APPROVED_EMBEDDING_DIMENSION,
     AuthContext,
@@ -51,10 +53,10 @@ def auth(role: Role) -> AuthContext:
     )
 
 
-def chunk() -> Chunk:
+def chunk(tenant_id: str = "tenant-a") -> Chunk:
     content_hash = "d" * 64
     return Chunk(
-        tenant_id="tenant-a",
+        tenant_id=tenant_id,
         source_id="DOC-QDRANT-POLICY",
         media_type="text/plain",
         document_id="policy-qdrant",
@@ -67,7 +69,7 @@ def chunk() -> Chunk:
         pii_status=PiiStatus.CLEAR,
         ingestion_status=IngestionStatus.INDEXED,
         chunk_id=deterministic_chunk_id(
-            tenant_id="tenant-a",
+            tenant_id=tenant_id,
             document_id="policy-qdrant",
             document_version="v1",
             content_hash=content_hash,
@@ -105,6 +107,43 @@ def test_qdrant_retry_is_bounded_and_uses_injected_approved_delay() -> None:
         assert await store.healthcheck()
         assert client.calls == 2
         assert delays == [0.15]
+
+    asyncio.run(scenario())
+
+
+def test_qdrant_aborts_when_provider_returns_an_unauthorized_point() -> None:
+    class UnauthorizedClient:
+        async def query_points(self, **kwargs: object) -> object:
+            del kwargs
+            unauthorized = chunk("tenant-b")
+            payload = unauthorized.model_dump(mode="json", exclude={"embedding"})
+            return SimpleNamespace(
+                points=[
+                    SimpleNamespace(
+                        payload=payload,
+                        vector=list(unauthorized.embedding),
+                        score=1.0,
+                    )
+                ]
+            )
+
+    class TestStore(QdrantVectorStore):
+        async def _ensure_collection(
+            self,
+            specification: CollectionSpec,
+            timeout_seconds: float,
+        ) -> None:
+            del specification, timeout_seconds
+
+    async def scenario() -> None:
+        store = TestStore(UnauthorizedClient(), max_attempts=1)
+        with pytest.raises(VectorStoreAuthorizationError):
+            await store.search(
+                CollectionSpec(name="w10_002_qdrant_authorization"),
+                Query(text="policy"),
+                vector(),
+                auth(Role.READER),
+            )
 
     asyncio.run(scenario())
 
