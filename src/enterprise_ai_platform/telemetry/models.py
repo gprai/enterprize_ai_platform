@@ -209,6 +209,10 @@ class RuntimeConfigurationHashes(TelemetryModel):
     prompt_config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     embedding_config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     retrieval_config_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    evaluation_config_sha256: str | None = Field(
+        default=None,
+        pattern=r"^[0-9a-f]{64}$",
+    )
 
 
 class SafeTelemetryAttributes(TelemetryModel):
@@ -332,6 +336,7 @@ class SafeLogRecord(TelemetryModel):
     prompt_config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     embedding_config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     retrieval_config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    evaluation_config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
     @field_validator("duration_ms")
     @classmethod
@@ -394,6 +399,11 @@ class SafeLogRecord(TelemetryModel):
                 raise ValueError("runtime configuration requires all four hashes")
         elif any(value is not None for value in configuration_hashes):
             raise ValueError("configuration hashes are limited to runtime configuration events")
+        if (
+            self.event_name is not TelemetryEventName.RUNTIME_CONFIGURATION
+            and self.evaluation_config_sha256 is not None
+        ):
+            raise ValueError("evaluation identity is limited to runtime configuration events")
         return self
 
 

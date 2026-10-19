@@ -35,6 +35,22 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W10-004 AI observability, drift, resilience, and cost operations](W10/W10-004.md)
+  — extends the existing OpenTelemetry path with privacy-safe AI quality,
+  safety, dependency, admission, drift, and cost signals without creating a
+  second stack. Final local/source TEST-001 passed with 2,631 tests, 8 skips,
+  4 deselections and 1 warning, plus Ruff, MyPy, platform/YAML, OPA, Checkov,
+  complete secret scanning, pre-commit, Promtool, boundary and residue checks.
+  No live provider, cloud, deployment, operational rollback, teardown, billing,
+  or paid activity ran. See the [Week 10 evidence index](W10/README.md). **Gyan
+  Prakash Rai**, Project Owner and Final Approval Reviewer, recorded
+  **FINAL APPROVAL AFTER OWNER TEST — APPROVED** at **2026-10-19 11:35:00 SGT**. The
+  canonical post-closure record is SHA-256
+  `b570362b98b751aa1c12f174d7965908b7cb2ad8cc47622cc0548b1df73c1e94`.
+  All recorded warnings, risks, gaps, `NOT RUN` items, historical
+  `INDETERMINATE` results, and scope limits remain preserved; this closure does
+  not establish production or cloud readiness. Only the owner may update the
+  tracker.
 - [W10-003 governed RAG evaluation and safety regression](W10/W10-003.md) —
   adds privacy-safe versioned quality and adversarial datasets; exact model,
   prompt, embedding, retrieval, reranker, policy, index and evidence identities;

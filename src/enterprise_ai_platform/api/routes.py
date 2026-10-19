@@ -32,6 +32,10 @@ from enterprise_ai_platform.rag.errors import RAGError, RAGOutputValidationError
 from enterprise_ai_platform.rag.models import AbstentionResult, CitedAnswerResult
 from enterprise_ai_platform.retrieval.errors import VectorStoreError
 from enterprise_ai_platform.retrieval.models import AuthContext, utc_now
+from enterprise_ai_platform.telemetry.ai_operations import (
+    AdmissionReason,
+    record_admission_state,
+)
 from enterprise_ai_platform.telemetry.models import (
     SafeTelemetryAttributes,
     TelemetryEventName,
@@ -92,6 +96,23 @@ router = APIRouter()
 
 def _telemetry_for(request: Request) -> TelemetryRuntime:
     return cast(TelemetryRuntime, request.app.state.telemetry_runtime)
+
+
+def _record_ai_admission(
+    settings: Settings,
+    telemetry: TelemetryRuntime,
+    *,
+    reason: AdmissionReason,
+    allowed: bool,
+    queue_depth: int,
+) -> None:
+    if settings.ai_operations_enabled:
+        record_admission_state(
+            telemetry,
+            reason=reason,
+            allowed=allowed,
+            queue_depth=queue_depth,
+        )
 
 
 def _error_response(request: Request, error: APIError) -> JSONResponse:
@@ -334,9 +355,17 @@ async def query(
         maximum_bytes=settings.api_max_request_body_bytes,
     )
     auth_context = await _trusted_auth_context(request, authenticator)
+    telemetry = _telemetry_for(request)
     rate_limiter = cast(TenantRateLimiter, request.app.state.api_tenant_rate_limiter)
     rate_allowed, retry_after = rate_limiter.try_consume(auth_context.tenant_id)
     if not rate_allowed:
+        _record_ai_admission(
+            settings,
+            telemetry,
+            reason=AdmissionReason.RATE_LIMITED,
+            allowed=False,
+            queue_depth=0,
+        )
         raise api_error(
             429,
             "api_rate_limited",
@@ -345,22 +374,50 @@ async def query(
         )
     drain = cast(ApplicationDrainController, request.app.state.api_drain_controller)
     if not drain.try_register_current():
+        _record_ai_admission(
+            settings,
+            telemetry,
+            reason=AdmissionReason.DRAINING,
+            allowed=False,
+            queue_depth=0,
+        )
         raise api_error(503, "api_draining", retryable=True)
     limiter = cast(QueryCapacityLimiter, request.app.state.api_query_limiter)
     if not limiter.try_acquire():
         drain.unregister_current()
+        _record_ai_admission(
+            settings,
+            telemetry,
+            reason=AdmissionReason.BACKPRESSURE,
+            allowed=False,
+            queue_depth=limiter.queue_depth,
+        )
         raise overload_error()
     circuit = cast(RAGCircuitBreaker, request.app.state.api_rag_circuit_breaker)
     circuit_allowed, circuit_retry_after = circuit.try_acquire()
     if not circuit_allowed:
         limiter.release()
         drain.unregister_current()
+        _record_ai_admission(
+            settings,
+            telemetry,
+            reason=AdmissionReason.CIRCUIT_OPEN,
+            allowed=False,
+            queue_depth=limiter.queue_depth,
+        )
         raise api_error(
             503,
             "rag_circuit_open",
             retryable=True,
             headers={"Retry-After": str(circuit_retry_after)},
         )
+    _record_ai_admission(
+        settings,
+        telemetry,
+        reason=AdmissionReason.ADMITTED,
+        allowed=True,
+        queue_depth=limiter.queue_depth,
+    )
     try:
         try:
             result = await await_with_disconnect(

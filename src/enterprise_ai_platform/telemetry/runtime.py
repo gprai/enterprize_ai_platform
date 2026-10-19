@@ -32,6 +32,11 @@ from pydantic import ValidationError
 from enterprise_ai_platform import __version__
 from enterprise_ai_platform.config import Settings
 
+from .ai_operations import (
+    AI_OPERATIONS_METRIC_NAMES,
+    AIOperationsObservation,
+    AIOperationsSignal,
+)
 from .models import (
     LOG_CAPACITY,
     METRIC_NAMES,
@@ -139,6 +144,8 @@ class TelemetryRuntime(Protocol):
         self,
         configuration: RuntimeConfigurationHashes,
     ) -> None: ...
+
+    def record_ai_operation(self, observation: AIOperationsObservation) -> None: ...
 
     def force_flush(self) -> bool: ...
 
@@ -263,6 +270,9 @@ class NullTelemetryRuntime:
         configuration: RuntimeConfigurationHashes,
     ) -> None:
         del configuration
+
+    def record_ai_operation(self, observation: AIOperationsObservation) -> None:
+        del observation
 
     def force_flush(self) -> bool:
         return True
@@ -555,6 +565,41 @@ class OpenTelemetryRuntime:
             METRIC_NAMES["dropped"],
             unit="{item}",
         )
+        self._ai_operations: dict[AIOperationsSignal, Any] = {
+            AIOperationsSignal.REQUEST_COST: self.meter.create_histogram(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.REQUEST_COST], unit="USD"
+            ),
+            AIOperationsSignal.RETRIEVAL_QUALITY: self.meter.create_histogram(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.RETRIEVAL_QUALITY], unit="1"
+            ),
+            AIOperationsSignal.GROUNDEDNESS: self.meter.create_histogram(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.GROUNDEDNESS], unit="1"
+            ),
+            AIOperationsSignal.CITATION_COVERAGE: self.meter.create_histogram(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.CITATION_COVERAGE], unit="1"
+            ),
+            AIOperationsSignal.ABSTENTION: self.meter.create_counter(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.ABSTENTION], unit="{abstention}"
+            ),
+            AIOperationsSignal.DEPENDENCY_AVAILABILITY: self.meter.create_histogram(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.DEPENDENCY_AVAILABILITY],
+                unit="1",
+            ),
+            AIOperationsSignal.ADMISSION_DECISION: self.meter.create_counter(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.ADMISSION_DECISION],
+                unit="{decision}",
+            ),
+            AIOperationsSignal.QUEUE_DEPTH: self.meter.create_histogram(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.QUEUE_DEPTH], unit="{request}"
+            ),
+            AIOperationsSignal.CONFIGURATION_DRIFT: self.meter.create_histogram(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.CONFIGURATION_DRIFT], unit="1"
+            ),
+            AIOperationsSignal.COST_GUARD_DECISION: self.meter.create_counter(
+                AI_OPERATIONS_METRIC_NAMES[AIOperationsSignal.COST_GUARD_DECISION],
+                unit="{decision}",
+            ),
+        }
 
     @property
     def log_sink(self) -> BoundedInMemoryLogSink:
@@ -650,7 +695,9 @@ class OpenTelemetryRuntime:
                 if value is not None:
                     event_attributes[key] = value
             if runtime_configuration is not None:
-                event_attributes.update(runtime_configuration.model_dump(mode="json"))
+                event_attributes.update(
+                    runtime_configuration.model_dump(mode="json", exclude_none=True)
+                )
             if active_span.get_span_context().is_valid:
                 active_span.add_event(
                     event_name.value,
@@ -680,7 +727,7 @@ class OpenTelemetryRuntime:
                 tool_name=attributes.tool_name,
                 tool_version=attributes.tool_version,
                 **(
-                    runtime_configuration.model_dump(mode="python")
+                    runtime_configuration.model_dump(mode="python", exclude_none=True)
                     if runtime_configuration is not None
                     else {}
                 ),
@@ -709,6 +756,33 @@ class OpenTelemetryRuntime:
             ),
             runtime_configuration=configuration,
         )
+
+    def record_ai_operation(self, observation: AIOperationsObservation) -> None:
+        """Record one validated bounded-cardinality W10-004 observation."""
+
+        try:
+            checked = AIOperationsObservation.model_validate(
+                observation.model_dump(mode="python"),
+                strict=True,
+            )
+            instrument = self._ai_operations[checked.signal]
+            metric_attributes = checked.metric_attributes()
+            active_span = trace.get_current_span()
+            if active_span.get_span_context().is_valid:
+                active_span.add_event(
+                    f"ai.operations.{checked.signal.value}",
+                    attributes={**metric_attributes, "value": checked.value},
+                )
+            if checked.signal in {
+                AIOperationsSignal.ABSTENTION,
+                AIOperationsSignal.ADMISSION_DECISION,
+                AIOperationsSignal.COST_GUARD_DECISION,
+            }:
+                instrument.add(int(checked.value), metric_attributes)
+            else:
+                instrument.record(checked.value, metric_attributes)
+        except Exception:
+            self._safe_invalid_observation()
 
     def record_tokens(
         self,

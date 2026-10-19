@@ -112,10 +112,19 @@ class CostGuardrails(CapacityModel):
     monthly_budget_usd: Literal[60] = 60
     daily_alert_usd: Literal[3] = 3
     maximum_paid_evaluation_usd: Literal[5] = 5
-    cost_per_successful_request_ceiling: Literal["OWNER_BINDING_REQUIRED"] = (
-        "OWNER_BINDING_REQUIRED"
+    cost_per_successful_request_ceiling: Decimal = Field(
+        default=Decimal("0.01"),
+        gt=0,
+        le=Decimal("0.01"),
     )
     price_maximum_age_hours: Literal[24] = 24
+
+    @field_validator("cost_per_successful_request_ceiling")
+    @classmethod
+    def require_owner_approved_ceiling(cls, value: Decimal) -> Decimal:
+        if value != Decimal("0.01"):
+            raise ValueError("cost per successful request ceiling must be USD 0.01")
+        return value
 
 
 class ServingEngineDecision(CapacityModel):

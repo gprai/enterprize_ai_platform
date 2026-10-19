@@ -1,5 +1,7 @@
 """Exact contract tests for the approved W8-004 capacity policy."""
 
+from decimal import Decimal
+
 from enterprise_ai_platform.capacity import load_capacity_policy
 from enterprise_ai_platform.capacity.models import EngineDecision, EvidenceScope
 
@@ -28,7 +30,7 @@ def test_policy_contains_exact_capacity_latency_scaling_and_cost_contracts() -> 
     assert policy.scaling.pod_disruption_max_unavailable == 1
     assert policy.cost.monthly_budget_usd == 60
     assert policy.cost.maximum_paid_evaluation_usd == 5
-    assert policy.cost.cost_per_successful_request_ceiling == "OWNER_BINDING_REQUIRED"
+    assert policy.cost.cost_per_successful_request_ceiling == Decimal("0.01")
 
 
 def test_optional_engines_are_never_default_co_deployments() -> None:

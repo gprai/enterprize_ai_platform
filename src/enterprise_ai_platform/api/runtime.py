@@ -10,7 +10,7 @@ import time
 from collections import OrderedDict
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Literal, cast
 from uuid import UUID, uuid4
 
 from pydantic import TypeAdapter, ValidationError
@@ -117,6 +117,12 @@ class QueryCapacityLimiter:
     def active(self) -> int:
         with self._lock:
             return self._active
+
+    @property
+    def queue_depth(self) -> Literal[0]:
+        """The approved API profile rejects overload and never queues requests."""
+
+        return 0
 
     def try_acquire(self) -> bool:
         """Acquire immediately or reject without creating a waiter."""

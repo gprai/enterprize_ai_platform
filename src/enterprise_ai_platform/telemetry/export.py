@@ -12,6 +12,7 @@ from uuid import UUID
 
 from enterprise_ai_platform.config import Settings
 
+from .ai_operations import AIOperationsObservation
 from .models import (
     RuntimeConfigurationHashes,
     SafeLogRecord,
@@ -263,6 +264,9 @@ class ExportingTelemetryRuntime:
         configuration: RuntimeConfigurationHashes,
     ) -> None:
         self._delegate.record_runtime_configuration(configuration)
+
+    def record_ai_operation(self, observation: AIOperationsObservation) -> None:
+        self._delegate.record_ai_operation(observation)
 
     def force_flush(self) -> bool:
         return self._queue.force_flush() and self._delegate.force_flush()

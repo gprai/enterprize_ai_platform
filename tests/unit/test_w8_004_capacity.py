@@ -51,6 +51,7 @@ def test_latency_queue_failure_and_cost_breaches_fail_closed() -> None:
         "P99_LATENCY_EXCEEDED",
         "QUEUE_CAPACITY_EXCEEDED",
         "EVALUATION_COST_EXCEEDED",
+        "COST_PER_SUCCESSFUL_REQUEST_EXCEEDED",
         "REQUEST_FAILURES_OBSERVED",
     }
 

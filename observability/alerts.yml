@@ -89,3 +89,46 @@ groups:
         expr: increase(enterprise_ai_safety_violations_total[5m]) > 0
         for: 0m
         labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+
+  - name: enterprise-ai-w10-004-alerts
+    rules:
+      - alert: EnterpriseAICostGuardDenied
+        expr: increase(enterprise_ai_ai_cost_guard_decisions_total{outcome="denied"}[5m]) > 0
+        for: 0m
+        labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIConfigurationDrift
+        expr: enterprise_ai_ai_configuration_drift > 0
+        for: 1m
+        labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIModelDependencyUnavailable
+        expr: enterprise_ai_ai_dependency_availability{dependency="model"} < 1
+        for: 1m
+        labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIRetrievalDependencyUnavailable
+        expr: enterprise_ai_ai_dependency_availability{dependency="retrieval"} < 1
+        for: 1m
+        labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIRetrievalQualityLow
+        expr: enterprise_ai_ai_retrieval_quality < 0.5
+        for: 5m
+        labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIGroundednessLow
+        expr: enterprise_ai_ai_groundedness < 1
+        for: 5m
+        labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAICitationCoverageLow
+        expr: enterprise_ai_ai_citation_coverage < 1
+        for: 5m
+        labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIBackpressure
+        expr: increase(enterprise_ai_ai_admission_decisions_total{reason="backpressure"}[5m]) > 0
+        for: 1m
+        labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIPiiFailure
+        expr: increase(enterprise_ai_stage_executions_total{stage="guardrail",outcome="rejected"}[5m]) > 0
+        for: 0m
+        labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIAuthorizationFailure
+        expr: increase(enterprise_ai_stage_executions_total{stage="authorization",outcome="denied"}[5m]) > 0
+        for: 0m
+        labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}

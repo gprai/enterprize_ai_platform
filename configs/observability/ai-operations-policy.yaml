@@ -1,0 +1,36 @@
+schema_version: "w10-004.ai-operations-policy.v1"
+prompt_id: "W10-004"
+feature_id: "OBS-001"
+enabled_by_default: false
+approved_providers:
+  - "bedrock"
+cost:
+  cost_per_successful_request_ceiling_usd: 0.01
+  price_maximum_age_hours: 24
+  maximum_input_tokens: 16384
+  maximum_output_tokens: 512
+quality:
+  retrieval_quality_floor: 0.50
+  groundedness_proxy_floor: 1.0
+  citation_coverage_floor: 1.0
+privacy:
+  raw_prompt_capture: false
+  raw_response_capture: false
+  encryption_in_transit_required: true
+  access_control: "existing_observability_rbac"
+  stable_metric_dimensions:
+    - "signal"
+    - "provider"
+    - "dependency"
+    - "outcome"
+    - "reason"
+    - "evaluation_status"
+retention:
+  operational_telemetry_days: 14
+  approved_evaluation_evidence_days: 180
+resilience:
+  retry_attempts: 0
+  query_queue_capacity: 0
+  safe_degraded_mode: true
+live_execution: "NOT_AUTHORIZED"
+

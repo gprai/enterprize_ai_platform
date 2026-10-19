@@ -61,7 +61,7 @@ cost:
   monthly_budget_usd: 60
   daily_alert_usd: 3
   maximum_paid_evaluation_usd: 5
-  cost_per_successful_request_ceiling: "OWNER_BINDING_REQUIRED"
+  cost_per_successful_request_ceiling: 0.01
   price_maximum_age_hours: 24
 serving_engines:
   - engine: "bedrock"

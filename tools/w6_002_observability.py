@@ -29,6 +29,18 @@ EXPECTED_ALERTS = {
     "EnterpriseAIRetryStorm",
     "EnterpriseAISafetyViolation",
 }
+EXPECTED_W10_004_ALERTS = {
+    "EnterpriseAIBackpressure",
+    "EnterpriseAICitationCoverageLow",
+    "EnterpriseAIConfigurationDrift",
+    "EnterpriseAICostGuardDenied",
+    "EnterpriseAIGroundednessLow",
+    "EnterpriseAIModelDependencyUnavailable",
+    "EnterpriseAIPiiFailure",
+    "EnterpriseAIRetrievalDependencyUnavailable",
+    "EnterpriseAIRetrievalQualityLow",
+    "EnterpriseAIAuthorizationFailure",
+}
 EXPECTED_LOCAL_REHEARSALS = {
     "opensearch_unavailable",
     "opensearch_timeout",
@@ -164,7 +176,7 @@ def validate(root: Path) -> str:
         for rule in group.get("rules", [])
         if "alert" in rule
     }
-    if names != EXPECTED_ALERTS:
+    if names != EXPECTED_ALERTS | EXPECTED_W10_004_ALERTS:
         raise W6002Error("alert inventory differs")
     alert_rules = [
         rule
@@ -183,7 +195,7 @@ def validate(root: Path) -> str:
         raise W6002Error("alert rule ownership binding differs")
 
     dashboard = json.loads((root / REQUIRED_PATHS[4]).read_text(encoding="utf-8"))
-    if dashboard.get("uid") != "enterprise-ai-w6-002" or len(dashboard.get("panels", [])) != 8:
+    if dashboard.get("uid") != "enterprise-ai-w6-002" or len(dashboard.get("panels", [])) != 16:
         raise W6002Error("dashboard identity or panel inventory differs")
     return PASS_STATUS
 

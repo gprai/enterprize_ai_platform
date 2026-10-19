@@ -7,6 +7,26 @@ deployment, production-quality, lifecycle, or cost readiness.
 
 ## Records
 
+- [W10-004 AI observability, drift, resilience, and cost operations](W10-004.md)
+  — extends the existing OpenTelemetry runtime with ten bounded AI-specific
+  metrics, exact model/prompt/embedding/retrieval/evaluation identities,
+  Bedrock-only provider and USD 0.01 cost preflight, safe-degraded dependency
+  and admission observations, ten alerts, and eight additional dashboard
+  panels. Final local/source TEST-001 passed: Ruff, MyPy across 193 source
+  files, 2,631 full-suite tests with 8 skips, 4 deselections and 1 warning,
+  platform/YAML validation, strict OPA and 196 policy tests, Checkov, an
+  863-file secret scan, pre-commit, Promtool validation of 23 rules, boundary,
+  and residue checks. No live provider, cloud, model, Docker, deployment,
+  operational rollback, teardown, billing, or paid operation ran. The carried
+  `W7-001-remediation; W10-003 / Blocked` status remains unresolved. **Gyan
+  Prakash Rai**, Project Owner and Final Approval Reviewer, recorded
+  **FINAL APPROVAL AFTER OWNER TEST — APPROVED** at **2026-10-19 11:35:00 SGT**. The
+  canonical post-closure record is SHA-256
+  `b570362b98b751aa1c12f174d7965908b7cb2ad8cc47622cc0548b1df73c1e94`.
+  All recorded warnings, risks, gaps, `NOT RUN` items, historical
+  `INDETERMINATE` results, and scope limits remain preserved; this closure does
+  not establish production or cloud readiness. Only the owner may update the
+  tracker.
 - [W10-003 governed RAG evaluation and safety regression](W10-003.md) —
   adds versioned privacy-safe quality and adversarial datasets; exact model,
   prompt, embedding, retrieval, reranker, policy, index, and evidence
@@ -103,6 +123,16 @@ grant Git, cloud, deployment, rollback, teardown, or Column N closure authority.
 W10-001 documentation is now closed under Column N within the recorded
 local/offline boundary; this does not authorize or establish any of those
 excluded activities.
+
+`OBS-001` remains `In Progress`. W10-004 is default-off, permits only Bedrock
+when enabled, requires pricing no older than 24 hours, and fails closed above
+the USD 0.01 cost-per-successful-request ceiling. Its local/source contracts
+and configured validation passed, but live exporters, dashboards, alert
+delivery, CloudWatch, X-Ray, Jaeger, Prometheus/Grafana ingestion, production
+SLOs, deployment, operational recovery, cloud lifecycle, and billing remain
+**NOT RUN**. The carried dependency/status input
+`W7-001-remediation; W10-003 / Blocked` remains unresolved. Column N closure
+has not yet been authorized.
 
 `RAG-003` also remains `In Progress`. The approved W10-002 local identity is
 `enterprise-ai/deterministic-token-overlap` revision `w10-002.v1`; reranking is

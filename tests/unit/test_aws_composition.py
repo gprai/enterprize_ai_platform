@@ -24,6 +24,7 @@ from enterprise_ai_platform.retrieval.reranking import (
     APPROVED_RETRIEVAL_CONFIGURATION_SHA256,
     DeterministicTokenOverlapReranker,
 )
+from enterprise_ai_platform.telemetry.ai_operations import EvaluationBindingStatus
 from enterprise_ai_platform.telemetry.runtime import NullTelemetryRuntime
 
 
@@ -123,6 +124,9 @@ def test_aws_runtime_uses_fifteen_second_retrieval_budget(
     assert captured["reranker"] is None
     assert runtime.embedder is embedder
     assert runtime.configuration_hashes == RUNTIME_CONFIGURATION_HASHES
+    assert runtime.configuration_hashes.evaluation_config_sha256 is None
+    assert runtime.identity_binding is not None
+    assert runtime.identity_binding.evaluation_status is EvaluationBindingStatus.ABSENT
     assert runtime.configuration_hashes.model_config_sha256 == "".join(
         (
             "36ea47e1",

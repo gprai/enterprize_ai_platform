@@ -71,6 +71,11 @@ def test_environment_example_contains_only_approved_values() -> None:
     assert values["ENTERPRISE_AI_TELEMETRY_BACKGROUND_WORKERS"] == "0"
     assert values["ENTERPRISE_AI_TELEMETRY_FLUSH_TIMEOUT_SECONDS"] == "1.0"
     assert values["ENTERPRISE_AI_TELEMETRY_SHUTDOWN_TIMEOUT_SECONDS"] == "1.0"
+    assert values["ENTERPRISE_AI_AI_OPERATIONS_ENABLED"] == "false"
+    assert values["ENTERPRISE_AI_AI_OPERATIONS_PRICING_OBSERVED_AT"] == ""
+    assert values["ENTERPRISE_AI_AI_OPERATIONS_INPUT_TOKEN_RATE_USD_PER_MILLION"] == ""
+    assert values["ENTERPRISE_AI_AI_OPERATIONS_OUTPUT_TOKEN_RATE_USD_PER_MILLION"] == ""
+    assert values["ENTERPRISE_AI_AI_OPERATIONS_EVALUATION_CONFIG_SHA256"] == ""
     assert values["ENTERPRISE_AI_AGENT_ENABLED"] == "false"
     assert values["ENTERPRISE_AI_AGENT_MOCK_WRITE_ENABLED"] == "false"
     assert values["ENTERPRISE_AI_AGENT_STATE_SCHEMA_VERSION"] == ("w4-002.agent-state.v1")
@@ -94,6 +99,7 @@ def test_environment_example_contains_only_approved_values() -> None:
     assert "AWS_SECRET_ACCESS_KEY" not in values
     assert "AWS_SESSION_TOKEN" not in values
     assert not any("OTLP" in key and values[key] for key in values)
+    assert not any("RAW_PROMPT" in key or "RAW_RESPONSE" in key for key in values)
 
 
 def test_secret_is_masked_and_absent_from_health_output(

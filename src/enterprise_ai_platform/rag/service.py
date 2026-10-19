@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import cast
+from collections.abc import Callable
+from datetime import UTC, datetime
+from decimal import Decimal
+from typing import Literal, cast
 
 from pydantic import ValidationError
 
@@ -14,7 +17,11 @@ from enterprise_ai_platform.json_contracts import (
     strict_json_loads,
     unwrap_single_json_fence,
 )
-from enterprise_ai_platform.llm.errors import LLMError, LLMMalformedResponseError
+from enterprise_ai_platform.llm.errors import (
+    LLMError,
+    LLMMalformedResponseError,
+    LLMValidationError,
+)
 from enterprise_ai_platform.llm.models import ChatResponse, Usage
 from enterprise_ai_platform.llm.provider import LLMProvider
 from enterprise_ai_platform.rag.config import RAGPolicy
@@ -47,6 +54,17 @@ from enterprise_ai_platform.retrieval.models import (
     RetrievedChunk,
 )
 from enterprise_ai_platform.retrieval.service import RetrievalService
+from enterprise_ai_platform.telemetry.ai_operations import (
+    AIOperationsDecision,
+    AIOperationsPolicy,
+    CostGuardReason,
+    DependencyKind,
+    PricingSnapshot,
+    preflight_provider_call,
+    record_ai_request_cost,
+    record_dependency_result,
+    record_rag_result,
+)
 from enterprise_ai_platform.telemetry.models import (
     SafeTelemetryAttributes,
     TelemetryEventName,
@@ -63,6 +81,10 @@ from enterprise_ai_platform.telemetry.runtime import (
 _REQUIRED_CITATION_KEYS = frozenset({"source_id", "document_id", "document_version", "chunk_id"})
 _ALLOWED_CITATION_KEYS = _REQUIRED_CITATION_KEYS | {"label"}
 _REQUIRED_EVIDENCE_REFERENCE_KEYS = frozenset({"evidence_ref"})
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
 
 
 def _abstain(
@@ -235,25 +257,72 @@ class RAGService:
         llm_provider: LLMProvider,
         policy: RAGPolicy,
         telemetry: TelemetryRuntime | None = None,
+        ai_operations_enabled: bool = False,
+        ai_operations_policy: AIOperationsPolicy | None = None,
+        ai_operations_pricing: PricingSnapshot | None = None,
+        ai_operations_provider: Literal["bedrock", "fake"] = "fake",
+        utcnow: Callable[[], datetime] = _utcnow,
     ) -> None:
         self._retrieval_service = retrieval_service
         self._llm_provider = llm_provider
         self._policy = policy
         self._telemetry = telemetry or NullTelemetryRuntime()
+        if ai_operations_enabled and ai_operations_policy is None:
+            raise ValueError("enabled AI operations requires an explicit policy")
+        self._ai_operations_enabled = ai_operations_enabled
+        self._ai_operations_policy = ai_operations_policy
+        self._ai_operations_pricing = ai_operations_pricing
+        self._ai_operations_provider = ai_operations_provider
+        self._utcnow = utcnow
 
     def _observed_result(
         self,
         scope: TelemetryScope,
         result: RAGResult,
+        *,
+        retrieval_quality: float = 0.0,
     ) -> RAGResult:
         if isinstance(result, AbstentionResult):
             scope.finish(
                 TelemetryOutcome.ABSTAINED,
                 terminal_reason=result.reason,
             )
+            if self._ai_operations_enabled:
+                record_rag_result(
+                    self._telemetry,
+                    retrieval_quality=retrieval_quality,
+                    groundedness_proxy=0.0,
+                    citation_coverage=0.0,
+                    abstained=True,
+                )
         else:
             scope.finish(TelemetryOutcome.SUCCESS)
+            if self._ai_operations_enabled:
+                record_rag_result(
+                    self._telemetry,
+                    retrieval_quality=retrieval_quality,
+                    groundedness_proxy=1.0,
+                    citation_coverage=1.0,
+                    abstained=False,
+                )
         return result
+
+    def _provider_preflight(self, maximum_output_tokens: int) -> AIOperationsDecision:
+        if self._ai_operations_policy is None:
+            return AIOperationsDecision(
+                allowed=True,
+                reason=CostGuardReason.DISABLED,
+                safe_degraded=False,
+            )
+        return preflight_provider_call(
+            self._ai_operations_policy,
+            enabled=self._ai_operations_enabled,
+            provider=self._ai_operations_provider,
+            pricing=self._ai_operations_pricing,
+            observed_at=self._utcnow(),
+            maximum_input_tokens=self._ai_operations_policy.cost.maximum_input_tokens,
+            maximum_output_tokens=maximum_output_tokens,
+        )
 
     async def answer(
         self,
@@ -330,6 +399,12 @@ class RAGService:
                     policy_query,
                     auth_context,
                 )
+                if self._ai_operations_enabled:
+                    record_dependency_result(
+                        self._telemetry,
+                        dependency=DependencyKind.RETRIEVAL,
+                        available=True,
+                    )
                 chunks = _validated_chunks(raw_chunks)
                 if chunks is None:
                     return self._observed_result(
@@ -379,13 +454,28 @@ class RAGService:
                     )
 
                 request = build_rag_request(policy_query, evidence_blocks, self._policy)
+                cost_decision = self._provider_preflight(request.max_output_tokens)
+                if not cost_decision.allowed:
+                    record_ai_request_cost(
+                        self._telemetry,
+                        provider=self._ai_operations_provider,
+                        decision=cost_decision,
+                    )
+                    raise LLMValidationError
                 with self._telemetry.start_scope(
                     TelemetryStage.LLM,
                     TelemetryOperation.CHAT,
                     prompt_version=self._policy.prompt_version,
                 ) as llm_scope:
                     response = _validated_provider_response(await self._llm_provider.chat(request))
+                    if self._ai_operations_enabled:
+                        record_dependency_result(
+                            self._telemetry,
+                            dependency=DependencyKind.MODEL,
+                            available=True,
+                        )
                     llm_scope.finish(TelemetryOutcome.SUCCESS)
+                    actual_cost: Decimal | None = None
                     if response.usage is not None:
                         self._telemetry.record_tokens(
                             stage=TelemetryStage.LLM,
@@ -395,9 +485,24 @@ class RAGService:
                             total_tokens=response.usage.total_tokens,
                             prompt_version=self._policy.prompt_version,
                         )
+                        if self._ai_operations_pricing is not None:
+                            actual_cost = (
+                                Decimal(response.usage.input_tokens)
+                                * self._ai_operations_pricing.input_token_rate_usd_per_million
+                                + Decimal(response.usage.output_tokens)
+                                * self._ai_operations_pricing.output_token_rate_usd_per_million
+                            ) / Decimal(1_000_000)
+                    if self._ai_operations_enabled:
+                        record_ai_request_cost(
+                            self._telemetry,
+                            provider=self._ai_operations_provider,
+                            decision=cost_decision,
+                            actual_cost_usd=actual_cost,
+                        )
                 return self._observed_result(
                     rag_scope,
                     _parse_generated_answer(response, evidence_blocks, self._policy),
+                    retrieval_quality=min(1.0, len(qualifying) / self._policy.top_k),
                 )
             except VectorStoreAuthorizationError:
                 rag_scope.finish(
@@ -407,6 +512,13 @@ class RAGService:
                 )
                 raise
             except VectorStoreTimeoutError:
+                if self._ai_operations_enabled:
+                    record_dependency_result(
+                        self._telemetry,
+                        dependency=DependencyKind.RETRIEVAL,
+                        available=False,
+                        degraded=True,
+                    )
                 rag_scope.finish(
                     TelemetryOutcome.TIMEOUT,
                     safe_error_code="vector_store_timeout",
@@ -418,7 +530,33 @@ class RAGService:
                     safe_error_code="guardrail_input_invalid",
                 )
                 raise
-            except (VectorStoreError, LLMError, RAGError) as error:
+            except VectorStoreError as error:
+                if self._ai_operations_enabled:
+                    record_dependency_result(
+                        self._telemetry,
+                        dependency=DependencyKind.RETRIEVAL,
+                        available=False,
+                        degraded=True,
+                    )
+                rag_scope.finish(
+                    TelemetryOutcome.ERROR,
+                    safe_error_code=str(error.code),
+                )
+                raise
+            except LLMError as error:
+                if self._ai_operations_enabled:
+                    record_dependency_result(
+                        self._telemetry,
+                        dependency=DependencyKind.MODEL,
+                        available=False,
+                        degraded=True,
+                    )
+                rag_scope.finish(
+                    TelemetryOutcome.ERROR,
+                    safe_error_code=str(error.code),
+                )
+                raise
+            except RAGError as error:
                 rag_scope.finish(
                     TelemetryOutcome.ERROR,
                     safe_error_code=str(error.code),

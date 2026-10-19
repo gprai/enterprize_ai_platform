@@ -9,14 +9,22 @@
     {"id": 5, "title": "Telemetry drops", "type": "timeseries", "targets": [{"expr": "sum(rate(enterprise_ai_telemetry_dropped_total[5m])) by (signal, reason)"}]},
     {"id": 6, "title": "Exporter failures", "type": "timeseries", "targets": [{"expr": "sum(rate(enterprise_ai_telemetry_export_failures_total[5m]))"}]},
     {"id": 7, "title": "Readiness", "type": "stat", "targets": [{"expr": "min(enterprise_ai_readiness)"}]},
-    {"id": 8, "title": "Safety violations", "type": "stat", "targets": [{"expr": "sum(increase(enterprise_ai_safety_violations_total[30d]))"}]}
+    {"id": 8, "title": "Safety violations", "type": "stat", "targets": [{"expr": "sum(increase(enterprise_ai_safety_violations_total[30d]))"}]},
+    {"id": 9, "title": "AI request cost USD", "type": "timeseries", "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(enterprise_ai_ai_request_cost_usd_bucket[5m])))"}]},
+    {"id": 10, "title": "Retrieval quality", "type": "timeseries", "targets": [{"expr": "histogram_quantile(0.50, sum by (le) (rate(enterprise_ai_ai_retrieval_quality_bucket[5m])))"}]},
+    {"id": 11, "title": "Groundedness proxy", "type": "timeseries", "targets": [{"expr": "histogram_quantile(0.50, sum by (le) (rate(enterprise_ai_ai_groundedness_bucket[5m])))"}]},
+    {"id": 12, "title": "Citation coverage", "type": "timeseries", "targets": [{"expr": "histogram_quantile(0.50, sum by (le) (rate(enterprise_ai_ai_citation_coverage_bucket[5m])))"}]},
+    {"id": 13, "title": "Abstentions", "type": "timeseries", "targets": [{"expr": "sum(rate(enterprise_ai_ai_abstentions_total[5m])) by (outcome)"}]},
+    {"id": 14, "title": "Dependency availability", "type": "stat", "targets": [{"expr": "min(enterprise_ai_ai_dependency_availability) by (dependency)"}]},
+    {"id": 15, "title": "Admission decisions", "type": "timeseries", "targets": [{"expr": "sum(rate(enterprise_ai_ai_admission_decisions_total[5m])) by (reason,outcome)"}]},
+    {"id": 16, "title": "Configuration drift", "type": "stat", "targets": [{"expr": "max(enterprise_ai_ai_configuration_drift) by (evaluation_status)"}]}
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["enterprise-ai", "w6-002", "deployment-readiness"],
+  "tags": ["enterprise-ai", "w6-002", "w10-004", "deployment-readiness"],
   "templating": {"list": []},
   "time": {"from": "now-6h", "to": "now"},
   "title": "Enterprise AI Platform Overview",
   "uid": "enterprise-ai-w6-002",
-  "version": 1
+  "version": 2
 }

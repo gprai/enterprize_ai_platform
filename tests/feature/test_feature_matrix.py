@@ -121,7 +121,15 @@ EXPECTED_OBSERVABILITY_FEATURE = {
     "id": "OBS-001",
     "implementation_paths": list(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS),
     "status": "In Progress",
-    "linked_tracker_steps": ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09"],
+    "linked_tracker_steps": [
+        "W3-09",
+        "W4-08",
+        "W6-06",
+        "W6-07",
+        "W6-08",
+        "W6-09",
+        "W10-004",
+    ],
 }
 EXPECTED_RELEASE_FEATURE = {
     "id": "REL-001",
@@ -230,7 +238,15 @@ class FeatureMatrixTests(unittest.TestCase):
             features[4]["linked_tracker_steps"],
         )
         self.assertEqual(
-            ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09"],
+            [
+                "W3-09",
+                "W4-08",
+                "W6-06",
+                "W6-07",
+                "W6-08",
+                "W6-09",
+                "W10-004",
+            ],
             features[5]["linked_tracker_steps"],
         )
         self.assertEqual(["W4-11"], features[6]["linked_tracker_steps"])
@@ -667,9 +683,9 @@ class FeatureMatrixTests(unittest.TestCase):
         observability_feature = read_matrix()["features"][5]
 
         self.assertEqual(EXPECTED_OBSERVABILITY_FEATURE, observability_feature)
-        self.assertEqual(49, len(observability_feature["implementation_paths"]))
+        self.assertEqual(68, len(observability_feature["implementation_paths"]))
         self.assertEqual(
-            49,
+            68,
             len(set(observability_feature["implementation_paths"])),
         )
         self.assertNotIn(
@@ -681,7 +697,15 @@ class FeatureMatrixTests(unittest.TestCase):
             observability_feature["implementation_paths"],
         )
         self.assertEqual(
-            ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09"],
+            [
+                "W3-09",
+                "W4-08",
+                "W6-06",
+                "W6-07",
+                "W6-08",
+                "W6-09",
+                "W10-004",
+            ],
             observability_feature["linked_tracker_steps"],
         )
         self.assertEqual(

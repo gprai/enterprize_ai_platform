@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -66,6 +67,11 @@ def test_owner_values_and_test_endpoint_are_valid(
     assert settings.telemetry_background_workers == 0
     assert settings.telemetry_flush_timeout_seconds == 1.0
     assert settings.telemetry_shutdown_timeout_seconds == 1.0
+    assert settings.ai_operations_enabled is False
+    assert settings.ai_operations_pricing_observed_at is None
+    assert settings.ai_operations_input_token_rate_usd_per_million is None
+    assert settings.ai_operations_output_token_rate_usd_per_million is None
+    assert settings.ai_operations_evaluation_config_sha256 is None
     assert settings.agent_enabled is False
     assert settings.agent_mock_write_enabled is False
     assert settings.agent_state_schema_version == "w4-002.agent-state.v1"
@@ -144,6 +150,19 @@ def test_w6_002_export_profile_is_exact(
     assert export_settings.telemetry_background_workers == 1
     assert export_settings.telemetry_flush_timeout_seconds == 2.0
     assert export_settings.telemetry_shutdown_timeout_seconds == 2.0
+
+
+def test_ai_operations_cannot_enable_without_the_complete_aws_profile(
+    valid_settings_values: dict[str, object],
+) -> None:
+    with pytest.raises(ValidationError, match="complete pricing"):
+        Settings(
+            _env_file=None,
+            ai_operations_enabled=True,
+            ai_operations_input_token_rate_usd_per_million=Decimal("0.41"),
+            ai_operations_output_token_rate_usd_per_million=Decimal("3.39"),
+            **valid_settings_values,
+        )
 
 
 def test_w6_002_export_profile_accepts_exact_kubernetes_environment_strings(

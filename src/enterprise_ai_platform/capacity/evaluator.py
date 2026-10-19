@@ -81,6 +81,8 @@ def evaluate_capacity(policy: CapacityPolicy, sample: CapacitySample) -> Capacit
         reasons.append("UNSAFE_TERMINATION")
     if total_cost > Decimal(policy.cost.maximum_paid_evaluation_usd):
         reasons.append("EVALUATION_COST_EXCEEDED")
+    if cost_per_success > policy.cost.cost_per_successful_request_ceiling:
+        reasons.append("COST_PER_SUCCESSFUL_REQUEST_EXCEEDED")
     if any(
         (
             sample.rejected_requests,

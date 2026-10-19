@@ -28,6 +28,14 @@ from enterprise_ai_platform.retrieval.reranking import (
     DeterministicTokenOverlapReranker,
 )
 from enterprise_ai_platform.retrieval.service import RetrievalService
+from enterprise_ai_platform.telemetry.ai_operations import (
+    AIOperationsPolicy,
+    EvaluationBindingStatus,
+    PricingSnapshot,
+    RuntimeIdentityBinding,
+    load_ai_operations_policy,
+    record_evaluation_binding,
+)
 from enterprise_ai_platform.telemetry.models import RuntimeConfigurationHashes
 from enterprise_ai_platform.telemetry.runtime import (
     EmbeddingTelemetryRecorder,
@@ -172,12 +180,16 @@ class AWSRuntimeComposition:
     opensearch_client: object
     embedder: Embedder
     configuration_hashes: RuntimeConfigurationHashes = RUNTIME_CONFIGURATION_HASHES
+    identity_binding: RuntimeIdentityBinding | None = None
+    ai_operations_enabled: bool = False
 
     async def start(self) -> None:
         """Load and exercise the local embedding model before serving traffic."""
 
         async with asyncio.timeout(AWS_STARTUP_WARMUP_TIMEOUT_SECONDS):
             await self.embedder.embed_query(AWS_STARTUP_WARMUP_TEXT)
+        if self.ai_operations_enabled and self.identity_binding is not None:
+            record_evaluation_binding(self.telemetry, self.identity_binding)
 
     async def close(self) -> None:
         close = getattr(self.opensearch_client, "close", None)
@@ -267,6 +279,7 @@ def compose_aws_runtime(
     bedrock_client: BedrockRuntimeClient | None = None,
     embedder: Embedder | None = None,
     telemetry: OTLPTelemetryRuntime | None = None,
+    ai_operations_policy: AIOperationsPolicy | None = None,
 ) -> AWSRuntimeComposition:
     """Compose AWS services without local/fake fallback or import-time clients."""
 
@@ -281,6 +294,22 @@ def compose_aws_runtime(
     if opensearch_client is None or bedrock_client is None:
         raise ValueError("AWS client composition did not produce both required clients")
     resolved_telemetry = telemetry or build_otlp_telemetry(settings=settings).runtime
+    resolved_ai_operations_policy = ai_operations_policy or load_ai_operations_policy()
+    pricing: PricingSnapshot | None = None
+    if (
+        settings.ai_operations_pricing_observed_at is not None
+        and settings.ai_operations_input_token_rate_usd_per_million is not None
+        and settings.ai_operations_output_token_rate_usd_per_million is not None
+    ):
+        pricing = PricingSnapshot(
+            observed_at=settings.ai_operations_pricing_observed_at,
+            input_token_rate_usd_per_million=(
+                settings.ai_operations_input_token_rate_usd_per_million
+            ),
+            output_token_rate_usd_per_million=(
+                settings.ai_operations_output_token_rate_usd_per_million
+            ),
+        )
     adapters = compose_aws_adapters(
         opensearch_client=opensearch_client,
         bedrock_client=bedrock_client,
@@ -305,6 +334,26 @@ def compose_aws_runtime(
         llm_provider=adapters.llm_provider,
         policy=RAGPolicy.model_validate(APPROVED_RAG_POLICY, strict=True),
         telemetry=resolved_telemetry,
+        ai_operations_enabled=settings.ai_operations_enabled,
+        ai_operations_policy=resolved_ai_operations_policy,
+        ai_operations_pricing=pricing,
+        ai_operations_provider="bedrock",
+    )
+    evaluation_status = (
+        EvaluationBindingStatus.MISMATCH
+        if settings.ai_operations_evaluation_config_sha256 is not None
+        else EvaluationBindingStatus.ABSENT
+    )
+    configuration_hashes = RuntimeConfigurationHashes(
+        **RUNTIME_CONFIGURATION_HASHES.model_dump(
+            mode="python",
+            exclude={"evaluation_config_sha256"},
+        ),
+        evaluation_config_sha256=settings.ai_operations_evaluation_config_sha256,
+    )
+    identity_binding = RuntimeIdentityBinding(
+        **configuration_hashes.model_dump(mode="python"),
+        evaluation_status=evaluation_status,
     )
     return AWSRuntimeComposition(
         rag_service=rag_service,
@@ -315,4 +364,7 @@ def compose_aws_runtime(
         telemetry=resolved_telemetry,
         opensearch_client=opensearch_client,
         embedder=resolved_embedder,
+        configuration_hashes=configuration_hashes,
+        identity_binding=identity_binding,
+        ai_operations_enabled=settings.ai_operations_enabled,
     )

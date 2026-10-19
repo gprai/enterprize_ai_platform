@@ -145,7 +145,9 @@ def test_w2_003_paths_and_steps_are_owned_only_by_cumulative_rag_feature() -> No
     assert eval_paths == list(EXPECTED_EVAL_IMPLEMENTATION_PATHS)
     assert len(eval_paths) == len(set(eval_paths)) == 33
     assert eval_paths[25] == "tools/evaluationctl.py"
-    assert matrix["features"][5]["linked_tracker_steps"][-4:] == [
+    observability_steps = matrix["features"][5]["linked_tracker_steps"]
+    w6_observability_start = observability_steps.index("W6-06")
+    assert observability_steps[w6_observability_start : w6_observability_start + 4] == [
         "W6-06",
         "W6-07",
         "W6-08",

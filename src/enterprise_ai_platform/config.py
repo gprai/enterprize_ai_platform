@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
+from decimal import Decimal
 from enum import StrEnum
 from ipaddress import IPv4Address
 from pathlib import Path
@@ -109,6 +111,20 @@ class Settings(BaseSettings):
         ge=1.0,
         le=2.0,
     )
+    ai_operations_enabled: bool = False
+    ai_operations_pricing_observed_at: datetime | None = None
+    ai_operations_input_token_rate_usd_per_million: Decimal | None = Field(
+        default=None,
+        ge=0,
+    )
+    ai_operations_output_token_rate_usd_per_million: Decimal | None = Field(
+        default=None,
+        ge=0,
+    )
+    ai_operations_evaluation_config_sha256: str | None = Field(
+        default=None,
+        pattern=r"^[0-9a-f]{64}$",
+    )
     agent_enabled: bool = False
     agent_mock_write_enabled: bool = False
     agent_state_schema_version: Literal["w4-002.agent-state.v1"] = "w4-002.agent-state.v1"
@@ -168,7 +184,14 @@ class Settings(BaseSettings):
             return normalized
         return value
 
-    @field_validator("telemetry_otlp_endpoint", mode="before")
+    @field_validator(
+        "telemetry_otlp_endpoint",
+        "ai_operations_pricing_observed_at",
+        "ai_operations_input_token_rate_usd_per_million",
+        "ai_operations_output_token_rate_usd_per_million",
+        "ai_operations_evaluation_config_sha256",
+        mode="before",
+    )
     @classmethod
     def normalize_telemetry_endpoint(cls, value: object) -> object:
         """Normalize an optional endpoint before exact profile validation."""
@@ -301,6 +324,15 @@ class Settings(BaseSettings):
             raise ValueError("agent deadline must not exceed the API deadline")
         if self.telemetry_enabled and not self.api_routes_enabled:
             raise ValueError("enabled telemetry requires the W4 API boundary")
+        if self.ai_operations_enabled and (
+            not self.aws_composition_enabled
+            or not self.telemetry_enabled
+            or self.llm_provider != "bedrock"
+            or self.ai_operations_pricing_observed_at is None
+            or self.ai_operations_input_token_rate_usd_per_million is None
+            or self.ai_operations_output_token_rate_usd_per_million is None
+        ):
+            raise ValueError("AI operations requires AWS telemetry, Bedrock, and complete pricing")
         disabled_profile = (
             self.telemetry_otlp_endpoint is None
             and self.telemetry_queue_capacity == 0

@@ -77,7 +77,9 @@ def test_rag_feature_matrix_preserves_structured_w2_002_ownership() -> None:
     assert eval_paths == list(EXPECTED_EVAL_IMPLEMENTATION_PATHS)
     assert len(eval_paths) == len(set(eval_paths)) == 33
     assert eval_paths[25] == "tools/evaluationctl.py"
-    assert features[5]["linked_tracker_steps"][-4:] == [
+    observability_steps = features[5]["linked_tracker_steps"]
+    w6_observability_start = observability_steps.index("W6-06")
+    assert observability_steps[w6_observability_start : w6_observability_start + 4] == [
         "W6-06",
         "W6-07",
         "W6-08",
