@@ -42,7 +42,7 @@ PYTHON_VERSION = "3.13.15"
 PYTHON_REQUIREMENT = ">=3.13,<3.14"
 BASELINE_HEAD = "9963f2b24d9c42c03c62b97615fd650ab0eb5bc8"
 BASELINE_SOURCE_COMPOSITION = (
-    "sha256:c81d465fe06e4d9948fd6ef3e7d65608b34bfaf2c3df5b82dc968daf9f8cbecc"
+    "sha256:5059e1857af13d017daa9d92b58ea50a30ac5e6234227f566d4ca139c7f02957"
 )
 BUILDER_TAG = "cgr.dev/vayunetrix.com/python:3.13.15-dev"
 BUILDER_INDEX_DIGEST = "sha256:fb566a1a7663cdf0041186af5484204650d880ee305a4a42cdf92b6c8706a1bd"
@@ -1346,8 +1346,8 @@ def source_composition_sha256(repository_root: Path) -> str:
         for path in (repository_root / "src").rglob("*.py")
         if path.is_file()
     ]
-    if len(source_paths) != 163:
-        raise ContractError("source composition must contain the approved 163 Python paths")
+    if len(source_paths) != 164:
+        raise ContractError("source composition must contain the approved 164 Python paths")
     relative_paths = [Path("docker/application.Dockerfile"), Path("requirements-runtime.lock")]
     relative_paths.extend(source_paths)
     ordered = sorted(relative_paths, key=lambda path: path.as_posix())

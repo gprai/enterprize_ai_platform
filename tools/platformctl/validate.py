@@ -1727,6 +1727,93 @@ EXPECTED_RES_002_FEATURE = {
     "linked_tracker_steps": ["W11-002"],
 }
 
+EXPECTED_W11_003_IMPLEMENTATION_PATHS = (
+    "configs/recovery/disaster-recovery.yaml",
+    "src/enterprise_ai_platform/disaster_recovery.py",
+    "tools/recoveryctl.py",
+    "tests/fakes/w11_003_disaster_recovery.py",
+    "tests/unit/test_w11_003_disaster_recovery.py",
+    "tests/contract/test_w11_003_disaster_recovery_contract.py",
+    "tests/integration/test_w11_003_disaster_recovery_composition.py",
+    "tests/feature/test_w11_003_disaster_recovery.py",
+    "tests/smoke/test_w11_003_disaster_recovery_cli.py",
+    "tests/security/test_w11_003_disaster_recovery_security.py",
+    "tests/rollback/test_w11_003_disaster_recovery_rollback.py",
+    "tests/teardown/test_w11_003_disaster_recovery_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tools/w5_002_ci.py",
+    "tools/platformctl/plan.py",
+)
+EXPECTED_DR_001_FEATURE = {
+    "id": "DR-001",
+    "implementation_paths": [
+        "configs/ingestion/governed-data-foundation.yaml",
+        "configs/ingestion/privacy-retention-lifecycle.yaml",
+        "src/enterprise_ai_platform/ingestion/governance.py",
+        "src/enterprise_ai_platform/ingestion/privacy_lifecycle.py",
+        "src/enterprise_ai_platform/retrieval/models.py",
+        "src/enterprise_ai_platform/retrieval/adapters/opensearch.py",
+        "src/enterprise_ai_platform/model_registry/models.py",
+        "src/enterprise_ai_platform/model_registry/contracts.py",
+        "src/enterprise_ai_platform/model_registry/registry.py",
+        "tools/platformctl/lifecycle_models.py",
+        "tools/platformctl/lifecycle_io.py",
+        "tools/platformctl/rollback.py",
+        "infra/bootstrap/main.tf",
+        "infra/bootstrap/variables.tf",
+        "infra/environments/sandbox/backend.hcl.example",
+        "infra/environments/sandbox/variables.tf",
+        "infra/modules/storage/main.tf",
+        "infra/modules/opensearch/main.tf",
+        "infra/modules/kms/main.tf",
+        "infra/modules/iam/main.tf",
+        "tests/rollback/test_w7_001_remediation_rollback.py",
+        "tests/teardown/test_terraform_state_boundary.py",
+        *EXPECTED_W11_003_IMPLEMENTATION_PATHS,
+    ],
+    "status": "Blocked",
+    "linked_tracker_steps": ["W11-003"],
+    "control_contract": {
+        "boundary": (
+            "source-only cold rebuild; backup, restore, rebuild, rollback and teardown "
+            "remain distinct"
+        ),
+        "identity": (
+            "exact source, tenant, classification, account, region, KMS, IAM, routing, "
+            "lineage and serial identities"
+        ),
+        "verification": (
+            "native identity, integrity, authorization, health and residue evidence are "
+            "required after recovery"
+        ),
+        "readiness": "live execution is NOT RUN and multi-Region readiness remains NOT ESTABLISHED",
+    },
+}
+EXPECTED_RPO_001_FEATURE = {
+    "id": "RPO-001",
+    "implementation_paths": list(EXPECTED_W11_003_IMPLEMENTATION_PATHS),
+    "status": "Blocked",
+    "linked_tracker_steps": ["W11-003"],
+    "control_contract": {
+        "objectives": "target RPO 86400 seconds and target RTO 28800 seconds",
+        "measurement": (
+            "recovery-point age and elapsed recovery time are measured from exact UTC evidence"
+        ),
+        "failure": (
+            "identity, authorization or native-verification failure blocks PASS; partial "
+            "recovery remains failed or indeterminate"
+        ),
+        "execution": (
+            "one operation, zero mutation retries, two read probes and a thirty-second "
+            "local rehearsal deadline"
+        ),
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -1757,6 +1844,8 @@ EXPECTED_FEATURES = (
     EXPECTED_PRIV_003_FEATURE,
     EXPECTED_FIS_002_FEATURE,
     EXPECTED_RES_002_FEATURE,
+    EXPECTED_DR_001_FEATURE,
+    EXPECTED_RPO_001_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1779,6 +1868,7 @@ REQUIRED_DIRECTORIES = (
     "configs/rag/versions",
     "configs/observability",
     "configs/chaos",
+    "configs/recovery",
     "configs/readiness",
     "configs/releases",
     "configs/releases/versions",
@@ -1927,6 +2017,7 @@ REQUIRED_FILES = (
     *EXPECTED_W10_002_IMPLEMENTATION_PATHS,
     *EXPECTED_W10_003_IMPLEMENTATION_PATHS,
     *EXPECTED_W11_002_IMPLEMENTATION_PATHS,
+    *EXPECTED_W11_003_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",

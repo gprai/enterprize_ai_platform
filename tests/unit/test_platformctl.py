@@ -33,6 +33,7 @@ from tools.platformctl.validate import (
     EXPECTED_COST_004_IMPLEMENTATION_PATHS,
     EXPECTED_COST_005_IMPLEMENTATION_PATHS,
     EXPECTED_COST_006_IMPLEMENTATION_PATHS,
+    EXPECTED_DR_001_FEATURE,
     EXPECTED_EVAL_002_FEATURE,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
@@ -55,6 +56,7 @@ from tools.platformctl.validate import (
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
     EXPECTED_RES_002_FEATURE,
     EXPECTED_RET_003_IMPLEMENTATION_PATHS,
+    EXPECTED_RPO_001_FEATURE,
     EXPECTED_SERVE_IMPLEMENTATION_PATHS,
     EXPECTED_TRAIN_IMPLEMENTATION_PATHS,
     EXPECTED_W1_08_SECURITY_CONTROL_PATHS,
@@ -70,6 +72,7 @@ from tools.platformctl.validate import (
     EXPECTED_W10_002_IMPLEMENTATION_PATHS,
     EXPECTED_W10_003_IMPLEMENTATION_PATHS,
     EXPECTED_W11_002_IMPLEMENTATION_PATHS,
+    EXPECTED_W11_003_IMPLEMENTATION_PATHS,
 )
 
 
@@ -143,6 +146,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "PRIV-003",
                 "FIS-002",
                 "RES-002",
+                "DR-001",
+                "RPO-001",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -262,6 +267,18 @@ class PlatformCtlUnitTests(unittest.TestCase):
             self.assertEqual("Blocked", feature["status"])
             self.assertEqual(["W11-002"], feature["linked_tracker_steps"])
         for path in EXPECTED_W11_002_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w11_003_disaster_recovery_manifests_are_exact_and_blocked(self) -> None:
+        self.assertEqual(19, len(EXPECTED_W11_003_IMPLEMENTATION_PATHS))
+        self.assertEqual(19, len(set(EXPECTED_W11_003_IMPLEMENTATION_PATHS)))
+        self.assertEqual(EXPECTED_DR_001_FEATURE, EXPECTED_FEATURES[29])
+        self.assertEqual(EXPECTED_RPO_001_FEATURE, EXPECTED_FEATURES[30])
+        for feature in EXPECTED_FEATURES[29:31]:
+            self.assertEqual("Blocked", feature["status"])
+            self.assertEqual(["W11-003"], feature["linked_tracker_steps"])
+        self.assertIn("configs/recovery", REQUIRED_DIRECTORIES)
+        for path in EXPECTED_W11_003_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
     def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:

@@ -42,6 +42,23 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W11-003 disaster-recovery and recovery-point contracts](W11/W11-003.md)
+  — defines source-only cold-rebuild contracts for Terraform state, governed
+  S3 source, OpenSearch indexes, model artifacts and model registry state.
+  Final local TEST-001 passed after bounded remediation: Ruff, MyPy, 2,764
+  configured full-suite tests, platform/YAML, OPA, Checkov, secret scanning,
+  pre-commit, source-composition and exact-boundary validation. Owner
+  recovery-policy, Terraform-format and Promtool checks passed; Promtool found
+  34 rules. Eight opt-in skips, four `aws`/`paid` deselections, all live
+  recovery/failover, deployment, operational rollback, cloud teardown and
+  cloud cost/residue proof remain **NOT RUN**. Multi-Region readiness is
+  **NOT_ESTABLISHED**. **Gyan Prakash Rai**, Project Owner and Final Approval
+  Reviewer, recorded **FINAL APPROVAL AFTER OWNER TEST — APPROVED** at
+  `2026-10-20 07:26:00 SGT` within the documented local/source boundary. The
+  canonical closed-record SHA-256 is
+  `f780f9e1941b687e1caa51f6fcba9734857588b41eb0021ffbe24d42bd70fe55`.
+  Tracker update responsibility remains **Owner**. See the
+  [Week 11 evidence index](W11/README.md).
 - [W11-002 AWS FIS and controlled dependency-chaos framework](W11/W11-002.md)
   — adds a strict synthetic-only chaos policy, 13 bounded dependency/safety
   scenarios, telemetry-backed abort, exact local restoration and residue
