@@ -28,6 +28,7 @@ from tools.platformctl.validate import (
     EXPECTED_EVAL_002_FEATURE,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
+    EXPECTED_FIS_002_FEATURE,
     EXPECTED_GHA_002_FEATURE,
     EXPECTED_GHA_FEATURE,
     EXPECTED_GHA_IMPLEMENTATION_PATHS,
@@ -48,6 +49,7 @@ from tools.platformctl.validate import (
     EXPECTED_REGISTRY_FEATURE,
     EXPECTED_REGISTRY_IMPLEMENTATION_PATHS,
     EXPECTED_RELEASE_IMPLEMENTATION_PATHS,
+    EXPECTED_RES_002_FEATURE,
     EXPECTED_RET_003_FEATURE,
     EXPECTED_RET_003_IMPLEMENTATION_PATHS,
     EXPECTED_SERVE_FEATURE,
@@ -66,6 +68,7 @@ from tools.platformctl.validate import (
     EXPECTED_W10_001_IMPLEMENTATION_PATHS,
     EXPECTED_W10_002_IMPLEMENTATION_PATHS,
     EXPECTED_W10_003_IMPLEMENTATION_PATHS,
+    EXPECTED_W11_002_IMPLEMENTATION_PATHS,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -179,6 +182,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 EXPECTED_RAG_003_FEATURE,
                 EXPECTED_EVAL_002_FEATURE,
                 EXPECTED_PRIV_003_FEATURE,
+                EXPECTED_FIS_002_FEATURE,
+                EXPECTED_RES_002_FEATURE,
             ],
             matrix["features"],
         )
@@ -215,6 +220,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "RAG-003",
                 "EVAL-002",
                 "PRIV-003",
+                "FIS-002",
+                "RES-002",
             ],
             [feature["id"] for feature in features],
         )
@@ -345,26 +352,36 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(32, len(set(EXPECTED_W9_004_IMPLEMENTATION_PATHS)))
 
     def test_w10_001_paths_are_owned_by_hybrid_retrieval_feature(self) -> None:
-        hybrid_feature = read_matrix()["features"][-4]
+        hybrid_feature = read_matrix()["features"][23]
 
         self.assertEqual(EXPECTED_RAG_002_FEATURE, hybrid_feature)
         self.assertEqual(23, len(EXPECTED_W10_001_IMPLEMENTATION_PATHS))
         self.assertEqual(23, len(set(EXPECTED_W10_001_IMPLEMENTATION_PATHS)))
 
     def test_w10_002_paths_are_owned_by_reranking_feature(self) -> None:
-        reranking_feature = read_matrix()["features"][-3]
+        reranking_feature = read_matrix()["features"][24]
 
         self.assertEqual(EXPECTED_RAG_003_FEATURE, reranking_feature)
         self.assertEqual(29, len(EXPECTED_W10_002_IMPLEMENTATION_PATHS))
         self.assertEqual(29, len(set(EXPECTED_W10_002_IMPLEMENTATION_PATHS)))
 
     def test_w10_003_paths_are_owned_by_evaluation_and_privacy_features(self) -> None:
-        evaluation_feature, privacy_feature = read_matrix()["features"][-2:]
+        evaluation_feature, privacy_feature = read_matrix()["features"][25:27]
 
         self.assertEqual(EXPECTED_EVAL_002_FEATURE, evaluation_feature)
         self.assertEqual(EXPECTED_PRIV_003_FEATURE, privacy_feature)
         self.assertEqual(21, len(EXPECTED_W10_003_IMPLEMENTATION_PATHS))
         self.assertEqual(21, len(set(EXPECTED_W10_003_IMPLEMENTATION_PATHS)))
+
+    def test_w11_002_paths_are_owned_by_blocked_chaos_and_resilience_features(self) -> None:
+        fis_feature, resilience_feature = read_matrix()["features"][27:29]
+
+        self.assertEqual(EXPECTED_FIS_002_FEATURE, fis_feature)
+        self.assertEqual(EXPECTED_RES_002_FEATURE, resilience_feature)
+        self.assertEqual(19, len(EXPECTED_W11_002_IMPLEMENTATION_PATHS))
+        self.assertEqual(19, len(set(EXPECTED_W11_002_IMPLEMENTATION_PATHS)))
+        self.assertEqual("Blocked", fis_feature["status"])
+        self.assertEqual("Blocked", resilience_feature["status"])
 
     def test_unapproved_feature_or_status_fails_contract(self) -> None:
         matrix = read_matrix()
@@ -418,6 +435,8 @@ class FeatureMatrixTests(unittest.TestCase):
             rag_003_feature,
             eval_002_feature,
             priv_003_feature,
+            fis_002_feature,
+            res_002_feature,
         ) = features
 
         self.assertEqual(
@@ -449,6 +468,8 @@ class FeatureMatrixTests(unittest.TestCase):
                 "RAG-003",
                 "EVAL-002",
                 "PRIV-003",
+                "FIS-002",
+                "RES-002",
             ],
             [item["id"] for item in features],
         )
@@ -482,6 +503,8 @@ class FeatureMatrixTests(unittest.TestCase):
         self.assertEqual(EXPECTED_RAG_003_FEATURE, rag_003_feature)
         self.assertEqual(EXPECTED_EVAL_002_FEATURE, eval_002_feature)
         self.assertEqual(EXPECTED_PRIV_003_FEATURE, priv_003_feature)
+        self.assertEqual(EXPECTED_FIS_002_FEATURE, fis_002_feature)
+        self.assertEqual(EXPECTED_RES_002_FEATURE, res_002_feature)
         self.assertEqual(
             [
                 "W3-01",

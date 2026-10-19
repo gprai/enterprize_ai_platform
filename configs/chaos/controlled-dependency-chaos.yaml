@@ -1,0 +1,94 @@
+schema_version: w11-002.controlled-dependency-chaos.v1
+prompt_id: W11-002
+feature_ids:
+  - FIS-002
+  - RES-002
+classification: source-contract-not-live-evidence
+environment: sandbox
+region: ap-southeast-1
+execution_mode: synthetic-in-process-only
+live_execution_status: NOT RUN
+source_identities:
+  fis_plan_sha256: db680d16-0206c49c-6d4bf8aa-c37712c0-bc19a2df-ac255ac4-06fecd40-a812274f
+  slo_policy_sha256: e6786d2a-6a7ed3b5-06051c56-716d8cea-b2d69200-ee2acfae-299faacb-9fcb21ae
+  fis_template_sha256: 83737a2a-4bc7f483-5cfc21c0-8d290cc4-fdc8e1be-a7fa8a88-fcaeff7e-6db4a534
+  fis_iam_sha256: ea1f0ea3-c1e6b915-17aa3673-4a7daef7-076eb19e-6b17cb4d-df2f7d88-a98dafea
+blast_radius:
+  maximum_scenarios: 1
+  maximum_targets: 1
+  maximum_duration_seconds: 300
+  local_deadline_seconds: 30
+  retry_count: 0
+stop_conditions:
+  - missing_or_stale_telemetry
+  - unsafe_state
+  - target_or_scenario_limit_exceeded
+  - local_deadline_exceeded
+  - cancellation_requested
+  - recovery_or_residue_unverified
+scenarios:
+  - id: eks_pod_loss
+    domain: eks
+    fault: pod_loss
+    sli_id: availability
+    expected_alert: EnterpriseAIAvailabilityFastBurnW11
+  - id: eks_node_loss
+    domain: eks
+    fault: node_loss_simulated
+    sli_id: availability
+    expected_alert: EnterpriseAIAvailabilityFastBurnW11
+  - id: bedrock_timeout
+    domain: bedrock
+    fault: timeout
+    sli_id: model_dependency_availability
+    expected_alert: EnterpriseAIModelDependencyUnavailable
+  - id: bedrock_throttle
+    domain: bedrock
+    fault: throttle
+    sli_id: model_dependency_availability
+    expected_alert: EnterpriseAIModelDependencyUnavailable
+  - id: opensearch_unavailable
+    domain: opensearch
+    fault: unavailable
+    sli_id: retrieval_dependency_availability
+    expected_alert: EnterpriseAIRetrievalDependencyUnavailable
+  - id: opensearch_stale
+    domain: opensearch
+    fault: stale_response
+    sli_id: retrieval_dependency_availability
+    expected_alert: EnterpriseAIRetrievalDependencyUnavailable
+  - id: s3_unavailable
+    domain: s3
+    fault: unavailable
+    sli_id: ingestion_freshness_hours
+    expected_alert: EnterpriseAISLIBreach
+  - id: s3_partial
+    domain: s3
+    fault: partial_failure
+    sli_id: ingestion_freshness_hours
+    expected_alert: EnterpriseAISLIBreach
+  - id: inference_timeout
+    domain: inference
+    fault: timeout
+    sli_id: model_dependency_availability
+    expected_alert: EnterpriseAIModelDependencyUnavailable
+  - id: inference_partial
+    domain: inference
+    fault: partial_failure
+    sli_id: model_dependency_availability
+    expected_alert: EnterpriseAIModelDependencyUnavailable
+  - id: network_timeout
+    domain: network
+    fault: timeout
+    sli_id: availability
+    expected_alert: EnterpriseAIAvailabilityFastBurnW11
+  - id: telemetry_loss
+    domain: telemetry
+    fault: exporter_loss
+    sli_id: availability
+    expected_alert: EnterpriseAISLIEvidenceIndeterminate
+  - id: unsafe_state
+    domain: safety
+    fault: unsafe_state
+    sli_id: safety_violation_rate
+    expected_alert: EnterpriseAISafetyViolation

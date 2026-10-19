@@ -42,6 +42,23 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W11-002 AWS FIS and controlled dependency-chaos framework](W11/W11-002.md)
+  — adds a strict synthetic-only chaos policy, 13 bounded dependency/safety
+  scenarios, telemetry-backed abort, exact local restoration and residue
+  proof without a live AWS execution path. Final local TEST-001 passed after
+  preserved remediation: 178 focused tests and 2,714 configured full-suite
+  tests, plus Ruff, MyPy, platform/YAML, OPA, Checkov, secret scanning,
+  pre-commit, owner Terraform formatting and native Promtool validation of 34
+  rules. Eight opt-in skips, four `aws`/`paid` deselections, live FIS, live
+  alert delivery, deployment, operational rollback, cloud teardown and cloud
+  cost/residue proof remain **NOT RUN**. The telemetry-loss rehearsal's SLI
+  remained **INDETERMINATE** by design. **Gyan Prakash Rai**, Project Owner
+  and Final Approval Reviewer, recorded **FINAL APPROVAL AFTER OWNER TEST —
+  APPROVED** at `2026-10-19 22:20:00 SGT` within the documented local/source
+  boundary. The canonical closed-record SHA-256 is
+  `36cc810c7f5ce52ffc0718aa2d206447296ec4889d17fd7f2d38933df23c70a6`.
+  Tracker update responsibility remains **Owner**. See the
+  [Week 11 evidence index](W11/README.md).
 - [W11-001 AI SLI/SLO and error-budget governance](W11/W11-001.md) —
   extends existing telemetry with 17 measurable source contracts, paired
   burn alerts and exact PASS/FAIL/NOT RUN/INDETERMINATE release decisions.

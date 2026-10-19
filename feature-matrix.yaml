@@ -1436,6 +1436,63 @@
         "redaction": "canonical reports contain content-free counts and hashes; synthetic raw responses are restricted to the owner ACL external evidence root",
         "retention": "immutable failed and passing evidence is retained for one-hundred-eighty days"
       }
+    },
+    {
+      "id": "FIS-002",
+      "implementation_paths": [
+        "configs/chaos/fis-plan.yaml",
+        "infra/modules/observability/main.tf",
+        "infra/modules/iam/main.tf",
+        "configs/chaos/controlled-dependency-chaos.yaml",
+        "src/enterprise_ai_platform/chaos.py",
+        "tools/chaosctl.py",
+        "tests/fakes/w11_002_chaos.py",
+        "tests/unit/test_w11_002_chaos.py",
+        "tests/contract/test_w11_002_chaos_contract.py",
+        "tests/integration/test_w11_002_chaos_composition.py",
+        "tests/feature/test_w11_002_chaos.py",
+        "tests/smoke/test_w11_002_chaos_cli.py",
+        "tests/security/test_w11_002_chaos_security.py",
+        "tests/rollback/test_w11_002_chaos_rollback.py",
+        "tests/teardown/test_w11_002_chaos_cleanliness.py",
+        "Makefile",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tools/w5_002_ci.py",
+        "tools/platformctl/plan.py"
+      ],
+      "status": "Blocked",
+      "linked_tracker_steps": ["W11-002"]
+    },
+    {
+      "id": "RES-002",
+      "implementation_paths": [
+        "configs/observability/slo.yaml",
+        "observability/alerts.yml",
+        "configs/chaos/controlled-dependency-chaos.yaml",
+        "src/enterprise_ai_platform/chaos.py",
+        "tools/chaosctl.py",
+        "tests/fakes/w11_002_chaos.py",
+        "tests/unit/test_w11_002_chaos.py",
+        "tests/contract/test_w11_002_chaos_contract.py",
+        "tests/integration/test_w11_002_chaos_composition.py",
+        "tests/feature/test_w11_002_chaos.py",
+        "tests/smoke/test_w11_002_chaos_cli.py",
+        "tests/security/test_w11_002_chaos_security.py",
+        "tests/rollback/test_w11_002_chaos_rollback.py",
+        "tests/teardown/test_w11_002_chaos_cleanliness.py",
+        "Makefile",
+        "feature-matrix.yaml",
+        "tools/platformctl/validate.py",
+        "tests/unit/test_platformctl.py",
+        "tests/feature/test_feature_matrix.py",
+        "tools/w5_002_ci.py",
+        "tools/platformctl/plan.py"
+      ],
+      "status": "Blocked",
+      "linked_tracker_steps": ["W11-002"]
     }
   ]
 }

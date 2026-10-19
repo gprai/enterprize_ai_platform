@@ -1684,6 +1684,49 @@ EXPECTED_GHA_002_FEATURE = {
     },
 }
 
+EXPECTED_W11_002_IMPLEMENTATION_PATHS = (
+    "configs/chaos/controlled-dependency-chaos.yaml",
+    "src/enterprise_ai_platform/chaos.py",
+    "tools/chaosctl.py",
+    "tests/fakes/w11_002_chaos.py",
+    "tests/unit/test_w11_002_chaos.py",
+    "tests/contract/test_w11_002_chaos_contract.py",
+    "tests/integration/test_w11_002_chaos_composition.py",
+    "tests/feature/test_w11_002_chaos.py",
+    "tests/smoke/test_w11_002_chaos_cli.py",
+    "tests/security/test_w11_002_chaos_security.py",
+    "tests/rollback/test_w11_002_chaos_rollback.py",
+    "tests/teardown/test_w11_002_chaos_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tools/w5_002_ci.py",
+    "tools/platformctl/plan.py",
+)
+EXPECTED_FIS_002_FEATURE = {
+    "id": "FIS-002",
+    "implementation_paths": [
+        "configs/chaos/fis-plan.yaml",
+        "infra/modules/observability/main.tf",
+        "infra/modules/iam/main.tf",
+        *EXPECTED_W11_002_IMPLEMENTATION_PATHS,
+    ],
+    "status": "Blocked",
+    "linked_tracker_steps": ["W11-002"],
+}
+EXPECTED_RES_002_FEATURE = {
+    "id": "RES-002",
+    "implementation_paths": [
+        "configs/observability/slo.yaml",
+        "observability/alerts.yml",
+        *EXPECTED_W11_002_IMPLEMENTATION_PATHS,
+    ],
+    "status": "Blocked",
+    "linked_tracker_steps": ["W11-002"],
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -1712,6 +1755,8 @@ EXPECTED_FEATURES = (
     EXPECTED_RAG_003_FEATURE,
     EXPECTED_EVAL_002_FEATURE,
     EXPECTED_PRIV_003_FEATURE,
+    EXPECTED_FIS_002_FEATURE,
+    EXPECTED_RES_002_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1881,6 +1926,7 @@ REQUIRED_FILES = (
     *EXPECTED_W10_001_IMPLEMENTATION_PATHS,
     *EXPECTED_W10_002_IMPLEMENTATION_PATHS,
     *EXPECTED_W10_003_IMPLEMENTATION_PATHS,
+    *EXPECTED_W11_002_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1937,7 +1983,8 @@ def validate_feature_matrix(data: object) -> list[str]:
             "REL-001, AWS-001, BED-001, GHA-001, EKS-001, SERVE-002, ORCH-001, "
             "COST-004, CAP-001, COST-005"
             ", TRAIN-001, COST-006, MLFLOW-001, RET-003, REGISTRY-001, "
-            "SUPPLY-002, GHA-002, RAG-002, RAG-003, EVAL-002, PRIV-003"
+            "SUPPLY-002, GHA-002, RAG-002, RAG-003, EVAL-002, PRIV-003, "
+            "FIS-002, RES-002"
         )
 
     return errors
