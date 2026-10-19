@@ -15,6 +15,7 @@ from enterprise_ai_platform.llm.models import Usage
 type HexDigest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 type GitSha = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
 type CaseId = Annotated[str, Field(pattern=r"^Q(?:[1-9]|[1-3][0-9])$")]
+type DatasetVersion = Literal["w3-002.v1", "w10-003.quality.v2"]
 type ExpectedOutcome = Literal["ANSWERED", "ABSTAINED", "ERROR"]
 type ActualOutcome = Literal["ANSWERED", "ABSTAINED", "ERROR"]
 type ExpectedAbstentionReason = Literal[
@@ -53,7 +54,7 @@ class EvaluationAuthorizationContext(StrictEvaluationModel):
 
 
 class GoldenCase(StrictEvaluationModel):
-    dataset_version: Literal["w3-002.v1"]
+    dataset_version: DatasetVersion
     case_id: CaseId
     question: str = Field(min_length=1, max_length=10_000)
     tenant_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
@@ -141,7 +142,7 @@ class GoldenCase(StrictEvaluationModel):
 
 
 class GoldenDataset(StrictEvaluationModel):
-    version: Literal["w3-002.v1"]
+    version: DatasetVersion
     checksum_sha256: HexDigest
     cases: tuple[GoldenCase, ...] = Field(min_length=39, max_length=39)
 

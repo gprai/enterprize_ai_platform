@@ -68,6 +68,9 @@ def load_golden_dataset(path: Path) -> GoldenDataset:
         raise DuplicateEvaluationCaseError
     if case_ids != _EXPECTED_CASE_IDS:
         raise EvaluationDatasetError
+    dataset_versions = {case.dataset_version for case in cases}
+    if len(dataset_versions) != 1:
+        raise EvaluationDatasetError
     outcomes = tuple(case.expected_outcome for case in cases)
     if (outcomes.count("ANSWERED"), outcomes.count("ABSTAINED"), outcomes.count("ERROR")) != (
         24,
@@ -85,4 +88,8 @@ def load_golden_dataset(path: Path) -> GoldenDataset:
         raise EvaluationDatasetError
     frozen_cases = tuple(cases)
     checksum = hashlib.sha256(canonical_dataset_bytes(frozen_cases)).hexdigest()
-    return GoldenDataset(version="w3-002.v1", checksum_sha256=checksum, cases=frozen_cases)
+    return GoldenDataset(
+        version=frozen_cases[0].dataset_version,
+        checksum_sha256=checksum,
+        cases=frozen_cases,
+    )

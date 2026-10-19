@@ -11,6 +11,12 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from enterprise_ai_platform.rag.errors import RAGConfigurationError
 
+type RAGPromptVersion = Literal[
+    "w3-001.v1",
+    "w10-003.extractive.v1",
+    "w10-003.extractive.v2",
+]
+
 APPROVED_RAG_POLICY: Final[dict[str, object]] = {
     "top_k": 5,
     "min_score": 0.50,
@@ -19,6 +25,19 @@ APPROVED_RAG_POLICY: Final[dict[str, object]] = {
     "max_output_tokens": 512,
     "prompt_version": "w3-001.v1",
 }
+APPROVED_W10_003_RAG_POLICY_V1: Final[dict[str, object]] = {
+    **APPROVED_RAG_POLICY,
+    "prompt_version": "w10-003.extractive.v1",
+}
+APPROVED_W10_003_RAG_POLICY: Final[dict[str, object]] = {
+    **APPROVED_RAG_POLICY,
+    "prompt_version": "w10-003.extractive.v2",
+}
+APPROVED_RAG_POLICIES: Final[tuple[dict[str, object], ...]] = (
+    APPROVED_RAG_POLICY,
+    APPROVED_W10_003_RAG_POLICY_V1,
+    APPROVED_W10_003_RAG_POLICY,
+)
 
 
 _yaml: Any = importlib.import_module("yaml")
@@ -46,7 +65,7 @@ _UniqueKeyLoader.add_constructor(
 
 
 class RAGPolicy(BaseModel):
-    """Frozen policy whose values are constrained to the approved W3 baseline."""
+    """Frozen policy constrained to an approved versioned RAG contract."""
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
@@ -55,12 +74,12 @@ class RAGPolicy(BaseModel):
     minimum_qualifying_chunks: int = Field(ge=1, le=100)
     max_context_characters: int = Field(ge=1, le=100_000)
     max_output_tokens: int = Field(ge=1, le=8192)
-    prompt_version: Literal["w3-001.v1"] = "w3-001.v1"
+    prompt_version: RAGPromptVersion = "w3-001.v1"
 
     @model_validator(mode="after")
     def require_approved_values(self) -> RAGPolicy:
-        if self.model_dump(mode="python") != APPROVED_RAG_POLICY:
-            raise ValueError("RAG policy differs from the approved W3-001 baseline")
+        if self.model_dump(mode="python") not in APPROVED_RAG_POLICIES:
+            raise ValueError("RAG policy differs from every approved versioned contract")
         return self
 
 
@@ -103,7 +122,7 @@ def load_rag_policy(path: Path) -> RAGPolicy:
     if not isinstance(raw, dict):
         raise RAGConfigurationError
     checked = _require_strict_policy_types(raw)
-    if checked != APPROVED_RAG_POLICY:
+    if checked not in APPROVED_RAG_POLICIES:
         raise RAGConfigurationError
     try:
         return RAGPolicy.model_validate(checked, strict=True)

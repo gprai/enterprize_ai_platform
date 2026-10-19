@@ -483,6 +483,82 @@ EXPECTED_RAG_003_FEATURE = {
         ),
     },
 }
+EXPECTED_W10_003_IMPLEMENTATION_PATHS = (
+    "configs/eval/rag-safety-regression-policy.yaml",
+    "configs/eval/rag-safety-golden-set.jsonl",
+    "src/enterprise_ai_platform/evaluation/rag_safety.py",
+    "src/enterprise_ai_platform/evaluation/rag_safety_runner.py",
+    "tests/fakes/w10_003_rag_evaluation.py",
+    "tests/unit/test_w10_003_rag_evaluation.py",
+    "tests/contract/test_w10_003_rag_evaluation_contract.py",
+    "tests/integration/test_w10_003_rag_evaluation_composition.py",
+    "tests/feature/test_w10_003_rag_evaluation.py",
+    "tests/security/test_w10_003_rag_evaluation_security.py",
+    "tests/rollback/test_w10_003_rag_evaluation_rollback.py",
+    "tests/teardown/test_w10_003_rag_evaluation_cleanliness.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tools/evaluationctl.py",
+    "tools/validate_eval_dataset.py",
+    "src/enterprise_ai_platform/evaluation/__init__.py",
+    "src/enterprise_ai_platform/evaluation/errors.py",
+)
+EXPECTED_EVAL_002_FEATURE = {
+    "id": "EVAL-002",
+    "implementation_paths": list(EXPECTED_W10_003_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W10-003"],
+    "control_contract": {
+        "dataset": (
+            "protected W3 thirty-nine-case quality set plus twelve ordered synthetic INTERNAL "
+            "safety cases; production data is prohibited"
+        ),
+        "quality": (
+            "groundedness, citations, abstention and expected-error gates preserve W3 thresholds; "
+            "safety failures are non-compensable"
+        ),
+        "identity": (
+            "model, inference profile, prompt, embedding, retrieval, hybrid, reranker, index, "
+            "dataset and policy identities are bound by canonical SHA-256"
+        ),
+        "execution": (
+            "one sequential evaluation, zero evaluation retries, two attempts in each existing "
+            "retry channel, at most four wire calls per logical request, thirty logical requests "
+            "and a nine-hundred-second deadline"
+        ),
+        "release": (
+            "two repeatable control runs and two repeatable candidate runs are required; "
+            "any failed or indeterminate candidate identity is retained and blocked"
+        ),
+    },
+}
+EXPECTED_PRIV_003_FEATURE = {
+    "id": "PRIV-003",
+    "implementation_paths": list(EXPECTED_W10_003_IMPLEMENTATION_PATHS),
+    "status": "In Progress",
+    "linked_tracker_steps": ["W10-003"],
+    "control_contract": {
+        "classification": "PUBLIC and INTERNAL synthetic data only; production data is prohibited",
+        "separation": (
+            "questions, documents and metadata remain explicitly delimited untrusted content and "
+            "cannot become instructions or trusted provenance"
+        ),
+        "authorization": (
+            "cross-tenant retrieval, unauthorized tools and approval replay fail before "
+            "provider or tool execution"
+        ),
+        "redaction": (
+            "canonical reports contain content-free counts and hashes; synthetic raw responses are "
+            "restricted to the owner ACL external evidence root"
+        ),
+        "retention": (
+            "immutable failed and passing evidence is retained for one-hundred-eighty days"
+        ),
+    },
+}
 EXPECTED_EVAL_IMPLEMENTATION_PATHS = (
     ".gitignore",
     "configs/eval/cited-rag-evaluation-policy.yaml",
@@ -1595,6 +1671,8 @@ EXPECTED_FEATURES = (
     EXPECTED_GHA_002_FEATURE,
     EXPECTED_RAG_002_FEATURE,
     EXPECTED_RAG_003_FEATURE,
+    EXPECTED_EVAL_002_FEATURE,
+    EXPECTED_PRIV_003_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1763,6 +1841,7 @@ REQUIRED_FILES = (
     *EXPECTED_W9_004_IMPLEMENTATION_PATHS,
     *EXPECTED_W10_001_IMPLEMENTATION_PATHS,
     *EXPECTED_W10_002_IMPLEMENTATION_PATHS,
+    *EXPECTED_W10_003_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",
@@ -1819,7 +1898,7 @@ def validate_feature_matrix(data: object) -> list[str]:
             "REL-001, AWS-001, BED-001, GHA-001, EKS-001, SERVE-002, ORCH-001, "
             "COST-004, CAP-001, COST-005"
             ", TRAIN-001, COST-006, MLFLOW-001, RET-003, REGISTRY-001, "
-            "SUPPLY-002, GHA-002, RAG-002, RAG-003"
+            "SUPPLY-002, GHA-002, RAG-002, RAG-003, EVAL-002, PRIV-003"
         )
 
     return errors

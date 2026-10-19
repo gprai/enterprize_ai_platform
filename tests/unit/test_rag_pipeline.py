@@ -50,6 +50,17 @@ def _policy() -> RAGPolicy:
     )
 
 
+def _w10_policy() -> RAGPolicy:
+    return RAGPolicy(
+        top_k=5,
+        min_score=0.50,
+        minimum_qualifying_chunks=1,
+        max_context_characters=12000,
+        max_output_tokens=512,
+        prompt_version="w10-003.extractive.v2",
+    )
+
+
 def _auth() -> AuthContext:
     return AuthContext(
         subject_id="reader-a",
@@ -129,12 +140,17 @@ def _response(citations: object, *, answer: str = "Governed answer.") -> ChatRes
     )
 
 
-def _service(chunks: object, response: ChatResponse) -> tuple[RAGService, FakeLLMProvider]:
+def _service(
+    chunks: object,
+    response: ChatResponse,
+    *,
+    policy: RAGPolicy | None = None,
+) -> tuple[RAGService, FakeLLMProvider]:
     provider = FakeLLMProvider([response])
     service = RAGService(
         retrieval_service=cast(RetrievalService, StubRetrieval(chunks)),
         llm_provider=provider,
-        policy=_policy(),
+        policy=_policy() if policy is None else policy,
     )
     return service, provider
 
@@ -169,6 +185,90 @@ def test_single_json_markdown_fence_is_accepted_before_strict_validation() -> No
         **_citation(chunk),
         "label": None,
     }
+
+
+def test_w10_prompt_uses_extractive_instruction_and_trusted_evidence_reference() -> None:
+    chunk = _chunk(text="The approved answer is copied exactly from this evidence.")
+    response = _response(
+        [{"evidence_ref": "E1"}],
+        answer="The approved answer is copied exactly from this evidence.",
+    )
+    service, provider = _service((chunk,), response, policy=_w10_policy())
+
+    result = asyncio.run(service.answer(_auth(), Query(text="What is approved?")))
+
+    assert isinstance(result, CitedAnswerResult)
+    assert result.prompt_version == "w10-003.extractive.v2"
+    assert result.answer.citations[0].model_dump() == {**_citation(chunk), "label": None}
+    system_prompt = provider.requests[0].messages[0].content
+    evidence = provider.requests[0].messages[1].content
+    assert "character-for-character" in system_prompt
+    assert '"evidence_ref":"E1"' in evidence
+    assert chunk.document_version not in evidence
+    assert chunk.chunk_id not in evidence
+
+
+def test_w10_v2_prompt_requires_complete_multi_fact_multi_block_answer() -> None:
+    first = _chunk(
+        chunk_index=0,
+        text="Golden-set Recall@5 must be at least 0.85.",
+    )
+    second_text = "At least 95% of eligible outcomes must be citation-valid "
+    second_text += "answers or safe abstentions."
+    second = _chunk(
+        chunk_index=1,
+        text=second_text,
+    )
+    answer = f"{first.text} {second.text}"
+    service, provider = _service(
+        (first, second),
+        _response(
+            [{"evidence_ref": "E1"}, {"evidence_ref": "E2"}],
+            answer=answer,
+        ),
+        policy=_w10_policy(),
+    )
+
+    result = asyncio.run(
+        service.answer(
+            _auth(),
+            Query(text="What are both initial quality targets?"),
+        )
+    )
+
+    assert isinstance(result, CitedAnswerResult)
+    assert result.answer.text == answer
+    assert len(result.answer.citations) == 2
+    system_prompt = provider.requests[0].messages[0].content
+    assert "every distinct sentence or passage" in system_prompt
+    assert "all of those facts" in system_prompt
+    assert "one reference for every evidence block" in system_prompt
+
+
+@pytest.mark.parametrize(
+    "citations",
+    [
+        [{"evidence_ref": "E2"}],
+        [{"evidence_ref": "E1"}, {"evidence_ref": "E1"}],
+        [{"evidence_ref": "E1", "document_version": "fabricated"}],
+    ],
+)
+def test_w10_unknown_duplicate_or_ambiguous_reference_safely_abstains(
+    citations: list[dict[str, str]],
+) -> None:
+    service, _provider = _service(
+        (_chunk(),),
+        _response(citations, answer="raw-generated-answer-must-not-escape"),
+        policy=_w10_policy(),
+    )
+
+    result = asyncio.run(service.answer(_auth(), Query(text="Synthetic query")))
+
+    assert result == AbstentionResult(
+        reason="invalid_generated_citation",
+        prompt_version="w10-003.extractive.v2",
+        usage=Usage(input_tokens=10, output_tokens=5, total_tokens=15),
+    )
 
 
 def test_explicit_provider_abstention_is_mapped_to_safe_result() -> None:

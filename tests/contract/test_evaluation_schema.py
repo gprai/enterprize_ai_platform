@@ -32,3 +32,10 @@ def test_conditional_outcome_fields_reject_invalid_combinations() -> None:
     abstained["expected_error_code"] = "rag_output_validation_error"
     with pytest.raises(ValidationError):
         GoldenCase.model_validate(abstained, strict=True)
+
+
+def test_versioned_w10_quality_dataset_uses_the_same_strict_case_schema() -> None:
+    dataset = load_golden_dataset(ROOT / "configs" / "eval" / "golden-w10-003-v2.jsonl")
+
+    assert dataset.version == "w10-003.quality.v2"
+    assert all(case.dataset_version == dataset.version for case in dataset.cases)

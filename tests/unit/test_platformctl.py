@@ -33,12 +33,14 @@ from tools.platformctl.validate import (
     EXPECTED_COST_004_IMPLEMENTATION_PATHS,
     EXPECTED_COST_005_IMPLEMENTATION_PATHS,
     EXPECTED_COST_006_IMPLEMENTATION_PATHS,
+    EXPECTED_EVAL_002_FEATURE,
     EXPECTED_EVAL_IMPLEMENTATION_PATHS,
     EXPECTED_EVAL_LINKED_TRACKER_STEPS,
     EXPECTED_GHA_IMPLEMENTATION_PATHS,
     EXPECTED_MLFLOW_IMPLEMENTATION_PATHS,
     EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS,
     EXPECTED_ORCH_IMPLEMENTATION_PATHS,
+    EXPECTED_PRIV_003_FEATURE,
     EXPECTED_RAG_002_FEATURE,
     EXPECTED_RAG_003_FEATURE,
     EXPECTED_RAG_IMPLEMENTATION_PATHS,
@@ -64,6 +66,7 @@ from tools.platformctl.validate import (
     EXPECTED_W9_004_IMPLEMENTATION_PATHS,
     EXPECTED_W10_001_IMPLEMENTATION_PATHS,
     EXPECTED_W10_002_IMPLEMENTATION_PATHS,
+    EXPECTED_W10_003_IMPLEMENTATION_PATHS,
 )
 
 
@@ -133,6 +136,8 @@ class PlatformCtlUnitTests(unittest.TestCase):
                 "GHA-002",
                 "RAG-002",
                 "RAG-003",
+                "EVAL-002",
+                "PRIV-003",
             ],
             [feature["id"] for feature in EXPECTED_FEATURES],
         )
@@ -231,6 +236,16 @@ class PlatformCtlUnitTests(unittest.TestCase):
         self.assertEqual(EXPECTED_RAG_003_FEATURE, EXPECTED_FEATURES[24])
         self.assertEqual(["W10-002"], EXPECTED_FEATURES[24]["linked_tracker_steps"])
         for path in EXPECTED_W10_002_IMPLEMENTATION_PATHS:
+            self.assertIn(path, REQUIRED_FILES)
+
+    def test_w10_003_evaluation_and_privacy_manifest_is_exact(self) -> None:
+        self.assertEqual(21, len(EXPECTED_W10_003_IMPLEMENTATION_PATHS))
+        self.assertEqual(21, len(set(EXPECTED_W10_003_IMPLEMENTATION_PATHS)))
+        self.assertEqual(EXPECTED_EVAL_002_FEATURE, EXPECTED_FEATURES[25])
+        self.assertEqual(EXPECTED_PRIV_003_FEATURE, EXPECTED_FEATURES[26])
+        self.assertEqual(["W10-003"], EXPECTED_FEATURES[25]["linked_tracker_steps"])
+        self.assertEqual(["W10-003"], EXPECTED_FEATURES[26]["linked_tracker_steps"])
+        for path in EXPECTED_W10_003_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
     def test_w6_003_readiness_extends_mvp_without_claiming_completion(self) -> None:

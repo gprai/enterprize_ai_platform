@@ -35,6 +35,31 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W10-003 governed RAG evaluation and safety regression](W10/W10-003.md) —
+  adds privacy-safe versioned quality and adversarial datasets; exact model,
+  prompt, embedding, retrieval, reranker, policy, index and evidence identities;
+  grounded extractive answer, trusted citation, abstention, injection,
+  exfiltration, tenant, tool, loop, timeout, leakage and drift gates; canonical
+  serialization; and repeatable CONTROL/CANDIDATE comparison. Final local
+  validation passed with 2,619 full-suite tests, 8 skips, 4 deselections,
+  1 warning and 10 passing subtests, plus Ruff, MyPy, platform/YAML, OPA,
+  Checkov, secret-scan, pre-commit, boundary and residue checks. Historical
+  failed model runs and remediations remain visible. Final owner-authorized
+  synthetic Bedrock evidence passed across four repeatable runs and a
+  release-eligible comparison with no blocked final configuration, 116 total
+  provider requests, and estimated cost USD 0.03600161. No production data,
+  deployment, index mutation, cloud resource creation, production-residency
+  proof, delayed billing validation or operational cloud teardown occurred.
+  See the [Week 10 evidence index](W10/README.md). The canonical post-closure
+  evidence identity is
+  `d7091f8d47f73d7ad1b66cc5f8db2f3268a7a40de6308b6463331fc5e5e098ea`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-19 at 08:15:00 SGT. Every warning, historical failure,
+  INDETERMINATE event, remediation, skip, deselection, NOT RUN item,
+  limitation, dependency, deferred action, retained-evidence fact,
+  residual-resource fact, and cost boundary remains preserved. Tracker update
+  responsibility is **Owner**; no production or cloud readiness is inferred.
 - [W10-002 bounded reranking and backend parity](W10/W10-002.md) — adds a
   default-off provider-neutral local reranker after complete candidate
   authorization; bounds candidates, tokens, deadline, concurrency, queue, and

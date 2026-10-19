@@ -12,6 +12,7 @@ from enterprise_ai_platform.json_contracts import (
     DuplicateJSONKeyError,
     JSONValue,
     strict_json_loads,
+    unwrap_single_json_fence,
 )
 from enterprise_ai_platform.llm.errors import LLMError, LLMMalformedResponseError
 from enterprise_ai_platform.llm.models import ChatResponse, Usage
@@ -61,23 +62,7 @@ from enterprise_ai_platform.telemetry.runtime import (
 
 _REQUIRED_CITATION_KEYS = frozenset({"source_id", "document_id", "document_version", "chunk_id"})
 _ALLOWED_CITATION_KEYS = _REQUIRED_CITATION_KEYS | {"label"}
-_JSON_FENCE_OPEN = "```json"
-_JSON_FENCE_CLOSE = "```"
-
-
-def _unwrap_single_json_fence(text: str) -> str:
-    """Remove only one complete JSON Markdown fence and reject ambiguous envelopes."""
-
-    stripped = text.strip()
-    if not stripped.startswith("```"):
-        return text
-    lines = stripped.splitlines()
-    if len(lines) < 3 or lines[0] != _JSON_FENCE_OPEN or lines[-1] != _JSON_FENCE_CLOSE:
-        raise RAGOutputValidationError
-    payload = "\n".join(lines[1:-1])
-    if not payload.strip() or "```" in payload:
-        raise RAGOutputValidationError
-    return payload
+_REQUIRED_EVIDENCE_REFERENCE_KEYS = frozenset({"evidence_ref"})
 
 
 def _abstain(
@@ -152,6 +137,15 @@ def _generated_citation_key(raw: JSONValue) -> tuple[str, str, str, str] | None:
     return (source_id, document_id, document_version, chunk_id)
 
 
+def _generated_evidence_reference(raw: JSONValue) -> str | None:
+    if not isinstance(raw, dict) or set(raw) != _REQUIRED_EVIDENCE_REFERENCE_KEYS:
+        return None
+    reference = raw["evidence_ref"]
+    if not isinstance(reference, str):
+        return None
+    return reference
+
+
 def _parse_generated_answer(
     response: ChatResponse,
     evidence_blocks: tuple[EvidenceBlock, ...],
@@ -160,7 +154,7 @@ def _parse_generated_answer(
     if response.tool_calls:
         raise RAGOutputValidationError
     try:
-        generated = strict_json_loads(_unwrap_single_json_fence(response.text))
+        generated = strict_json_loads(unwrap_single_json_fence(response.text))
     except DuplicateJSONKeyError:
         return _abstain("invalid_generated_citation", policy, response.usage)
     except (TypeError, ValueError):
@@ -179,15 +173,32 @@ def _parse_generated_answer(
     if not isinstance(raw_citations, list) or not raw_citations:
         return _abstain("invalid_generated_citation", policy, response.usage)
 
-    supplied_counts: dict[tuple[str, str, str, str], int] = {}
-    for block in evidence_blocks:
-        supplied_counts[block.provenance] = supplied_counts.get(block.provenance, 0) + 1
     requested: set[tuple[str, str, str, str]] = set()
-    for raw_citation in raw_citations:
-        citation_key = _generated_citation_key(raw_citation)
-        if citation_key is None or supplied_counts.get(citation_key) != 1:
-            return _abstain("invalid_generated_citation", policy, response.usage)
-        requested.add(citation_key)
+    if policy.prompt_version in {
+        "w10-003.extractive.v1",
+        "w10-003.extractive.v2",
+    }:
+        references = {block.reference: block.provenance for block in evidence_blocks}
+        requested_references: set[str] = set()
+        for raw_citation in raw_citations:
+            reference = _generated_evidence_reference(raw_citation)
+            if (
+                reference is None
+                or reference not in references
+                or reference in requested_references
+            ):
+                return _abstain("invalid_generated_citation", policy, response.usage)
+            requested_references.add(reference)
+            requested.add(references[reference])
+    else:
+        supplied_counts: dict[tuple[str, str, str, str], int] = {}
+        for block in evidence_blocks:
+            supplied_counts[block.provenance] = supplied_counts.get(block.provenance, 0) + 1
+        for raw_citation in raw_citations:
+            citation_key = _generated_citation_key(raw_citation)
+            if citation_key is None or supplied_counts.get(citation_key) != 1:
+                return _abstain("invalid_generated_citation", policy, response.usage)
+            requested.add(citation_key)
 
     answer_text = generated["answer"]
     if not isinstance(answer_text, str) or not answer_text.strip():
@@ -359,6 +370,7 @@ class RAGService:
                 evidence_blocks = select_complete_evidence_blocks(
                     qualifying,
                     max_context_characters=self._policy.max_context_characters,
+                    prompt_version=self._policy.prompt_version,
                 )
                 if len(evidence_blocks) < self._policy.minimum_qualifying_chunks:
                     return self._observed_result(

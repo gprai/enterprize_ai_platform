@@ -2273,12 +2273,12 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         ".secrets.baseline",
         # pragma: allowlist nextline secret
-        "3d0843433c6260abad47f5a03826ae37ba4b60297210b0a2d5ea231675142552",
+        "9cddf0591fb9287b25967d92ff76f7fda62e6f204f308878bbdf745a926a47d8",
     ),
     (
         "feature-matrix.yaml",
         # pragma: allowlist nextline secret
-        "f4e1ca28b8d3fdf211210d0af932bd1b1765818468077ff981d6cbabcb64aa1b",
+        "6f962098053d8a498174d7a6f21e0fa5aa82605a949fafd173ccc3e72a89405d",
     ),
     (
         "configs/lifecycle/w6-004.json",
@@ -2313,7 +2313,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/feature/test_feature_matrix.py",
         # pragma: allowlist nextline secret
-        "3797baaa744be34fabd6f62474cfcde638f11d5f5b81a9d65a92938f1b3e0791",
+        "285269ee9912b78ce7c00bb7acd238265cc77b65209e076428f8cd82b1ee08d9",
     ),
     (
         "tests/feature/test_mvp_001_platformctl.py",
@@ -2323,7 +2323,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_precommit_controls.py",
         # pragma: allowlist nextline secret
-        "0ff0f2521ecc8d24f8aa65a9506b04d7e983200263f681402985ed387c037407",
+        "6d8c2b710132f4e209413c6000784be334e879b437fab10189acbacbd0552d67",
     ),
     (
         "tests/security/test_repository_security.py",
@@ -2348,7 +2348,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/teardown/test_w1_08_cleanliness.py",
         # pragma: allowlist nextline secret
-        "971c69606b844ecaa8aed4a3cab1dc261cf376a4782745972f8532a0e9e08abc",
+        "5f9bd0196e327362894fc3b9f04315dff7b2e9089e88060d461725e63f9e9914",
     ),
     (
         "tools/platformctl/__init__.py",

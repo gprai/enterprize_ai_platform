@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from enterprise_ai_platform.llm.models import Usage
+from enterprise_ai_platform.rag.config import RAGPromptVersion
 from enterprise_ai_platform.retrieval.models import Answer
 
 type AbstentionReason = Literal[
@@ -30,7 +31,7 @@ class RAGResultModel(BaseModel):
 class CitedAnswerResult(RAGResultModel):
     outcome: Literal["answered"] = "answered"
     answer: Answer
-    prompt_version: Literal["w3-001.v1"] = "w3-001.v1"
+    prompt_version: RAGPromptVersion = "w3-001.v1"
     usage: Usage | None = None
 
     @model_validator(mode="after")
@@ -43,7 +44,7 @@ class CitedAnswerResult(RAGResultModel):
 class AbstentionResult(RAGResultModel):
     outcome: Literal["abstained"] = "abstained"
     reason: AbstentionReason
-    prompt_version: Literal["w3-001.v1"] = "w3-001.v1"
+    prompt_version: RAGPromptVersion = "w3-001.v1"
     usage: Usage | None = None
 
 

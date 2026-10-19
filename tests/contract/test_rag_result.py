@@ -68,3 +68,21 @@ def test_result_is_an_exact_discriminated_union() -> None:
             },
             strict=True,
         )
+
+
+@pytest.mark.parametrize(
+    "prompt_version",
+    ["w10-003.extractive.v1", "w10-003.extractive.v2"],
+)
+def test_result_accepts_versioned_w10_extractive_prompts(prompt_version: str) -> None:
+    result = TypeAdapter(RAGResult).validate_python(
+        {
+            "outcome": "abstained",
+            "reason": "insufficient_evidence",
+            "prompt_version": prompt_version,
+            "usage": None,
+        },
+        strict=True,
+    )
+
+    assert result.prompt_version == prompt_version

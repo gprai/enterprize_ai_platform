@@ -17,6 +17,21 @@ class DuplicateJSONKeyError(ValueError):
     """Raised when untrusted JSON repeats an object key."""
 
 
+def unwrap_single_json_fence(value: str) -> str:
+    """Remove one exact JSON Markdown fence and reject ambiguous envelopes."""
+
+    stripped = value.strip()
+    if not stripped.startswith("```"):
+        return value
+    lines = stripped.splitlines()
+    if len(lines) < 3 or lines[0] != "```json" or lines[-1] != "```":
+        raise ValueError("JSON fence is malformed or ambiguous")
+    payload = "\n".join(lines[1:-1])
+    if not payload.strip() or "```" in payload:
+        raise ValueError("JSON fence is empty or nested")
+    return payload
+
+
 def _reject_duplicate_keys(pairs: list[tuple[str, JSONValue]]) -> JSONObject:
     result: JSONObject = {}
     for key, value in pairs:

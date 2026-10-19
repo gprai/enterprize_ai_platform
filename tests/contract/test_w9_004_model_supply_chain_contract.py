@@ -1,5 +1,8 @@
 """Exact W9-004 policy and registry-binding contracts."""
 
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 from enterprise_ai_platform.model_supply_chain import load_supply_chain_policy
@@ -7,6 +10,24 @@ from tests.fakes.w9_004_model_supply_chain import make_eligibility
 
 ROOT = Path(__file__).resolve().parents[2]
 ELIGIBILITY_PATH = "${{ runner.temp }}/w9-004/eligibility.json"
+
+
+def test_direct_cli_bootstraps_source_without_ambient_pythonpath() -> None:
+    environment = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+    environment.pop("PYTHONPATH", None)
+
+    completed = subprocess.run(  # noqa: S603 -- fixed local interpreter and script
+        [sys.executable, "-B", str(ROOT / "tools/w9_004_supply_chain.py"), "--help"],
+        cwd=ROOT,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "usage:" in completed.stdout
 
 
 def test_policy_preserves_owner_approved_limits() -> None:

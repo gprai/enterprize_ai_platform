@@ -40,8 +40,8 @@ def test_secret_baseline_contains_only_hashed_reviewed_results_and_no_backup() -
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
     results = baseline["results"]
     assert isinstance(results, dict) and results
-    assert len(results) == 45
-    assert sum(len(findings) for findings in results.values()) == 398
+    assert len(results) == 49
+    assert sum(len(findings) for findings in results.values()) == 405
     for path, findings in results.items():
         assert isinstance(path, str)
         assert isinstance(findings, list) and findings

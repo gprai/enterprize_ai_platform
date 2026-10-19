@@ -37,6 +37,38 @@ def test_reordered_exact_policy_is_valid(tmp_path: Path) -> None:
         policy.top_k = 6
 
 
+def test_w10_extractive_policy_is_exactly_approved() -> None:
+    policy = load_rag_policy(Path("configs/rag/w10-003.yaml"))
+
+    assert policy.prompt_version == "w10-003.extractive.v2"
+    assert policy.model_dump(mode="python") == {
+        "top_k": 5,
+        "min_score": 0.50,
+        "minimum_qualifying_chunks": 1,
+        "max_context_characters": 12000,
+        "max_output_tokens": 512,
+        "prompt_version": "w10-003.extractive.v2",
+    }
+
+
+def test_historical_w10_extractive_v1_policy_remains_approved(tmp_path: Path) -> None:
+    policy = load_rag_policy(
+        _write_policy(
+            tmp_path / "rag-v1.yaml",
+            """{
+              "top_k": 5,
+              "min_score": 0.50,
+              "minimum_qualifying_chunks": 1,
+              "max_context_characters": 12000,
+              "max_output_tokens": 512,
+              "prompt_version": "w10-003.extractive.v1"
+            }""",
+        )
+    )
+
+    assert policy.prompt_version == "w10-003.extractive.v1"
+
+
 @pytest.mark.parametrize(
     "content",
     [
@@ -86,4 +118,16 @@ def test_policy_schema_is_frozen_and_forbids_unknown_fields() -> None:
             max_context_characters=12000,
             max_output_tokens=512,
             prompt_version="w3-001.v1",
+        )
+
+
+def test_w10_policy_rejects_changed_non_version_values() -> None:
+    with pytest.raises(ValidationError):
+        RAGPolicy(
+            top_k=6,
+            min_score=0.50,
+            minimum_qualifying_chunks=1,
+            max_context_characters=12000,
+            max_output_tokens=512,
+            prompt_version="w10-003.extractive.v2",
         )

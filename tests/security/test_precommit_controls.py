@@ -86,15 +86,19 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "docker-compose.w2-004.yml": {"Base64 High Entropy String": 1},
     "docs/resource-cleanliness/W5-report.json": {"Hex High Entropy String": 1},
     "docs/resource-cleanliness/W6-final.json": {"Hex High Entropy String": 3},
+    "docs/test-evidence/W10/W10-003.md": {"Hex High Entropy String": 1},
     "docs/test-evidence/W2/W2-09-retrieval.json": {"Hex High Entropy String": 2},
     "docs/test-evidence/W6/W6-06-observability.json": {"Hex High Entropy String": 4},
     "src/enterprise_ai_platform/embeddings/sentence_transformer.py": {"Hex High Entropy String": 1},
     "src/enterprise_ai_platform/evaluation/fixtures.py": {"Hex High Entropy String": 3},
+    "src/enterprise_ai_platform/evaluation/rag_safety.py": {"Hex High Entropy String": 1},
+    "src/enterprise_ai_platform/evaluation/rag_safety_runner.py": {"Hex High Entropy String": 2},
     "src/enterprise_ai_platform/rag_rollback/identity.py": {"Hex High Entropy String": 13},
     "src/enterprise_ai_platform/release_rollback/identity.py": {"Hex High Entropy String": 2},
     "src/enterprise_ai_platform/retrieval/models.py": {"Hex High Entropy String": 1},
     "tests/contract/test_embedder.py": {"Hex High Entropy String": 1},
     "tests/contract/test_w5_002_workflow_contract.py": {"Hex High Entropy String": 9},
+    "tests/fakes/w10_003_rag_evaluation.py": {"Hex High Entropy String": 3},
     "tests/feature/test_local_retrieval.py": {"Hex High Entropy String": 1},
     "tests/integration/test_sentence_transformer_embedder.py": {"Hex High Entropy String": 1},
     "tests/integration/test_w5_002_ci_composition.py": {"Base64 High Entropy String": 1},
@@ -186,10 +190,13 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "docker-compose.w2-004.yml": {29: 1},
     "docs/resource-cleanliness/W5-report.json": {61: 1},
     "docs/resource-cleanliness/W6-final.json": {43: 1, 70: 1, 72: 1},
+    "docs/test-evidence/W10/W10-003.md": {279: 1},
     "docs/test-evidence/W2/W2-09-retrieval.json": {27: 1, 29: 1},
     "docs/test-evidence/W6/W6-06-observability.json": {6: 1, 11: 1, 54: 1, 55: 1},
     "src/enterprise_ai_platform/embeddings/sentence_transformer.py": {43: 1},
     "src/enterprise_ai_platform/evaluation/fixtures.py": {35: 1, 36: 1, 62: 1},
+    "src/enterprise_ai_platform/evaluation/rag_safety.py": {241: 1},
+    "src/enterprise_ai_platform/evaluation/rag_safety_runner.py": {175: 1, 177: 1},
     "src/enterprise_ai_platform/rag_rollback/identity.py": {
         40: 1,
         41: 1,
@@ -219,6 +226,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         111: 1,
         115: 1,
     },
+    "tests/fakes/w10_003_rag_evaluation.py": {43: 1, 45: 1, 52: 1},
     "tests/feature/test_local_retrieval.py": {46: 1},
     "tests/integration/test_sentence_transformer_embedder.py": {111: 1},
     "tests/integration/test_w5_002_ci_composition.py": {84: 1},
@@ -424,8 +432,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 45
-    assert sum(len(findings) for findings in results.values()) == 398
+    assert len(results) == 49
+    assert sum(len(findings) for findings in results.values()) == 405
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

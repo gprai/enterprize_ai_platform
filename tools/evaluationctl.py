@@ -1,4 +1,4 @@
-"""Repository-local command bootstrap for W3-002 evaluation operations."""
+"""Repository-local command bootstrap for governed evaluation operations."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
-_COMMANDS = frozenset({"candidate", "promotion"})
+_COMMANDS = frozenset({"candidate", "promotion", "rag-safety"})
 _BOOTSTRAP_ERROR = {"error_code": "evaluation_bootstrap_error", "status": "ERROR"}
 
 
@@ -42,6 +42,10 @@ def _entry_point(command: str) -> Callable[[Sequence[str] | None], int] | None:
             return main
         if command == "promotion":
             from enterprise_ai_platform.evaluation.promotion import main
+
+            return main
+        if command == "rag-safety":
+            from enterprise_ai_platform.evaluation.rag_safety_runner import main
 
             return main
     except ImportError:

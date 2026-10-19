@@ -7,6 +7,33 @@ deployment, production-quality, lifecycle, or cost readiness.
 
 ## Records
 
+- [W10-003 governed RAG evaluation and safety regression](W10-003.md) —
+  adds versioned privacy-safe quality and adversarial datasets; exact model,
+  prompt, embedding, retrieval, reranker, policy, index, and evidence
+  identities; grounded extractive answers with trusted citation provenance;
+  abstention, injection, exfiltration, tenant, tool, loop, timeout, leakage,
+  and drift gates; canonical report serialization; and repeatable
+  CONTROL/CANDIDATE comparison. Final local validation passed: Ruff, MyPy
+  across 192 source files, 2,619 full-suite tests with 8 skips, 4 deselections,
+  1 warning and 10 passing subtests, platform/YAML validation, strict OPA and
+  196 policy tests, Checkov, 852-file secret scanning, pre-commit, boundary,
+  and residue checks. Two historical paid evaluation failures and every
+  bounded remediation remain preserved. Final owner-authorized synthetic
+  Bedrock evidence passed across two repeatable CONTROL and two repeatable
+  CANDIDATE runs; the comparison is release eligible with no blocked final
+  configuration. The four final runs made 116 provider requests with estimated
+  cost USD 0.03600161. No production data, deployment, index mutation, cloud
+  resource creation, production-residency proof, delayed billing verification,
+  or operational cloud teardown occurred. The canonical post-closure evidence
+  identity is
+  `d7091f8d47f73d7ad1b66cc5f8db2f3268a7a40de6308b6463331fc5e5e098ea`.
+  Documentation closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  from Gyan Prakash Rai, Project Owner and Final Approval Reviewer, on
+  2026-10-19 at 08:15:00 SGT. Every warning, historical failure,
+  INDETERMINATE event, remediation, skip, deselection, NOT RUN item,
+  limitation, dependency, deferred action, retained-evidence fact,
+  residual-resource fact, and cost boundary remains preserved. Tracker update
+  responsibility is **Owner**; no production or cloud readiness is inferred.
 - [W10-002 bounded reranking and backend parity](W10-002.md) — adds a
   default-off provider-neutral reranking stage that receives only authorized
   backend candidates, binds an immutable local deterministic identity, limits

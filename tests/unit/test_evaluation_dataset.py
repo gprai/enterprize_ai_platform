@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -17,9 +18,13 @@ from enterprise_ai_platform.evaluation.errors import (
     EvaluationConfigurationError,
     EvaluationDatasetError,
 )
+from enterprise_ai_platform.evaluation.fixtures import fixture_for
+from enterprise_ai_platform.evaluation.metrics import contains_contiguous_tokens
+from enterprise_ai_platform.retrieval.models import RetrievedChunk
 
 ROOT = Path(__file__).resolve().parents[2]
 DATASET = ROOT / "configs" / "eval" / "golden.jsonl"
+W10_DATASET = ROOT / "configs" / "eval" / "golden-w10-003-v2.jsonl"
 CONFIG = ROOT / "configs" / "eval" / "cited-rag-evaluation-policy.yaml"
 
 
@@ -34,6 +39,49 @@ def test_golden_dataset_has_exact_owner_inventory() -> None:
         tuple(case.case_id for case in dataset.cases if case.retrieval_metric_eligible)
         == RETRIEVAL_ELIGIBLE_CASE_IDS
     )
+
+
+def test_w10_dataset_versions_only_the_three_evidence_aligned_facts() -> None:
+    original = load_golden_dataset(DATASET)
+    aligned = load_golden_dataset(W10_DATASET)
+
+    assert original.version == "w3-002.v1"
+    assert aligned.version == "w10-003.quality.v2"
+    assert aligned.checksum_sha256 != original.checksum_sha256
+    changed: list[str] = []
+    for before, after in zip(original.cases, aligned.cases, strict=True):
+        before_payload = before.model_dump(mode="python")
+        after_payload = after.model_dump(mode="python")
+        before_payload.pop("dataset_version")
+        after_payload.pop("dataset_version")
+        if before_payload != after_payload:
+            changed.append(after.case_id)
+            before_payload.pop("expected_facts")
+            after_payload.pop("expected_facts")
+            assert before_payload == after_payload
+    assert changed == ["Q1", "Q2", "Q4"]
+
+
+def test_every_w10_answered_fact_is_present_in_supplied_evidence() -> None:
+    dataset = load_golden_dataset(W10_DATASET)
+
+    for case in dataset.cases:
+        if case.expected_outcome != "ANSWERED":
+            continue
+        fixture = fixture_for(case)
+        chunks = cast(tuple[RetrievedChunk, ...], fixture.retrieval.raw_result)
+        evidence = " ".join(chunk.text for chunk in chunks)
+        assert all(contains_contiguous_tokens(evidence, fact) for fact in case.expected_facts)
+
+
+def test_mixed_dataset_versions_fail_closed(tmp_path: Path) -> None:
+    lines = W10_DATASET.read_text(encoding="utf-8").splitlines()
+    lines[0] = lines[0].replace("w10-003.quality.v2", "w3-002.v1", 1)
+    mixed = tmp_path / "mixed.jsonl"
+    mixed.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    with pytest.raises(EvaluationDatasetError):
+        load_golden_dataset(mixed)
 
 
 def test_canonical_checksum_ignores_object_key_order(tmp_path: Path) -> None:

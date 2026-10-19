@@ -47,13 +47,14 @@ W7_003_CONFIG = configs/ingestion/privacy-retention-lifecycle.yaml
 W9_004_CONFIG = configs/ci/w9-004.json
 W10_001_PYTEST_BASETEMP ?=
 W10_002_PYTEST_BASETEMP ?=
+W10_003_PYTEST_BASETEMP ?=
 
 .PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke terraform-fmt-check terraform-validate-bootstrap terraform-validate-sandbox tflint-bootstrap tflint-sandbox checkov-config checkov-terraform opa-policy-check opa-terraform-policy w5-policy-tests w5-policy-rollback bedrock-owner-dry-run w5-static-tests w5-002-validate-config w5-002-validate-locks w5-002-static w5-002-workflow-contract w5-002-build w5-002-scan w5-002-sbom w5-002-clean-runtime w5-002-reconcile w5-002-rollback-identity w5-002-clean w5-002-verify-clean
 .PHONY: plan-sandbox w5-004-bootstrap-plan w5-004-bootstrap-apply w5-004-platform-plan w5-004-policy-review w5-004-cost-review w5-004-platform-apply w5-004-aws-verify w5-004-infrastructure-rollback w5-004-destroy-plan w5-004-purge-sandbox w5-004-platform-destroy w5-004-bootstrap-destroy w5-004-verify-clean
 .PHONY: w6-001-template-validate w6-001-policy w6-001-checkov w6-001-tests w6-001-release-bind w6-001-release-validate
 .PHONY: w6-002-validate w6-002-promtool w6-002-tests
 .PHONY: w6-003-validate w6-003-source-identity w6-003-tests w6-003-evidence-validate
-.PHONY: w6-004-source-validate w6-004-tests w7-001-tests w7-002-tests w7-003-tests w7-004-tests w8-002-tests w8-003-tests w8-004-tests w9-001-tests w9-002-tests w9-003-tests w9-004-validate w9-004-tests w10-001-tests w10-002-tests
+.PHONY: w6-004-source-validate w6-004-tests w7-001-tests w7-002-tests w7-003-tests w7-004-tests w8-002-tests w8-003-tests w8-004-tests w9-001-tests w9-002-tests w9-003-tests w9-004-validate w9-004-tests w10-001-tests w10-002-tests w10-003-tests
 
 help:
 	@echo "Available targets include W5-002 supply-chain controls and separately owner-gated W5-004 plan, apply, rollback, destroy, and cleanliness phases."
@@ -100,6 +101,10 @@ w10-001-tests:
 w10-002-tests:
 	$(if $(strip $(W10_002_PYTEST_BASETEMP)),,$(error W10_002_PYTEST_BASETEMP must name a unique external path))
 	$(PYTHON) -B -m pytest --basetemp "$(W10_002_PYTEST_BASETEMP)" -q -p no:cacheprovider tests/unit/test_w10_002_reranking.py tests/contract/test_w10_002_reranking_contract.py tests/integration/test_w10_002_reranking_composition.py tests/feature/test_w10_002_reranking_parity_load_cost.py tests/security/test_w10_002_reranking_security.py tests/rollback/test_w10_002_reranking_rollback.py tests/teardown/test_w10_002_reranking_cleanliness.py tests/integration/test_opensearch.py tests/integration/test_qdrant.py tests/unit/test_config.py tests/security/test_configuration_security.py tests/unit/test_aws_composition.py tests/feature/test_feature_matrix.py tests/unit/test_platformctl.py
+
+w10-003-tests:
+	$(if $(strip $(W10_003_PYTEST_BASETEMP)),,$(error W10_003_PYTEST_BASETEMP must name a unique external path))
+	$(PYTHON) -B -m pytest --basetemp "$(W10_003_PYTEST_BASETEMP)" -q -p no:cacheprovider tests/unit/test_w10_003_rag_evaluation.py tests/contract/test_w10_003_rag_evaluation_contract.py tests/integration/test_w10_003_rag_evaluation_composition.py tests/feature/test_w10_003_rag_evaluation.py tests/security/test_w10_003_rag_evaluation_security.py tests/rollback/test_w10_003_rag_evaluation_rollback.py tests/teardown/test_w10_003_rag_evaluation_cleanliness.py tests/unit/test_evaluation_dataset.py tests/unit/test_evaluation_metrics.py tests/unit/test_evaluation_runner.py tests/unit/test_agent_budgets.py tests/unit/test_agent_tools.py tests/security/test_agent_approval.py tests/feature/test_agent_failures.py tests/security/test_tenant_isolation.py tests/security/test_telemetry_redaction.py tests/security/test_evidence_redaction.py tests/feature/test_feature_matrix.py tests/unit/test_platformctl.py
 
 validate:
 	$(PYTHON) -m tools.platformctl validate

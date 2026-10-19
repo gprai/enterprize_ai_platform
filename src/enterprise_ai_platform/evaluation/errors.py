@@ -62,3 +62,23 @@ class PromotionChecksumError(EvaluationError):
 
 class PromotionTargetExistsError(EvaluationError):
     code = "promotion_target_already_exists"
+
+
+class RAGSafetyDatasetError(EvaluationError):
+    code = "rag_safety_dataset_invalid"
+
+
+class RAGSafetyPolicyError(EvaluationError):
+    code = "rag_safety_policy_invalid"
+
+
+class RAGSafetyIdentityError(EvaluationError):
+    code = "rag_safety_identity_invalid"
+
+
+class RAGSafetyResultError(EvaluationError):
+    code = "rag_safety_result_invalid"
+
+
+class RAGSafetyEvidenceError(EvaluationError):
+    code = "rag_safety_evidence_invalid"

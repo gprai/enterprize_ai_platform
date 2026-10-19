@@ -11,14 +11,19 @@ from typing import Any, cast
 
 import yaml  # type: ignore[import-untyped]
 
-from enterprise_ai_platform.json_contracts import JSONValue
-from enterprise_ai_platform.model_supply_chain import (
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE_PATH = (ROOT / "src").resolve()
+if str(SOURCE_PATH) not in sys.path:
+    sys.path.insert(0, str(SOURCE_PATH))
+
+from enterprise_ai_platform.json_contracts import JSONValue  # noqa: E402
+from enterprise_ai_platform.model_supply_chain import (  # noqa: E402
     SupplyChainEligibility,
     canonical_bytes,
     inspect_model_archive,
     load_supply_chain_policy,
 )
-from enterprise_ai_platform.model_supply_chain.errors import ModelSupplyChainError
+from enterprise_ai_platform.model_supply_chain.errors import ModelSupplyChainError  # noqa: E402
 
 
 class UniqueSafeLoader(yaml.SafeLoader):  # type: ignore[misc]

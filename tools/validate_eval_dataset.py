@@ -1,4 +1,4 @@
-"""Owner-run strict validation command for the W3-002 golden dataset."""
+"""Owner-run strict validation command for approved evaluation datasets."""
 
 from __future__ import annotations
 
@@ -13,6 +13,9 @@ if str(SRC) not in sys.path:
 
 from enterprise_ai_platform.evaluation.dataset import load_golden_dataset  # noqa: E402
 from enterprise_ai_platform.evaluation.errors import EvaluationError  # noqa: E402
+from enterprise_ai_platform.evaluation.rag_safety import (  # noqa: E402
+    load_safety_dataset,
+)
 
 
 def main(arguments: list[str] | None = None) -> int:
@@ -21,24 +24,30 @@ def main(arguments: list[str] | None = None) -> int:
         print(json.dumps({"status": "ERROR", "error_code": "invalid_dataset"}))
         return 2
     try:
-        dataset = load_golden_dataset(Path(values[0]))
+        path = Path(values[0])
+        if path.as_posix() == "configs/eval/rag-safety-golden-set.jsonl":
+            safety_dataset = load_safety_dataset(path)
+            payload = {
+                "status": "PASS",
+                "dataset_id": safety_dataset.dataset_id,
+                "case_count": len(safety_dataset.cases),
+                "checksum_sha256": safety_dataset.checksum_sha256,
+            }
+        else:
+            dataset = load_golden_dataset(path)
+            payload = {
+                "status": "PASS",
+                "dataset_version": dataset.version,
+                "case_count": len(dataset.cases),
+                "checksum_sha256": dataset.checksum_sha256,
+            }
     except EvaluationError as exc:
         print(json.dumps({"status": "ERROR", "error_code": exc.code}))
         return 1
     except Exception:
         print(json.dumps({"status": "ERROR", "error_code": "evaluation_error"}))
         return 1
-    print(
-        json.dumps(
-            {
-                "status": "PASS",
-                "dataset_version": dataset.version,
-                "case_count": len(dataset.cases),
-                "checksum_sha256": dataset.checksum_sha256,
-            },
-            sort_keys=True,
-        )
-    )
+    print(json.dumps(payload, sort_keys=True))
     return 0
 
 
