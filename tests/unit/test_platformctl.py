@@ -548,10 +548,10 @@ class PlatformCtlUnitTests(unittest.TestCase):
         for path in EXPECTED_AGENT_IMPLEMENTATION_PATHS:
             self.assertIn(path, REQUIRED_FILES)
 
-    def test_w6_002_observability_contract_is_exactly_appended(self) -> None:
-        self.assertEqual(68, len(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS))
+    def test_w11_001_observability_contract_is_exactly_appended(self) -> None:
+        self.assertEqual(79, len(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS))
         self.assertEqual(
-            68,
+            79,
             len(set(EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS)),
         )
         self.assertEqual(
@@ -564,8 +564,21 @@ class PlatformCtlUnitTests(unittest.TestCase):
             EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS[:4],
         )
         self.assertEqual(
-            ["W3-09", "W4-08", "W6-06", "W6-07", "W6-08", "W6-09", "W10-004"],
+            [
+                "W3-09",
+                "W4-08",
+                "W6-06",
+                "W6-07",
+                "W6-08",
+                "W6-09",
+                "W10-004",
+                "W11-001",
+            ],
             EXPECTED_FEATURES[5]["linked_tracker_steps"],
+        )
+        self.assertEqual(
+            "tests/teardown/test_w11_001_ai_reliability_cleanliness.py",
+            EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS[-1],
         )
         self.assertIn("configs/observability", REQUIRED_DIRECTORIES)
         self.assertIn(

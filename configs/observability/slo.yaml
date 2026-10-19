@@ -82,3 +82,268 @@ handover:
     - approved-alert-destination
     - private-endpoint-and-pod-identity
     - retention-and-cost-cap
+ai_reliability:
+  schema_version: w11-001.ai-reliability.v1
+  prompt_id: W11-001
+  feature_id: OBS-001
+  classification: source-contract-not-live-evidence
+  status_values:
+    - PASS
+    - FAIL
+    - NOT RUN
+    - INDETERMINATE
+  metric_dimensions:
+    allowed:
+      - stage
+      - operation
+      - outcome
+      - dependency
+      - sli_id
+    prohibited:
+      - request_id
+      - test_id
+      - tenant_id
+      - user_id
+      - document_id
+      - prompt
+      - response
+    correlation_field: request_id
+    correlation_is_metric_dimension: false
+    raw_prompt_content_allowed: false
+    raw_response_content_allowed: false
+  burn_rate:
+    fast:
+      factor: 14.4
+      short_window: 5m
+      long_window: 1h
+      minimum_short_window_events: 20
+    slow:
+      factor: 6.0
+      short_window: 30m
+      long_window: 6h
+      minimum_short_window_events: 20
+  maintenance:
+    standing_exclusions_allowed: false
+    one_off_utc_only: true
+    maximum_duration_minutes: 120
+    suppressible_sli_ids:
+      - availability
+      - api_latency_p95
+      - api_latency_p99
+      - retrieval_latency_p99
+      - ingestion_freshness_hours
+      - retrieval_dependency_availability
+      - model_dependency_availability
+    never_suppress_sli_ids:
+      - unauthorized_retrieval_rate
+      - safety_violation_rate
+      - pii_leakage_rate
+  escalation:
+    owner_reference: role:platform-observability-primary
+    backup_owner_reference: role:platform-observability-backup
+    task_owner_reference: role:enterprise-ai-owner
+    destination_reference: external:owner-approved-alert-destination
+    delivery_status: NOT RUN
+    critical_primary_ack_minutes: 5
+    critical_backup_minutes: 10
+    critical_owner_minutes: 15
+    warning_primary_ack_minutes: 30
+    warning_backup_minutes: 60
+  decision:
+    pass_action: release_allowed
+    fail_action: release_frozen_rollback_review
+    not_run_action: release_blocked
+    indeterminate_action: release_blocked
+    automatic_rollback_allowed: false
+    rollback_requires_reviewed_policy_change: true
+    gap_07_status: OPEN_UNTIL_OWNER_EVIDENCE
+    gap_10_status: OPEN_UNTIL_OWNER_EVIDENCE
+    gap_14_status: OPEN_UNTIL_OWNER_EVIDENCE
+  slis:
+    - sli_id: availability
+      direction: minimum
+      unit: ratio
+      population: eligible_ai_requests
+      denominator: eligible_ai_requests
+      window: 30d
+      minimum_samples: 100
+      data_source: enterprise_ai_stage_executions_total
+      threshold: 0.999
+      burn_policy: paired_windows
+      missing_data_status: INDETERMINATE
+    - sli_id: api_latency_p95
+      direction: maximum
+      unit: seconds
+      population: successful_api_requests
+      denominator: successful_api_requests
+      window: 30d
+      minimum_samples: 100
+      data_source: enterprise_ai_stage_duration_seconds_bucket
+      threshold: 4
+      burn_policy: paired_windows
+      missing_data_status: INDETERMINATE
+    - sli_id: api_latency_p99
+      direction: maximum
+      unit: seconds
+      population: successful_api_requests
+      denominator: successful_api_requests
+      window: 30d
+      minimum_samples: 100
+      data_source: enterprise_ai_stage_duration_seconds_bucket
+      threshold: 10
+      burn_policy: paired_windows
+      missing_data_status: INDETERMINATE
+    - sli_id: retrieval_latency_p99
+      direction: maximum
+      unit: seconds
+      population: completed_retrieval_requests
+      denominator: completed_retrieval_requests
+      window: 30d
+      minimum_samples: 100
+      data_source: enterprise_ai_stage_duration_seconds_bucket
+      threshold: 0.75
+      burn_policy: paired_windows
+      missing_data_status: INDETERMINATE
+    - sli_id: answer_correctness
+      direction: minimum
+      unit: ratio
+      population: answered_evaluation_cases
+      denominator: answered_evaluation_cases
+      window: 30d
+      minimum_samples: 20
+      data_source: evaluation.report.answered_correctness
+      threshold: 0.95
+      burn_policy: release_gate
+      missing_data_status: INDETERMINATE
+    - sli_id: grounded_answer_rate
+      direction: minimum
+      unit: ratio
+      population: answered_ai_requests
+      denominator: answered_ai_requests
+      window: 30d
+      minimum_samples: 20
+      data_source: enterprise_ai_ai_groundedness
+      threshold: 0.95
+      burn_policy: release_gate
+      missing_data_status: INDETERMINATE
+    - sli_id: citation_coverage
+      direction: minimum
+      unit: ratio
+      population: citation_required_answers
+      denominator: citation_required_answers
+      window: 30d
+      minimum_samples: 20
+      data_source: enterprise_ai_ai_citation_coverage
+      threshold: 1.0
+      burn_policy: release_gate
+      missing_data_status: INDETERMINATE
+    - sli_id: retrieval_relevance
+      direction: minimum
+      unit: ratio
+      population: retrieval_evaluation_cases
+      denominator: retrieval_evaluation_cases
+      window: 30d
+      minimum_samples: 20
+      data_source: enterprise_ai_ai_retrieval_quality
+      threshold: 0.85
+      burn_policy: release_gate
+      missing_data_status: INDETERMINATE
+    - sli_id: correct_abstention_rate
+      direction: minimum
+      unit: ratio
+      population: expected_abstention_cases
+      denominator: expected_abstention_cases
+      window: 30d
+      minimum_samples: 20
+      data_source: evaluation.report.abstention_correctness
+      threshold: 0.95
+      burn_policy: release_gate
+      missing_data_status: INDETERMINATE
+    - sli_id: unauthorized_retrieval_rate
+      direction: maximum
+      unit: ratio
+      population: authorization_attempts
+      denominator: authorization_attempts
+      window: 30d
+      minimum_samples: 1
+      data_source: enterprise_ai_stage_executions_total
+      threshold: 0
+      burn_policy: immediate
+      missing_data_status: INDETERMINATE
+    - sli_id: safety_violation_rate
+      direction: maximum
+      unit: ratio
+      population: safety_evaluation_cases
+      denominator: safety_evaluation_cases
+      window: 30d
+      minimum_samples: 1
+      data_source: enterprise_ai_safety_violations_total
+      threshold: 0
+      burn_policy: immediate
+      missing_data_status: INDETERMINATE
+    - sli_id: pii_leakage_rate
+      direction: maximum
+      unit: ratio
+      population: pii_evaluation_cases
+      denominator: pii_evaluation_cases
+      window: 30d
+      minimum_samples: 1
+      data_source: evaluation.rag_safety.pii_failures
+      threshold: 0
+      burn_policy: immediate
+      missing_data_status: INDETERMINATE
+    - sli_id: ingestion_freshness_hours
+      direction: maximum
+      unit: hours
+      population: governed_ingestion_runs
+      denominator: governed_ingestion_runs
+      window: 30d
+      minimum_samples: 1
+      data_source: governed_ingestion_manifest.completed_at
+      threshold: 24
+      burn_policy: release_gate
+      missing_data_status: INDETERMINATE
+    - sli_id: retrieval_dependency_availability
+      direction: minimum
+      unit: ratio
+      population: retrieval_dependency_attempts
+      denominator: retrieval_dependency_attempts
+      window: 30d
+      minimum_samples: 100
+      data_source: enterprise_ai_ai_dependency_availability
+      threshold: 0.999
+      burn_policy: paired_windows
+      missing_data_status: INDETERMINATE
+    - sli_id: model_dependency_availability
+      direction: minimum
+      unit: ratio
+      population: model_dependency_attempts
+      denominator: model_dependency_attempts
+      window: 30d
+      minimum_samples: 100
+      data_source: enterprise_ai_ai_dependency_availability
+      threshold: 0.999
+      burn_policy: paired_windows
+      missing_data_status: INDETERMINATE
+    - sli_id: tokens_per_successful_query
+      direction: maximum
+      unit: tokens
+      population: successful_ai_queries
+      denominator: successful_ai_queries
+      window: 30d
+      minimum_samples: 20
+      data_source: enterprise_ai_usage_tokens_total
+      threshold: 16896
+      burn_policy: release_gate
+      missing_data_status: INDETERMINATE
+    - sli_id: cost_per_successful_query_usd
+      direction: maximum
+      unit: usd
+      population: successful_ai_queries
+      denominator: successful_ai_queries
+      window: 30d
+      minimum_samples: 20
+      data_source: enterprise_ai_ai_request_cost_usd_bucket
+      threshold: 0.01
+      burn_policy: release_gate
+      missing_data_status: INDETERMINATE

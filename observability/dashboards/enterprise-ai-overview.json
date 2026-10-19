@@ -17,14 +17,22 @@
     {"id": 13, "title": "Abstentions", "type": "timeseries", "targets": [{"expr": "sum(rate(enterprise_ai_ai_abstentions_total[5m])) by (outcome)"}]},
     {"id": 14, "title": "Dependency availability", "type": "stat", "targets": [{"expr": "min(enterprise_ai_ai_dependency_availability) by (dependency)"}]},
     {"id": 15, "title": "Admission decisions", "type": "timeseries", "targets": [{"expr": "sum(rate(enterprise_ai_ai_admission_decisions_total[5m])) by (reason,outcome)"}]},
-    {"id": 16, "title": "Configuration drift", "type": "stat", "targets": [{"expr": "max(enterprise_ai_ai_configuration_drift) by (evaluation_status)"}]}
+    {"id": 16, "title": "Configuration drift", "type": "stat", "targets": [{"expr": "max(enterprise_ai_ai_configuration_drift) by (evaluation_status)"}]},
+    {"id": 17, "title": "Governed release decision", "type": "stat", "targets": [{"expr": "max(enterprise_ai_ai_reliability_decision) by (outcome)"}]},
+    {"id": 18, "title": "AI error budget remaining", "type": "timeseries", "targets": [{"expr": "min(enterprise_ai_ai_reliability_error_budget_remaining_ratio) by (sli_id)"}]},
+    {"id": 19, "title": "Correct abstention rate", "type": "stat", "targets": [{"expr": "enterprise_ai_ai_reliability_observed_value{sli_id=\"correct_abstention_rate\"}"}]},
+    {"id": 20, "title": "Unauthorized retrieval rate", "type": "stat", "targets": [{"expr": "enterprise_ai_ai_reliability_observed_value{sli_id=\"unauthorized_retrieval_rate\"}"}]},
+    {"id": 21, "title": "PII leakage rate", "type": "stat", "targets": [{"expr": "enterprise_ai_ai_reliability_observed_value{sli_id=\"pii_leakage_rate\"}"}]},
+    {"id": 22, "title": "Ingestion freshness hours", "type": "timeseries", "targets": [{"expr": "enterprise_ai_ai_reliability_observed_value{sli_id=\"ingestion_freshness_hours\"}"}]},
+    {"id": 23, "title": "Tokens per successful query", "type": "timeseries", "targets": [{"expr": "enterprise_ai_ai_reliability_observed_value{sli_id=\"tokens_per_successful_query\"}"}]},
+    {"id": 24, "title": "Cost per successful query USD", "type": "timeseries", "targets": [{"expr": "enterprise_ai_ai_reliability_observed_value{sli_id=\"cost_per_successful_query_usd\"}"}]}
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["enterprise-ai", "w6-002", "w10-004", "deployment-readiness"],
+  "tags": ["enterprise-ai", "w6-002", "w10-004", "w11-001", "deployment-readiness"],
   "templating": {"list": []},
   "time": {"from": "now-6h", "to": "now"},
   "title": "Enterprise AI Platform Overview",
   "uid": "enterprise-ai-w6-002",
-  "version": 2
+  "version": 3
 }

@@ -41,6 +41,32 @@ EXPECTED_W10_004_ALERTS = {
     "EnterpriseAIRetrievalQualityLow",
     "EnterpriseAIAuthorizationFailure",
 }
+EXPECTED_W11_001_ALERTS = {
+    "EnterpriseAIAvailabilityFastBurnW11",
+    "EnterpriseAIAvailabilitySlowBurnW11",
+    "EnterpriseAIErrorBudgetExhausted",
+    "EnterpriseAISLIEvidenceIndeterminate",
+    "EnterpriseAISLIBreach",
+}
+EXPECTED_W11_001_SLIS = (
+    "availability",
+    "api_latency_p95",
+    "api_latency_p99",
+    "retrieval_latency_p99",
+    "answer_correctness",
+    "grounded_answer_rate",
+    "citation_coverage",
+    "retrieval_relevance",
+    "correct_abstention_rate",
+    "unauthorized_retrieval_rate",
+    "safety_violation_rate",
+    "pii_leakage_rate",
+    "ingestion_freshness_hours",
+    "retrieval_dependency_availability",
+    "model_dependency_availability",
+    "tokens_per_successful_query",
+    "cost_per_successful_query_usd",
+)
 EXPECTED_LOCAL_REHEARSALS = {
     "opensearch_unavailable",
     "opensearch_timeout",
@@ -140,6 +166,37 @@ def validate(root: Path) -> str:
         "delivery_evidence_sha256": None,
     }:
         raise W6002Error("alert ownership or destination differs")
+    ai_reliability = slo.get("ai_reliability")
+    if not isinstance(ai_reliability, dict):
+        raise W6002Error("W11-001 AI reliability contract is missing")
+    if (
+        ai_reliability.get("schema_version") != "w11-001.ai-reliability.v1"
+        or ai_reliability.get("prompt_id") != "W11-001"
+        or ai_reliability.get("feature_id") != "OBS-001"
+        or ai_reliability.get("status_values") != ["PASS", "FAIL", "NOT RUN", "INDETERMINATE"]
+    ):
+        raise W6002Error("W11-001 AI reliability identity or statuses differ")
+    if tuple(item.get("sli_id") for item in ai_reliability.get("slis", [])) != (
+        EXPECTED_W11_001_SLIS
+    ):
+        raise W6002Error("W11-001 AI SLI inventory differs")
+    decision = ai_reliability.get("decision", {})
+    if (
+        decision.get("automatic_rollback_allowed") is not False
+        or decision.get("rollback_requires_reviewed_policy_change") is not True
+        or {decision.get(f"gap_{number}_status") for number in ("07", "10", "14")}
+        != {"OPEN_UNTIL_OWNER_EVIDENCE"}
+    ):
+        raise W6002Error("W11-001 release, rollback, or open-gap contract differs")
+    maintenance = ai_reliability.get("maintenance", {})
+    if maintenance.get("standing_exclusions_allowed") is not False or set(
+        maintenance.get("never_suppress_sli_ids", [])
+    ) != {
+        "unauthorized_retrieval_rate",
+        "safety_violation_rate",
+        "pii_leakage_rate",
+    }:
+        raise W6002Error("W11-001 maintenance safety boundary differs")
 
     fis = _load_yaml(root / REQUIRED_PATHS[2])
     if fis["schema_version"] != "w6-002.fis-plan.v1":
@@ -176,7 +233,7 @@ def validate(root: Path) -> str:
         for rule in group.get("rules", [])
         if "alert" in rule
     }
-    if names != EXPECTED_ALERTS | EXPECTED_W10_004_ALERTS:
+    if names != EXPECTED_ALERTS | EXPECTED_W10_004_ALERTS | EXPECTED_W11_001_ALERTS:
         raise W6002Error("alert inventory differs")
     alert_rules = [
         rule
@@ -195,7 +252,7 @@ def validate(root: Path) -> str:
         raise W6002Error("alert rule ownership binding differs")
 
     dashboard = json.loads((root / REQUIRED_PATHS[4]).read_text(encoding="utf-8"))
-    if dashboard.get("uid") != "enterprise-ai-w6-002" or len(dashboard.get("panels", [])) != 16:
+    if dashboard.get("uid") != "enterprise-ai-w6-002" or len(dashboard.get("panels", [])) != 24:
         raise W6002Error("dashboard identity or panel inventory differs")
     return PASS_STATUS
 

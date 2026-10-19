@@ -90,6 +90,83 @@ groups:
         for: 0m
         labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
 
+  - name: enterprise-ai-w11-001-recording
+    interval: 30s
+    rules:
+      - record: enterprise_ai:eligible_requests:rate1h
+        expr: >-
+          sum(rate(enterprise_ai_stage_executions_total{
+            stage="api",operation="request",outcome!="denied",outcome!="rejected"
+          }[1h]))
+      - record: enterprise_ai:failed_requests:rate1h
+        expr: >-
+          sum(rate(enterprise_ai_stage_executions_total{
+            stage="api",operation="request",
+            outcome=~"error|timeout|budget_exceeded|cancelled"
+          }[1h]))
+      - record: enterprise_ai:eligible_requests:rate30m
+        expr: >-
+          sum(rate(enterprise_ai_stage_executions_total{
+            stage="api",operation="request",outcome!="denied",outcome!="rejected"
+          }[30m]))
+      - record: enterprise_ai:failed_requests:rate30m
+        expr: >-
+          sum(rate(enterprise_ai_stage_executions_total{
+            stage="api",operation="request",
+            outcome=~"error|timeout|budget_exceeded|cancelled"
+          }[30m]))
+      - record: enterprise_ai:eligible_requests:rate6h
+        expr: >-
+          sum(rate(enterprise_ai_stage_executions_total{
+            stage="api",operation="request",outcome!="denied",outcome!="rejected"
+          }[6h]))
+      - record: enterprise_ai:failed_requests:rate6h
+        expr: >-
+          sum(rate(enterprise_ai_stage_executions_total{
+            stage="api",operation="request",
+            outcome=~"error|timeout|budget_exceeded|cancelled"
+          }[6h]))
+
+  - name: enterprise-ai-w11-001-alerts
+    rules:
+      - alert: EnterpriseAIAvailabilityFastBurnW11
+        expr: >-
+          ((enterprise_ai:failed_requests:rate5m
+          / clamp_min(enterprise_ai:eligible_requests:rate5m, 1)) > (14.4 * 0.001))
+          and ((enterprise_ai:failed_requests:rate1h
+          / clamp_min(enterprise_ai:eligible_requests:rate1h, 1)) > (14.4 * 0.001))
+          and sum(increase(enterprise_ai_stage_executions_total{
+            stage="api",operation="request",outcome!="denied",outcome!="rejected"
+          }[5m])) >= 20
+        for: 5m
+        labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIAvailabilitySlowBurnW11
+        expr: >-
+          ((enterprise_ai:failed_requests:rate30m
+          / clamp_min(enterprise_ai:eligible_requests:rate30m, 1)) > (6 * 0.001))
+          and ((enterprise_ai:failed_requests:rate6h
+          / clamp_min(enterprise_ai:eligible_requests:rate6h, 1)) > (6 * 0.001))
+          and sum(increase(enterprise_ai_stage_executions_total{
+            stage="api",operation="request",outcome!="denied",outcome!="rejected"
+          }[30m])) >= 20
+        for: 30m
+        labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAIErrorBudgetExhausted
+        expr: enterprise_ai_ai_reliability_error_budget_remaining_ratio <= 0
+        for: 0m
+        labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAISLIEvidenceIndeterminate
+        expr: >-
+          enterprise_ai_ai_reliability_decision{
+            outcome=~"indeterminate|not_run"
+          } > 0
+        for: 0m
+        labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+      - alert: EnterpriseAISLIBreach
+        expr: enterprise_ai_ai_reliability_decision{outcome="fail"} > 0
+        for: 0m
+        labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
+
   - name: enterprise-ai-w10-004-alerts
     rules:
       - alert: EnterpriseAICostGuardDenied
@@ -109,11 +186,11 @@ groups:
         for: 1m
         labels: {severity: critical, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
       - alert: EnterpriseAIRetrievalQualityLow
-        expr: enterprise_ai_ai_retrieval_quality < 0.5
+        expr: enterprise_ai_ai_retrieval_quality < 0.85
         for: 5m
         labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
       - alert: EnterpriseAIGroundednessLow
-        expr: enterprise_ai_ai_groundedness < 1
+        expr: enterprise_ai_ai_groundedness < 0.95
         for: 5m
         labels: {severity: warning, ownership_ref: role:platform-observability-primary, destination_ref: external:owner-approved-alert-destination}
       - alert: EnterpriseAICitationCoverageLow

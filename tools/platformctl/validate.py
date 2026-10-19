@@ -760,6 +760,17 @@ EXPECTED_OBSERVABILITY_IMPLEMENTATION_PATHS = (
     "tests/unit/test_aws_composition.py",
     "tests/contract/test_w8_004_capacity_contract.py",
     "tests/unit/test_w8_004_capacity.py",
+    "src/enterprise_ai_platform/telemetry/ai_reliability.py",
+    "tools/ai_reliabilityctl.py",
+    "tests/fakes/w11_001_ai_reliability.py",
+    "tests/unit/test_w11_001_ai_reliability.py",
+    "tests/contract/test_w11_001_ai_reliability_contract.py",
+    "tests/integration/test_w11_001_ai_reliability_composition.py",
+    "tests/feature/test_w11_001_ai_reliability.py",
+    "tests/smoke/test_w11_001_ai_reliability_cli.py",
+    "tests/security/test_w11_001_ai_reliability_security.py",
+    "tests/rollback/test_w11_001_ai_reliability_rollback.py",
+    "tests/teardown/test_w11_001_ai_reliability_cleanliness.py",
 )
 EXPECTED_OBSERVABILITY_FEATURE = {
     "id": "OBS-001",
@@ -773,6 +784,7 @@ EXPECTED_OBSERVABILITY_FEATURE = {
         "W6-08",
         "W6-09",
         "W10-004",
+        "W11-001",
     ],
 }
 EXPECTED_RELEASE_IMPLEMENTATION_PATHS = (

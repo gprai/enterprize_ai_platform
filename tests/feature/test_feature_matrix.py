@@ -129,6 +129,7 @@ EXPECTED_OBSERVABILITY_FEATURE = {
         "W6-08",
         "W6-09",
         "W10-004",
+        "W11-001",
     ],
 }
 EXPECTED_RELEASE_FEATURE = {
@@ -246,6 +247,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "W6-08",
                 "W6-09",
                 "W10-004",
+                "W11-001",
             ],
             features[5]["linked_tracker_steps"],
         )
@@ -683,9 +685,9 @@ class FeatureMatrixTests(unittest.TestCase):
         observability_feature = read_matrix()["features"][5]
 
         self.assertEqual(EXPECTED_OBSERVABILITY_FEATURE, observability_feature)
-        self.assertEqual(68, len(observability_feature["implementation_paths"]))
+        self.assertEqual(79, len(observability_feature["implementation_paths"]))
         self.assertEqual(
-            68,
+            79,
             len(set(observability_feature["implementation_paths"])),
         )
         self.assertNotIn(
@@ -705,6 +707,7 @@ class FeatureMatrixTests(unittest.TestCase):
                 "W6-08",
                 "W6-09",
                 "W10-004",
+                "W11-001",
             ],
             observability_feature["linked_tracker_steps"],
         )

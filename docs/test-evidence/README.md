@@ -8,8 +8,11 @@ Test evidence gives the owner a reliable record of what was checked before appro
 
 ## Result meanings
 
-- **PASS** means the owner ran the stated check and the supplied transcript showed the expected successful result.
-- **FAIL** means the owner ran the check and the supplied transcript showed at least one failure.
+- **PASS** means the owner, or Codex under separate owner testing authority,
+  ran the stated check and its captured output showed the expected successful
+  result. The executor and scope must be named in the task record.
+- **FAIL** means the named, authorized executor ran the check and its output
+  showed at least one failure.
 - **NOT RUN** means the check was deliberately not executed or was outside the approved scope.
 - **INDETERMINATE** means the supplied facts cannot prove whether an event occurred.
 - **Pending** means an approval or owner decision is still required.
@@ -19,9 +22,13 @@ An **evidence metadata record** is a small JSON summary containing the command d
 ## Owner-controlled evidence process
 
 1. Codex writes only approved automated test code.
-2. The owner executes installation, testing, cleanup, deployment, rollback, and teardown commands.
-3. The owner supplies the resulting transcript.
-4. Codex records only facts supported by that transcript after Column M Document Writing Approval.
+2. The owner executes installation, cleanup, deployment, rollback, and
+   teardown commands. The owner executes tests unless Codex receives separate,
+   explicit authority for the bounded test set.
+3. The owner supplies the resulting transcript for owner execution; authorized
+   Codex execution retains the command output in the task conversation.
+4. Codex records only facts supported by the captured output after Column M
+   Document Writing Approval.
 5. Column N Final Approval remains a separate owner decision.
 
 The evidence recorder prints JSON to standard output, also called **stdout**, and does not create a report file. Narrative evidence files in this directory require separate Column M approval.
@@ -35,6 +42,22 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W11-001 AI SLI/SLO and error-budget governance](W11/W11-001.md) —
+  extends existing telemetry with 17 measurable source contracts, paired
+  burn alerts and exact PASS/FAIL/NOT RUN/INDETERMINATE release decisions.
+  Final owner-authorized Codex local checks passed: 95 focused tests and
+  2,656 configured full-suite tests, plus Ruff, MyPy, validators, secret scan
+  and pre-commit. Eight opt-in skips and four configured deselections remain
+  NOT RUN; intermediate failures and remedies are preserved in the canonical
+  record. No live SLO, alert delivery, deployment, operational rollback,
+  cloud teardown or cost outcome was proved. GAP-07, GAP-10 and GAP-14 remain
+  open. **Gyan Prakash Rai**, Project Owner and Final Approval Reviewer,
+  recorded **FINAL APPROVAL AFTER OWNER TEST — APPROVED** at
+  `2026-10-19 17:30:00 SGT` within the documented local/source boundary. The
+  canonical closed-record SHA-256 is
+  `98bcb53a1e0bfcfed830106cc92fb9341011d511ab71c692a9e5f661bb124029`.
+  Tracker update responsibility remains **Owner**. See the
+  [Week 11 evidence index](W11/README.md).
 - [W10-LEARN-001 advanced-RAG and LLMOps learning review](../learning/W10-learning-review.md)
   — consolidates W10-001 through W10-004 into business, technical,
   architecture, five-answer, scenario, and STAR teach-back guidance. The four
