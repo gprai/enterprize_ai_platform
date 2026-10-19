@@ -35,6 +35,19 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W10-LEARN-001 advanced-RAG and LLMOps learning review](../learning/W10-learning-review.md)
+  — consolidates W10-001 through W10-004 into business, technical,
+  architecture, five-answer, scenario, and STAR teach-back guidance. The four
+  canonical W10 records retain their exact evidence scope. No owner-authored
+  teach-back or W10-LEARN-specific TEST-001 output was supplied, so both remain
+  **NOT RUN / OWNER-DEFERRED** and are not converted to PASS. Documentation
+  closure received **FINAL APPROVAL AFTER OWNER TEST — APPROVED** from Gyan
+  Prakash Rai, Project Owner and Final Approval Reviewer, at
+  `2026-10-19 12:09:00 SGT`. The canonical closed record SHA-256 is
+  `372f55bcfd0761d0674275e014ee90c25efbc1f3d8712eaff5d36f238793dbe9`.
+  No production adoption, deployment, cloud, lifecycle, learning-task PASS,
+  tracker mutation, or new cost claim is inferred. Tracker update
+  responsibility is **Owner**.
 - [W10-004 AI observability, drift, resilience, and cost operations](W10/W10-004.md)
   — extends the existing OpenTelemetry path with privacy-safe AI quality,
   safety, dependency, admission, drift, and cost signals without creating a
