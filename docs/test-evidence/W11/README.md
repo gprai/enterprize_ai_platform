@@ -5,6 +5,20 @@ path. This is an index, not a second test transcript or final approval.
 
 ## Records
 
+- [W11-LEARN-001 SRE, chaos and DR learning review](../../learning/W11-learning-review.md)
+  — consolidates W11-001 through W11-004 into business, technical,
+  architecture, five-answer, scenario and STAR teach-back guidance. The four
+  canonical task records retain their own evidence identities and scope. No
+  W11-LEARN-specific TEST-001 output or owner-authored teach-back was supplied,
+  so both remain **NOT RUN / OWNER-DEFERRED** and are not converted to PASS.
+  Live SLO attainment, FIS, recovery/failover, production incident response,
+  deployment, operational rollback/teardown and cost/residue proof retain
+  their recorded limitations. **Gyan Prakash Rai**, Project Owner and Final
+  Approval Reviewer, recorded **FINAL APPROVAL AFTER OWNER TEST — APPROVED**
+  at `2026-10-20 10:08:00 SGT` for the documentation boundary; this does not
+  change either deferred learning status. The canonical closed-record SHA-256
+  is `a4a0207c526fd9d10fe67a904faea5471ed4a6dda85d96731fcc1c68bb17e569`.
+  Tracker update responsibility remains **Owner**.
 - [W11-001 AI SLI/SLO and error-budget governance](W11-001.md) — 17
   source-defined objectives, paired burn and fail-closed release policy, owned
   rules and dashboard panels. Codex ran the owner-authorized local checks:

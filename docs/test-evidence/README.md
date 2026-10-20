@@ -42,6 +42,21 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W11-LEARN-001 SRE, chaos and DR learning review](../learning/W11-learning-review.md)
+  — consolidates W11-001 through W11-004 into business, technical,
+  architecture, five-answer, scenario and STAR teach-back guidance. The four
+  canonical W11 records retain their exact local/source/synthetic evidence
+  scopes. No W11-LEARN-specific TEST-001 output or owner-authored teach-back
+  was supplied, so both remain **NOT RUN / OWNER-DEFERRED** and are not
+  converted to PASS. Live SLO attainment, AWS FIS, recovery/failover,
+  production incident response, deployment, operational rollback/teardown and
+  cost/residue proof retain their recorded limitations. **Gyan Prakash Rai**,
+  Project Owner and Final Approval Reviewer, recorded **FINAL APPROVAL AFTER
+  OWNER TEST — APPROVED** at `2026-10-20 10:08:00 SGT` for the documentation
+  boundary; this does not change either deferred learning status. The
+  canonical closed-record SHA-256 is
+  `a4a0207c526fd9d10fe67a904faea5471ed4a6dda85d96731fcc1c68bb17e569`.
+  Tracker update responsibility remains **Owner**.
 - [W11-004 incident operations and failure-proof runners](W11/W11-004.md)
   — adds versioned PowerShell 5.1/7 command-runner contracts, exact failure
   classification, resumable runbook stages and retained game-day evidence.
