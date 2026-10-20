@@ -1814,6 +1814,77 @@ EXPECTED_RPO_001_FEATURE = {
     },
 }
 
+EXPECTED_W11_004_IMPLEMENTATION_PATHS = (
+    "configs/incidents/incident-operations.yaml",
+    "src/enterprise_ai_platform/incident_operations.py",
+    "tools/incidentctl.py",
+    "tools/powershell/incident-command-runner-v1.psm1",
+    "tools/powershell/invoke-incident-command-windows-powershell-5.1-v1.ps1",
+    "tools/powershell/invoke-incident-command-powershell-7-v1.ps1",
+    "tests/pester/incident-command-runner-v1.Tests.ps1",
+    "tests/fakes/w11_004_incident_operations.py",
+    "tests/unit/test_w11_004_incident_operations.py",
+    "tests/contract/test_w11_004_incident_operations_contract.py",
+    "tests/compatibility/test_w11_004_incident_runner_compatibility.py",
+    "tests/integration/test_w11_004_incident_operations_composition.py",
+    "tests/feature/test_w11_004_incident_operations.py",
+    "tests/smoke/test_w11_004_incident_operations_cli.py",
+    "tests/security/test_w11_004_incident_operations_security.py",
+    "tests/rollback/test_w11_004_incident_operations_rollback.py",
+    "tests/teardown/test_w11_004_incident_operations_cleanliness.py",
+    "tools/platformctl/process_runner.py",
+    "Makefile",
+    "feature-matrix.yaml",
+    "tools/platformctl/validate.py",
+    "tests/unit/test_platformctl.py",
+    "tests/feature/test_feature_matrix.py",
+    "tools/w5_002_ci.py",
+    "tools/platformctl/plan.py",
+)
+EXPECTED_INC_001_FEATURE = {
+    "id": "INC-001",
+    "implementation_paths": [
+        "configs/observability/slo.yaml",
+        "configs/chaos/controlled-dependency-chaos.yaml",
+        "configs/recovery/disaster-recovery.yaml",
+        "docs/governance/W7-001-remediation-traceability.md",
+        *EXPECTED_W11_004_IMPLEMENTATION_PATHS,
+    ],
+    "status": "Blocked",
+    "linked_tracker_steps": ["W11-004"],
+    "control_contract": {
+        "flow": (
+            "exact versioned command array, bounded capture, fail-closed classification, "
+            "runbook action, native verification and corrective-action evidence"
+        ),
+        "scenarios": "capacity, saturation and dependency failure are local/fake only",
+        "closure": (
+            "any command, verification, cleanup, residue or corrective-action failure blocks PASS"
+        ),
+        "readiness": "live incident and production readiness remain NOT ESTABLISHED",
+    },
+}
+EXPECTED_RUNNER_001_FEATURE = {
+    "id": "RUNNER-001",
+    "implementation_paths": [
+        "tools/platformctl/kubernetes_lifecycle.py",
+        "tools/platformctl/operation_state.py",
+        "tools/platformctl/lifecycle_models.py",
+        "tools/platformctl/lifecycle_io.py",
+        *EXPECTED_W11_004_IMPLEMENTATION_PATHS,
+    ],
+    "status": "Blocked",
+    "linked_tracker_steps": ["W11-004"],
+    "control_contract": {
+        "hosts": "versioned Windows PowerShell 5.1 and PowerShell 7 wrappers",
+        "capture": "stdout, stderr, exit, executable identity, tool version and duration",
+        "execution": (
+            "one mutation, zero mutation retries, bounded deadlines, cancellation and resume"
+        ),
+        "failure": "nonzero, timeout, cancellation, uncertain output or residue cannot PASS",
+    },
+}
+
 EXPECTED_FEATURES = (
     EXPECTED_FEATURE,
     EXPECTED_RAG_FEATURE,
@@ -1846,6 +1917,8 @@ EXPECTED_FEATURES = (
     EXPECTED_RES_002_FEATURE,
     EXPECTED_DR_001_FEATURE,
     EXPECTED_RPO_001_FEATURE,
+    EXPECTED_INC_001_FEATURE,
+    EXPECTED_RUNNER_001_FEATURE,
 )
 EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
     "tools/secret_scan.py",
@@ -1862,6 +1935,7 @@ EXPECTED_W1_08_SECURITY_CONTROL_PATHS = (
 
 REQUIRED_DIRECTORIES = (
     "configs",
+    "configs/incidents",
     "configs/lifecycle",
     "configs/eval",
     "configs/rag",
@@ -1929,6 +2003,7 @@ REQUIRED_DIRECTORIES = (
     "tests/contract",
     "tests/feature",
     "tests/fakes",
+    "tests/pester",
     "tests/smoke",
     "tests/security",
     "tests/rollback",
@@ -1937,6 +2012,7 @@ REQUIRED_DIRECTORIES = (
     "policies/opa",
     "observability",
     "observability/dashboards",
+    "tools/powershell",
 )
 
 REQUIRED_FILES = (
@@ -2018,6 +2094,7 @@ REQUIRED_FILES = (
     *EXPECTED_W10_003_IMPLEMENTATION_PATHS,
     *EXPECTED_W11_002_IMPLEMENTATION_PATHS,
     *EXPECTED_W11_003_IMPLEMENTATION_PATHS,
+    *EXPECTED_W11_004_IMPLEMENTATION_PATHS,
     "tests/teardown/__init__.py",
     "tests/teardown/test_platformctl_cleanup.py",
     "tests/teardown/test_w2_001_qdrant_lifecycle.py",

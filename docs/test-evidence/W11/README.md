@@ -52,6 +52,23 @@ path. This is an index, not a second test transcript or final approval.
   closed-record SHA-256 is
   `f780f9e1941b687e1caa51f6fcba9734857588b41eb0021ffbe24d42bd70fe55`.
   Tracker update responsibility remains **Owner**.
+- [W11-004 incident operations and failure-proof runners](W11-004.md) —
+  versioned PowerShell 5.1/7 runner contracts, exact command classification,
+  resumable runbook stages and retained game-day evidence. Final bounded
+  TEST-001 passed after preserved remediation: 129 focused tests, 2,798
+  configured full-suite tests, Ruff, MyPy, platform/YAML, OPA, Checkov,
+  all-files secret scanning, pre-commit, Terraform formatting, Promtool and
+  seven Pester tests on each PowerShell host. CAPACITY, SATURATION and
+  DEPENDENCY_FAILURE local/fake rehearsals passed and cleanup verified zero
+  unexpected residue, but profile selection was simulated. Eight opt-in
+  skips, four `aws`/`paid` deselections, live incident response, deployment,
+  operational cloud rollback/teardown and production RPO/RTO proof remain
+  **NOT RUN**. **Gyan Prakash Rai**, Project Owner and Final Approval
+  Reviewer, recorded **FINAL APPROVAL AFTER OWNER TEST — APPROVED** at
+  `2026-10-20 09:11:00 SGT` within this local/offline and local/fake evidence
+  boundary. The canonical closed-record SHA-256 is
+  `e348c6dc4ef6838c2f512137115203e8eed3a9b042234a730dbcc26963f2f3e5`.
+  Tracker update responsibility remains **Owner**.
 
 The separate Week 11 owner teach-back has not been supplied. This index does
 not convert local/fake tests, skipped or deselected work into live PASS.

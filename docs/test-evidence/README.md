@@ -42,6 +42,24 @@ The evidence recorder prints JSON to standard output, also called **stdout**, an
 
 ## Evidence records
 
+- [W11-004 incident operations and failure-proof runners](W11/W11-004.md)
+  — adds versioned PowerShell 5.1/7 command-runner contracts, exact failure
+  classification, resumable runbook stages and retained game-day evidence.
+  Final bounded TEST-001 passed after preserved remediation: 129 focused and
+  2,798 configured full-suite tests, Ruff, MyPy, platform/YAML, OPA, Checkov,
+  all-files secret scanning, pre-commit, Terraform formatting, Promtool and
+  seven Pester tests on each host. Three deterministic local/fake rehearsals
+  passed and cleanup verified zero unexpected residue; their runner-profile
+  selection was simulated and does not prove production readiness. Eight
+  opt-in skips, four `aws`/`paid` deselections, live incident response,
+  deployment, operational cloud rollback/teardown and live RPO/RTO evidence
+  remain **NOT RUN**. **Gyan Prakash Rai**, Project Owner and Final Approval
+  Reviewer, recorded **FINAL APPROVAL AFTER OWNER TEST — APPROVED** at
+  `2026-10-20 09:11:00 SGT` within the documented local/offline and local/fake
+  evidence boundary. The canonical closed-record SHA-256 is
+  `e348c6dc4ef6838c2f512137115203e8eed3a9b042234a730dbcc26963f2f3e5`.
+  Tracker update responsibility remains **Owner**. See the
+  [Week 11 evidence index](W11/README.md).
 - [W11-003 disaster-recovery and recovery-point contracts](W11/W11-003.md)
   — defines source-only cold-rebuild contracts for Terraform state, governed
   S3 source, OpenSearch indexes, model artifacts and model registry state.

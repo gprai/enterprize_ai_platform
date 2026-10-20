@@ -1,0 +1,191 @@
+schema_version: w11-004.incident-operations.v1
+feature_ids:
+  - INC-001
+  - RUNNER-001
+tracker_status: Blocked
+environment: sandbox
+classification: source-contract-not-live-evidence
+tenant_boundary: NO_TENANT_DATA_LOCAL_FAKE
+privacy_boundary: NO_USER_CONTENT
+residency_boundary: LOCAL_EXTERNAL_EVIDENCE_ROOT
+runner_version: incident-command-runner-v1
+runner_profiles:
+  - profile_id: windows-powershell-5.1
+    wrapper_path: tools/powershell/invoke-incident-command-windows-powershell-5.1-v1.ps1
+    minimum_major_version: 5
+    maximum_major_version: 5
+  - profile_id: powershell-7
+    wrapper_path: tools/powershell/invoke-incident-command-powershell-7-v1.ps1
+    minimum_major_version: 7
+    maximum_major_version: null
+roles:
+  - role_id: incident_commander
+    responsibilities:
+      - declare severity and own incident state
+      - authorize transitions between runbook stages
+  - role_id: operations_lead
+    responsibilities:
+      - execute approved commands and native verification
+      - preserve progress, deadline and cleanup evidence
+  - role_id: developer_lead
+    responsibilities:
+      - diagnose application behavior and propose remediation
+      - validate last-known-good application identity
+  - role_id: security_privacy_lead
+    responsibilities:
+      - enforce tenant, classification and redaction boundaries
+      - review security or privacy impact before remediation
+  - role_id: communications_lead
+    responsibilities:
+      - issue severity-bound stakeholder updates
+      - preserve communication timestamps without personal destinations
+  - role_id: evidence_custodian
+    responsibilities:
+      - retain immutable command and recovery evidence
+      - track failed, skipped and corrective-action records
+  - role_id: business_owner
+    responsibilities:
+      - approve business-risk and live-operation boundaries
+      - accept or reject residual risk
+severity_levels:
+  - severity_id: SEV1
+    acknowledgement_seconds: 300
+    escalation_seconds: 600
+    business_impact: critical service, security or data-integrity impact
+  - severity_id: SEV2
+    acknowledgement_seconds: 900
+    escalation_seconds: 1800
+    business_impact: material degradation with a bounded workaround
+  - severity_id: SEV3
+    acknowledgement_seconds: 3600
+    escalation_seconds: 14400
+    business_impact: limited degradation without critical impact
+communications:
+  allowed_channels:
+    - owner-approved-incident-channel
+    - owner-approved-status-record
+  minimum_update_seconds: 300
+  personal_destinations_prohibited: true
+escalation:
+  ordered_role_ids:
+    - incident_commander
+    - operations_lead
+    - security_privacy_lead
+    - business_owner
+  missing_acknowledgement_blocks_progress: true
+commands:
+  - command_id: observe-capacity
+    argv:
+      - offline-native-api
+      - observe-capacity
+    timeout_seconds: 300
+    read_only: true
+    expected_absence: false
+    native_verification_required: true
+  - command_id: observe-saturation
+    argv:
+      - offline-native-api
+      - observe-saturation
+    timeout_seconds: 300
+    read_only: true
+    expected_absence: false
+    native_verification_required: true
+  - command_id: observe-dependency
+    argv:
+      - offline-native-api
+      - observe-dependency
+    timeout_seconds: 300
+    read_only: true
+    expected_absence: false
+    native_verification_required: true
+  - command_id: verify-recovery
+    argv:
+      - offline-native-api
+      - verify-recovery
+    timeout_seconds: 300
+    read_only: true
+    expected_absence: false
+    native_verification_required: true
+runbook:
+  version: incident-runbook-v1
+  identity_material: incident-runbook-v1|DECLARE|DIAGNOSE|CONTAIN|REMEDIATE|ROLLBACK|RECOVERY|NATIVE_VERIFY|CLEANUP|REVIEW
+  last_validated_identity: sha256:9e8aae9a6c6cc5364925cfdbca5183b9cb578b987b9698b467559d17bbf140fc
+  stages:
+    - stage: DECLARE
+      owner_role_id: incident_commander
+      requires_owner_approval: false
+    - stage: DIAGNOSE
+      owner_role_id: operations_lead
+      requires_owner_approval: false
+    - stage: CONTAIN
+      owner_role_id: incident_commander
+      requires_owner_approval: true
+    - stage: REMEDIATE
+      owner_role_id: developer_lead
+      requires_owner_approval: true
+    - stage: ROLLBACK
+      owner_role_id: operations_lead
+      requires_owner_approval: true
+    - stage: RECOVERY
+      owner_role_id: operations_lead
+      requires_owner_approval: true
+    - stage: NATIVE_VERIFY
+      owner_role_id: operations_lead
+      requires_owner_approval: false
+    - stage: CLEANUP
+      owner_role_id: operations_lead
+      requires_owner_approval: true
+    - stage: REVIEW
+      owner_role_id: business_owner
+      requires_owner_approval: false
+scenarios:
+  - scenario_id: CAPACITY
+    injected_condition: demand exceeds the approved local capacity envelope
+    command_ids:
+      - observe-capacity
+      - verify-recovery
+    required_terminal_action: RECOVERY
+  - scenario_id: SATURATION
+    injected_condition: bounded worker saturation delays progress
+    command_ids:
+      - observe-saturation
+      - verify-recovery
+    required_terminal_action: RECOVERY
+  - scenario_id: DEPENDENCY_FAILURE
+    injected_condition: an approved dependency becomes unavailable
+    command_ids:
+      - observe-dependency
+      - verify-recovery
+    required_terminal_action: ROLLBACK
+execution_bounds:
+  maximum_mutation_concurrency: 1
+  mutation_retries: 0
+  read_probe_retries: 2
+  command_deadline_seconds: 300
+  scenario_deadline_seconds: 900
+  progress_interval_seconds: 5
+  maximum_output_bytes: 8388608
+evidence_policy:
+  schema_version: w11-004.game-day-evidence.v1
+  scope: LOCAL_FAKE
+  retention_days: 180
+  redact_output: true
+  preserve_failed_evidence: true
+  canonical_json: true
+cleanup_policy:
+  retain_evidence: true
+  require_native_absence: true
+  require_zero_unexpected_residue: true
+corrective_action_policy:
+  require_owner: true
+  require_due_date: true
+  block_pass_when_incomplete: true
+source_bindings:
+  - path: configs/observability/slo.yaml
+    sha256: e6786d2a6a7ed3b506051c56716d8ceab2d69200ee2acfae299faacb9fcb21ae
+  - path: configs/chaos/controlled-dependency-chaos.yaml
+    sha256: 74dc1ff9971ad315c5ec807c733f6427a81e23a2ba09ad3882c96696d43be6e9
+  - path: configs/recovery/disaster-recovery.yaml
+    sha256: 2467b02214ee47ffa1eef8c1334424fc251151722e9df1601eb4da615629d515
+  - path: docs/governance/W7-001-remediation-traceability.md
+    sha256: 9f7b873bd9b9264464218dafda4f6119189367c3d33207431fb16e0164c592dd

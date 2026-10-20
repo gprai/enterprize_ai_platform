@@ -67,6 +67,11 @@ class ResultCardinality(StrEnum):
     MANY = "MANY"
 
 
+class PowerShellHost(StrEnum):
+    WINDOWS_POWERSHELL_5_1 = "windows-powershell-5.1"
+    POWERSHELL_7 = "powershell-7"
+
+
 class ProcessOutcomeUncertain(ContractError):
     """The boundary cannot prove completion and must never report PASS."""
 
@@ -118,6 +123,79 @@ class ProcessRequest:
             raise ContractError("PROCESS_ENVIRONMENT_NOT_ALLOWLISTED")
         if any("\x00" in name or "\x00" in value for name, value in self.environment):
             raise ContractError("PROCESS_ENVIRONMENT_INVALID")
+
+
+@dataclass(frozen=True)
+class PowerShellHostProfile:
+    """Identity-bound host and versioned wrapper used by an owner-approved command."""
+
+    host: PowerShellHost
+    executable: Path
+    wrapper: Path
+    executable_sha256: str
+    executable_version: str
+
+    def validate(self) -> None:
+        if not self.executable.is_absolute() or not self.executable.is_file():
+            raise ContractError("POWERSHELL_EXECUTABLE_INVALID")
+        if not self.wrapper.is_absolute() or not self.wrapper.is_file():
+            raise ContractError("POWERSHELL_WRAPPER_INVALID")
+        if self.wrapper.suffix.casefold() != ".ps1":
+            raise ContractError("POWERSHELL_WRAPPER_NOT_VERSIONED_SCRIPT")
+        expected_name = {
+            PowerShellHost.WINDOWS_POWERSHELL_5_1: (
+                "invoke-incident-command-windows-powershell-5.1-v1.ps1"
+            ),
+            PowerShellHost.POWERSHELL_7: "invoke-incident-command-powershell-7-v1.ps1",
+        }[self.host]
+        if self.wrapper.name != expected_name:
+            raise ContractError("POWERSHELL_WRAPPER_PROFILE_MISMATCH")
+        validate_sha256(self.executable_sha256)
+        if not self.executable_version.strip():
+            raise ContractError("POWERSHELL_VERSION_REQUIRED")
+        expected_executable, expected_major = {
+            PowerShellHost.WINDOWS_POWERSHELL_5_1: ("powershell.exe", "5"),
+            PowerShellHost.POWERSHELL_7: ("pwsh.exe", "7"),
+        }[self.host]
+        if (
+            self.executable.name.casefold() != expected_executable
+            or self.executable_version.split(".", maxsplit=1)[0] != expected_major
+        ):
+            raise ContractError("POWERSHELL_HOST_IDENTITY_MISMATCH")
+
+
+def build_powershell_process_request(
+    profile: PowerShellHostProfile,
+    *,
+    request_path: Path,
+    cwd: Path,
+    environment: Mapping[str, str],
+    timeout_seconds: int,
+) -> ProcessRequest:
+    """Build the immutable host argv; the request file owns the child command array."""
+    profile.validate()
+    if not request_path.is_absolute() or not request_path.is_file():
+        raise ContractError("POWERSHELL_REQUEST_INVALID")
+    request = ProcessRequest(
+        argv=(
+            str(profile.executable),
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(profile.wrapper),
+            "-RequestPath",
+            str(request_path),
+        ),
+        cwd=cwd,
+        environment=tuple(sorted(environment.items(), key=lambda item: item[0].upper())),
+        timeout_seconds=timeout_seconds,
+        executable_sha256=profile.executable_sha256,
+        executable_version=profile.executable_version,
+    )
+    request.validate()
+    return request
 
 
 class CancellationToken(Protocol):

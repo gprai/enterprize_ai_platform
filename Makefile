@@ -52,13 +52,19 @@ W10_004_PYTEST_BASETEMP ?=
 W11_001_PYTEST_BASETEMP ?=
 W11_002_PYTEST_BASETEMP ?=
 W11_003_PYTEST_BASETEMP ?=
+W11_004_CONFIG = configs/incidents/incident-operations.yaml
+W11_004_PYTEST_BASETEMP ?=
+W11_004_EVIDENCE_ROOT ?= E:/AI/.runtime/enterprise_ai_platform/w11-004/owner-test-01
+WINDOWS_POWERSHELL ?= C:/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe
+POWERSHELL_7 ?= C:/Users/gprai/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe
+W11_004_PESTER_MODULE ?= C:/Program Files/WindowsPowerShell/Modules/Pester/3.4.0/Pester.psd1
 
 .PHONY: help validate test test-unit test-integration test-feature test-smoke test-security test-teardown evaluate local-retrieval-config local-retrieval-build local-retrieval-inspect local-retrieval-up local-retrieval-ingest local-retrieval-query local-retrieval-regression rollback-local local-retrieval-remove stop-local destroy-local verify-clean-local rollback-release smoke terraform-fmt-check terraform-validate-bootstrap terraform-validate-sandbox tflint-bootstrap tflint-sandbox checkov-config checkov-terraform opa-policy-check opa-terraform-policy w5-policy-tests w5-policy-rollback bedrock-owner-dry-run w5-static-tests w5-002-validate-config w5-002-validate-locks w5-002-static w5-002-workflow-contract w5-002-build w5-002-scan w5-002-sbom w5-002-clean-runtime w5-002-reconcile w5-002-rollback-identity w5-002-clean w5-002-verify-clean
 .PHONY: plan-sandbox w5-004-bootstrap-plan w5-004-bootstrap-apply w5-004-platform-plan w5-004-policy-review w5-004-cost-review w5-004-platform-apply w5-004-aws-verify w5-004-infrastructure-rollback w5-004-destroy-plan w5-004-purge-sandbox w5-004-platform-destroy w5-004-bootstrap-destroy w5-004-verify-clean
 .PHONY: w6-001-template-validate w6-001-policy w6-001-checkov w6-001-tests w6-001-release-bind w6-001-release-validate
 .PHONY: w6-002-validate w6-002-promtool w6-002-tests
 .PHONY: w6-003-validate w6-003-source-identity w6-003-tests w6-003-evidence-validate
-.PHONY: w6-004-source-validate w6-004-tests w7-001-tests w7-002-tests w7-003-tests w7-004-tests w8-002-tests w8-003-tests w8-004-tests w9-001-tests w9-002-tests w9-003-tests w9-004-validate w9-004-tests w10-001-tests w10-002-tests w10-003-tests w10-004-tests w11-001-validate w11-001-tests w11-002-validate w11-002-tests w11-003-validate w11-003-tests
+.PHONY: w6-004-source-validate w6-004-tests w7-001-tests w7-002-tests w7-003-tests w7-004-tests w8-002-tests w8-003-tests w8-004-tests w9-001-tests w9-002-tests w9-003-tests w9-004-validate w9-004-tests w10-001-tests w10-002-tests w10-003-tests w10-004-tests w11-001-validate w11-001-tests w11-002-validate w11-002-tests w11-003-validate w11-003-tests w11-004-validate w11-004-tests w11-004-pester-windows w11-004-pester-pwsh
 
 help:
 	@echo "Available targets include W5-002 supply-chain controls and separately owner-gated W5-004 plan, apply, rollback, destroy, and cleanliness phases."
@@ -136,6 +142,19 @@ w11-003-validate:
 w11-003-tests:
 	$(if $(strip $(W11_003_PYTEST_BASETEMP)),,$(error W11_003_PYTEST_BASETEMP must name a unique external path))
 	$(PYTHON) -B -m pytest --basetemp "$(W11_003_PYTEST_BASETEMP)" -q -p no:cacheprovider tests/unit/test_w11_003_disaster_recovery.py tests/contract/test_w11_003_disaster_recovery_contract.py tests/integration/test_w11_003_disaster_recovery_composition.py tests/feature/test_w11_003_disaster_recovery.py tests/smoke/test_w11_003_disaster_recovery_cli.py tests/security/test_w11_003_disaster_recovery_security.py tests/rollback/test_w11_003_disaster_recovery_rollback.py tests/teardown/test_w11_003_disaster_recovery_cleanliness.py tests/unit/test_w7_001_data_foundation.py tests/contract/test_w7_001_data_contract.py tests/unit/test_w7_003_privacy_lifecycle.py tests/contract/test_w7_003_privacy_lifecycle_contract.py tests/integration/test_opensearch.py tests/unit/test_w9_003_model_registry.py tests/contract/test_w9_003_model_registry_contract.py tests/rollback/test_w7_001_remediation_rollback.py tests/teardown/test_terraform_state_boundary.py tests/unit/test_platformctl.py tests/feature/test_feature_matrix.py tests/integration/test_w5_002_ci_composition.py tests/security/test_repository_security.py
+
+w11-004-validate:
+	$(PYTHON) -B tools/incidentctl.py validate --config $(W11_004_CONFIG)
+
+w11-004-tests:
+	$(if $(strip $(W11_004_PYTEST_BASETEMP)),,$(error W11_004_PYTEST_BASETEMP must name a unique external path))
+	$(PYTHON) -B -m pytest --basetemp "$(W11_004_PYTEST_BASETEMP)" -q -p no:cacheprovider tests/unit/test_w11_004_incident_operations.py tests/contract/test_w11_004_incident_operations_contract.py tests/compatibility/test_w11_004_incident_runner_compatibility.py tests/integration/test_w11_004_incident_operations_composition.py tests/feature/test_w11_004_incident_operations.py tests/smoke/test_w11_004_incident_operations_cli.py tests/security/test_w11_004_incident_operations_security.py tests/rollback/test_w11_004_incident_operations_rollback.py tests/teardown/test_w11_004_incident_operations_cleanliness.py tests/unit/test_w7_001_remediation.py tests/compatibility/test_w7_001_powershell_compatibility.py tests/teardown/test_w7_001_remediation_cleanliness.py tests/rollback/test_w7_001_remediation_rollback.py tests/unit/test_platformctl.py tests/feature/test_feature_matrix.py tests/integration/test_w5_002_ci_composition.py tests/security/test_repository_security.py
+
+w11-004-pester-windows:
+	"$(WINDOWS_POWERSHELL)" -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& { Import-Module -LiteralPath '$(W11_004_PESTER_MODULE)' -Force; $$r=Invoke-Pester -Script 'tests/pester/incident-command-runner-v1.Tests.ps1' -PassThru; if ($$r.FailedCount -ne 0) { exit 1 } }"
+
+w11-004-pester-pwsh:
+	"$(POWERSHELL_7)" -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& { Import-Module -LiteralPath '$(W11_004_PESTER_MODULE)' -Force; $$r=Invoke-Pester -Script 'tests/pester/incident-command-runner-v1.Tests.ps1' -PassThru; if ($$r.FailedCount -ne 0) { exit 1 } }"
 
 validate:
 	$(PYTHON) -m tools.platformctl validate
