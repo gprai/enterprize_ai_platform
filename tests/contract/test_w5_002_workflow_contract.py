@@ -15,7 +15,6 @@ PINS = {
     "hashicorp/setup-terraform": "dfe3c3f87815947d99a8997f908cb6525fc44e9e",
     "aws-actions/configure-aws-credentials": "e6de054238d6b7531b4efff3b6587d9aade6a06c",
     "docker/setup-buildx-action": "d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5",
-    "chainguard-dev/setup-chainctl": "9014a6ef4f9783eef6414ed71e92fcecf152dfe7",
 }
 
 
@@ -62,6 +61,8 @@ def test_untrusted_pull_request_has_no_registry_cloud_or_oidc_authority() -> Non
         "uses: ./.github/workflows/security-scan.yml",
         "cgr.dev/",
         "CHAINGUARD_PULL_IDENTITY",
+        "CHAINGUARD_IDENTITY_ID",
+        "CHAINGUARD_TOKEN",
         "setup-chainctl",
     ):
         assert forbidden not in text
@@ -95,17 +96,20 @@ def test_private_supply_chain_runs_only_for_trusted_main_or_manual_events() -> N
     assert "github.repository == 'gprai/enterprize_ai_platform'" in text
     assert "github.ref == 'refs/heads/main'" in text
     assert workflow["jobs"]["candidate"]["environment"] == "sandbox"
-    assert "id-token: write" in text
+    assert "id-token: write" not in text
     assert "contents: read" in text
-    assert "${{ vars.CHAINGUARD_PULL_IDENTITY }}" in text
-    assert "Require the configured Chainguard pull identity" in text
-    assert "Missing Chainguard identity" in text
-    assert text.index("Require the configured Chainguard pull identity") < text.index(
-        "Authenticate to Chainguard with the pull-only GitHub identity"
-    )
-    assert "${{ secrets." not in text
+    assert text.count("${{ secrets.CHAINGUARD_IDENTITY_ID }}") == 1
+    assert text.count("${{ secrets.CHAINGUARD_TOKEN }}") == 1
+    assert "${{ vars.CHAINGUARD_PULL_IDENTITY }}" not in text
+    assert "Authenticate to Chainguard with the bounded pull token" in text
+    assert "Missing Chainguard pull token" in text
+    assert "setup-chainctl" not in text
+    assert "docker login cgr.dev" in text
+    assert '--username "$CHAINGUARD_IDENTITY_ID" --password-stdin' in text
+    assert "DOCKER_CONFIG=$RUNNER_TEMP/w5-002-docker-config" in text
+    assert 'rm -rf -- "$DOCKER_CONFIG"' in text
+    assert 'test ! -e "$DOCKER_CONFIG"' in text
     assert "secrets:" not in text
-    assert 'version: "0.2.346"' in text
     assert 'python-version: "3.13.15"' in text
 
 

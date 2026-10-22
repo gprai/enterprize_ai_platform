@@ -79,7 +79,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tools/platformctl/lifecycle_io.py": {"Hex High Entropy String": 5},
     "tools/platformctl/policy_runner.py": {"Hex High Entropy String": 23},
     "tools/w6_003_readiness.py": {"Hex High Entropy String": 1},
-    "configs/ci/w5-002.json": {"Hex High Entropy String": 12},
+    "configs/ci/w5-002.json": {"Hex High Entropy String": 6},
     "configs/eval/baselines/w3-002-v1.json": {"Hex High Entropy String": 6},
     "configs/readiness/local-integrated-readiness.yaml": {"Hex High Entropy String": 1},
     "configs/rag/versions/w3-002-v1.json": {"Hex High Entropy String": 14},
@@ -102,7 +102,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "src/enterprise_ai_platform/release_rollback/identity.py": {"Hex High Entropy String": 2},
     "src/enterprise_ai_platform/retrieval/models.py": {"Hex High Entropy String": 1},
     "tests/contract/test_embedder.py": {"Hex High Entropy String": 1},
-    "tests/contract/test_w5_002_workflow_contract.py": {"Hex High Entropy String": 9},
+    "tests/contract/test_w5_002_workflow_contract.py": {"Hex High Entropy String": 8},
     "tests/fakes/w10_003_rag_evaluation.py": {"Hex High Entropy String": 3},
     "tests/feature/test_local_retrieval.py": {"Hex High Entropy String": 1},
     "tests/integration/test_sentence_transformer_embedder.py": {"Hex High Entropy String": 1},
@@ -118,7 +118,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tests/unit/test_retrieval_service.py": {"Hex High Entropy String": 1},
     "tools/bedrock_owner_verify.py": {"Hex High Entropy String": 1},
     "tools/platformctl/aws_inventory.py": {"Secret Keyword": 1},
-    "tools/w5_002_ci.py": {"Hex High Entropy String": 16},
+    "tools/w5_002_ci.py": {"Hex High Entropy String": 15},
     "tools/w6_004_stage6_transcript.py": {"Secret Keyword": 1},
 }
 EXPECTED_REVIEWED_LINE_COUNTS = {
@@ -127,7 +127,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/recovery/disaster-recovery.yaml": {48: 1, 55: 1, 58: 1},
     "deploy/capstone/api-overlay.yaml": {76: 1},
     "deploy/capstone/pki.yaml": {16: 1, 24: 1},
-    "configs/ci/w5-002.json": {1: 12},
+    "configs/ci/w5-002.json": {1: 6},
     "configs/eval/baselines/w3-002-v1.json": {1: 6},
     "configs/lifecycle/w5-004.json": {6: 1, 7: 1, 86: 1, 90: 1, 91: 1},
     "configs/readiness/local-integrated-readiness.yaml": {4: 1},
@@ -232,9 +232,8 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         15: 1,
         16: 1,
         17: 1,
-        18: 1,
-        117: 1,
         121: 1,
+        125: 1,
     },
     "tests/fakes/w10_003_rag_evaluation.py": {43: 1, 45: 1, 52: 1},
     "tests/feature/test_local_retrieval.py": {46: 1},
@@ -304,7 +303,6 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
         619: 1,
         622: 1,
         627: 1,
-        1038: 1,
     },
     "tools/w6_003_readiness.py": {23: 1},
     "tools/w6_004_stage6_transcript.py": {348: 1},
@@ -443,7 +441,7 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     results = baseline["results"]
     assert isinstance(results, dict)
     assert len(results) == 54
-    assert sum(len(findings) for findings in results.values()) == 416
+    assert sum(len(findings) for findings in results.values()) == 408
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

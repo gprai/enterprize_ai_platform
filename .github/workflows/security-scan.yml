@@ -22,7 +22,6 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
-      id-token: write
     env:
       BUILDER_IMAGE: cgr.dev/vayunetrix.com/python:3.13.15-dev@sha256:023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811
       RUNTIME_IMAGE: cgr.dev/vayunetrix.com/python:3.13.15@sha256:f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa
@@ -36,6 +35,7 @@ jobs:
             echo "RAW_DIR=$RUNNER_TEMP/w5-002-py313-raw"
             echo "TRIVY_CACHE=$RUNNER_TEMP/w5-002-py313-trivy"
             echo "GRYPE_CACHE=$RUNNER_TEMP/w5-002-py313-grype"
+            echo "DOCKER_CONFIG=$RUNNER_TEMP/w5-002-docker-config"
           } >> "$GITHUB_ENV"
       - name: Reject an unapproved trusted execution identity
         shell: bash
@@ -64,28 +64,26 @@ jobs:
           python -m pip --version | grep -F "pip 26.2.1"
           python -m pip install --require-hashes --no-deps -r requirements-ci.lock
           python -m pip check
-      - name: Revalidate the v2 contract before requesting registry OIDC
+      - name: Revalidate the v2 contract before requesting registry access
         run: |
           python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
           python -B -m tools.platformctl w6-004-validate-source --config configs/lifecycle/w6-004.json
-      - name: Require the configured Chainguard pull identity
+      - name: Authenticate to Chainguard with the bounded pull token
         shell: bash
         env:
-          CHAINGUARD_PULL_IDENTITY: ${{ vars.CHAINGUARD_PULL_IDENTITY }}
+          CHAINGUARD_IDENTITY_ID: ${{ secrets.CHAINGUARD_IDENTITY_ID }}
+          CHAINGUARD_TOKEN: ${{ secrets.CHAINGUARD_TOKEN }}
         run: |
-          if [[ -z "$CHAINGUARD_PULL_IDENTITY" ]]; then
-            echo "::error title=Missing Chainguard identity::Set the CHAINGUARD_PULL_IDENTITY variable in the sandbox GitHub environment."
+          if [[ -z "$CHAINGUARD_IDENTITY_ID" || -z "$CHAINGUARD_TOKEN" ]]; then
+            echo "::error title=Missing Chainguard pull token::Set both approved pull-token secrets in the sandbox GitHub environment."
             exit 1
           fi
-      - name: Authenticate to Chainguard with the pull-only GitHub identity
-        uses: chainguard-dev/setup-chainctl@9014a6ef4f9783eef6414ed71e92fcecf152dfe7
-        with:
-          identity: ${{ vars.CHAINGUARD_PULL_IDENTITY }}
-          version: "0.2.346"
+          install -d -m 0700 "$DOCKER_CONFIG"
+          printf '%s' "$CHAINGUARD_TOKEN" | docker login cgr.dev \
+            --username "$CHAINGUARD_IDENTITY_ID" --password-stdin
       - name: Verify the private manifest identities
         shell: bash
         run: |
-          chainctl version | grep -F "0.2.346"
           docker buildx imagetools inspect "$BUILDER_IMAGE" | \
             grep -F "sha256:023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811"
           docker buildx imagetools inspect "$RUNTIME_IMAGE" | \
@@ -207,6 +205,10 @@ jobs:
         if: always()
         shell: bash
         run: |
+          if test -d "$DOCKER_CONFIG"; then
+            docker logout cgr.dev >/dev/null 2>&1 || true
+          fi
+          rm -rf -- "$DOCKER_CONFIG"
           rm -rf -- "$OCI_LAYOUT" "$RAW_DIR" "$TRIVY_CACHE" "$GRYPE_CACHE"
           rm -f -- "$OCI_ARCHIVE"
           if docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1; then
@@ -217,6 +219,7 @@ jobs:
           test ! -e "$TRIVY_CACHE"
           test ! -e "$GRYPE_CACHE"
           test ! -e "$OCI_ARCHIVE"
+          test ! -e "$DOCKER_CONFIG"
           if docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1; then exit 1; fi
           if test -d reports/w5-002; then
             python -B tools/w5_002_ci.py write-cleanup-retention \
