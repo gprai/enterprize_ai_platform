@@ -15,7 +15,7 @@ PINS = {
     "hashicorp/setup-terraform": "dfe3c3f87815947d99a8997f908cb6525fc44e9e",
     "aws-actions/configure-aws-credentials": "e6de054238d6b7531b4efff3b6587d9aade6a06c",
     "docker/setup-buildx-action": "d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5",
-    "chainguard-dev/setup-chainctl": "be0acd273acf04bfdf91f51198327e719f6af978",
+    "chainguard-dev/setup-chainctl": "9014a6ef4f9783eef6414ed71e92fcecf152dfe7",
 }
 
 

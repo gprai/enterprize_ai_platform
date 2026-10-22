@@ -1035,7 +1035,7 @@ def _validate_config_v2(value: object) -> dict[str, object]:
         "checkout": "9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
         "configure_aws_credentials": "e6de054238d6b7531b4efff3b6587d9aade6a06c",
         "setup_buildx": "d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5",
-        "setup_chainctl": "be0acd273acf04bfdf91f51198327e719f6af978",
+        "setup_chainctl": "9014a6ef4f9783eef6414ed71e92fcecf152dfe7",
         "setup_python": "5fda3b95a4ea91299a34e894583c3862153e4b97",
         "setup_terraform": "dfe3c3f87815947d99a8997f908cb6525fc44e9e",
         "upload_artifact": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
