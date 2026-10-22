@@ -60,6 +60,7 @@ EXACT_DEVELOPMENT_REQUIREMENTS = {
     "pre-commit==4.6.2",
 }
 EXACT_CHECKOV_REQUIREMENTS = {"checkov==3.3.16"}
+MINIMUM_CERTIFI_VERSION = "2026.10.19"
 
 
 def requirement_lines(path: Path) -> list[str]:
@@ -127,6 +128,16 @@ def test_runtime_and_ci_locks_are_cpu_only_after_transitive_resolution() -> None
     assert runtime["torch"].startswith("2.13.")
     assert ci["torch"].startswith("2.13.")
     assert "torch" not in checkov
+
+
+def test_all_python_locks_enforce_the_certifi_security_floor() -> None:
+    for lock, profile in (
+        (RUNTIME_LOCK, "runtime"),
+        (CI_LOCK, "ci"),
+        (CHECKOV_LOCK, "checkov"),
+    ):
+        packages = w5_002_ci.validate_dependency_lock(lock, profile)
+        assert packages["certifi"] == MINIMUM_CERTIFI_VERSION
 
 
 def test_all_python_locks_are_generated_for_exact_python_313_linux_with_uv() -> None:
