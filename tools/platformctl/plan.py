@@ -2520,17 +2520,17 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "requirements-runtime.lock",
         # pragma: allowlist nextline secret
-        "8d001188635081e5f3d0af4fecad561741cd17f24b04299798187a3a1e2d76b6",
+        "1e62b37949e690f8f7c2237fbf462e9f1a8c77723499463c5333def6c825360c",
     ),
     (
         "requirements-ci.lock",
         # pragma: allowlist nextline secret
-        "6236ce74a717d4b558094e10a74f77f40c81347f6496f2915501a3dbc718c90c",
+        "b6bb518e47fb6ed7c591f1ca412bc37771706997b310348647e849358d3c4bcb",
     ),
     (
         "requirements-checkov.lock",
         # pragma: allowlist nextline secret
-        "1bd2e5915cca74ee60f82443bae15a49c109a1d614888bea1608ea5b18135da6",
+        "6fbf5dca5a6baa39e5f64a0ef027dd7101abd773ec2eb44c0ae7e87762610fb2",
     ),
     (
         "policies/opa/exceptions.json",
