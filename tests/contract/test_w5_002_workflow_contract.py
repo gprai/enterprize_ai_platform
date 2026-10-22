@@ -94,9 +94,15 @@ def test_private_supply_chain_runs_only_for_trusted_main_or_manual_events() -> N
     assert "pull_request" not in text
     assert "github.repository == 'gprai/enterprize_ai_platform'" in text
     assert "github.ref == 'refs/heads/main'" in text
+    assert workflow["jobs"]["candidate"]["environment"] == "sandbox"
     assert "id-token: write" in text
     assert "contents: read" in text
     assert "${{ vars.CHAINGUARD_PULL_IDENTITY }}" in text
+    assert "Require the configured Chainguard pull identity" in text
+    assert "Missing Chainguard identity" in text
+    assert text.index("Require the configured Chainguard pull identity") < text.index(
+        "Authenticate to Chainguard with the pull-only GitHub identity"
+    )
     assert "${{ secrets." not in text
     assert "secrets:" not in text
     assert 'version: "0.2.346"' in text
