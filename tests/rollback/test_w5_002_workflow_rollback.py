@@ -74,6 +74,9 @@ def test_migration_cleanup_runs_on_success_failure_and_cancellation() -> None:
     assert "if: always()" in cleanup
     assert "write-cleanup-retention" in cleanup
     assert "docker buildx rm" in cleanup
+    assert cleanup.index("docker buildx rm") < cleanup.index('rm -rf -- "$DOCKER_CONFIG"')
+    assert 'test ! -e "$SUPPLY_CHAIN_DOWNLOADS"' in cleanup
+    assert 'test ! -e "$SUPPLY_CHAIN_TOOLS_DIR"' in cleanup
     assert "w5-002.cleanup-retention.v2" in (ROOT / "tools/w5_002_ci.py").read_text(
         encoding="utf-8"
     )

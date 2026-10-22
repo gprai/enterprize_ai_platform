@@ -36,6 +36,8 @@ jobs:
             echo "TRIVY_CACHE=$RUNNER_TEMP/w5-002-py313-trivy"
             echo "GRYPE_CACHE=$RUNNER_TEMP/w5-002-py313-grype"
             echo "DOCKER_CONFIG=$RUNNER_TEMP/w5-002-docker-config"
+            echo "SUPPLY_CHAIN_DOWNLOADS=$RUNNER_TEMP/w5-002-supply-chain-downloads"
+            echo "SUPPLY_CHAIN_TOOLS_DIR=$RUNNER_TEMP/w5-002-supply-chain-tools"
           } >> "$GITHUB_ENV"
       - name: Reject an unapproved trusted execution identity
         shell: bash
@@ -95,9 +97,42 @@ jobs:
           driver: docker-container
           driver-opts: >-
             image=moby/buildkit:v0.30.0@sha256:57269d1784e49b46228c45a1a1b870fbe40e0a639ab60b37b032d83af5bccdfc
-          install: false
           use: true
           cleanup: false
+      - name: Install exact hash-verified security tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 0755 "$SUPPLY_CHAIN_DOWNLOADS" "$SUPPLY_CHAIN_TOOLS_DIR"
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output "$SUPPLY_CHAIN_DOWNLOADS/trivy.tar.gz" \
+            https://github.com/aquasecurity/trivy/releases/download/v0.74.0/trivy_0.74.0_Linux-64bit.tar.gz
+          printf '%s  %s\n' \
+            2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a \
+            "$SUPPLY_CHAIN_DOWNLOADS/trivy.tar.gz" | sha256sum --check --strict
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output "$SUPPLY_CHAIN_DOWNLOADS/grype.tar.gz" \
+            https://github.com/anchore/grype/releases/download/v0.118.0/grype_0.118.0_linux_amd64.tar.gz
+          printf '%s  %s\n' \
+            1d444c5e7360471815f7158f71935fcecc68a3c417d85c7344f770854300bba2 \
+            "$SUPPLY_CHAIN_DOWNLOADS/grype.tar.gz" | sha256sum --check --strict
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output "$SUPPLY_CHAIN_DOWNLOADS/syft.tar.gz" \
+            https://github.com/anchore/syft/releases/download/v1.51.1/syft_1.51.1_linux_amd64.tar.gz
+          printf '%s  %s\n' \
+            8fcb33017a0dc1058298c923c436d19dfa68ae93968e0b423248542e3afb9fc3 \
+            "$SUPPLY_CHAIN_DOWNLOADS/syft.tar.gz" | sha256sum --check --strict
+          tar -xzf "$SUPPLY_CHAIN_DOWNLOADS/trivy.tar.gz" \
+            -C "$SUPPLY_CHAIN_TOOLS_DIR" trivy
+          tar -xzf "$SUPPLY_CHAIN_DOWNLOADS/grype.tar.gz" \
+            -C "$SUPPLY_CHAIN_TOOLS_DIR" grype
+          tar -xzf "$SUPPLY_CHAIN_DOWNLOADS/syft.tar.gz" \
+            -C "$SUPPLY_CHAIN_TOOLS_DIR" syft
+          chmod 0755 \
+            "$SUPPLY_CHAIN_TOOLS_DIR/trivy" \
+            "$SUPPLY_CHAIN_TOOLS_DIR/grype" \
+            "$SUPPLY_CHAIN_TOOLS_DIR/syft"
+          echo "$SUPPLY_CHAIN_TOOLS_DIR" >> "$GITHUB_PATH"
       - name: Verify immutable local security-tool identities
         shell: bash
         run: |
@@ -205,19 +240,27 @@ jobs:
         if: always()
         shell: bash
         run: |
+          if docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1; then
+            docker buildx rm enterprise-ai-platform-w5-002-py313
+          fi
           if test -d "$DOCKER_CONFIG"; then
             docker logout cgr.dev >/dev/null 2>&1 || true
           fi
           rm -rf -- "$DOCKER_CONFIG"
-          rm -rf -- "$OCI_LAYOUT" "$RAW_DIR" "$TRIVY_CACHE" "$GRYPE_CACHE"
+          rm -rf -- \
+            "$OCI_LAYOUT" \
+            "$RAW_DIR" \
+            "$TRIVY_CACHE" \
+            "$GRYPE_CACHE" \
+            "$SUPPLY_CHAIN_DOWNLOADS" \
+            "$SUPPLY_CHAIN_TOOLS_DIR"
           rm -f -- "$OCI_ARCHIVE"
-          if docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1; then
-            docker buildx rm enterprise-ai-platform-w5-002-py313
-          fi
           test ! -e "$OCI_LAYOUT"
           test ! -e "$RAW_DIR"
           test ! -e "$TRIVY_CACHE"
           test ! -e "$GRYPE_CACHE"
+          test ! -e "$SUPPLY_CHAIN_DOWNLOADS"
+          test ! -e "$SUPPLY_CHAIN_TOOLS_DIR"
           test ! -e "$OCI_ARCHIVE"
           test ! -e "$DOCKER_CONFIG"
           if docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1; then exit 1; fi
