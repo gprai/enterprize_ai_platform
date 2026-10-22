@@ -16,6 +16,10 @@ BASELINE_SHA256 = "4bbc8f24af911ba09356196e9285d261549926c713110f9549929e1e4ac90
 W3_004_RUNTIME_NAME = "w3-004"
 W5_001_RUNTIME_NAME = "verification"
 W5_002_RUNTIME_NAME = "w5-002"
+pytestmark = __import__("pytest").mark.skipif(
+    not all((REPORT_ROOT / name).is_file() for name in REPORT_HASHES),
+    reason="ignored owner-local W3 evaluation reports are absent",
+)
 
 
 def test_retained_reports_and_promoted_baseline_are_exact() -> None:

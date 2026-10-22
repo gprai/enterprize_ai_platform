@@ -17,6 +17,15 @@ from enterprise_ai_platform.rag_rollback.errors import (
 )
 from enterprise_ai_platform.rag_rollback.identity import validate_identity_pair
 
+ROOT = Path(__file__).resolve().parents[2]
+pytestmark = pytest.mark.skipif(
+    not all(
+        (ROOT / relative).is_file()
+        for relative in ("reports/eval.json", "reports/eval-repeat.json")
+    ),
+    reason="ignored owner-local W3 evaluation reports are absent",
+)
+
 
 def _isolate_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     known_good, regression = validate_identity_pair()

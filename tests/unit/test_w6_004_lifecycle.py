@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 from fastapi import Request
+from tools.platformctl import live_validation
 from tools.platformctl.image_lifecycle import validate_image_evidence
 from tools.platformctl.live_validation import (
     SCHEMA_FIELDS,
@@ -151,6 +152,22 @@ def test_image_evidence_binds_every_identity() -> None:
 def test_every_closed_evidence_schema_accepts_only_complete_metadata(schema: str) -> None:
     value = evidence_record(schema)
     assert validate_evidence_record(value, expected_schema=schema)["status"] == "PASS"
+
+
+def test_evidence_root_comparison_resolves_relative_roots(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    relative_root = Path("relative-w6-evidence")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(live_validation, "EVIDENCE_ROOT", relative_root)
+    value = evidence_record("w6-004.image.v1")
+    value["output_root"] = str(
+        (relative_root / value["evidence_scope"] / value["operation_id"]).resolve(strict=False)
+    )
+    value["evidence_sha256"] = canonical_evidence_sha256(value)
+
+    assert validate_evidence_record(value, expected_schema="w6-004.image.v1")["status"] == "PASS"
 
 
 def test_evidence_rejects_unknown_fields_scope_expiry_and_consumed_approval() -> None:

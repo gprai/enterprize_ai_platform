@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
@@ -15,7 +16,17 @@ from enterprise_ai_platform.rag_rollback.identity import (
 )
 from enterprise_ai_platform.rag_rollback.models import RAGIdentityDescriptor
 
+ROOT = Path(__file__).resolve().parents[2]
+RETAINED_REPORTS_ABSENT = not all(
+    (ROOT / relative).is_file() for relative in ("reports/eval.json", "reports/eval-repeat.json")
+)
+requires_retained_reports = pytest.mark.skipif(
+    RETAINED_REPORTS_ABSENT,
+    reason="ignored owner-local W3 evaluation reports are absent",
+)
 
+
+@requires_retained_reports
 def test_identity_pair_is_strict_transitive_and_changes_only_approved_fields() -> None:
     known_good, regression = validate_identity_pair()
 
@@ -42,6 +53,7 @@ def test_canonical_identity_hash_is_independent_of_object_field_order() -> None:
     assert canonical_json_bytes(left).endswith(b"\n")
 
 
+@requires_retained_reports
 def test_descriptor_rejects_unknown_missing_and_duplicate_fields() -> None:
     known_good, _ = validate_identity_pair()
     payload = known_good.model_dump(mode="json")
@@ -61,6 +73,7 @@ def test_descriptor_rejects_unknown_missing_and_duplicate_fields() -> None:
         )
 
 
+@requires_retained_reports
 def test_descriptor_serialization_contains_no_runtime_or_evidence_content() -> None:
     known_good, regression = validate_identity_pair()
     serialized = json.dumps(

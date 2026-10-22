@@ -69,7 +69,9 @@ jobs:
           python -m pip check
           python -B tools/w9_004_supply_chain.py validate-config \
             --config configs/ci/w9-004.json
-      - name: Verify immutable local policy tools
+      - name: Set up hash-locked policy tools
+        uses: ./.github/actions/setup-policy-tools
+      - name: Verify hash-locked policy tools
         shell: bash
         run: |
           opa version | grep -Fx "Version: 1.20.0"

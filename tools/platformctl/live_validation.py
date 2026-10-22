@@ -455,7 +455,7 @@ def validate_evidence_record(
     ):
         raise W6004Error("evidence scope differs from the approved schema boundary")
     output_root = value.get("output_root")
-    expected_root = EVIDENCE_ROOT / evidence_scope / operation_id
+    expected_root = (EVIDENCE_ROOT / evidence_scope / operation_id).resolve(strict=False)
     if not isinstance(output_root, str) or Path(output_root).resolve(strict=False) != expected_root:
         raise W6004Error("output_root is outside the approved single-use operation root")
     if value.get("status") not in STATUS_VALUES:

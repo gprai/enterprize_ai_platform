@@ -54,6 +54,13 @@ def test_regression_fixture_suppresses_content_citations_and_tools(
     assert application_records == []
 
 
+@pytest.mark.skipif(
+    not all(
+        (ROOT / relative).is_file()
+        for relative in ("reports/eval.json", "reports/eval-repeat.json")
+    ),
+    reason="ignored owner-local W3 evaluation reports are absent",
+)
 def test_identity_and_errors_expose_no_prompt_evidence_or_provider_content() -> None:
     known_good, regression = validate_identity_pair()
     serialized = json.dumps(

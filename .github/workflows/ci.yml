@@ -98,7 +98,9 @@ jobs:
           python -m venv --without-pip "$CHECKOV_VENV"
           python -m pip --python "$CHECKOV_VENV/bin/python" install --require-hashes --no-deps -r requirements-checkov.lock
           python -m pip --python "$CHECKOV_VENV/bin/python" check
-      - name: Verify pre-provisioned immutable policy tools
+      - name: Set up hash-locked policy tools
+        uses: ./.github/actions/setup-policy-tools
+      - name: Verify hash-locked policy tools
         shell: bash
         run: |
           test "$(tflint --version | head -n 1)" = "TFLint version 0.60.0"
@@ -114,8 +116,8 @@ jobs:
           terraform -chdir=infra/bootstrap validate
           terraform -chdir=infra/environments/sandbox init -backend=false -lockfile=readonly
           terraform -chdir=infra/environments/sandbox validate
-          tflint --chdir=infra/bootstrap
-          tflint --chdir=infra/environments/sandbox
+          tflint --config="$(realpath .tflint.hcl)" --chdir=infra/bootstrap
+          tflint --config="$(realpath .tflint.hcl)" --chdir=infra/environments/sandbox
           "$CHECKOV" --config-file .checkov.yml -d infra --framework terraform
           "$CHECKOV" --config-file .checkov.yml -d deploy/k8s --framework kubernetes
           opa check --strict policies/opa

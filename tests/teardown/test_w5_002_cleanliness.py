@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 from shutil import which
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 APPROVED_LOCKS = {
     Path("infra/bootstrap/.terraform.lock.hcl"),
@@ -75,6 +77,10 @@ def test_no_task_cache_temp_state_plan_or_bytecode_residue_exists() -> None:
     assert findings == []
 
 
+@pytest.mark.skipif(
+    not (ROOT / OWNER_PROTECTED_PREEXISTING_STATE).is_file(),
+    reason="ignored owner-local bootstrap state is absent",
+)
 def test_owner_protected_preexisting_bootstrap_state_is_not_task_residue() -> None:
     state = ROOT / OWNER_PROTECTED_PREEXISTING_STATE
     assert state.is_file()

@@ -36,6 +36,13 @@ AUTHORITIES = (
     "src/enterprise_ai_platform/evaluation/fixtures.py",
     "src/enterprise_ai_platform/guardrails/policy.py",
 )
+pytestmark = pytest.mark.skipif(
+    not all(
+        (ROOT / relative).is_file()
+        for relative in ("reports/eval.json", "reports/eval-repeat.json")
+    ),
+    reason="ignored owner-local W3 evaluation reports are absent",
+)
 
 
 def _isolated_repository(
