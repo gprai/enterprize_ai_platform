@@ -55,22 +55,28 @@ def test_trusted_workflow_denies_wrong_identity_before_oidc() -> None:
     assert "audience: sts.amazonaws.com" in text
 
 
-def test_chainguard_oidc_is_bounded_to_the_trusted_supply_chain_workflow() -> None:
+def test_chainguard_pull_token_is_bounded_to_the_trusted_supply_chain_workflow() -> None:
     supply = (ROOT / ".github/workflows/security-scan.yml").read_text(encoding="utf-8")
 
     assert "permissions: {}" in supply
-    assert "id-token: write" in supply
+    assert "id-token: write" not in supply
     assert "github.event_name == 'workflow_dispatch'" in supply
     assert "github.ref == 'refs/heads/main'" in supply
     assert "github.repository == 'gprai/enterprize_ai_platform'" in supply
     assert "environment: sandbox" in supply
-    assert "Require the configured Chainguard pull identity" in supply
-    assert '[[ -z "$CHAINGUARD_PULL_IDENTITY" ]]' in supply
-    assert "chainguard-dev/setup-chainctl@9014a6ef4f9783eef6414ed71e92fcecf152dfe7" in supply
-    assert "identity: ${{ vars.CHAINGUARD_PULL_IDENTITY }}" in supply
-    assert "secrets." not in supply
-    assert "docker login" not in supply.casefold()
-    assert "--password" not in supply.casefold()
+    assert "setup-chainctl" not in supply
+    assert "CHAINGUARD_PULL_IDENTITY" not in supply
+    assert supply.count("${{ secrets.CHAINGUARD_IDENTITY_ID }}") == 1
+    assert supply.count("${{ secrets.CHAINGUARD_TOKEN }}") == 1
+    assert '[[ -z "$CHAINGUARD_IDENTITY_ID" || -z "$CHAINGUARD_TOKEN" ]]' in supply
+    assert "docker login cgr.dev" in supply
+    assert "printf '%s' \"$CHAINGUARD_TOKEN\"" in supply
+    assert '--username "$CHAINGUARD_IDENTITY_ID" --password-stdin' in supply
+    assert "--password " not in supply
+    assert "set -x" not in supply
+    assert "DOCKER_CONFIG=$RUNNER_TEMP/w5-002-docker-config" in supply
+    assert 'rm -rf -- "$DOCKER_CONFIG"' in supply
+    assert 'test ! -e "$DOCKER_CONFIG"' in supply
 
 
 def test_qualified_images_are_immutable_and_exact() -> None:
