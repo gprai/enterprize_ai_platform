@@ -136,9 +136,12 @@ jobs:
       - name: Verify immutable local security-tool identities
         shell: bash
         run: |
-          trivy --version | grep -F "Version: 0.74.0"
-          grype version | grep -F "Version: 0.118.0"
-          syft version | grep -F "Version: 1.51.1"
+          trivy --version | \
+            awk '$1 == "Version:" && $2 == "0.74.0" { found=1 } END { exit !found }'
+          grype version | \
+            awk '$1 == "Version:" && $2 == "0.118.0" { found=1 } END { exit !found }'
+          syft version | \
+            awk '$1 == "Version:" && $2 == "1.51.1" { found=1 } END { exit !found }'
       - name: Build one Linux AMD64 OCI archive without load or push
         shell: bash
         run: |

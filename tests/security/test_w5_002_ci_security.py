@@ -95,6 +95,16 @@ def test_supply_chain_scanner_installation_is_pinned_and_hash_verified() -> None
         assert prohibited not in installer
 
 
+def test_supply_chain_scanner_version_checks_are_exact_and_whitespace_safe() -> None:
+    supply = (ROOT / ".github/workflows/security-scan.yml").read_text(encoding="utf-8")
+    version_gate = supply.split("Verify immutable local security-tool identities", maxsplit=1)[1]
+    version_gate = version_gate.split("Build one Linux AMD64 OCI archive", maxsplit=1)[0]
+
+    assert version_gate.count('awk \'$1 == "Version:" && $2 ==') == 3
+    assert version_gate.count("{ found=1 } END { exit !found }") == 3
+    assert "grep -F" not in version_gate
+
+
 def test_qualified_images_are_immutable_and_exact() -> None:
     supply = (ROOT / ".github/workflows/security-scan.yml").read_text(encoding="utf-8")
     dockerfile = (ROOT / "docker/application.Dockerfile").read_text(encoding="utf-8")
