@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from dataclasses import fields, replace
 from datetime import UTC, datetime, timedelta
@@ -37,6 +38,9 @@ from .aws_inventory import (
     NativeScanBundle,
     NativeTarget,
     NativeTargetBundle,
+    canonical_purge_inventory_v3,
+    w12_bucket_residue_present,
+    w12_retention_bindings_from_proof_roots,
 )
 from .aws_live import (
     Boto3AwsInventoryProvider,
@@ -51,6 +55,7 @@ from .aws_live import (
     native_identity_key,
     observe_native_targets,
     resolution_policy_differences,
+    w12_bounded_client,
 )
 from .contracts import (
     APPROVED_ENVIRONMENT,
@@ -93,6 +98,7 @@ from .lifecycle_io import (
     validate_original_ancestors,
     verify_private_directory,
     write_canonical_json_atomic,
+    write_private_bytes_exclusive,
 )
 from .lifecycle_models import (
     DIAGNOSTIC_SCHEMA_VERSION,
@@ -119,12 +125,16 @@ from .lifecycle_models import (
     PostExecutionRequest,
     PreparedResourceExpiryInput,
     PrerequisiteTerms,
+    PurgeInventoryV2,
+    PurgeInventoryV3,
     PurgeReviewRequest,
     ResourceChangeRule,
     ReviewPackage,
     ReviewRequest,
     RuntimeConfiguration,
     StateEvidence,
+    W12RetentionBinding,
+    W12RuntimeProofRoots,
 )
 from .operation_state import OperationLedger
 from .policy_runner import OpaPolicyRunner, normalize_plan, summarize_plan
@@ -715,8 +725,85 @@ class RepositoryLifecycleCoordinator:
         self.repository_root = review_services.repository_root
         self.purge_adapter = purge_adapter
 
-    def execute_request(self, command: str, payload: bytes) -> tuple[int, str]:
+    def _w12_bindings(self, proof_roots: W12RuntimeProofRoots) -> tuple[W12RetentionBinding, ...]:
+        if not proof_roots.paths:
+            return ()
+        provider = getattr(self.services, "aws", None)
+        region = "ap-southeast-1"
+        key_arn = os.environ.get("W12_RELEASE_KMS_KEY_ARN", "")
+        bindings = w12_retention_bindings_from_proof_roots(
+            proof_roots,
+            client=w12_bounded_client(provider, "s3", region),
+            kms_key_arn=key_arn,
+            now=self.services.clock.now(),
+            external_root=self.external_root,
+            repository_root=self.repository_root,
+        )
+        kms = w12_bounded_client(provider, "kms", region)
+        observed = kms.describe_key(KeyId=key_arn).get("KeyMetadata", {})
+        if (
+            observed.get("Arn") != key_arn
+            or observed.get("KeyState") != "Enabled"
+            or any(binding.kms_key_arn != key_arn for binding in bindings)
+        ):
+            raise ContractError("W12_RETENTION_KMS_NOT_ENABLED_OR_CHANGED")
+        return bindings
+
+    def _guard_w12_destructive_scope(
+        self,
+        package: ReviewPackage,
+        bindings: tuple[W12RetentionBinding, ...],
+    ) -> None:
+        if package.action is Action.BOOTSTRAP_DESTROY:
+            if bindings:
+                raise ContractError("W12_RETAINED_KMS_DEPENDENCY_BLOCKS_BOOTSTRAP_DESTROY")
+            expected_bucket = (
+                f"enterprise-ai-platform-{package.account_id}-{package.region}-"
+                f"{package.environment}"
+            )
+            if os.environ.get("W12_SOURCE_BUCKET") != expected_bucket:
+                raise ContractError("W12_KMS_DEPENDENCY_BUCKET_BINDING_REQUIRED")
+            provider = getattr(self.services, "aws", None)
+            client = w12_bounded_client(provider, "s3", package.region)
+            try:
+                client.head_bucket(Bucket=expected_bucket, ExpectedBucketOwner=package.account_id)
+            except Exception as exc:
+                detail = getattr(exc, "response", {})
+                code = detail.get("Error", {}).get("Code") if isinstance(detail, dict) else None
+                if code not in ("NoSuchBucket", "404"):
+                    raise ContractError("W12_KMS_DEPENDENCY_BUCKET_INDETERMINATE") from exc
+            else:
+                if w12_bucket_residue_present(client, expected_bucket):
+                    raise ContractError("W12_RETAINED_KMS_DEPENDENCY_BLOCKS_BOOTSTRAP_DESTROY")
+            return
+        if package.action is not Action.PLATFORM_DESTROY:
+            return
+        buckets = [
+            entry.native_identity
+            for entry in package.native.entries
+            if entry.address == "module.storage.aws_s3_bucket.this" and entry.presence == "PRESENT"
+        ]
+        expected_bucket = (
+            f"enterprise-ai-platform-{package.account_id}-{package.region}-{package.environment}"
+        )
+        if len(buckets) != 1 or buckets[0] != expected_bucket:
+            raise ContractError("W12_PLATFORM_BUCKET_INVENTORY_INDETERMINATE")
+        provider = getattr(self.services, "aws", None)
+        if w12_bucket_residue_present(
+            w12_bounded_client(provider, "s3", package.region), buckets[0]
+        ):
+            raise ContractError("W12_CANONICAL_EVIDENCE_BLOCKS_PLATFORM_DESTROY")
+        if bindings:
+            raise ContractError("W12_PROOF_AND_EMPTY_BUCKET_CONFLICT")
+
+    def execute_request(
+        self,
+        command: str,
+        payload: bytes,
+        proof_roots: W12RuntimeProofRoots | None = None,
+    ) -> tuple[int, str]:
         """Decode an exact v2 request and dispatch no subsequent lifecycle phase."""
+        bindings = self._w12_bindings(proof_roots or W12RuntimeProofRoots(()))
         if command == "cost-review":
             cost_request = decode_operational_record(payload, FinalizeCostRequest)
             return self.finalize_cost_review(cost_request)
@@ -724,7 +811,7 @@ class RepositoryLifecycleCoordinator:
             value = decode_json_strict(payload)
             if isinstance(value, dict) and "inventory" in value:
                 purge_request = decode_operational_record(payload, PurgeReviewRequest)
-                return self.prepare_purge(purge_request)
+                return self.prepare_purge(purge_request, bindings=bindings)
             existing = decode_operational_record(payload, ExistingReviewRequest)
             root = ensure_external_path(
                 Path(existing.operation_root), self.external_root, self.repository_root
@@ -741,7 +828,7 @@ class RepositoryLifecycleCoordinator:
             if package.action is Action.PURGE_SANDBOX:
                 from .destroy import validate_purge_review
 
-                validate_purge_review(package, reader, self.services.clock.now())
+                validate_purge_review(package, reader, self.services.clock.now(), bindings=bindings)
             else:
                 decision = self.services.policy.evaluate_decision(root / "normalized-plan.json")
                 if decision != decode_json_strict(
@@ -775,6 +862,11 @@ class RepositoryLifecycleCoordinator:
                     Action.PURGE_SANDBOX,
                 }:
                     raise ContractError("CLEANLINESS_REQUIRES_DESTRUCTIVE_OPERATION")
+                if bindings and package.action in {
+                    Action.PLATFORM_DESTROY,
+                    Action.BOOTSTRAP_DESTROY,
+                }:
+                    raise ContractError("W12_RETAINED_EVIDENCE_BLOCKS_CLEAN_TEARDOWN")
                 observed = self.revalidator.observe(package)
                 if (observed.identities, observed.account_id, observed.region, observed.caller) != (
                     package.identities,
@@ -814,6 +906,7 @@ class RepositoryLifecycleCoordinator:
                         adapter=self.purge_adapter,
                         ledger=self.services.ledger,
                         now=self.services.clock.now(),
+                        bindings=bindings,
                     )
                     return purge_verification.exit_code, purge_verification.reason_code
                 verified_result = verify_post_execution(
@@ -908,6 +1001,8 @@ class RepositoryLifecycleCoordinator:
         )
         if package.action is not actions[command]:
             raise ContractError("COMMAND_ACTION_MISMATCH")
+        if package.action in {Action.PLATFORM_DESTROY, Action.BOOTSTRAP_DESTROY}:
+            self._guard_w12_destructive_scope(package, bindings)
         context = authorize_mutation(
             package,
             approval,
@@ -921,7 +1016,11 @@ class RepositoryLifecycleCoordinator:
             if self.purge_adapter is None:
                 raise ContractError("PURGE_NATIVE_ADAPTER_REQUIRED")
             purge_result = purge_approved_inventory(
-                context, self.services.ledger, self.purge_adapter, self.services.clock.now()
+                context,
+                self.services.ledger,
+                self.purge_adapter,
+                self.services.clock.now(),
+                bindings=bindings,
             )
             return int(purge_result.exit_code), purge_result.reason_code
         mutation_request = MutationRequest(
@@ -1091,7 +1190,12 @@ class RepositoryLifecycleCoordinator:
             else "RESOURCE_COST_RECONCILIATION_ACCEPTED"
         )
 
-    def prepare_purge(self, envelope: PurgeReviewRequest) -> tuple[int, str]:
+    def prepare_purge(
+        self,
+        envelope: PurgeReviewRequest,
+        *,
+        bindings: tuple[W12RetentionBinding, ...] = (),
+    ) -> tuple[int, str]:
         """Journal a single-use purge preparation, including every rejection."""
         from .lifecycle_io import reserve_operation_directory
 
@@ -1117,7 +1221,7 @@ class RepositoryLifecycleCoordinator:
             .replace("+00:00", "Z"),
         )
         try:
-            return self._prepare_purge_review(envelope)
+            return self._prepare_purge_review(envelope, bindings=bindings)
         except Exception:
             self.services.ledger.transition(
                 request.operation_id,
@@ -1131,11 +1235,26 @@ class RepositoryLifecycleCoordinator:
             )
             raise
 
-    def _prepare_purge_review(self, envelope: PurgeReviewRequest) -> tuple[int, str]:
+    def _prepare_purge_review(
+        self,
+        envelope: PurgeReviewRequest,
+        *,
+        bindings: tuple[W12RetentionBinding, ...] = (),
+    ) -> tuple[int, str]:
         """Produce a purge review only from an independently reconciled exact inventory."""
         from .destroy import validate_purge_review
 
         request, inventory = envelope.request, envelope.inventory
+        if isinstance(inventory, PurgeInventoryV3):
+            if not bindings or inventory.w12_retention_bindings != bindings:
+                raise ContractError("PURGE_V3_LIVE_PROOF_BINDING_CHANGED")
+        elif isinstance(inventory, PurgeInventoryV2):
+            if bindings or any(
+                item.key.startswith("w12-001/") for item in (*inventory.items, *inventory.retained)
+            ):
+                raise ContractError("PURGE_V2_W12_SCOPE_INDETERMINATE")
+        else:
+            raise ContractError("PURGE_INVENTORY_SCHEMA_UNSUPPORTED")
         if self.purge_adapter is None or request.action is not Action.PURGE_SANDBOX:
             raise ContractError("PURGE_REVIEW_ADAPTER_OR_ACTION")
         if (
@@ -1211,9 +1330,17 @@ class RepositoryLifecycleCoordinator:
             pagination_evidence=proof_ref,
         )
         path = root / "purge-inventory.json"
-        digest = write_canonical_json_atomic(
-            path, frozen, allowed_root=self.external_root, repository_root=self.repository_root
-        )
+        if isinstance(frozen, PurgeInventoryV3):
+            digest = write_private_bytes_exclusive(
+                path,
+                canonical_purge_inventory_v3(frozen),
+                allowed_root=self.external_root,
+                repository_root=self.repository_root,
+            )
+        else:
+            digest = write_canonical_json_atomic(
+                path, frozen, allowed_root=self.external_root, repository_root=self.repository_root
+            )
         policy = {
             "schema_version": "w5-004.purge-policy-result.v2",
             "allow": True,
@@ -2273,7 +2400,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         ".secrets.baseline",
         # pragma: allowlist nextline secret
-        "9cddf0591fb9287b25967d92ff76f7fda62e6f204f308878bbdf745a926a47d8",
+        "47130c3591bfe311cfe0774873d309651dfcd1987838912a527312a9439c24e6",
     ),
     (
         "feature-matrix.yaml",
@@ -2293,22 +2420,22 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/bootstrap/versions.tf",
         # pragma: allowlist nextline secret
-        "e24c3e797acf515399be65c895c372441be9a27364c23b02b38d7b446826e4b5",
+        "e1bb89ab322c8e032d1dc96050398093219c72c66ff28b73dcf3c06cb2cd7f8d",
     ),
     (
         "infra/environments/sandbox/main.tf",
         # pragma: allowlist nextline secret
-        "9d01bb694a60477637a10cf931c0b78cf4d5d953ea12f2c25022985f5e636396",
+        "e33f8ac09c3450f84efa8991bd206ec022b4914a4512fc6d26820b248c8bdfc8",
     ),
     (
         "infra/environments/sandbox/versions.tf",
         # pragma: allowlist nextline secret
-        "f8f87af1638121e67f3453b6c1392f2c9052eb94ba1fcf0afc2b0d0a1bfe7323",
+        "1db57eb4af9fd8992fcd42a7d3450f70da81e1d92f7a0d47f8b24a9eecb9875a",
     ),
     (
         "tests/contract/test_terraform_module_contract.py",
         # pragma: allowlist nextline secret
-        "1663369d4b01e2759265eece3fbe4f779da7c5103ae51192ffedded7e870ea21",
+        "c4f653d583ee6399d8bc5bcca9fb77541f3c731eb3b73825641f93632718166b",
     ),
     (
         "tests/feature/test_feature_matrix.py",
@@ -2323,7 +2450,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_precommit_controls.py",
         # pragma: allowlist nextline secret
-        "6d8c2b710132f4e209413c6000784be334e879b437fab10189acbacbd0552d67",
+        "a09b3bf3c220066328a344ce4e1646494bff0e767253c3a5df8f728455164720",
     ),
     (
         "tests/security/test_repository_security.py",
@@ -2333,12 +2460,12 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_terraform_security.py",
         # pragma: allowlist nextline secret
-        "b318b82e8ed57ec09648b221406577abfb1e8b1fffdf0fd599941f800c45d647",
+        "18a22aad68b8f236c3cc3fb7efd37ff0735945f54ff4b2ea8e8b76c520068dac",
     ),
     (
         "tests/teardown/test_platformctl_cleanup.py",
         # pragma: allowlist nextline secret
-        "56b46ae717ebb0cf746b807187fed630917004ac5e94849ea1bcd50b6d63bd02",
+        "b24e757609a95edaba616eabae1a77656a05f7a076afe05136e2a8bb0218696f",
     ),
     (
         "tests/teardown/test_terraform_state_boundary.py",
@@ -2348,7 +2475,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/teardown/test_w1_08_cleanliness.py",
         # pragma: allowlist nextline secret
-        "5f9bd0196e327362894fc3b9f04315dff7b2e9089e88060d461725e63f9e9914",
+        "ccf40b9f7752b8aeb6322736545efb0589f8c3ebd1086243254740f41f5d0e33",
     ),
     (
         "tools/platformctl/__init__.py",

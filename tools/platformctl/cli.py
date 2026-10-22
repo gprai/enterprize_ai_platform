@@ -42,6 +42,7 @@ from .lifecycle_models import (
     ApprovalRecordV2,
     MutationEnvelope,
     ReviewPackage,
+    W12RuntimeProofRoots,
 )
 from .live_validation import (
     SCHEMA_FIELDS,
@@ -163,7 +164,12 @@ class LifecycleExecutionServices(Protocol):
     external_root: Path
     repository_root: Path
 
-    def execute_request(self, command: str, payload: bytes) -> tuple[int, str]:
+    def execute_request(
+        self,
+        command: str,
+        payload: bytes,
+        proof_roots: W12RuntimeProofRoots | None = None,
+    ) -> tuple[int, str]:
         """Execute only the bound command through the shared coordinator and gate."""
         ...
 
@@ -307,6 +313,10 @@ def build_parser() -> argparse.ArgumentParser:
         )
         command_parser.add_argument("--target", required=True, type=_runtime_token("target"))
         _add_execution_arguments(command_parser)
+        if command in {"policy-review", "destroy-plan"}:
+            command_parser.add_argument(
+                "--w12-retention-proof-root", type=Path, action="append", default=[]
+            )
         if command == "aws-verify":
             command_parser.add_argument("--diagnostic", action="store_true")
             command_parser.add_argument("--prepare-diagnostic", action="store_true")
@@ -337,12 +347,17 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser = subcommands.add_parser(command, help=description)
         _add_mutation_arguments(command_parser)
         _add_execution_arguments(command_parser)
+        if command in {"purge-sandbox", "platform-destroy"}:
+            command_parser.add_argument(
+                "--w12-retention-proof-root", type=Path, action="append", default=[]
+            )
 
     clean_parser = subcommands.add_parser(
         "verify-clean", help="classify injected tag and service inventory"
     )
     clean_parser.add_argument("--environment", required=True, type=_runtime_token("environment"))
     _add_execution_arguments(clean_parser)
+    clean_parser.add_argument("--w12-retention-proof-root", type=Path, action="append", default=[])
 
     return parser
 
@@ -674,14 +689,29 @@ def main(
                         file=sys.stderr,
                     )
                     return 3
-                execution_services = plan.production_coordinator(
+                created_services = plan.production_coordinator(
                     runtime_path,
                     runtime_hash,
                     request_payload=payload,
                     repository=repository,
                     clock=effective_clock,
                 )
-            code, reason = execution_services.execute_request(arguments.command, payload)
+                if isinstance(created_services, plan.RepositoryDiagnosticCoordinator) and bool(
+                    getattr(arguments, "w12_retention_proof_root", None)
+                ):
+                    raise ContractError("DIAGNOSTIC_W12_PROOF_ROOT_FORBIDDEN")
+                execution_services = cast(LifecycleExecutionServices, created_services)
+            if execution_services is None:
+                raise ContractError("EXECUTION_SERVICES_UNAVAILABLE")
+            proof_roots = W12RuntimeProofRoots(
+                tuple(getattr(arguments, "w12_retention_proof_root", ()))
+            )
+            if proof_roots.paths:
+                code, reason = execution_services.execute_request(
+                    arguments.command, payload, proof_roots
+                )
+            else:
+                code, reason = execution_services.execute_request(arguments.command, payload)
             if (
                 code not in {0, 1, 2, 3, 4}
                 or not reason
@@ -724,10 +754,21 @@ def main(
         }:
             result = plan.validate_request(arguments.environment, arguments.target)
         elif arguments.command == "verify-clean":
+            proof_roots = W12RuntimeProofRoots(tuple(arguments.w12_retention_proof_root))
+            proof_repository: Path | None = None
+            proof_external: Path | None = None
+            if proof_roots.paths:
+                proof_repository = repository_root()
+                config = load_lifecycle_config(proof_repository / "configs/lifecycle/w5-004.json")
+                paths = cast(dict[str, str], config["external_paths"])
+                proof_external = Path(paths["temporary_root"])
             result = verify_clean(
                 effective_inventory,
                 cast(str, arguments.environment),
                 effective_clock.now(),
+                proof_roots=proof_roots,
+                external_root=proof_external,
+                repository_root=proof_repository,
             )
         else:
             approval = load_approval_record(cast(Path, arguments.approval_record))

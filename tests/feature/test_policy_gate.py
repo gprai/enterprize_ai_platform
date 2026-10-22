@@ -803,7 +803,7 @@ def _checkov(directory: Path) -> subprocess.CompletedProcess[str]:
             "-d",
             str(directory),
         ],
-        cwd=ROOT,
+        cwd=directory,
         env=_local_environment(),
         capture_output=True,
         text=True,
@@ -1784,7 +1784,7 @@ def test_current_terraform_checkov_baseline_is_exact() -> None:
 
     assert completed.returncode == 0, combined
     assert counts is not None, "Checkov did not emit the required complete scan counts"
-    assert tuple(map(int, counts.groups())) == (340, 0, 26)
+    assert tuple(map(int, counts.groups())) == (435, 0, 26)
 
 
 def test_production_decision_requires_one_defined_consistent_value() -> None:
@@ -1824,3 +1824,14 @@ def test_w7_data_foundation_plan_shape_is_fail_closed() -> None:
     prohibited = {"resource_changes": [{"type": "aws_sfn_state_machine", "change": {"after": {}}}]}
     assert validate_w7_001_data_foundation_plan(secure) == ()
     assert validate_w7_001_data_foundation_plan(prohibited) == ("W7_UNAUTHORIZED_RESOURCE",)
+
+
+def test_w12_owner_local_opa_receipt_is_separate_from_hcp_policy_checks() -> None:
+    from tools.capstone_release import _parser
+
+    parser = _parser()
+    assert "review-plan" in parser.format_help()
+    release_source = (ROOT / "tools/capstone_release.py").read_text(encoding="utf-8")
+    assert "data.enterprise_ai.terraform.plan.decision" in release_source
+    assert "INFRACOST_POST_PLAN_NOT_PASSED" in release_source
+    assert "HCP_PLAN_CONFIG_OR_STATE_MISMATCH" in release_source

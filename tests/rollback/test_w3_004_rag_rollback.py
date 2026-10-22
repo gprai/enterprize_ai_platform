@@ -17,6 +17,13 @@ DESCRIPTORS = (
     ROOT / "configs/rag/versions/known-good-v2.json",
     ROOT / "configs/rag/versions/synthetic-regression-v2.json",
 )
+pytestmark = pytest.mark.skipif(
+    not all(
+        (ROOT / relative).is_file()
+        for relative in ("reports/eval.json", "reports/eval-repeat.json")
+    ),
+    reason="ignored owner-local W3 evaluation reports are absent",
+)
 
 
 def _sha256(path: Path) -> str:

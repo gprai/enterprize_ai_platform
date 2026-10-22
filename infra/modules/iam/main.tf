@@ -13,6 +13,7 @@ locals {
   global_model_arn          = "arn:aws:bedrock:::foundation-model/${local.foundation_model_id}"
   github_provider_arn       = "arn:aws:iam::${var.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
   eks_cluster_arn           = "arn:aws:eks:${var.aws_region}:${var.aws_account_id}:cluster/${var.eks_cluster_name}"
+  capstone_ecr_arn          = "arn:aws:ecr:${var.aws_region}:${var.aws_account_id}:repository/enterprise-ai/sandbox/api"
   application_log_arn       = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/enterprise-ai-platform/sandbox/application:*"
 }
 
@@ -177,10 +178,120 @@ resource "aws_iam_role" "github_oidc" {
   }
 }
 
+data "aws_iam_policy_document" "capstone_build_trust" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = [local.github_provider_arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:${var.github_organization}/${var.github_repository}:ref:refs/heads/main"]
+    }
+  }
+}
+
+resource "aws_iam_role" "capstone_build" {
+  name               = "enterprise-ai-capstone-build"
+  assume_role_policy = data.aws_iam_policy_document.capstone_build_trust.json
+  tags               = var.tags
+}
+
+data "aws_iam_policy_document" "capstone_build" {
+  statement {
+    sid       = "ReadExactEcrAuthorization"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestedRegion"
+      values   = [var.aws_region]
+    }
+  }
+  statement {
+    sid = "BuildAndInspectExactEcrRepository"
+    actions = [
+      "ecr:BatchCheckLayerAvailability", "ecr:BatchGetImage", "ecr:CompleteLayerUpload",
+      "ecr:DescribeImages", "ecr:DescribeImageScanFindings", "ecr:InitiateLayerUpload",
+      "ecr:PutImage", "ecr:StartImageScan", "ecr:UploadLayerPart",
+    ]
+    resources = [local.capstone_ecr_arn]
+  }
+  statement {
+    sid       = "InspectExactSourceVersions"
+    actions   = ["s3:ListBucketVersions"]
+    resources = [local.platform_bucket_arn]
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["w12-001/source/source.zip"]
+    }
+  }
+  statement {
+    sid       = "RequireSourceBucketVersioning"
+    actions   = ["s3:GetBucketVersioning"]
+    resources = [local.platform_bucket_arn]
+  }
+  statement {
+    sid       = "WriteAndReadExactPrimarySource"
+    actions   = ["s3:PutObject", "s3:GetObjectVersion"]
+    resources = ["${local.platform_bucket_arn}/w12-001/source/source.zip"]
+  }
+  statement {
+    sid       = "EncryptAndReadPrimarySource"
+    actions   = ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey"]
+    resources = [var.kms_key_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "capstone_build" {
+  name   = "enterprise-ai-capstone-build"
+  role   = aws_iam_role.capstone_build.id
+  policy = data.aws_iam_policy_document.capstone_build.json
+}
+
 data "aws_iam_policy_document" "github_eks_deployment" {
   statement {
-    actions   = ["eks:DescribeCluster", "eks:AccessKubernetesApi"]
-    resources = [local.eks_cluster_arn]
+    sid       = "InspectExactVersionedCapstoneInputs"
+    actions   = ["s3:ListBucketVersions"]
+    resources = [local.platform_bucket_arn]
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["w12-001/source/source.zip", "w12-001/control/control.zip", "w12-001/results/*"]
+    }
+  }
+  statement {
+    sid       = "RequireVersionedCapstoneBucket"
+    actions   = ["s3:GetBucketVersioning"]
+    resources = [local.platform_bucket_arn]
+  }
+  statement {
+    sid       = "StartOnlyExactCapstoneProject"
+    actions   = ["codebuild:StartBuild", "codebuild:BatchGetBuilds"]
+    resources = ["arn:aws:codebuild:${var.aws_region}:${var.aws_account_id}:project/enterprise-ai-capstone-deploy"]
+  }
+  statement {
+    sid     = "WriteVersionedCapstoneSource"
+    actions = ["s3:PutObject", "s3:GetObjectVersion"]
+    resources = [
+      "${local.platform_bucket_arn}/w12-001/source/source.zip",
+      "${local.platform_bucket_arn}/w12-001/control/control.zip",
+      "${local.platform_bucket_arn}/w12-001/results/*",
+      "${local.platform_bucket_arn}/w12-001/releases/*",
+    ]
+  }
+  statement {
+    sid       = "EncryptExactCapstoneSource"
+    actions   = ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey"]
+    resources = [var.kms_key_arn]
   }
 }
 
@@ -188,6 +299,152 @@ resource "aws_iam_role_policy" "github_eks_deployment" {
   name   = "enterprise-ai-sandbox-eks-deployment"
   role   = aws_iam_role.github_oidc.id
   policy = data.aws_iam_policy_document.github_eks_deployment.json
+}
+
+# The post-apply job has no protected environment prompt of its own. It uses a
+# main-ref OIDC identity limited to one CodeBuild project and exact S3 prefixes.
+resource "aws_iam_role" "capstone_deploy_caller" {
+  name               = "enterprise-ai-capstone-deploy-caller"
+  assume_role_policy = data.aws_iam_policy_document.capstone_build_trust.json
+  tags               = var.tags
+}
+
+resource "aws_iam_role_policy" "capstone_deploy_caller" {
+  name   = "enterprise-ai-capstone-deploy-caller"
+  role   = aws_iam_role.capstone_deploy_caller.id
+  policy = data.aws_iam_policy_document.github_eks_deployment.json
+}
+
+resource "aws_iam_role" "capstone_rollback_reader" {
+  name               = "enterprise-ai-capstone-rollback-reader"
+  assume_role_policy = data.aws_iam_policy_document.capstone_build_trust.json
+  tags               = var.tags
+}
+
+data "aws_iam_policy_document" "capstone_rollback_reader" {
+  statement {
+    sid     = "ReadExactPriorReleaseVersions"
+    actions = ["s3:GetObjectVersion"]
+    resources = [
+      "${local.platform_bucket_arn}/w12-001/releases/*",
+      "${local.platform_bucket_arn}/w12-001/control/control.zip",
+      "${local.platform_bucket_arn}/w12-001/source/source.zip",
+    ]
+  }
+  statement {
+    sid       = "DecryptPriorReleaseEvidence"
+    actions   = ["kms:Decrypt"]
+    resources = [var.kms_key_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "capstone_rollback_reader" {
+  name   = "enterprise-ai-capstone-rollback-reader"
+  role   = aws_iam_role.capstone_rollback_reader.id
+  policy = data.aws_iam_policy_document.capstone_rollback_reader.json
+}
+
+data "aws_iam_policy_document" "capstone_codebuild_trust" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["codebuild.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [var.aws_account_id]
+    }
+    condition {
+      test     = "ArnEquals"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:codebuild:${var.aws_region}:${var.aws_account_id}:project/enterprise-ai-capstone-deploy"]
+    }
+  }
+}
+
+resource "aws_iam_role" "capstone_codebuild" {
+  name               = "enterprise-ai-capstone-codebuild"
+  assume_role_policy = data.aws_iam_policy_document.capstone_codebuild_trust.json
+  tags               = var.tags
+}
+
+data "aws_iam_policy_document" "capstone_codebuild" {
+  statement {
+    sid       = "DescribeExactCluster"
+    actions   = ["eks:DescribeCluster"]
+    resources = [local.eks_cluster_arn]
+  }
+  statement {
+    sid     = "ReadExactVersionedSource"
+    actions = ["s3:GetObjectVersion"]
+    resources = [
+      "${local.platform_bucket_arn}/w12-001/source/source.zip",
+      "${local.platform_bucket_arn}/w12-001/control/control.zip",
+      "${local.platform_bucket_arn}/w12-001/results/*",
+      "${local.platform_bucket_arn}/w12-001/releases/*",
+    ]
+  }
+  statement {
+    sid       = "WriteRedactedBuildResult"
+    actions   = ["s3:PutObject"]
+    resources = ["${local.platform_bucket_arn}/w12-001/results/*"]
+  }
+  statement {
+    sid       = "VerifyExactRenderResources"
+    actions   = ["es:DescribeDomain"]
+    resources = [local.opensearch_domain_arn]
+  }
+  statement {
+    sid       = "VerifyExactInferenceProfile"
+    actions   = ["bedrock:GetInferenceProfile"]
+    resources = [local.inference_profile_arn]
+  }
+  statement {
+    sid       = "DecryptExactSource"
+    actions   = ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey"]
+    resources = [var.kms_key_arn]
+  }
+  statement {
+    sid       = "WriteBoundedLogs"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/codebuild/enterprise-ai-capstone-deploy:*"]
+  }
+  statement {
+    sid       = "VpcNetworkInterfaceLifecycle"
+    actions   = ["ec2:CreateNetworkInterface", "ec2:DeleteNetworkInterface", "ec2:DescribeNetworkInterfaces", "ec2:DescribeSubnets", "ec2:DescribeSecurityGroups", "ec2:DescribeVpcs"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestedRegion"
+      values   = [var.aws_region]
+    }
+  }
+  statement {
+    sid       = "VpcNetworkInterfacePermission"
+    actions   = ["ec2:CreateNetworkInterfacePermission"]
+    resources = ["arn:aws:ec2:${var.aws_region}:${var.aws_account_id}:network-interface/*"]
+    condition {
+      test     = "StringEquals"
+      variable = "ec2:AuthorizedService"
+      values   = ["codebuild.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "capstone_codebuild" {
+  name   = "enterprise-ai-capstone-deploy-only"
+  role   = aws_iam_role.capstone_codebuild.id
+  policy = data.aws_iam_policy_document.capstone_codebuild.json
+}
+
+# Separate short-lived owner bootstrap identity. Kubernetes ClusterAdmin access
+# is controlled by a separately toggled EKS access entry, not this IAM policy.
+resource "aws_iam_role" "capstone_pki_bootstrap" {
+  name               = "enterprise-ai-capstone-pki-bootstrap"
+  assume_role_policy = data.aws_iam_policy_document.administrator_trust.json
+  tags               = var.tags
 }
 
 data "aws_iam_policy_document" "runtime" {

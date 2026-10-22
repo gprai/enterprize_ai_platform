@@ -1,0 +1,7 @@
+# The trust namespace contains the reviewed public root and restricted CA key.
+app:
+  trust:
+    namespace: enterprise-ai-trust
+secretTargets:
+  enabled: false
+replicaCount: 2

@@ -63,11 +63,15 @@ jobs:
         shell: bash
         run: |
           python --version | grep -Fx "Python 3.13.15"
+          python -m pip install --require-hashes --no-deps -r requirements-bootstrap.lock
+          python -m pip --version | grep -F "pip 26.2.1"
           python -m pip install --require-hashes --no-deps -r requirements-ci.lock
           python -m pip check
           python -B tools/w9_004_supply_chain.py validate-config \
             --config configs/ci/w9-004.json
-      - name: Verify immutable local policy tools
+      - name: Set up hash-locked policy tools
+        uses: ./.github/actions/setup-policy-tools
+      - name: Verify hash-locked policy tools
         shell: bash
         run: |
           opa version | grep -Fx "Version: 1.20.0"

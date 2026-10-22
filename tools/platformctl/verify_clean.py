@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .aws_inventory import (
@@ -12,7 +14,10 @@ from .aws_inventory import (
     KmsSchedulingEvidence,
     ResourceState,
     ServiceIdentifier,
+    w12_bucket_residue_present,
+    w12_retention_bindings_from_proof_roots,
 )
+from .aws_live import Boto3AwsInventoryProvider, w12_bounded_client
 from .contracts import (
     APPROVED_AWS_ACCOUNT_ID,
     APPROVED_AWS_REGION,
@@ -101,9 +106,21 @@ def verify_clean(
     now: datetime,
     *,
     scheduling_evidence: tuple[KmsSchedulingEvidence, ...] = (),
+    proof_roots: object = None,
+    external_root: Path | None = None,
+    repository_root: Path | None = None,
 ) -> OperationResult:
     """Combine tag and native checks without claiming unavailable inventory."""
     required_tags = stable_cleanup_tags(environment)
+    from .lifecycle_models import W12RuntimeProofRoots
+
+    roots = (
+        proof_roots if isinstance(proof_roots, W12RuntimeProofRoots) else W12RuntimeProofRoots(())
+    )
+    if proof_roots is not None and not isinstance(proof_roots, W12RuntimeProofRoots):
+        return OperationResult(
+            ExitCode.VALIDATION_FAILURE, "INDETERMINATE: W12 proof-root argument is malformed"
+        )
     resources: dict[tuple[ServiceIdentifier, str], InventoryResource] = {}
 
     def record_resource(resource: InventoryResource) -> None:
@@ -123,6 +140,70 @@ def verify_clean(
             ExitCode.PROVIDER_UNAVAILABLE,
             "INDETERMINATE: required AWS inventory provider is unavailable",
         )
+
+    if roots.paths:
+        external = external_root
+        repository = repository_root
+        key_arn = os.environ.get("W12_RELEASE_KMS_KEY_ARN", "")
+        if (
+            not isinstance(provider, Boto3AwsInventoryProvider)
+            or external is None
+            or repository is None
+        ):
+            return OperationResult(
+                ExitCode.PROVIDER_UNAVAILABLE,
+                "INDETERMINATE: exact W12 proof provider is unavailable",
+            )
+        try:
+            bindings = w12_retention_bindings_from_proof_roots(
+                roots,
+                client=w12_bounded_client(provider, "s3", APPROVED_AWS_REGION),
+                kms_key_arn=key_arn,
+                now=now,
+                external_root=external,
+                repository_root=repository,
+            )
+            kms = w12_bounded_client(provider, "kms", APPROVED_AWS_REGION)
+            if any(
+                kms.describe_key(KeyId=item.kms_key_arn).get("KeyMetadata", {}).get("KeyState")
+                != "Enabled"
+                for item in bindings
+            ):
+                raise ContractError("W12_RETAINED_KMS_NOT_ENABLED")
+        except (ContractError, OSError, ValueError):
+            return OperationResult(
+                ExitCode.PROVIDER_UNAVAILABLE,
+                "INDETERMINATE: W12 retention proof changed or is unavailable",
+            )
+        return OperationResult(
+            ExitCode.VALIDATION_FAILURE,
+            "RETAINED_BY_POLICY: verified W12 object versions and KMS dependency remain"
+            if any(
+                now < parse_utc_timestamp(item.retain_until_utc, "W12 retain until")
+                for item in bindings
+            )
+            else "INDETERMINATE: expired W12 evidence still requires owner purge review",
+        )
+
+    if isinstance(provider, Boto3AwsInventoryProvider):
+        try:
+            s3 = w12_bounded_client(provider, "s3", APPROVED_AWS_REGION)
+            for resource in resources.values():
+                if (
+                    resource.service is ServiceIdentifier.S3
+                    and resource.owner_classification
+                    not in {"SHARED", "OWNER_MANAGED", "UNRELATED"}
+                    and resource.state is not ResourceState.ABSENT
+                    and w12_bucket_residue_present(s3, resource.resource_id)
+                ):
+                    return OperationResult(
+                        ExitCode.PROVIDER_UNAVAILABLE,
+                        "INDETERMINATE: W12 residue lacks an exact proof root",
+                    )
+        except (ContractError, OSError, ValueError):
+            return OperationResult(
+                ExitCode.PROVIDER_UNAVAILABLE, "INDETERMINATE: W12 prefix inventory unavailable"
+            )
 
     unmanaged_count = 0
     active_or_unknown_count = 0

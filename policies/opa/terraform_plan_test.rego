@@ -3403,3 +3403,8 @@ test_bedrock_logging_disable_rejects_noop_role_or_fis_drift if {
 	})})
 	not approved_bedrock_logging_fis_noop(changed_fis) with input as bedrock_logging_disable_noop_context
 }
+
+test_w12_codebuild_resource_is_explicit_and_tagged if {
+	"aws_codebuild_project" in supported_aws_resource_types
+	"aws_codebuild_project" in taggable_resource_types
+}

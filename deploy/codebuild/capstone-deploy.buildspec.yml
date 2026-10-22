@@ -1,0 +1,33 @@
+version: 0.2
+env:
+  shell: bash
+phases:
+  install:
+    commands:
+      - set -euo pipefail
+      - test -n "${W12_RECORD_SHA256:-}"
+      - test -n "${CODEBUILD_SOURCE_VERSION:-}"
+      - test -n "${CODEBUILD_SOURCE_VERSION_W12_CONTROL:-}"
+      - test "$CODEBUILD_SOURCE_VERSION" = "$W12_SOURCE_VERSION_ID"
+      - test "$CODEBUILD_SOURCE_VERSION_W12_CONTROL" = "$W12_CONTROL_VERSION_ID"
+      - test -n "${CODEBUILD_SRC_DIR_W12_CONTROL:-}"
+      - test -n "${W12_IMAGE_DIGEST:-}"
+      - test -n "${W12_OPERATION:-}"
+  pre_build:
+    commands:
+      - set -euo pipefail
+      - python -B -m tools.capstone_deploy preflight
+      - export KUBECONFIG="$(mktemp)"
+      - chmod 600 "$KUBECONFIG"
+      - aws eks update-kubeconfig --region ap-southeast-1 --name enterprise-ai-sandbox --kubeconfig "$KUBECONFIG" >/dev/null
+  build:
+    commands:
+      - set -euo pipefail
+      - python -B -m tools.capstone_deploy deploy --operation "$W12_OPERATION" > /tmp/w12-deploy-result.json
+      - python -B -m tools.capstone_deploy probe > /tmp/w12-probe-result.json
+      - python -B -m tools.capstone_deploy inventory > /tmp/w12-inventory-result.json
+  post_build:
+    commands:
+      - set -euo pipefail
+      - if test -n "${KUBECONFIG:-}"; then rm -f "$KUBECONFIG"; fi
+      - python -B -m tools.capstone_deploy publish-result

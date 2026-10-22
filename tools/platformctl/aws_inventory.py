@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Protocol
+from typing import TYPE_CHECKING, Any, Protocol, cast
+
+if TYPE_CHECKING:
+    from .lifecycle_models import PurgeInventoryV2, PurgeInventoryV3, W12RetentionBinding
 
 # W6-004 adds these project-owned live lifecycle surfaces while preserving the
 # existing W5 inventory contracts and shared service-linked-role exclusions.
@@ -28,6 +31,253 @@ W6_004_NATIVE_SERVICES = (
     "sts",
     "xray",
 )
+
+# W12 extends owner-executed residue review without changing W6's historical
+# inventory profile or claiming that a deployment probe proves teardown.
+W12_001_RESIDUAL_SURFACES = (
+    "codebuild-project-and-builds",
+    "s3-source-control-result-versions",
+    "ecr-image-and-attestations",
+    "eks-workload-probe-certificate-and-bundle",
+    "iam-oidc-codebuild-and-pki-access",
+    "kms-key-and-grants",
+    "cloudwatch-codebuild-logs",
+    "hcp-workspaces-runs-and-state-versions",
+    "github-release-artifacts-and-protected-approval",
+)
+
+
+def classify_w12_residuals(observed: Mapping[str, Sequence[str] | None]) -> str:
+    """Classify an owner-supplied complete inventory; unknown never means clean."""
+    if set(observed) != set(W12_001_RESIDUAL_SURFACES):
+        return "INDETERMINATE"
+    if any(value is None for value in observed.values()):
+        return "INDETERMINATE"
+    if any(
+        not isinstance(value, (list, tuple)) or any(not isinstance(item, str) for item in value)
+        for value in observed.values()
+    ):
+        return "INDETERMINATE"
+    return "RESIDUE_PRESENT" if any(observed.values()) else "PASS_PHYSICALLY_ABSENT"
+
+
+def w12_retention_bindings_from_proof_roots(
+    proof_roots: object,
+    *,
+    client: object,
+    kms_key_arn: str,
+    now: object,
+    external_root: object,
+    repository_root: object,
+) -> tuple[W12RetentionBinding, ...]:
+    """Re-read exact W12 proof and live versions for this invocation only."""
+    from datetime import datetime
+    from pathlib import Path
+
+    from tools.capstone_release import ReleaseError, validate_publication_proof
+
+    from .contracts import ContractError
+    from .lifecycle_io import ensure_external_path
+    from .lifecycle_models import (
+        W12ProtectedObject,
+        W12PublishedObject,
+        W12RetentionBinding,
+        W12RuntimeProofRoots,
+    )
+
+    if (
+        not isinstance(proof_roots, W12RuntimeProofRoots)
+        or not isinstance(now, datetime)
+        or now.tzinfo is None
+        or not isinstance(external_root, Path)
+        or not isinstance(repository_root, Path)
+        or not isinstance(kms_key_arn, str)
+        or not kms_key_arn
+    ):
+        raise ContractError("W12_RETENTION_RUNTIME_PROOF_REQUIRED")
+    bindings: list[W12RetentionBinding] = []
+    seen_roots = set()
+    try:
+        for path in proof_roots.paths:
+            selected = ensure_external_path(path, external_root, repository_root)
+            if selected in seen_roots:
+                raise ContractError("W12_DUPLICATE_PROOF_ROOT")
+            seen_roots.add(selected)
+            proof = validate_publication_proof(
+                selected,
+                client=client,
+                kms_key_arn=kms_key_arn,
+                now=now,
+            )
+            bindings.append(
+                W12RetentionBinding(
+                    record_id=proof["record_id"],
+                    operation=proof["operation"],
+                    verified_record_sha256=proof["verified_record_sha256"],
+                    verified_created_at_utc=proof["verified_created_at_utc"],
+                    verified_record_object=W12PublishedObject(**proof["verified_record_object"]),
+                    verified_sidecar_object=W12PublishedObject(**proof["verified_sidecar_object"]),
+                    publication_anchor_utc=proof["publication_anchor_utc"],
+                    retain_until_utc=proof["retain_until_utc"],
+                    kms_key_arn=proof["kms_key_arn"],
+                    protected_objects=tuple(
+                        W12ProtectedObject(**item) for item in proof["protected_objects"]
+                    ),
+                )
+            )
+    except (ReleaseError, OSError, KeyError, ValueError) as exc:
+        raise ContractError("W12_RETENTION_PROOF_INDETERMINATE") from exc
+    if not bindings or len({item.verified_record_sha256 for item in bindings}) != len(bindings):
+        raise ContractError("W12_RETENTION_BINDING_MISSING_OR_DUPLICATE")
+    for binding in bindings:
+        validate_w12_binding_coverage(binding)
+    return tuple(
+        sorted(
+            bindings,
+            key=lambda item: (
+                item.verified_record_sha256,
+                item.operation,
+                item.record_id,
+            ),
+        )
+    )
+
+
+def canonical_purge_inventory_v3(inventory: object) -> bytes:
+    """Serialize the approved V3 field order without changing historical V2 JSON."""
+    import json
+    from dataclasses import asdict
+
+    from .contracts import ContractError
+    from .lifecycle_models import PURGE_INVENTORY_V3_SCHEMA_VERSION, PurgeInventoryV3
+
+    if (
+        not isinstance(inventory, PurgeInventoryV3)
+        or inventory.schema_version != PURGE_INVENTORY_V3_SCHEMA_VERSION
+    ):
+        raise ContractError("PURGE_V3_SCHEMA_REQUIRED")
+    for binding in inventory.w12_retention_bindings:
+        validate_w12_binding_coverage(binding)
+    value = asdict(inventory)
+    if not inventory.w12_retention_bindings:
+        raise ContractError("PURGE_V3_BINDING_REQUIRED")
+    try:
+        return (
+            json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False) + "\n"
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise ContractError("PURGE_V3_CANONICALIZATION") from exc
+
+
+def decode_purge_inventory(raw: bytes) -> PurgeInventoryV2 | PurgeInventoryV3:
+    """Select V2 or exact-order V3 without broadening the V2 decoder."""
+    from .contracts import ContractError
+    from .lifecycle_io import decode_json_strict, decode_operational_record, decode_record
+    from .lifecycle_models import (
+        OPERATIONAL_SCHEMA_VERSION,
+        PURGE_INVENTORY_V3_SCHEMA_VERSION,
+        PurgeInventoryV2,
+        PurgeInventoryV3,
+    )
+
+    value = decode_json_strict(raw)
+    if not isinstance(value, dict):
+        raise ContractError("PURGE_INVENTORY_OBJECT_REQUIRED")
+    if value.get("schema_version") == OPERATIONAL_SCHEMA_VERSION:
+        return decode_operational_record(raw, PurgeInventoryV2)
+    if value.get("schema_version") != PURGE_INVENTORY_V3_SCHEMA_VERSION:
+        raise ContractError("PURGE_INVENTORY_SCHEMA_UNSUPPORTED")
+    inventory = decode_record(value, PurgeInventoryV3)
+    if canonical_purge_inventory_v3(inventory) != raw:
+        raise ContractError("PURGE_V3_NONCANONICAL_OR_FIELD_ORDER")
+    return inventory
+
+
+def validate_w12_binding_coverage(binding: object) -> None:
+    """Only the exact r5 pair and sole future-lineage ZIP get exceptions."""
+    from tools.capstone_release import _release_publication_key
+
+    from .contracts import ContractError
+    from .lifecycle_models import W12RetentionBinding
+
+    if not isinstance(binding, W12RetentionBinding):
+        raise ContractError("W12_RETENTION_BINDING_TYPE")
+    expected_special = {
+        (
+            _release_publication_key(binding.record_id, "verified_record"),
+            binding.verified_record_object.version_id,
+        ): ("verified_record", "VERIFIED_SELF_PUBLICATION"),
+        (
+            _release_publication_key(binding.record_id, "verified_sidecar"),
+            binding.verified_sidecar_object.version_id,
+        ): ("verified_sidecar", "VERIFIED_SELF_PUBLICATION"),
+    }
+    special_seen = set()
+    derivative_seen = False
+    ordered = sorted(
+        binding.protected_objects, key=lambda item: (item.bucket, item.key, item.version_id)
+    )
+    if list(binding.protected_objects) != ordered or len(
+        {(item.bucket, item.key, item.version_id) for item in ordered}
+    ) != len(ordered):
+        raise ContractError("W12_PROTECTED_OBJECT_ORDER_OR_DUPLICATE")
+    for item in binding.protected_objects:
+        identity = (item.key, item.version_id)
+        if (
+            item.bucket != binding.verified_record_object.bucket
+            or item.bucket != binding.verified_sidecar_object.bucket
+        ):
+            raise ContractError("W12_PROTECTED_OBJECT_BUCKET")
+        if identity in expected_special:
+            if (item.evidence_kind, item.coverage) != expected_special[identity]:
+                raise ContractError("W12_SELF_PUBLICATION_COVERAGE")
+            special_seen.add(identity)
+        elif item.key == _release_publication_key(binding.record_id, "future_lineage"):
+            if (
+                item.evidence_kind != "future_lineage"
+                or item.coverage != "VERIFIED_LINEAGE_DERIVATIVE"
+                or derivative_seen
+            ):
+                raise ContractError("W12_DERIVATIVE_COVERAGE")
+            derivative_seen = True
+        elif item.coverage != "R5_LOCATOR":
+            raise ContractError("W12_UNAPPROVED_COVERAGE_EXCEPTION")
+    if special_seen != set(expected_special) or not derivative_seen:
+        raise ContractError("W12_PUBLICATION_COVERAGE_INCOMPLETE")
+
+
+def w12_bucket_residue_present(client: object, bucket: str) -> bool:
+    """Inventory the W12 prefix for destructive gating, never select a release."""
+    from .contracts import ContractError
+
+    if not isinstance(bucket, str) or not bucket:
+        raise ContractError("W12_BUCKET_IDENTITY_REQUIRED")
+    try:
+        api = cast(Any, client)
+        versions = api.get_paginator("list_object_versions")
+        uploads = api.get_paginator("list_multipart_uploads")
+        total_pages = 0
+        for paginator, collection in (
+            (versions, ("Versions", "DeleteMarkers")),
+            (uploads, ("Uploads",)),
+        ):
+            for page in paginator.paginate(Bucket=bucket, Prefix="w12-001/"):
+                total_pages += 1
+                if total_pages > 1000 or not isinstance(page, dict):
+                    raise ContractError("W12_BUCKET_INVENTORY_UNBOUNDED")
+                for name in collection:
+                    for item in page.get(name, []):
+                        if not isinstance(item, dict) or not isinstance(item.get("Key"), str):
+                            raise ContractError("W12_BUCKET_INVENTORY_MALFORMED")
+                        if item["Key"].startswith("w12-001/"):
+                            return True
+                        raise ContractError("W12_BUCKET_PREFIX_SUBSTITUTED")
+    except ContractError:
+        raise
+    except Exception as exc:
+        raise ContractError("W12_BUCKET_INVENTORY_INDETERMINATE") from exc
+    return False
+
 
 PUBLIC_CHARGING_PAGES = (
     "https://aws.amazon.com/privatelink/pricing/",

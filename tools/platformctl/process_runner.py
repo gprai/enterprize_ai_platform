@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import codecs
+import re
+import shutil
 import subprocess  # noqa: S404 - shell-free execution is the purpose of this boundary.
 import threading
 import time
@@ -51,6 +53,42 @@ PROCESS_ENVIRONMENT_ALLOWLIST = frozenset(
         "WINDIR",
     }
 )
+
+
+def read_exact_git_blob(repository: Path, commit: str, tree: str, name: str) -> bytes:
+    """Read one committed source blob after checking the exact local Git identity."""
+    if (
+        not re.fullmatch(r"[0-9a-f]{40}", commit)
+        or not re.fullmatch(r"[0-9a-f]{40}", tree)
+        or not name
+        or name.startswith("/")
+        or "\\" in name
+        or any(part in {"", ".", ".."} for part in name.split("/"))
+    ):
+        raise ContractError("W12 Git source identity is invalid")
+    executable = shutil.which("git")
+    if executable is None or not Path(executable).is_absolute():
+        raise ContractError("W12 Git executable is unavailable")
+    for ref, expected in (("HEAD", commit), ("HEAD^{tree}", tree)):
+        response = subprocess.run(  # noqa: S603 -- exact read-only Git ref, no shell
+            [executable, "rev-parse", ref],
+            cwd=repository,
+            capture_output=True,
+            timeout=10,
+            check=False,
+        )
+        if response.returncode or response.stdout.strip().decode("ascii") != expected:
+            raise ContractError("W12 policy checkout changed")
+    response = subprocess.run(  # noqa: S603 -- validated commit and repository path
+        [executable, "show", f"{commit}:{name}"],
+        cwd=repository,
+        capture_output=True,
+        timeout=20,
+        check=False,
+    )
+    if response.returncode:
+        raise ContractError("W12 policy source is unavailable")
+    return response.stdout
 
 
 class ProcessClassification(StrEnum):

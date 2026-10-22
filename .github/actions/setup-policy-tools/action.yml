@@ -1,0 +1,49 @@
+name: Set up hash-locked policy tools
+description: Install the exact Linux policy binaries used by governed CI
+
+runs:
+  using: composite
+  steps:
+    - name: Download and verify exact policy binaries
+      shell: bash
+      env:
+        POLICY_TOOLS_DIR: ${{ runner.temp }}/w5-002-policy-tools
+        TFLINT_PLUGIN_DIR: ${{ runner.temp }}/w5-002-tflint-plugins
+      run: |
+        set -euo pipefail
+
+        downloads="$RUNNER_TEMP/w5-002-policy-downloads"
+        plugin="$TFLINT_PLUGIN_DIR/github.com/terraform-linters/tflint-ruleset-aws/0.48.0"
+        install -d -m 755 "$downloads" "$POLICY_TOOLS_DIR" "$plugin"
+
+        curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+          --output "$downloads/tflint.zip" \
+          https://github.com/terraform-linters/tflint/releases/download/v0.60.0/tflint_linux_amd64.zip
+        echo "3476ceedcf0c4f9f2bed35e92988e1411bec2caa543c9387bffaa720df9efaf7  $downloads/tflint.zip" \
+          | sha256sum --check --strict
+        unzip -oq "$downloads/tflint.zip" -d "$POLICY_TOOLS_DIR"
+
+        curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+          --output "$downloads/tflint-ruleset-aws.zip" \
+          https://github.com/terraform-linters/tflint-ruleset-aws/releases/download/v0.48.0/tflint-ruleset-aws_linux_amd64.zip
+        echo "531444ac5dd989ce3117b2ab695d52e52599020a41df8b2a8811add2f6764164  $downloads/tflint-ruleset-aws.zip" \
+          | sha256sum --check --strict
+        unzip -oq "$downloads/tflint-ruleset-aws.zip" -d "$plugin"
+
+        curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+          --output "$POLICY_TOOLS_DIR/opa" \
+          https://github.com/open-policy-agent/opa/releases/download/v1.20.0/opa_linux_amd64_static
+        echo "4e4c65be08ed27e7375d816d446a444e65ba101806014c7a51b2a7652c2a942a  $POLICY_TOOLS_DIR/opa" \
+          | sha256sum --check --strict
+
+        curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+          --output "$downloads/actionlint.tar.gz" \
+          https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+        echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $downloads/actionlint.tar.gz" \
+          | sha256sum --check --strict
+        tar -xzf "$downloads/actionlint.tar.gz" -C "$POLICY_TOOLS_DIR" actionlint
+
+        chmod 755 "$POLICY_TOOLS_DIR/tflint" "$POLICY_TOOLS_DIR/opa" \
+          "$POLICY_TOOLS_DIR/actionlint" "$plugin/tflint-ruleset-aws"
+        echo "$POLICY_TOOLS_DIR" >> "$GITHUB_PATH"
+        echo "TFLINT_PLUGIN_DIR=$TFLINT_PLUGIN_DIR" >> "$GITHUB_ENV"

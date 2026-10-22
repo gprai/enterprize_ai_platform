@@ -1,5 +1,10 @@
 terraform {
-  backend "local" {}
+  cloud {
+    organization = "Enterprise_AI_AWS_Arch"
+    workspaces {
+      name = "enterprise-ai-bootstrap"
+    }
+  }
 
   required_version = "= 1.16.1"
 

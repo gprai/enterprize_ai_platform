@@ -296,3 +296,10 @@ def test_w7_policy_extension_is_offline_and_rejects_unapproved_services() -> Non
     ):
         assert resource_type in combined
     assert "http.send" not in combined
+
+
+def test_w12_codebuild_is_explicitly_policy_scoped() -> None:
+    source = POLICY.read_text(encoding="utf-8")
+    assert source.count('"aws_codebuild_project"') >= 2
+    assert "package enterprise_ai.terraform.plan" in source
+    assert "policy_evaluated := true" in source

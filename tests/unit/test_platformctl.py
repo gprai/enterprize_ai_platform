@@ -787,3 +787,189 @@ def test_v2_configuration_keeps_historical_application_identity_separate() -> No
     assert values["schema_version"] == "w5-004.lifecycle.v2"
     assert values["lifecycle"]["identity_member_count"] == 385
     assert "source_composition_sha256" in values["repository"]
+
+
+def test_w12_inventory_surfaces_are_explicit_and_versioned() -> None:
+    from tools.platformctl.aws_inventory import W12_001_RESIDUAL_SURFACES
+
+    assert len(W12_001_RESIDUAL_SURFACES) == len(set(W12_001_RESIDUAL_SURFACES))
+    assert "codebuild-project-and-builds" in W12_001_RESIDUAL_SURFACES
+    assert "eks-workload-probe-certificate-and-bundle" in W12_001_RESIDUAL_SURFACES
+
+
+def test_retention_anchor_includes_lineage_timestamp() -> None:
+    from datetime import UTC, datetime, timedelta
+
+    from tools.capstone_release import retention_anchor_from_publication
+
+    anchor, protected_until = retention_anchor_from_publication(
+        "2026-01-01T00:00:00Z",
+        "2026-01-01T00:00:01Z",
+        "2026-01-01T00:00:02Z",
+        "2026-01-01T00:00:03Z",
+        now=datetime(2026, 1, 1, 0, 0, 4, tzinfo=UTC),
+    )
+    assert anchor == datetime(2026, 1, 1, 0, 0, 3, tzinfo=UTC)
+    assert protected_until == anchor + timedelta(days=180)
+
+
+def _w12_coverage_binding():
+    from tools.capstone_release import _release_publication_key
+    from tools.platformctl.lifecycle_models import (
+        W12ProtectedObject,
+        W12PublishedObject,
+        W12RetentionBinding,
+    )
+
+    record_id = "123e4567-e89b-42d3-a456-426614174000"
+    bucket = "synthetic-w12-bucket"
+    version = "synthetic-version"
+    stamp = "2026-01-01T00:00:00Z"
+    record_key = _release_publication_key(record_id, "verified_record")
+    sidecar_key = _release_publication_key(record_id, "verified_sidecar")
+    lineage_key = _release_publication_key(record_id, "future_lineage")
+    objects = (
+        W12ProtectedObject(
+            bucket, record_key, version, "a" * 64, "verified_record", "VERIFIED_SELF_PUBLICATION"
+        ),
+        W12ProtectedObject(
+            bucket, sidecar_key, version, "b" * 64, "verified_sidecar", "VERIFIED_SELF_PUBLICATION"
+        ),
+        W12ProtectedObject(
+            bucket, lineage_key, version, "c" * 64, "future_lineage", "VERIFIED_LINEAGE_DERIVATIVE"
+        ),
+    )
+    return W12RetentionBinding(
+        record_id=record_id,
+        operation="deploy",
+        verified_record_sha256="a" * 64,
+        verified_created_at_utc=stamp,
+        verified_record_object=W12PublishedObject(bucket, record_key, version, "a" * 64, stamp),
+        verified_sidecar_object=W12PublishedObject(bucket, sidecar_key, version, "b" * 64, stamp),
+        publication_anchor_utc=stamp,
+        retain_until_utc="2026-06-30T00:00:00Z",
+        kms_key_arn="arn:aws:kms:ap-southeast-1:123456789012:key/synthetic",
+        protected_objects=tuple(
+            sorted(
+                objects,
+                key=lambda obj: (
+                    obj.bucket,
+                    obj.key,
+                    obj.version_id,
+                ),
+            )
+        ),
+    )
+
+
+def test_verified_self_publication_exception() -> None:
+    from dataclasses import replace
+
+    from tools.platformctl.aws_inventory import validate_w12_binding_coverage
+    from tools.platformctl.contracts import ContractError
+
+    binding = _w12_coverage_binding()
+    validate_w12_binding_coverage(binding)
+    altered = tuple(
+        replace(obj, coverage="R5_LOCATOR") if obj.evidence_kind == "verified_record" else obj
+        for obj in binding.protected_objects
+    )
+    with unittest.TestCase().assertRaisesRegex(ContractError, "W12_SELF_PUBLICATION"):
+        validate_w12_binding_coverage(replace(binding, protected_objects=altered))
+
+
+def test_publication_anchor_uses_latest_verified_pair_timestamp() -> None:
+    from datetime import UTC, datetime
+
+    from tools.capstone_release import retention_anchor_from_publication
+
+    anchor, _ = retention_anchor_from_publication(
+        "2026-01-01T00:00:00Z",
+        "2026-01-01T00:00:08Z",
+        "2026-01-01T00:00:05Z",
+        "2026-01-01T00:00:02Z",
+        now=datetime(2026, 1, 1, 0, 0, 9, tzinfo=UTC),
+    )
+    assert anchor == datetime(2026, 1, 1, 0, 0, 8, tzinfo=UTC)
+
+
+def test_w12_retention_unknown_is_indeterminate() -> None:
+    from dataclasses import replace
+
+    from tools.platformctl.aws_inventory import validate_w12_binding_coverage
+    from tools.platformctl.contracts import ContractError
+
+    binding = _w12_coverage_binding()
+    incomplete = replace(
+        binding,
+        protected_objects=tuple(
+            item for item in binding.protected_objects if item.evidence_kind != "future_lineage"
+        ),
+    )
+    with unittest.TestCase().assertRaisesRegex(
+        ContractError, "W12_PUBLICATION_COVERAGE_INCOMPLETE"
+    ):
+        validate_w12_binding_coverage(incomplete)
+
+
+def test_purge_inventory_v2_rejected_for_w12_scope() -> None:
+    from datetime import UTC, datetime
+
+    from tools.platformctl.contracts import ContractError
+    from tools.platformctl.destroy import _validate_w12_purge_scope
+    from tools.platformctl.lifecycle_models import PurgeInventoryV2, PurgeItem
+
+    inventory = PurgeInventoryV2(
+        schema_version="w5-004.operation.v2",
+        operation_id="synthetic",
+        account_id="123456789012",
+        region="ap-southeast-1",
+        environment="sandbox",
+        bucket="synthetic-w12-bucket",
+        ownership="PROJECT_MANAGED",
+        items=(PurgeItem("OBJECT_VERSION", "w12-001/source/source.zip", "v1"),),
+        retained=(),
+        pagination_evidence=None,
+        observed_at="2026-01-01T00:00:00Z",
+        valid_until="2026-01-02T00:00:00Z",
+    )
+    with unittest.TestCase().assertRaisesRegex(ContractError, "PURGE_V2_W12_SCOPE"):
+        _validate_w12_purge_scope(inventory, (), datetime(2026, 1, 1, tzinfo=UTC))
+
+
+def test_w12_retention_requires_canonical_verified_chain() -> None:
+    from tools.capstone_release import ReleaseError, make_future_lineage_zip
+
+    from tests.fakes.capstone_release import verified_release_chain
+
+    chain = verified_release_chain()
+    assert make_future_lineage_zip(chain)
+    changed = [*chain]
+    changed[3] = b"{}\n"
+    with unittest.TestCase().assertRaises(ReleaseError):
+        make_future_lineage_zip(changed)
+
+
+def test_retention_expiry_does_not_authorize_purge() -> None:
+    from datetime import UTC, datetime
+
+    from tools.platformctl.contracts import ContractError
+    from tools.platformctl.destroy import purge_approved_inventory
+
+    with unittest.TestCase().assertRaisesRegex(ContractError, "VERIFIED_CONTEXT_AND_LEDGER"):
+        purge_approved_inventory(None, None, None, datetime(2027, 1, 1, tzinfo=UTC))
+
+
+def test_w12_lifecycle_diagnostic_classification() -> None:
+    from tools.platformctl.aws_inventory import (
+        W12_001_RESIDUAL_SURFACES,
+        classify_w12_residuals,
+    )
+
+    empty = {name: [] for name in W12_001_RESIDUAL_SURFACES}
+    assert classify_w12_residuals(empty) == "PASS_PHYSICALLY_ABSENT"
+    assert classify_w12_residuals({**empty, W12_001_RESIDUAL_SURFACES[0]: None}) == "INDETERMINATE"
+    assert (
+        classify_w12_residuals({**empty, W12_001_RESIDUAL_SURFACES[0]: ["synthetic"]})
+        == "RESIDUE_PRESENT"
+    )

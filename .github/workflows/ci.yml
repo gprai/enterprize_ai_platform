@@ -35,8 +35,9 @@ jobs:
           python -B tools/w5_002_ci.py validate-locks \
             --runtime requirements-runtime.lock --ci requirements-ci.lock \
             --checkov requirements-checkov.lock
-          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m pip install --require-hashes --no-deps -r requirements-bootstrap.lock
           python -m pip --version | grep -F "pip 26.2.1"
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
           python -m pip check
       - name: Validate the W5-002 contract
         run: python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
@@ -90,13 +91,16 @@ jobs:
           python -B tools/w5_002_ci.py validate-locks \
             --runtime requirements-runtime.lock --ci requirements-ci.lock \
             --checkov requirements-checkov.lock
-          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m pip install --require-hashes --no-deps -r requirements-bootstrap.lock
           python -m pip --version | grep -F "pip 26.2.1"
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
           python -m pip check
           python -m venv --without-pip "$CHECKOV_VENV"
           python -m pip --python "$CHECKOV_VENV/bin/python" install --require-hashes --no-deps -r requirements-checkov.lock
           python -m pip --python "$CHECKOV_VENV/bin/python" check
-      - name: Verify pre-provisioned immutable policy tools
+      - name: Set up hash-locked policy tools
+        uses: ./.github/actions/setup-policy-tools
+      - name: Verify hash-locked policy tools
         shell: bash
         run: |
           test "$(tflint --version | head -n 1)" = "TFLint version 0.60.0"
@@ -112,8 +116,8 @@ jobs:
           terraform -chdir=infra/bootstrap validate
           terraform -chdir=infra/environments/sandbox init -backend=false -lockfile=readonly
           terraform -chdir=infra/environments/sandbox validate
-          tflint --chdir=infra/bootstrap
-          tflint --chdir=infra/environments/sandbox
+          tflint --config="$(realpath .tflint.hcl)" --chdir=infra/bootstrap
+          tflint --config="$(realpath .tflint.hcl)" --chdir=infra/environments/sandbox
           "$CHECKOV" --config-file .checkov.yml -d infra --framework terraform
           "$CHECKOV" --config-file .checkov.yml -d deploy/k8s --framework kubernetes
           opa check --strict policies/opa

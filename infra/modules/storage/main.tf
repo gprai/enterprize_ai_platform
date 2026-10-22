@@ -61,7 +61,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     }
 
     noncurrent_version_expiration {
-      noncurrent_days = 30
+      noncurrent_days = var.noncurrent_version_retention_days
     }
   }
 

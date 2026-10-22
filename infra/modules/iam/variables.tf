@@ -14,12 +14,12 @@ variable "data_zone_prefixes" {
   type        = map(string)
   description = "Exact W7-001 governed prefixes used for least-privilege S3 policies."
   validation {
-    condition = var.data_zone_prefixes == {
+    condition = var.data_zone_prefixes == tomap({
       raw        = "raw/"
       quarantine = "quarantine/"
       processed  = "processed/"
       evidence   = "evidence/"
-    }
+    })
     error_message = "data_zone_prefixes must contain the exact four W7-001 prefixes."
   }
 }

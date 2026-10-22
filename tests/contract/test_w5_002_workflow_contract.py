@@ -172,3 +172,76 @@ def test_all_dependency_installations_are_hash_locked_and_non_resolving() -> Non
         assert text.index("tools/w5_002_ci.py validate-locks") < text.index("pip install")
     assert "requirements-dev.txt" not in combined
     assert "requirements-checkov.txt" not in combined
+
+
+def test_policy_tools_are_downloaded_from_exact_hash_verified_releases() -> None:
+    action = (ROOT / ".github/actions/setup-policy-tools/action.yml").read_text(encoding="utf-8")
+    workflow = _text("ci.yml")
+
+    expected = {
+        "v0.60.0/tflint_linux_amd64.zip": "".join(
+            (
+                "3476ceed",
+                "cf0c4f9f",
+                "2bed35e9",
+                "2988e141",
+                "1bec2caa",
+                "543c9387",
+                "bffaa720",
+                "df9efaf7",
+            )
+        ),
+        "v0.48.0/tflint-ruleset-aws_linux_amd64.zip": "".join(
+            (
+                "531444ac",
+                "5dd989ce",
+                "3117b2ab",
+                "695d52e5",
+                "2599020a",
+                "41df8b2a",
+                "8811add2",
+                "f6764164",
+            )
+        ),
+        "v1.20.0/opa_linux_amd64_static": "".join(
+            (
+                "4e4c65be",
+                "08ed27e7",
+                "375d816d",
+                "446a444e",
+                "65ba1018",
+                "06014c7a",
+                "51b2a765",
+                "2c2a942a",
+            )
+        ),
+        "v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz": "".join(
+            (
+                "8aca8db9",
+                "6f1b9477",
+                "0f1b0d72",
+                "b6dddcb1",
+                "ebb8123c",
+                "b3712530",
+                "b08cc387",
+                "b349a3d8",
+            )
+        ),
+    }
+    for release, digest in expected.items():
+        assert release in action
+        assert digest in action
+    assert action.count("sha256sum --check --strict") == 4
+    assert "uses: ./.github/actions/setup-policy-tools" in workflow
+    assert 'tflint --config="$(realpath .tflint.hcl)"' in workflow
+
+
+def test_supply_chain_cleanup_builder_absence_check_is_fail_closed() -> None:
+    workflow = _text("security-scan.yml")
+    cleanup = workflow.split("Remove only migration-created runtime resources", maxsplit=1)[1]
+
+    assert "! docker buildx inspect" not in cleanup
+    assert (
+        "if docker buildx inspect enterprise-ai-platform-w5-002-py313 "
+        ">/dev/null 2>&1; then exit 1; fi"
+    ) in cleanup

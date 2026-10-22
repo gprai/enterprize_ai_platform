@@ -73,3 +73,11 @@ def test_workflow_scopes_transient_path_to_each_consumer_step() -> None:
     assert f"ELIGIBILITY_PATH: {ELIGIBILITY_PATH}" in enforcement
     assert f"path: {ELIGIBILITY_PATH}" in upload
     assert f"ELIGIBILITY_PATH: {ELIGIBILITY_PATH}" in cleanup
+
+
+def test_workflow_installs_hash_locked_policy_tools_before_verification() -> None:
+    workflow = (ROOT / ".github/workflows/model-supply-chain.yml").read_text(encoding="utf-8")
+    setup = workflow.index("uses: ./.github/actions/setup-policy-tools")
+    verification = workflow.index("Verify hash-locked policy tools")
+
+    assert setup < verification

@@ -2988,3 +2988,44 @@ def test_plan_owner_envelope_cli_dispatch_is_non_mutating(
     output = capsys.readouterr().out
     assert "PLAN_OWNER_ENVELOPE_PREPARATION=PASS" in output
     assert "TERRAFORM=NOT_RUN; AWS=NOT_RUN; BILLING=NOT_RUN" in output
+
+
+def test_w12_residual_inventory_requires_complete_coverage() -> None:
+    from tools.platformctl.aws_inventory import (
+        W12_001_RESIDUAL_SURFACES,
+        classify_w12_residuals,
+    )
+
+    empty = {name: [] for name in W12_001_RESIDUAL_SURFACES}
+    assert classify_w12_residuals(empty) == "PASS_PHYSICALLY_ABSENT"
+    assert (
+        classify_w12_residuals({**empty, W12_001_RESIDUAL_SURFACES[0]: ["build-1"]})
+        == "RESIDUE_PRESENT"
+    )
+    assert classify_w12_residuals({}) == "INDETERMINATE"
+
+
+def test_storage_retention_override_preserves_default_consumers() -> None:
+    storage_variables = (ROOT / "infra/modules/storage/variables.tf").read_text()
+    sandbox = (ROOT / "infra/environments/sandbox/main.tf").read_text()
+    assert "default     = 30" in storage_variables
+    assert "noncurrent_version_retention_days = 180" in sandbox
+    assert sandbox.count('module "storage"') == 1
+
+
+def test_retention_proof_cross_command_revalidation() -> None:
+    cli = (ROOT / "tools/platformctl/cli.py").read_text()
+    inventory = (ROOT / "tools/platformctl/aws_inventory.py").read_text()
+    assert cli.count('"--w12-retention-proof-root"') >= 3
+    assert "W12RuntimeProofRoots(tuple(" in cli
+    assert "w12_retention_bindings_from_proof_roots" in inventory
+    assert "validate_publication_proof" in inventory
+    assert "validate_w12_binding_coverage" in inventory
+
+
+def test_platform_destroy_blocks_protected_w12_bucket_and_kms() -> None:
+    plan = (ROOT / "tools/platformctl/plan.py").read_text()
+    destroy = (ROOT / "tools/platformctl/destroy.py").read_text()
+    assert "w12_bucket_residue_present" in plan
+    assert "W12_SOURCE_BUCKET" in plan
+    assert "W12" in destroy

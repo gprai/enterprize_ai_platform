@@ -138,8 +138,24 @@ def test_roots_pin_exact_terraform_and_aws_provider_bounds() -> None:
         assert 'required_version = "= 1.16.1"' in source
         assert 'source  = "hashicorp/aws"' in source
         assert 'version = "= 6.55.0"' in source
-    assert 'backend "local" {}' in bootstrap.read_text(encoding="utf-8")
-    assert 'backend "s3" {}' in sandbox.read_text(encoding="utf-8")
+    assert 'organization = "Enterprise_AI_AWS_Arch"' in bootstrap.read_text(encoding="utf-8")
+    assert 'name = "enterprise-ai-bootstrap"' in bootstrap.read_text(encoding="utf-8")
+    assert 'organization = "Enterprise_AI_AWS_Arch"' in sandbox.read_text(encoding="utf-8")
+    assert 'name = "enterprise-ai-sandbox"' in sandbox.read_text(encoding="utf-8")
+
+
+def test_w12_private_codebuild_and_owner_gated_access_contract() -> None:
+    sandbox = (SANDBOX / "main.tf").read_text(encoding="utf-8")
+    iam = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    eks = (ROOT / "infra/modules/eks/main.tf").read_text(encoding="utf-8")
+    assert 'resource "aws_codebuild_project" "capstone_deploy"' in sandbox
+    assert "count                  = var.w12_capstone_enabled ? 1 : 0" in sandbox
+    assert "concurrent_build_limit = 1" in sandbox
+    assert 'source_identifier = "W12_CONTROL"' in sandbox
+    assert 'resource "aws_iam_role" "capstone_build"' in iam
+    assert 'resource "aws_iam_role" "capstone_deploy_caller"' in iam
+    assert 'resource "aws_iam_role" "capstone_codebuild"' in iam
+    assert "capstone_pki_role_arn" in eks
 
 
 def test_every_approved_module_has_main_variables_and_outputs() -> None:
@@ -264,3 +280,17 @@ def test_w7_existing_bucket_zones_and_notification_are_declared_once() -> None:
         assert prefix in variables
     assert "w7_data_zone_prefixes" in sandbox
     assert "w7_data_zone_retention_days" in sandbox
+
+
+def test_storage_noncurrent_retention_is_parameterized() -> None:
+    storage = (ROOT / "infra/modules/storage/main.tf").read_text()
+    variables = (ROOT / "infra/modules/storage/variables.tf").read_text()
+    assert "noncurrent_days = var.noncurrent_version_retention_days" in storage
+    assert 'variable "noncurrent_version_retention_days"' in variables
+    assert "default     = 30" in variables
+
+
+def test_sandbox_storage_noncurrent_retention_is_180_days() -> None:
+    sandbox = (ROOT / "infra/environments/sandbox/main.tf").read_text()
+    assert "noncurrent_version_retention_days = 180" in sandbox
+    assert sandbox.count("noncurrent_version_retention_days = 180") == 1

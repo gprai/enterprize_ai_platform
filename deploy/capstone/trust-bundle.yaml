@@ -1,0 +1,17 @@
+# The bootstrap ceremony creates this public-root ConfigMap from the reviewed
+# CA certificate. Its exact SHA-256 is supplied at live preflight.
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: enterprise-ai-capstone-root
+spec:
+  sources:
+    - configMap:
+        name: enterprise-ai-capstone-public-root
+        key: ca.crt
+  target:
+    configMap:
+      key: ca.crt
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: enterprise-ai-sandbox

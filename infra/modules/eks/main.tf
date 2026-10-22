@@ -90,21 +90,30 @@ resource "aws_eks_access_policy_association" "administrator" {
   depends_on = [aws_eks_access_entry.administrator]
 }
 
-resource "aws_eks_access_entry" "deployment" {
+resource "aws_eks_access_entry" "capstone_deploy" {
+  count             = var.capstone_enabled ? 1 : 0
+  cluster_name      = aws_eks_cluster.this.name
+  principal_arn     = var.capstone_deploy_role_arn
+  type              = "STANDARD"
+  kubernetes_groups = ["enterprise-ai-capstone-deploy"]
+}
+
+resource "aws_eks_access_entry" "capstone_pki_bootstrap" {
+  count         = var.pki_bootstrap_enabled ? 1 : 0
   cluster_name  = aws_eks_cluster.this.name
-  principal_arn = var.deployment_role_arn
+  principal_arn = var.capstone_pki_role_arn
   type          = "STANDARD"
 }
 
-resource "aws_eks_access_policy_association" "deployment" {
+resource "aws_eks_access_policy_association" "capstone_pki_bootstrap" {
+  count         = var.pki_bootstrap_enabled ? 1 : 0
   cluster_name  = aws_eks_cluster.this.name
-  principal_arn = var.deployment_role_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+  principal_arn = var.capstone_pki_role_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
   access_scope {
-    type       = "namespace"
-    namespaces = [var.namespace]
+    type = "cluster"
   }
-  depends_on = [aws_eks_access_entry.deployment]
+  depends_on = [aws_eks_access_entry.capstone_pki_bootstrap]
 }
 
 resource "aws_eks_access_entry" "resilience" {

@@ -1,0 +1,635 @@
+name: W12-001 Capstone Release
+run-name: W12-001 ${{ inputs.operation }} ${{ inputs.source_commit }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      record_b64url:
+        description: Canonical secret-free REQUESTED record, unpadded Base64URL
+        required: true
+        type: string
+      record_sha256:
+        description: SHA-256 of the complete canonical record
+        required: true
+        type: string
+      opa_receipt_b64url:
+        description: Canonical secret-free owner-local OPA receipt, unpadded Base64URL
+        required: true
+        type: string
+      opa_receipt_sha256:
+        description: SHA-256 of the complete canonical OPA receipt
+        required: true
+        type: string
+      operation:
+        description: Owner-authorized operation
+        required: true
+        type: choice
+        options: [deploy, rollback]
+      source_commit:
+        description: Exact protected main commit
+        required: true
+        type: string
+
+permissions: {}
+concurrency:
+  group: w12-001-sandbox
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      record_id: ${{ steps.validate.outputs.record_id }}
+      revision: ${{ steps.validate.outputs.revision }}
+      record_sha256: ${{ steps.validate.outputs.record_sha256 }}
+      opa_receipt_sha256: ${{ steps.validate.outputs.opa_receipt_sha256 }}
+      record_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      record_artifact_url: ${{ steps.upload.outputs.artifact-url }}
+      record_artifact_digest: ${{ steps.upload.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - name: Validate dispatch and checked-out source before authority
+        id: validate
+        env:
+          W12_RECORD_B64URL: ${{ inputs.record_b64url }}
+          W12_RECORD_SHA256: ${{ inputs.record_sha256 }}
+          W12_OPA_RECEIPT_B64URL: ${{ inputs.opa_receipt_b64url }}
+          W12_OPA_RECEIPT_SHA256: ${{ inputs.opa_receipt_sha256 }}
+          W12_OPERATION: ${{ inputs.operation }}
+          W12_SOURCE_COMMIT: ${{ inputs.source_commit }}
+          W12_APPROVED_ACTOR_IDS: ${{ vars.W12_APPROVED_ACTOR_IDS }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$W12_SOURCE_COMMIT"
+          python -B -c 'from tools.capstone_release import workflow_preflight; workflow_preflight()'
+      - name: Reject competing active release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          W12_RECORD_DIR: ${{ steps.validate.outputs.record_dir }}
+        run: |
+          python -B -c 'from tools.capstone_release import workflow_conflict_check; workflow_conflict_check()'
+      - name: Upload validated current-run record
+        id: upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w12-001-requested-${{ steps.validate.outputs.record_id }}-r${{ steps.validate.outputs.revision }}
+          path: |
+            ${{ steps.validate.outputs.record_dir }}/release-record.json
+            ${{ steps.validate.outputs.record_dir }}/release-record.sha256
+            ${{ steps.validate.outputs.record_dir }}/opa-receipt.json
+            ${{ steps.validate.outputs.record_dir }}/opa-receipt.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Remove temporary record on success or failure
+        if: always()
+        env:
+          W12_RECORD_DIR: ${{ steps.validate.outputs.record_dir }}
+        run: |
+          python -B -c 'from tools.capstone_release import workflow_cleanup; workflow_cleanup()'
+
+  receipt_validation_gate:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.preflight.outputs.record_artifact_id }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/w12-requested
+      - name: Validate exact owner-local receipt and artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          W12_REQUESTED_DIR: ${{ runner.temp }}/w12-requested
+          W12_REQUESTED_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_REQUESTED_ARTIFACT_DIGEST: ${{ needs.preflight.outputs.record_artifact_digest }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_OPA_RECEIPT_SHA256: ${{ needs.preflight.outputs.opa_receipt_sha256 }}
+        run: python -B -c 'from tools.capstone_release import workflow_receipt_validation_gate; workflow_receipt_validation_gate()'
+
+  build_scan_attest:
+    needs: [preflight, receipt_validation_gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    outputs:
+      image_digest: ${{ steps.build.outputs.image_digest }}
+      sbom_sha256: ${{ steps.build.outputs.sbom_sha256 }}
+      provenance_sha256: ${{ steps.build.outputs.provenance_sha256 }}
+      source_archive_sha256: ${{ steps.build.outputs.source_archive_sha256 }}
+      s3_version_id: ${{ steps.build.outputs.s3_version_id }}
+      source_manifest_sha256: ${{ steps.build.outputs.source_manifest_sha256 }}
+      w6_release_hashes_sha256: ${{ steps.build.outputs.w6_release_hashes_sha256 }}
+      signature_sha256: ${{ steps.build.outputs.signature_sha256 }}
+      build_artifact_id: ${{ steps.upload_build.outputs.artifact-id }}
+      build_artifact_digest: ${{ steps.upload_build.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.preflight.outputs.record_artifact_id }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/w12-consumed
+      - name: Revalidate current-run record artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          W12_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_OPA_RECEIPT_SHA256: ${{ needs.preflight.outputs.opa_receipt_sha256 }}
+          W12_CONSUMED_DIR: ${{ runner.temp }}/w12-consumed
+        run: |
+          python -B -c 'from tools.capstone_release import workflow_consume_env; workflow_consume_env()'
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.13.15"
+          cache: ""
+      - name: Install hash-locked CI dependencies
+        run: |
+          python -m pip install --require-hashes --no-deps -r requirements-bootstrap.lock
+          python -m pip --version | grep -F "pip 26.2.1"
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+      - name: Obtain bounded build and source credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: ${{ vars.W12_BUILD_ROLE_ARN }}
+          role-duration-seconds: 900
+          aws-region: ap-southeast-1
+      - name: Build, scan, attest and sign immutable image
+        id: build
+        env:
+          AWS_ROLE_ARN: ${{ vars.W12_BUILD_ROLE_ARN }}
+          W12_IMAGE_REPOSITORY: ${{ vars.W12_IMAGE_REPOSITORY }}
+          W12_BUILD_TOOLCHAIN_DIGEST: ${{ vars.W12_BUILD_TOOLCHAIN_DIGEST }}
+          W12_COSIGN_CERT_IDENTITY: ${{ vars.W12_COSIGN_CERT_IDENTITY }}
+          W12_COSIGN_OIDC_ISSUER: ${{ vars.W12_COSIGN_OIDC_ISSUER }}
+          W12_SOURCE_BUCKET: ${{ vars.W12_SOURCE_BUCKET }}
+          W12_RELEASE_KMS_KEY_ARN: ${{ vars.W12_RELEASE_KMS_KEY_ARN }}
+          TFC_READ_TOKEN: ${{ secrets.TFC_READ_TOKEN }}
+          W12_CONSUMED_DIR: ${{ runner.temp }}/w12-consumed
+          W12_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_OPA_RECEIPT_SHA256: ${{ needs.preflight.outputs.opa_receipt_sha256 }}
+        run: |
+          python -B -c 'from tools.capstone_release import workflow_build; workflow_build()'
+      - name: Upload bounded immutable build identity evidence
+        id: upload_build
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w12-001-build-${{ needs.preflight.outputs.record_id }}-r1
+          path: |
+            ${{ runner.temp }}/w12-build-evidence/build-summary.json
+            ${{ runner.temp }}/w12-build-evidence/signature.bundle
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  prepare_ready_record:
+    needs: [preflight, receipt_validation_gate, build_scan_attest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    outputs:
+      ready_record_sha256: ${{ steps.prepare.outputs.ready_record_sha256 }}
+      ready_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      ready_artifact_url: ${{ steps.upload.outputs.artifact-url }}
+      ready_artifact_digest: ${{ steps.upload.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.13.15"
+          cache: ""
+      - name: Install hash-locked release dependencies
+        run: |
+          python -m pip install --require-hashes --no-deps -r requirements-bootstrap.lock
+          python -m pip --version | grep -F "pip 26.2.1"
+          python -m pip install --require-hashes --no-deps -r requirements-runtime.lock
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.preflight.outputs.record_artifact_id }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/w12-requested
+      - name: Obtain read-only exact-version release credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: ${{ vars.W12_ROLLBACK_READER_ROLE_ARN }}
+          role-duration-seconds: 900
+          aws-region: ap-southeast-1
+      - name: Prepare canonical READY revision before approval
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          W12_REQUESTED_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_REQUESTED_ARTIFACT_DIGEST: ${{ needs.preflight.outputs.record_artifact_digest }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_OPA_RECEIPT_SHA256: ${{ needs.preflight.outputs.opa_receipt_sha256 }}
+          W12_REQUESTED_DIR: ${{ runner.temp }}/w12-requested
+          W12_READY_DIR: ${{ runner.temp }}/w12-ready
+          W12_IMAGE_DIGEST: ${{ needs.build_scan_attest.outputs.image_digest }}
+          W12_IMAGE_REPOSITORY: ${{ vars.W12_IMAGE_REPOSITORY }}
+          W12_SBOM_SHA256: ${{ needs.build_scan_attest.outputs.sbom_sha256 }}
+          W12_PROVENANCE_SHA256: ${{ needs.build_scan_attest.outputs.provenance_sha256 }}
+          W12_SIGNATURE_SHA256: ${{ needs.build_scan_attest.outputs.signature_sha256 }}
+          W12_BUILD_ARTIFACT_ID: ${{ needs.build_scan_attest.outputs.build_artifact_id }}
+          W12_BUILD_ARTIFACT_DIGEST: ${{ needs.build_scan_attest.outputs.build_artifact_digest }}
+          W12_SOURCE_ARCHIVE_SHA256: ${{ needs.build_scan_attest.outputs.source_archive_sha256 }}
+          W12_S3_VERSION_ID: ${{ needs.build_scan_attest.outputs.s3_version_id }}
+          W12_SOURCE_MANIFEST_SHA256: ${{ needs.build_scan_attest.outputs.source_manifest_sha256 }}
+          W12_W6_RELEASE_HASHES_SHA256: ${{ needs.build_scan_attest.outputs.w6_release_hashes_sha256 }}
+          W12_SOURCE_BUCKET: ${{ vars.W12_SOURCE_BUCKET }}
+          W12_RELEASE_KMS_KEY_ARN: ${{ vars.W12_RELEASE_KMS_KEY_ARN }}
+          TFC_READ_TOKEN: ${{ secrets.TFC_READ_TOKEN }}
+          W12_OTEL_COLLECTOR_IMAGE: ${{ vars.W12_OTEL_COLLECTOR_IMAGE }}
+          W12_MODEL_PACKAGE_ARN: ${{ vars.W12_MODEL_PACKAGE_ARN }}
+          W12_DEPLOYMENT_ACCOUNT_ID: ${{ vars.W12_AWS_ACCOUNT_ID }}
+          W12_GITHUB_ENVIRONMENT_ID: ${{ vars.W12_SANDBOX_ENVIRONMENT_ID }}
+          W12_ROOT_FINGERPRINT_SHA256: ${{ vars.W12_ROOT_FINGERPRINT_SHA256 }}
+          W12_TRUST_BUNDLE_SHA256: ${{ vars.W12_TRUST_BUNDLE_SHA256 }}
+        run: python -B -c 'from tools.capstone_release import workflow_prepare_ready; workflow_prepare_ready()'
+      - name: Upload immutable READY record
+        id: upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w12-001-ready-for-owner-${{ needs.preflight.outputs.record_id }}-r2
+          path: |
+            ${{ runner.temp }}/w12-ready/release-record.json
+            ${{ runner.temp }}/w12-ready/release-record.sha256
+            ${{ runner.temp }}/w12-ready/transition-evidence.json
+            ${{ runner.temp }}/w12-ready/transition-evidence.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Remove temporary READY files
+        if: always()
+        env:
+          W12_READY_DIR: ${{ runner.temp }}/w12-ready
+        run: python -B -c 'from tools.capstone_release import workflow_cleanup_ready; workflow_cleanup_ready()'
+
+  github_release_apply:
+    needs: [preflight, receipt_validation_gate, build_scan_attest, prepare_ready_record]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: sandbox
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      approved_record_sha256: ${{ steps.apply.outputs.approved_record_sha256 }}
+      approved_artifact_id: ${{ steps.upload_approved.outputs.artifact-id }}
+      approved_artifact_digest: ${{ steps.upload_approved.outputs.artifact-digest }}
+      applied_record_sha256: ${{ steps.apply.outputs.applied_record_sha256 }}
+      applied_artifact_id: ${{ steps.upload_applied.outputs.artifact-id }}
+      applied_artifact_digest: ${{ steps.upload_applied.outputs.artifact-digest }}
+    steps:
+      - name: First operation reads documented approval history
+        env:
+          GH_TOKEN: ${{ github.token }}
+          W12_GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python -B -c 'import os,urllib.request; u="https://api.github.com/repos/gprai/enterprize_ai_platform/actions/runs/"+os.environ["W12_GITHUB_RUN_ID"]+"/approvals"; q=urllib.request.Request(u,headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10"}); r=urllib.request.urlopen(q,timeout=20); assert r.status==200 and len(r.read(262145))<=262144'
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.preflight.outputs.record_artifact_id }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/w12-requested
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.prepare_ready_record.outputs.ready_artifact_id }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/w12-ready
+      - name: Validate exact GitHub human approval and READY artifact
+        id: review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          W12_REQUESTED_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_REQUESTED_ARTIFACT_DIGEST: ${{ needs.preflight.outputs.record_artifact_digest }}
+          W12_READY_ARTIFACT_ID: ${{ needs.prepare_ready_record.outputs.ready_artifact_id }}
+          W12_READY_ARTIFACT_DIGEST: ${{ needs.prepare_ready_record.outputs.ready_artifact_digest }}
+          W12_READY_RECORD_SHA256: ${{ needs.prepare_ready_record.outputs.ready_record_sha256 }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_REQUESTED_DIR: ${{ runner.temp }}/w12-requested
+          W12_READY_DIR: ${{ runner.temp }}/w12-ready
+          W12_OPA_RECEIPT_SHA256: ${{ needs.preflight.outputs.opa_receipt_sha256 }}
+          W12_GITHUB_ENVIRONMENT_ID: ${{ vars.W12_SANDBOX_ENVIRONMENT_ID }}
+          W12_APPROVED_REVIEWER_IDS: ${{ vars.W12_APPROVED_REVIEWER_IDS }}
+          W12_ALLOW_SELF_REVIEW: ${{ vars.W12_ALLOW_SELF_REVIEW }}
+        run: python -B -c 'from tools.capstone_release import workflow_verify_github_approval; workflow_verify_github_approval()'
+      - name: Apply and wait for only the approved HCP run
+        id: apply
+        env:
+          TFC_TOKEN: ${{ secrets.TFC_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          W12_HCP_OWNER_TEAM_ID: ${{ vars.W12_HCP_OWNER_TEAM_ID }}
+          W12_HCP_SERVICE_USER_ID: ${{ vars.W12_HCP_SERVICE_USER_ID }}
+          W12_REQUESTED_DIR: ${{ runner.temp }}/w12-requested
+          W12_READY_DIR: ${{ runner.temp }}/w12-ready
+          W12_APPROVED_DIR: ${{ runner.temp }}/w12-approved
+          W12_APPLIED_DIR: ${{ runner.temp }}/w12-applied
+          W12_REQUESTED_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_REQUESTED_ARTIFACT_DIGEST: ${{ needs.preflight.outputs.record_artifact_digest }}
+          W12_READY_ARTIFACT_ID: ${{ needs.prepare_ready_record.outputs.ready_artifact_id }}
+          W12_READY_ARTIFACT_DIGEST: ${{ needs.prepare_ready_record.outputs.ready_artifact_digest }}
+          W12_READY_RECORD_SHA256: ${{ needs.prepare_ready_record.outputs.ready_record_sha256 }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_OPA_RECEIPT_SHA256: ${{ needs.preflight.outputs.opa_receipt_sha256 }}
+          W12_GITHUB_ENVIRONMENT_ID: ${{ vars.W12_SANDBOX_ENVIRONMENT_ID }}
+          W12_APPROVED_REVIEWER_IDS: ${{ vars.W12_APPROVED_REVIEWER_IDS }}
+          W12_ALLOW_SELF_REVIEW: ${{ vars.W12_ALLOW_SELF_REVIEW }}
+          W12_GITHUB_APPROVAL_SUBSET_SHA256: ${{ steps.review.outputs.github_approval_subset_sha256 }}
+        run: python -B -c 'from tools.capstone_release import workflow_apply_wait; workflow_apply_wait()'
+      - name: Preserve accepted APPROVED revision
+        if: always() && steps.apply.outputs.approved_record_sha256 != ''
+        id: upload_approved
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w12-001-approved-${{ needs.preflight.outputs.record_id }}-r3
+          path: |
+            ${{ runner.temp }}/w12-approved/release-record.json
+            ${{ runner.temp }}/w12-approved/release-record.sha256
+            ${{ runner.temp }}/w12-approved/transition-evidence.json
+            ${{ runner.temp }}/w12-approved/transition-evidence.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Upload immutable APPLIED revision
+        if: steps.apply.outputs.applied_record_sha256 != '' && steps.upload_approved.outcome == 'success'
+        id: upload_applied
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w12-001-applied-${{ needs.preflight.outputs.record_id }}-r4
+          path: |
+            ${{ runner.temp }}/w12-applied/release-record.json
+            ${{ runner.temp }}/w12-applied/release-record.sha256
+            ${{ runner.temp }}/w12-applied/transition-evidence.json
+            ${{ runner.temp }}/w12-applied/transition-evidence.sha256
+            ${{ runner.temp }}/w12-applied/w12-render-inputs.json
+            ${{ runner.temp }}/w12-applied/w12-render-inputs.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Remove temporary transition files
+        if: always()
+        env:
+          W12_APPROVED_DIR: ${{ runner.temp }}/w12-approved
+          W12_APPLIED_DIR: ${{ runner.temp }}/w12-applied
+        run: python -B -c 'from tools.capstone_release import workflow_cleanup_transitions; workflow_cleanup_transitions()'
+
+  codebuild_deploy:
+    needs: [preflight, build_scan_attest, prepare_ready_record, github_release_apply]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    outputs:
+      codebuild_build_id: ${{ steps.deploy.outputs.codebuild_build_id }}
+      codebuild_build_arn: ${{ steps.deploy.outputs.codebuild_build_arn }}
+      derivative_manifest_sha256: ${{ steps.deploy.outputs.derivative_manifest_sha256 }}
+      result_locator: ${{ steps.deploy.outputs.result_locator }}
+      result_sha256: ${{ steps.deploy.outputs.result_sha256 }}
+      rendered_archive_locator: ${{ steps.deploy.outputs.rendered_archive_locator }}
+      rendered_archive_sha256: ${{ steps.deploy.outputs.rendered_archive_sha256 }}
+      control_version_id: ${{ steps.deploy.outputs.control_version_id }}
+      control_archive_sha256: ${{ steps.deploy.outputs.control_archive_sha256 }}
+      codebuild_handoff_sha256: ${{ steps.deploy.outputs.codebuild_handoff_sha256 }}
+      result_artifact_id: ${{ steps.upload_result.outputs.artifact-id }}
+      result_artifact_digest: ${{ steps.upload_result.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.13.15"
+          cache: ""
+      - name: Install hash-locked release dependencies
+        run: |
+          python -m pip install --require-hashes --no-deps -r requirements-bootstrap.lock
+          python -m pip --version | grep -F "pip 26.2.1"
+          python -m pip install --require-hashes --no-deps -r requirements-runtime.lock
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.github_release_apply.outputs.applied_artifact_id }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/w12-applied
+      - name: Revalidate before AWS authority
+        env:
+          GH_TOKEN: ${{ github.token }}
+          W12_APPLIED_ARTIFACT_ID: ${{ needs.github_release_apply.outputs.applied_artifact_id }}
+          W12_APPLIED_ARTIFACT_DIGEST: ${{ needs.github_release_apply.outputs.applied_artifact_digest }}
+          W12_APPLIED_RECORD_SHA256: ${{ needs.github_release_apply.outputs.applied_record_sha256 }}
+          W12_APPLIED_DIR: ${{ runner.temp }}/w12-applied
+          W12_REQUESTED_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_REQUESTED_ARTIFACT_DIGEST: ${{ needs.preflight.outputs.record_artifact_digest }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_READY_ARTIFACT_ID: ${{ needs.prepare_ready_record.outputs.ready_artifact_id }}
+          W12_READY_ARTIFACT_DIGEST: ${{ needs.prepare_ready_record.outputs.ready_artifact_digest }}
+          W12_READY_RECORD_SHA256: ${{ needs.prepare_ready_record.outputs.ready_record_sha256 }}
+          W12_APPROVED_ARTIFACT_ID: ${{ needs.github_release_apply.outputs.approved_artifact_id }}
+          W12_APPROVED_ARTIFACT_DIGEST: ${{ needs.github_release_apply.outputs.approved_artifact_digest }}
+          W12_APPROVED_RECORD_SHA256: ${{ needs.github_release_apply.outputs.approved_record_sha256 }}
+        run: |
+          python -B -c 'from tools.capstone_release import workflow_validate_applied; workflow_validate_applied()'
+      - name: Obtain bounded CodeBuild caller credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: ${{ vars.W12_DEPLOY_CALLER_ROLE_ARN }}
+          role-duration-seconds: 900
+          aws-region: ap-southeast-1
+      - name: Revalidate and start one immutable CodeBuild execution
+        id: deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AWS_ROLE_ARN: ${{ vars.W12_DEPLOY_CALLER_ROLE_ARN }}
+          W12_APPLIED_ARTIFACT_ID: ${{ needs.github_release_apply.outputs.applied_artifact_id }}
+          W12_APPLIED_RECORD_SHA256: ${{ needs.github_release_apply.outputs.applied_record_sha256 }}
+          W12_APPLIED_DIR: ${{ runner.temp }}/w12-applied
+          W12_APPLIED_ARTIFACT_DIGEST: ${{ needs.github_release_apply.outputs.applied_artifact_digest }}
+          W12_REQUESTED_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_REQUESTED_ARTIFACT_DIGEST: ${{ needs.preflight.outputs.record_artifact_digest }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_READY_ARTIFACT_ID: ${{ needs.prepare_ready_record.outputs.ready_artifact_id }}
+          W12_READY_ARTIFACT_DIGEST: ${{ needs.prepare_ready_record.outputs.ready_artifact_digest }}
+          W12_READY_RECORD_SHA256: ${{ needs.prepare_ready_record.outputs.ready_record_sha256 }}
+          W12_APPROVED_ARTIFACT_ID: ${{ needs.github_release_apply.outputs.approved_artifact_id }}
+          W12_APPROVED_ARTIFACT_DIGEST: ${{ needs.github_release_apply.outputs.approved_artifact_digest }}
+          W12_APPROVED_RECORD_SHA256: ${{ needs.github_release_apply.outputs.approved_record_sha256 }}
+          W12_IMAGE_DIGEST: ${{ needs.build_scan_attest.outputs.image_digest }}
+          W12_RESULT_DIR: ${{ runner.temp }}/w12-codebuild-result
+          W12_SOURCE_BUCKET: ${{ vars.W12_SOURCE_BUCKET }}
+          W12_RELEASE_KMS_KEY_ARN: ${{ vars.W12_RELEASE_KMS_KEY_ARN }}
+        run: |
+          python -B -c 'from tools.capstone_release import workflow_codebuild; workflow_codebuild()'
+      - name: Upload redacted CodeBuild result
+        id: upload_result
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w12-001-codebuild-${{ needs.preflight.outputs.record_id }}-r4
+          path: ${{ runner.temp }}/w12-codebuild-result/codebuild-result.json
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  verify:
+    needs: [preflight, prepare_ready_record, github_release_apply, codebuild_deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.13.15"
+          cache: ""
+      - name: Install hash-locked release dependencies
+        run: |
+          python -m pip install --require-hashes --no-deps -r requirements-bootstrap.lock
+          python -m pip --version | grep -F "pip 26.2.1"
+          python -m pip install --require-hashes --no-deps -r requirements-runtime.lock
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.github_release_apply.outputs.applied_artifact_id }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/w12-applied
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.codebuild_deploy.outputs.result_artifact_id }}
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/w12-codebuild-result
+      - name: Obtain bounded publication credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: ${{ vars.W12_DEPLOY_CALLER_ROLE_ARN }}
+          role-duration-seconds: 900
+          aws-region: ap-southeast-1
+      - name: Revalidate and classify deployment evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          W12_RELEASE_KMS_KEY_ARN: ${{ vars.W12_RELEASE_KMS_KEY_ARN }}
+          W12_APPLIED_ARTIFACT_ID: ${{ needs.github_release_apply.outputs.applied_artifact_id }}
+          W12_APPLIED_RECORD_SHA256: ${{ needs.github_release_apply.outputs.applied_record_sha256 }}
+          W12_APPLIED_DIR: ${{ runner.temp }}/w12-applied
+          W12_RESULT_DIR: ${{ runner.temp }}/w12-codebuild-result
+          W12_VERIFIED_DIR: ${{ runner.temp }}/w12-verified
+          W12_CODEBUILD_BUILD_ID: ${{ needs.codebuild_deploy.outputs.codebuild_build_id }}
+          W12_CODEBUILD_BUILD_ARN: ${{ needs.codebuild_deploy.outputs.codebuild_build_arn }}
+          W12_RESULT_LOCATOR: ${{ needs.codebuild_deploy.outputs.result_locator }}
+          W12_RESULT_SHA256: ${{ needs.codebuild_deploy.outputs.result_sha256 }}
+          W12_RENDERED_ARCHIVE_LOCATOR: ${{ needs.codebuild_deploy.outputs.rendered_archive_locator }}
+          W12_RENDERED_ARCHIVE_SHA256: ${{ needs.codebuild_deploy.outputs.rendered_archive_sha256 }}
+          W12_DERIVATIVE_MANIFEST_SHA256: ${{ needs.codebuild_deploy.outputs.derivative_manifest_sha256 }}
+          W12_CONTROL_VERSION_ID: ${{ needs.codebuild_deploy.outputs.control_version_id }}
+          W12_CONTROL_ARCHIVE_SHA256: ${{ needs.codebuild_deploy.outputs.control_archive_sha256 }}
+          W12_CODEBUILD_HANDOFF_SHA256: ${{ needs.codebuild_deploy.outputs.codebuild_handoff_sha256 }}
+          W12_RESULT_ARTIFACT_ID: ${{ needs.codebuild_deploy.outputs.result_artifact_id }}
+          W12_RESULT_ARTIFACT_DIGEST: ${{ needs.codebuild_deploy.outputs.result_artifact_digest }}
+          W12_REQUESTED_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_REQUESTED_ARTIFACT_DIGEST: ${{ needs.preflight.outputs.record_artifact_digest }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_READY_ARTIFACT_ID: ${{ needs.prepare_ready_record.outputs.ready_artifact_id }}
+          W12_READY_ARTIFACT_DIGEST: ${{ needs.prepare_ready_record.outputs.ready_artifact_digest }}
+          W12_READY_RECORD_SHA256: ${{ needs.prepare_ready_record.outputs.ready_record_sha256 }}
+          W12_APPROVED_ARTIFACT_ID: ${{ needs.github_release_apply.outputs.approved_artifact_id }}
+          W12_APPROVED_ARTIFACT_DIGEST: ${{ needs.github_release_apply.outputs.approved_artifact_digest }}
+          W12_APPROVED_RECORD_SHA256: ${{ needs.github_release_apply.outputs.approved_record_sha256 }}
+          W12_APPLIED_ARTIFACT_DIGEST: ${{ needs.github_release_apply.outputs.applied_artifact_digest }}
+        run: |
+          python -B -c 'from tools.capstone_release import workflow_verify; workflow_verify()'
+      - name: Upload immutable VERIFIED revision
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w12-001-verified-${{ needs.preflight.outputs.record_id }}-r5
+          path: |
+            ${{ runner.temp }}/w12-verified/release-record.json
+            ${{ runner.temp }}/w12-verified/release-record.sha256
+            ${{ runner.temp }}/w12-verified/transition-evidence.json
+            ${{ runner.temp }}/w12-verified/transition-evidence.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Archive the complete local publication proof root
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: w12-001-publication-proof-${{ needs.preflight.outputs.record_id }}-r5
+          path: ${{ runner.temp }}/w12-verified/proof-root/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  publish:
+    if: always()
+    needs: [preflight, receipt_validation_gate, build_scan_attest, prepare_ready_record, github_release_apply, codebuild_deploy, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.13.15"
+          cache: ""
+      - name: Publish only classified redacted identities
+        env:
+          W12_PREFLIGHT_STATUS: ${{ needs.preflight.result }}
+          W12_BUILD_STATUS: ${{ needs.build_scan_attest.result }}
+          W12_RECEIPT_STATUS: ${{ needs.receipt_validation_gate.result }}
+          W12_READY_STATUS: ${{ needs.prepare_ready_record.result }}
+          W12_APPLY_STATUS: ${{ needs.github_release_apply.result }}
+          W12_DEPLOY_STATUS: ${{ needs.codebuild_deploy.result }}
+          W12_VERIFY_STATUS: ${{ needs.verify.result }}
+          W12_RECORD_SHA256: ${{ needs.preflight.outputs.record_sha256 }}
+          W12_RECORD_ARTIFACT_ID: ${{ needs.preflight.outputs.record_artifact_id }}
+          W12_RECORD_ARTIFACT_DIGEST: ${{ needs.preflight.outputs.record_artifact_digest }}
+        run: |
+          python -B -c 'from tools.capstone_release import workflow_publish; workflow_publish()'

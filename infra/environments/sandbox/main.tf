@@ -6,6 +6,59 @@ provider "aws" {
   }
 }
 
+variable "w12_capstone_enabled" {
+  type        = bool
+  default     = false
+  description = "Owner-controlled activation of the bounded W12 deployment executor."
+}
+
+variable "w12_pki_bootstrap_access_enabled" {
+  type        = bool
+  default     = false
+  description = "Temporary owner-approved PKI cluster access; disable after bootstrap."
+}
+
+variable "w12_codebuild_image_digest" {
+  type        = string
+  default     = "OWNER_BINDING_REQUIRED"
+  description = "Owner-reviewed immutable CodeBuild executor image including kubectl and Python."
+  validation {
+    condition     = var.w12_codebuild_image_digest == "OWNER_BINDING_REQUIRED" || can(regex("@sha256:[0-9a-f]{64}$", var.w12_codebuild_image_digest))
+    error_message = "CodeBuild image must be a reviewed immutable digest."
+  }
+}
+
+variable "w12_owner_approved_eks_issuer" {
+  type        = string
+  default     = "OWNER_BINDING_REQUIRED"
+  description = "Exact issuer observed and approved by the owner before live CodeBuild use."
+  validation {
+    condition     = var.w12_owner_approved_eks_issuer == "OWNER_BINDING_REQUIRED" || can(regex("^https://[A-Za-z0-9.-]+/id/[A-Za-z0-9]+$", var.w12_owner_approved_eks_issuer))
+    error_message = "The EKS issuer must be the reviewed HTTPS issuer URL."
+  }
+}
+
+variable "w12_probe_image_digest" {
+  type        = string
+  default     = "OWNER_BINDING_REQUIRED"
+  description = "Immutable owner-reviewed probe image containing the approved Python runtime."
+  validation {
+    condition     = var.w12_probe_image_digest == "OWNER_BINDING_REQUIRED" || can(regex("@sha256:[0-9a-f]{64}$", var.w12_probe_image_digest))
+    error_message = "The probe image must use an approved immutable digest."
+  }
+}
+
+resource "terraform_data" "w12_activation_gate" {
+  count = var.w12_capstone_enabled ? 1 : 0
+  input = var.w12_codebuild_image_digest
+  lifecycle {
+    precondition {
+      condition     = can(regex("@sha256:[0-9a-f]{64}$", var.w12_codebuild_image_digest)) && can(regex("@sha256:[0-9a-f]{64}$", var.w12_probe_image_digest)) && var.w12_owner_approved_eks_issuer != "OWNER_BINDING_REQUIRED" && var.github_repository == "enterprize_ai_platform"
+      error_message = "Owner must approve exact CodeBuild image and GitHub repository identity."
+    }
+  }
+}
+
 locals {
   availability_zones = ["ap-southeast-1a", "ap-southeast-1b"]
   platform_bucket    = "enterprise-ai-platform-526338061652-ap-southeast-1-sandbox"
@@ -140,14 +193,15 @@ module "kms" {
 module "storage" {
   source = "../../modules/storage"
 
-  bucket_name              = local.platform_bucket
-  kms_key_arn              = module.kms.key_arn
-  aws_account_id           = var.aws_account_id
-  aws_region               = var.aws_region
-  bedrock_log_prefix       = "bedrock-model-invocations"
-  data_zone_prefixes       = var.w7_data_zone_prefixes
-  data_zone_retention_days = var.w7_data_zone_retention_days
-  tags                     = var.mandatory_tags
+  bucket_name                       = local.platform_bucket
+  kms_key_arn                       = module.kms.key_arn
+  aws_account_id                    = var.aws_account_id
+  aws_region                        = var.aws_region
+  bedrock_log_prefix                = "bedrock-model-invocations"
+  data_zone_prefixes                = var.w7_data_zone_prefixes
+  data_zone_retention_days          = var.w7_data_zone_retention_days
+  noncurrent_version_retention_days = 180
+  tags                              = var.mandatory_tags
 }
 
 module "secrets" {
@@ -225,6 +279,10 @@ module "eks" {
   kms_key_arn               = module.kms.key_arn
   administrator_role_arn    = var.administrator_role_arn
   deployment_role_arn       = module.iam.github_oidc_role_arn
+  capstone_deploy_role_arn  = module.iam.capstone_codebuild_role_arn
+  capstone_pki_role_arn     = module.iam.capstone_pki_bootstrap_role_arn
+  capstone_enabled          = var.w12_capstone_enabled
+  pki_bootstrap_enabled     = var.w12_pki_bootstrap_access_enabled
   resilience_role_arn       = module.iam.fis_role_arn
   public_access_cidrs       = [var.owner_api_cidr]
   node_instance_types       = var.eks_node_instance_types
@@ -240,6 +298,65 @@ module "eks" {
   ingestion_service_account = "enterprise-ai-ingestion"
   tags                      = var.mandatory_tags
   depends_on                = [terraform_data.w6_004_runtime_gate]
+}
+
+resource "aws_cloudwatch_log_group" "capstone_codebuild" {
+  count             = var.w12_capstone_enabled ? 1 : 0
+  name              = "/aws/codebuild/enterprise-ai-capstone-deploy"
+  retention_in_days = 7
+  tags              = var.mandatory_tags
+}
+
+resource "aws_codebuild_project" "capstone_deploy" {
+  count                  = var.w12_capstone_enabled ? 1 : 0
+  name                   = "enterprise-ai-capstone-deploy"
+  service_role           = module.iam.capstone_codebuild_role_arn
+  build_timeout          = 30
+  queued_timeout         = 15
+  concurrent_build_limit = 1
+  source_version         = null
+  source {
+    type      = "S3"
+    location  = "${module.storage.bucket_name}/w12-001/source/source.zip"
+    buildspec = "deploy/codebuild/capstone-deploy.buildspec.yml"
+  }
+  secondary_sources {
+    type              = "S3"
+    location          = "${module.storage.bucket_name}/w12-001/control/control.zip"
+    source_identifier = "W12_CONTROL"
+  }
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = var.w12_codebuild_image_digest
+    type                        = "LINUX_CONTAINER"
+    privileged_mode             = false
+    image_pull_credentials_type = "SERVICE_ROLE"
+    environment_variable {
+      name  = "W12_OWNER_APPROVED_EKS_ISSUER"
+      value = var.w12_owner_approved_eks_issuer
+      type  = "PLAINTEXT"
+    }
+    environment_variable {
+      name  = "W12_PROBE_IMAGE"
+      value = var.w12_probe_image_digest
+      type  = "PLAINTEXT"
+    }
+  }
+  vpc_config {
+    vpc_id             = module.network.vpc_id
+    subnets            = module.network.private_subnet_ids
+    security_group_ids = [module.network.capstone_codebuild_security_group_id]
+  }
+  logs_config {
+    cloudwatch_logs {
+      group_name = aws_cloudwatch_log_group.capstone_codebuild[0].name
+    }
+  }
+  tags       = var.mandatory_tags
+  depends_on = [terraform_data.w12_activation_gate]
 }
 
 module "observability" {

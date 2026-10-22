@@ -43,7 +43,7 @@ class Security(PolicyModel):
 
 
 class Github(PolicyModel):
-    repository: Literal["gprai/enterprise_ai_platform"]
+    repository: Literal["gprai/enterprize_ai_platform"]
     ref: Literal["refs/heads/main"]
     environment: Literal["sandbox"]
     event: Literal["workflow_dispatch"]

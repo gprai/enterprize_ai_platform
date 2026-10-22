@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import contextmanager
+from contextvars import ContextVar
 from copy import deepcopy
 from enum import StrEnum
 from pathlib import Path
@@ -19,6 +21,7 @@ from .lifecycle_io import (
     sha256_file,
 )
 from .lifecycle_models import PlanAction, PlanActionRecord, PlanSummary
+from .process_runner import read_exact_git_blob
 from .terraform_runner import CommandRunner, ProcessResult
 
 OPA_VERSION = "1.20.0"
@@ -99,7 +102,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "9d01bb694a60477637a10cf931c0b78cf4d5d953ea12f2c25022985f5e636396",
+        "e33f8ac09c3450f84efa8991bd206ec022b4914a4512fc6d26820b248c8bdfc8",
     ),
     (
         "infra/modules/ecr/main.tf",
@@ -144,13 +147,13 @@ PLATFORM_ALERT_TOPIC_ADDRESS = "module.observability[0].aws_sns_topic.alerts"
 PLATFORM_EKS_SOURCE_SHA256 = (
     (
         "infra/modules/eks/main.tf",
-        "55e6ae8cb7fc847dbd6c2f9f00d4713257ed0a4af34ffdb36984e8209dcad6de",
+        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
     ),
 )
 PLATFORM_OBSERVABILITY_SOURCE_SHA256 = (
     (
         "infra/modules/observability/main.tf",
-        "d624712462c58b701aeb6cf966b513bb27ee740e9bc4f8ded2d72542ada7011c",
+        "83737a2a4bc7f4835cfc21c08d290cc4fdc8e1bea7fa8a88fcaeff7e6db4a534",
     ),
 )
 PLATFORM_ENDPOINT_POLICY_BINDINGS = {
@@ -362,23 +365,23 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime": (
         "infra/modules/iam/main.tf",
-        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
+        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
     ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
         "infra/modules/iam/main.tf",
-        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
+        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
         "infra/modules/iam/main.tf",
-        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
+        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
         "infra/modules/iam/main.tf",
-        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
+        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
         "infra/modules/iam/main.tf",
-        "ea1f0ea3c1e6b91517aa36734a7daef7076eb19e6b17cb4ddf2f7d88a98dafea",
+        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
     ),
     "module.opensearch.data.aws_iam_policy_document.domain_access": (
         "infra/modules/opensearch/main.tf",
@@ -390,16 +393,16 @@ PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     ),
     "module.eks[0].data.aws_iam_policy_document.cluster_assume": (
         "infra/modules/eks/main.tf",
-        "55e6ae8cb7fc847dbd6c2f9f00d4713257ed0a4af34ffdb36984e8209dcad6de",
+        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
     ),
     "module.eks[0].data.aws_iam_policy_document.node_assume": (
         "infra/modules/eks/main.tf",
-        "55e6ae8cb7fc847dbd6c2f9f00d4713257ed0a4af34ffdb36984e8209dcad6de",
+        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
     ),
     **{
         policy_address: (
             "infra/modules/network/main.tf",
-            "ada89fd857b939e28fa490c2ae8ee5da574657f2ec5db479ee32af4c4beaff89",
+            "28cd9e933056fa621e2eb3f6660c1d790f80227d5de3d63b26aa406f94e4a458",
         )
         for policy_address, _sid in PLATFORM_ENDPOINT_POLICY_BINDINGS.values()
     },
@@ -622,12 +625,55 @@ def _direct_reference_expression(expression: object, expected: Sequence[str]) ->
     )
 
 
+_CAPSTONE_SOURCE_SHA256: ContextVar[dict[str, str] | None] = ContextVar(
+    "capstone_source_sha256", default=None
+)
+
+
+@contextmanager
+def capstone_source_commit(commit: str, tree: str) -> Iterator[None]:
+    """Bind W12's policy exceptions to exact reviewed Git blobs, not stale W5 hashes.
+
+    The default W5 path still uses its historical fixed hashes. This scoped W12
+    path requires a matching checked-out commit and tree and unchanged files.
+    """
+    if not re.fullmatch(r"[0-9a-f]{40}", commit) or not re.fullmatch(r"[0-9a-f]{40}", tree):
+        raise ContractError("W12 source commit or tree is invalid")
+    root = Path(__file__).resolve().parents[2]
+    source_names = {
+        relative_path
+        for group in (
+            PLATFORM_ECR_REFERENCE_SOURCE_SHA256,
+            PLATFORM_EKS_SOURCE_SHA256,
+            PLATFORM_OBSERVABILITY_SOURCE_SHA256,
+            PLATFORM_OPENSEARCH_LOG_SOURCE_SHA256,
+        )
+        for relative_path, _ in group
+    }
+    identities: dict[str, str] = {}
+    for name in sorted(source_names):
+        source = root / name
+        if not source.is_file() or source.is_symlink():
+            raise ContractError("W12 policy source path is unsafe")
+        blob = read_exact_git_blob(root, commit, tree, name)
+        if blob != source.read_bytes():
+            raise ContractError("W12 policy source differs from approved commit")
+        identities[name] = sha256_bytes(blob)
+    token = _CAPSTONE_SOURCE_SHA256.set(identities)
+    try:
+        yield
+    finally:
+        _CAPSTONE_SOURCE_SHA256.reset(token)
+
+
 def _source_files_match(identities: Sequence[tuple[str, str]]) -> bool:
     repository_root = Path(__file__).resolve().parents[2]
+    capstone = _CAPSTONE_SOURCE_SHA256.get()
     return all(
         (path := repository_root / relative_path).is_file()
         and not path.is_symlink()
-        and sha256_bytes(path.read_bytes()) == expected_sha256
+        and sha256_bytes(path.read_bytes())
+        == (capstone.get(relative_path) if capstone is not None else expected_sha256)
         for relative_path, expected_sha256 in identities
     )
 

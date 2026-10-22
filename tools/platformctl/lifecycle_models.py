@@ -323,6 +323,8 @@ class OperationLock:
 
 # Version-one records above describe historical evidence, not execution authority.
 OPERATIONAL_SCHEMA_VERSION = "w5-004.lifecycle.v2"
+PURGE_INVENTORY_V3_SCHEMA_VERSION = "platformctl.purge-inventory.v3"
+W12_PURGE_INVENTORY_SCHEMA_VERSION = "platformctl.purge-inventory.v3"
 CONTENT_SCOPE_VERSION = "w5-004.lifecycle-content.v1"
 
 
@@ -656,6 +658,67 @@ class PurgeInventoryV2:
 
 
 @dataclass(frozen=True)
+class W12PublishedObject:
+    """Exact provider-returned identity, never a latest-version selector."""
+
+    bucket: str
+    key: str
+    version_id: str
+    sha256: str
+    last_modified_utc: str
+
+
+@dataclass(frozen=True)
+class W12ProtectedObject:
+    bucket: str
+    key: str
+    version_id: str
+    sha256: str
+    evidence_kind: str
+    coverage: str
+
+
+@dataclass(frozen=True)
+class W12RetentionBinding:
+    record_id: str
+    operation: str
+    verified_record_sha256: str
+    verified_created_at_utc: str
+    verified_record_object: W12PublishedObject
+    verified_sidecar_object: W12PublishedObject
+    publication_anchor_utc: str
+    retain_until_utc: str
+    kms_key_arn: str
+    protected_objects: tuple[W12ProtectedObject, ...]
+
+
+@dataclass(frozen=True)
+class PurgeInventoryV3:
+    """V2 fields in their reviewed order, followed by path-free W12 proof."""
+
+    schema_version: str
+    operation_id: str
+    account_id: str
+    region: str
+    environment: str
+    bucket: str
+    ownership: str
+    items: tuple[PurgeItem, ...]
+    retained: tuple[PurgeItem, ...]
+    pagination_evidence: EvidenceRef
+    observed_at: str
+    valid_until: str
+    w12_retention_bindings: tuple[W12RetentionBinding, ...]
+
+
+@dataclass(frozen=True)
+class W12RuntimeProofRoots:
+    """Invocation-local paths; never serialize into operational evidence."""
+
+    paths: tuple[Path, ...]
+
+
+@dataclass(frozen=True)
 class ChargingComponent:
     """Owner-reviewed units and billing quantum, matched to an actual price component."""
 
@@ -919,7 +982,7 @@ class PurgeReviewRequest:
     schema_version: str
     operation_root: str
     request: ReviewRequest
-    inventory: PurgeInventoryV2
+    inventory: PurgeInventoryV2 | PurgeInventoryV3
     cost: CostResultV2
 
 

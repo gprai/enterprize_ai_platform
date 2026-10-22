@@ -10,6 +10,11 @@ output "endpoint_security_group_id" {
   value = aws_security_group.endpoints.id
 }
 
+output "capstone_codebuild_security_group_id" {
+  value       = aws_security_group.capstone_codebuild.id
+  description = "Egress-only TLS group for the private capstone executor."
+}
+
 output "gateway_endpoint_ids" {
   value = { for label, endpoint in aws_vpc_endpoint.gateway : label => endpoint.id }
 }

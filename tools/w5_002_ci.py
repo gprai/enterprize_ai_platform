@@ -1346,8 +1346,8 @@ def source_composition_sha256(repository_root: Path) -> str:
         for path in (repository_root / "src").rglob("*.py")
         if path.is_file()
     ]
-    if len(source_paths) != 165:
-        raise ContractError("source composition must contain the approved 165 Python paths")
+    if len(source_paths) != 167:
+        raise ContractError("source composition must contain the approved 167 Python paths")
     relative_paths = [Path("docker/application.Dockerfile"), Path("requirements-runtime.lock")]
     relative_paths.extend(source_paths)
     ordered = sorted(relative_paths, key=lambda path: path.as_posix())
