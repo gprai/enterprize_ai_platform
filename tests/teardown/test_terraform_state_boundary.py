@@ -3,8 +3,6 @@
 from hashlib import sha256
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[2]
 OWNER_PROTECTED_STATE = Path("infra/bootstrap/terraform.tfstate")
 # pragma: allowlist nextline secret
@@ -58,10 +56,6 @@ def test_w5_004_runtime_artifacts_are_external_only() -> None:
     assert findings == []
 
 
-@pytest.mark.skipif(
-    not (ROOT / OWNER_PROTECTED_STATE).is_file(),
-    reason="ignored owner-local bootstrap state is absent",
-)
 def test_owner_protected_bootstrap_state_is_unchanged_and_ignored() -> None:
     path = ROOT / OWNER_PROTECTED_STATE
     assert path.is_file()

@@ -207,7 +207,7 @@ jobs:
           test ! -e "$TRIVY_CACHE"
           test ! -e "$GRYPE_CACHE"
           test ! -e "$OCI_ARCHIVE"
-          ! docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1
+          if docker buildx inspect enterprise-ai-platform-w5-002-py313 >/dev/null 2>&1; then exit 1; fi
           if test -d reports/w5-002; then
             python -B tools/w5_002_ci.py write-cleanup-retention \
               --output reports/w5-002/cleanup-retention.json

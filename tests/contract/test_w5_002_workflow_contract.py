@@ -234,3 +234,14 @@ def test_policy_tools_are_downloaded_from_exact_hash_verified_releases() -> None
     assert action.count("sha256sum --check --strict") == 4
     assert "uses: ./.github/actions/setup-policy-tools" in workflow
     assert 'tflint --config="$(realpath .tflint.hcl)"' in workflow
+
+
+def test_supply_chain_cleanup_builder_absence_check_is_fail_closed() -> None:
+    workflow = _text("security-scan.yml")
+    cleanup = workflow.split("Remove only migration-created runtime resources", maxsplit=1)[1]
+
+    assert "! docker buildx inspect" not in cleanup
+    assert (
+        "if docker buildx inspect enterprise-ai-platform-w5-002-py313 "
+        ">/dev/null 2>&1; then exit 1; fi"
+    ) in cleanup
