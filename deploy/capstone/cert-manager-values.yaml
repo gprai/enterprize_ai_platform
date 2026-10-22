@@ -1,0 +1,11 @@
+# Owner installs only after reviewing exact chart and controller image digests.
+installCRDs: true
+replicaCount: 2
+extraArgs:
+  - --cluster-resource-namespace=enterprise-ai-trust
+prometheus:
+  enabled: true
+securityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault

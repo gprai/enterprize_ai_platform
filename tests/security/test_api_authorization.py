@@ -308,3 +308,14 @@ def test_unhandled_failure_exposes_no_query_exception_or_internal_content(
     assert "provider envelope" not in response.text
     assert SECRET not in caplog.text
     assert caplog.records == []
+
+
+def test_w12_probe_authentication_has_no_hs256_fallback_source() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    source = (root / "src/enterprise_ai_platform/api/workload_auth.py").read_text(encoding="utf-8")
+    assert "return await self._probe.authenticate(request)" in source
+    assert "except AuthenticationInvalidError" not in source
+    assert "TOKENREVIEW_URL" in source
+    assert "Role.READER" in source and "Classification.PUBLIC" in source

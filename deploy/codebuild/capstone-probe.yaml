@@ -1,0 +1,100 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: enterprise-ai-capstone-probe
+  namespace: enterprise-ai-sandbox
+  labels:
+    enterprise-ai.vayunetrix.com/purpose: capstone-probe
+spec:
+  ttlSecondsAfterFinished: 300
+  activeDeadlineSeconds: 120
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        enterprise-ai.vayunetrix.com/purpose: capstone-probe
+    spec:
+      serviceAccountName: enterprise-ai-capstone-probe
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: probe
+          image: OWNER_APPROVED_PROBE_IMAGE_DIGEST_REQUIRED
+          imagePullPolicy: IfNotPresent
+          command: [python, -B, -c]
+          args:
+            - |
+              import json, os, ssl, urllib.error, urllib.request, uuid
+              base = 'https://enterprise-ai-api.enterprise-ai-sandbox.svc.cluster.local:443'
+              ca = os.environ['W12_PROBE_CA']
+              token = open(os.environ['W12_PROBE_TOKEN'], encoding='ascii').read().strip()
+              context = ssl.create_default_context(cafile=ca)
+              def call(path, *, body=None, bearer=None):
+                  headers = {'X-Request-ID': str(uuid.uuid4()), 'X-Enterprise-AI-Workload-Probe': 'v1'}
+                  if bearer is not None:
+                      headers['Authorization'] = 'Bearer ' + bearer
+                  if body is not None:
+                      headers['Content-Type'] = 'application/json'
+                  request = urllib.request.Request(base + path, data=body, headers=headers)
+                  try:
+                      with urllib.request.urlopen(request, context=context, timeout=25) as response:
+                          return response.status, response.read(131073)
+                  except urllib.error.HTTPError as error:
+                      return error.code, error.read(131073)
+              for path in ('/health/live', '/health/ready'):
+                  status, content = call(path)
+                  if status != 200 or len(content) > 131072:
+                      raise SystemExit('PROBE_HEALTH_FAIL')
+              body = json.dumps({'query': 'State the sandbox test answer with its approved citation.'}).encode()
+              status, content = call('/v1/query', body=body, bearer=token)
+              if status != 200 or len(content) > 131072:
+                  raise SystemExit('PROBE_QUERY_FAIL')
+              answer = json.loads(content)
+              if answer.get('outcome') not in ('answered', 'abstained'):
+                  raise SystemExit('PROBE_SCHEMA_FAIL')
+              if answer['outcome'] == 'answered' and not answer.get('citations'):
+                  raise SystemExit('PROBE_CITATION_FAIL')
+              invalid_status, _ = call('/v1/query', body=body, bearer='invalid')
+              if invalid_status != 401:
+                  raise SystemExit('PROBE_INVALID_TOKEN_ACCEPTED')
+              wrong_tenant = json.dumps({'query': 'PUBLIC sandbox test', 'tenant_id': 'other'}).encode()
+              tenant_status, _ = call('/v1/query', body=wrong_tenant, bearer=token)
+              if tenant_status != 422:
+                  raise SystemExit('PROBE_CLIENT_TENANT_ACCEPTED')
+              print(json.dumps({'classification': 'PROBE_OBSERVED', 'request_id': answer['request_id'], 'outcome': answer['outcome'], 'citation_count': len(answer.get('citations', [])), 'invalid_token_status': invalid_status, 'wrong_tenant_status': tenant_status}))
+          env:
+            - name: W12_PROBE_CA
+              value: /var/run/trust/ca.crt
+            - name: W12_PROBE_TOKEN
+              value: /var/run/probe/token
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 250m, memory: 256Mi}
+          volumeMounts:
+            - name: trust
+              mountPath: /var/run/trust
+              readOnly: true
+            - name: token
+              mountPath: /var/run/probe
+              readOnly: true
+      volumes:
+        - name: trust
+          configMap:
+            name: enterprise-ai-capstone-root
+        - name: token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: enterprise-ai-capstone-probe
+                  expirationSeconds: 600

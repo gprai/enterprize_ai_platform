@@ -1,0 +1,103 @@
+# Strategic merge patches consumed only after W6 source hashes are checked.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enterprise-ai-api
+  namespace: enterprise-ai-sandbox
+  labels:
+    enterprise-ai.vayunetrix.com/artifact-type: w12-001-tls-derivative
+    enterprise-ai.vayunetrix.com/deployable: "true"
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          args:
+            - enterprise_ai_platform.app:create_app
+            - --factory
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8000"
+            - --ssl-certfile
+            - /var/run/tls/tls.crt
+            - --ssl-keyfile
+            - /var/run/tls/tls.key
+          ports:
+            - name: https
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: ENTERPRISE_AI_SANDBOX_AUTH_SIGNING_KEY_FILE
+              value: /var/run/secrets/enterprise-ai/sandbox-auth-signing-key
+            - name: ENTERPRISE_AI_WORKLOAD_PROBE_AUTH_ENABLED
+              value: "true"
+            - name: ENTERPRISE_AI_CAPSTONE_TLS_ENABLED
+              value: "true"
+            - name: ENTERPRISE_AI_WORKLOAD_PROBE_ISSUER
+              value: OWNER_APPROVED_EKS_ISSUER_REQUIRED
+            - name: ENTERPRISE_AI_WORKLOAD_PROBE_TENANT_ID
+              value: synthetic-sandbox-tenant
+            - name: ENTERPRISE_AI_CAPSTONE_TLS_ROOT_FINGERPRINT_SHA256
+              value: OWNER_APPROVED_ROOT_FINGERPRINT_REQUIRED
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /venv/bin/python
+                  - -B
+                  - -c
+                  - >-
+                    import ssl,urllib.request;
+                    context=ssl.create_default_context(cafile='/var/run/trust/ca.crt');
+                    urllib.request.urlopen('https://localhost:8000/_internal/drain',context=context,timeout=23).read()
+          startupProbe:
+            exec:
+              command: [/venv/bin/python, -B, -c, "import ssl,urllib.request; c=ssl.create_default_context(cafile='/var/run/trust/ca.crt'); urllib.request.urlopen('https://localhost:8000/health',context=c,timeout=2).read()"]
+          livenessProbe:
+            exec:
+              command: [/venv/bin/python, -B, -c, "import ssl,urllib.request; c=ssl.create_default_context(cafile='/var/run/trust/ca.crt'); urllib.request.urlopen('https://localhost:8000/health/live',context=c,timeout=2).read()"]
+          readinessProbe:
+            exec:
+              command: [/venv/bin/python, -B, -c, "import ssl,urllib.request; c=ssl.create_default_context(cafile='/var/run/trust/ca.crt'); urllib.request.urlopen('https://localhost:8000/health/ready',context=c,timeout=2).read()"]
+          volumeMounts:
+            - name: tls
+              mountPath: /var/run/tls
+              readOnly: true
+            - name: trust
+              mountPath: /var/run/trust
+              readOnly: true
+            - name: kubernetes-api
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: enterprise-ai-api-tls
+            defaultMode: 0440
+        - name: trust
+          configMap:
+            name: enterprise-ai-capstone-root
+        - name: kubernetes-api
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  expirationSeconds: 600
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: enterprise-ai-api
+  namespace: enterprise-ai-sandbox
+spec:
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: https

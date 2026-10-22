@@ -83,6 +83,20 @@ class Settings(BaseSettings):
     sandbox_auth_tenant_id: str | None = Field(default=None, min_length=1, max_length=128)
     sandbox_auth_signing_key: SecretStr | None = None
     sandbox_auth_signing_key_file: Path | None = None
+    workload_probe_auth_enabled: bool = False
+    workload_probe_issuer: str | None = None
+    workload_probe_tenant_id: str | None = None
+    workload_probe_api_token_file: Path = Path(
+        "/var/run/secrets/kubernetes.io/serviceaccount/token"
+    )
+    workload_probe_api_ca_file: Path = Path("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+    capstone_tls_enabled: bool = False
+    capstone_tls_cert_file: Path = Path("/var/run/tls/tls.crt")
+    capstone_tls_key_file: Path = Path("/var/run/tls/tls.key")
+    capstone_tls_ca_file: Path = Path("/var/run/trust/ca.crt")
+    capstone_tls_root_fingerprint_sha256: str | None = Field(
+        default=None, pattern=r"^[0-9a-f]{64}$"
+    )
     aws_composition_enabled: bool = False
     embedding_snapshot_path: Path = W6_004_EMBEDDING_SNAPSHOT_PATH
     opensearch_index_name: Literal["enterprise_ai_sandbox"] = "enterprise_ai_sandbox"
@@ -301,6 +315,37 @@ class Settings(BaseSettings):
             ):
                 raise ValueError(
                     "sandbox auth requires issuer, audience, tenant, and a 32-byte key"
+                )
+        if self.workload_probe_auth_enabled:
+            if (
+                not self.api_routes_enabled
+                or not self.sandbox_auth_enabled
+                or not self.workload_probe_issuer
+                or not self.workload_probe_issuer.startswith("https://")
+                or not self.workload_probe_tenant_id
+                or not self.capstone_tls_enabled
+                or any(
+                    not path.is_absolute()
+                    for path in (
+                        self.workload_probe_api_token_file,
+                        self.workload_probe_api_ca_file,
+                    )
+                )
+            ):
+                raise ValueError(
+                    "workload probe requires HTTPS, issuer, tenant and reviewed API mounts"
+                )
+        if self.capstone_tls_enabled:
+            if not self.capstone_tls_root_fingerprint_sha256 or any(
+                not path.is_absolute()
+                for path in (
+                    self.capstone_tls_cert_file,
+                    self.capstone_tls_key_file,
+                    self.capstone_tls_ca_file,
+                )
+            ):
+                raise ValueError(
+                    "capstone TLS requires exact mounted files and reviewed root fingerprint"
                 )
         if self.aws_composition_enabled:
             opensearch_host = self.opensearch_url.host or ""

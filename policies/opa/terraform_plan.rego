@@ -83,6 +83,7 @@ policy_critical_unknown_keys := {
 }
 
 taggable_resource_types := {
+	"aws_codebuild_project",
 	"aws_cloudwatch_log_group",
 	"aws_cloudwatch_metric_alarm",
 	"aws_eks_addon",
@@ -106,6 +107,7 @@ taggable_resource_types := {
 }
 
 supported_aws_resource_types := {
+	"aws_codebuild_project",
 	"aws_bedrock_model_invocation_logging_configuration",
 	"aws_cloudwatch_log_group",
 	"aws_cloudwatch_log_resource_policy",

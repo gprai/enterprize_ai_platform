@@ -10,7 +10,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation
-from typing import NoReturn, Protocol, cast
+from typing import Any, NoReturn, Protocol, cast
 
 from .aws_inventory import (
     DIAGNOSTIC_LIMITS,
@@ -35,6 +35,7 @@ from .aws_inventory import (
     NativeScanBundle,
     NativeTarget,
     ServiceIdentifier,
+    decode_purge_inventory,
 )
 from .contracts import (
     APPROVED_AWS_ACCOUNT_ID,
@@ -51,7 +52,6 @@ from .contracts import (
 from .lifecycle_io import (
     canonical_json_bytes,
     decode_json_strict,
-    decode_operational_record,
     sha256_bytes,
 )
 from .lifecycle_models import (
@@ -60,6 +60,7 @@ from .lifecycle_models import (
     InventoryResult,
     Outcome,
     PurgeInventoryV2,
+    PurgeInventoryV3,
     PurgeItem,
 )
 from .operation_state import OperationLedger
@@ -489,6 +490,18 @@ class VerifiedAwsIdentity:
     region: str
     caller_arn: str
     principal_class: str
+
+
+def w12_bounded_client(provider: object, service: str, region: str) -> Any:
+    """Expose only S3 and KMS clients from the verified live AWS adapter."""
+    if (
+        not isinstance(provider, Boto3AwsInventoryProvider)
+        or service not in {"s3", "kms"}
+        or region != APPROVED_AWS_REGION
+        or provider._region != region
+    ):
+        raise ContractError("W12_BOUNDED_LIVE_CLIENT_UNAVAILABLE")
+    return provider._client_factory(service, region)
 
 
 class Boto3AwsInventoryProvider(AwsInventoryProvider):
@@ -4667,7 +4680,7 @@ class S3PurgeAdapter:
                 raise ContractError("PURGE_LOW_LEVEL_AUTHORITY_REQUIRED")
             if context.package.action is not Action.PURGE_SANDBOX:
                 raise ContractError("PURGE_ACTION_REQUIRED")
-            inventory = decode_operational_record(context.artifact_bytes(), PurgeInventoryV2)
+            inventory = decode_purge_inventory(context.artifact_bytes())
             if not 1 <= sequence <= len(inventory.items):
                 raise ContractError("PURGE_SEQUENCE_INVALID")
             item = inventory.items[sequence - 1]
@@ -4707,7 +4720,7 @@ class S3PurgeAdapter:
             raise ContractError("PURGE_S3_RESPONSE_MALFORMED")
         return cast(dict[str, object], value)
 
-    def inventory(self, expected: PurgeInventoryV2) -> tuple[PurgeItem, ...]:
+    def inventory(self, expected: PurgeInventoryV2 | PurgeInventoryV3) -> tuple[PurgeItem, ...]:
         if expected.account_id != APPROVED_AWS_ACCOUNT_ID or expected.region != APPROVED_AWS_REGION:
             raise ContractError("PURGE_IDENTITY_MISMATCH")
         arguments: dict[str, object] = {
@@ -4805,7 +4818,7 @@ class S3PurgeAdapter:
             or context.package.action is not Action.PURGE_SANDBOX
         ):
             raise ContractError("PURGE_VERIFIED_CONTEXT_REQUIRED")
-        inventory = decode_operational_record(context.artifact_bytes(), PurgeInventoryV2)
+        inventory = decode_purge_inventory(context.artifact_bytes())
         if not 1 <= sequence <= len(inventory.items) or inventory.items[sequence - 1] != item:
             raise ContractError("PURGE_EXACT_ITEM_REQUIRED")
         context.revalidate(Action.PURGE_SANDBOX, context.package.artifact.sha256, consumed=True)

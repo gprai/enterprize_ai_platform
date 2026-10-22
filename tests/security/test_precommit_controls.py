@@ -66,6 +66,11 @@ EXPECTED_FILTER_PATHS = (
     "detect_secrets.filters.regex.should_exclude_file",
 )
 EXPECTED_REVIEWED_FINDING_COUNTS = {
+    "configs/chaos/controlled-dependency-chaos.yaml": {"Hex High Entropy String": 1},
+    "configs/incidents/incident-operations.yaml": {"Hex High Entropy String": 4},
+    "configs/recovery/disaster-recovery.yaml": {"Hex High Entropy String": 3},
+    "deploy/capstone/api-overlay.yaml": {"Secret Keyword": 1},
+    "deploy/capstone/pki.yaml": {"Secret Keyword": 2},
     "configs/lifecycle/w5-004.json": {"Hex High Entropy String": 5},
     "tests/security/test_w5_004_lifecycle_security.py": {"Hex High Entropy String": 2},
     "tests/unit/test_platformctl_cost.py": {"Hex High Entropy String": 1},
@@ -117,6 +122,11 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tools/w6_004_stage6_transcript.py": {"Secret Keyword": 1},
 }
 EXPECTED_REVIEWED_LINE_COUNTS = {
+    "configs/chaos/controlled-dependency-chaos.yaml": {15: 1},
+    "configs/incidents/incident-operations.yaml": {185: 1, 187: 1, 189: 1, 191: 1},
+    "configs/recovery/disaster-recovery.yaml": {48: 1, 55: 1, 58: 1},
+    "deploy/capstone/api-overlay.yaml": {76: 1},
+    "deploy/capstone/pki.yaml": {16: 1, 24: 1},
     "configs/ci/w5-002.json": {1: 12},
     "configs/eval/baselines/w3-002-v1.json": {1: 6},
     "configs/lifecycle/w5-004.json": {6: 1, 7: 1, 86: 1, 90: 1, 91: 1},
@@ -230,7 +240,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "tests/feature/test_local_retrieval.py": {46: 1},
     "tests/integration/test_sentence_transformer_embedder.py": {111: 1},
     "tests/integration/test_w5_002_ci_composition.py": {84: 1},
-    "tests/security/test_w5_004_lifecycle_security.py": {391: 1, 392: 1},
+    "tests/security/test_w5_004_lifecycle_security.py": {392: 1, 393: 1},
     "tests/teardown/test_w2_004_retrieval_cleanliness.py": {29: 1},
     "tests/teardown/test_w3_002_evaluation_cleanliness.py": {17: 1},
     "tests/teardown/test_w3_003_guardrails_cleanliness.py": {11: 1, 12: 1, 15: 1},
@@ -250,33 +260,33 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "tests/unit/test_prompt_template.py": {35: 1},
     "tests/unit/test_retrieval_service.py": {142: 1},
     "tools/bedrock_owner_verify.py": {71: 1},
-    "tools/platformctl/aws_inventory.py": {61: 1},
+    "tools/platformctl/aws_inventory.py": {311: 1},
     "tools/platformctl/cost.py": {46: 1, 48: 1, 51: 1},
     "tools/platformctl/lifecycle_io.py": {34: 1, 1016: 1, 1042: 1, 1044: 1, 1075: 1},
     "tools/platformctl/policy_runner.py": {
-        102: 1,
-        106: 1,
-        110: 1,
-        116: 1,
-        147: 1,
-        153: 1,
-        295: 1,
+        105: 1,
+        109: 1,
+        113: 1,
+        119: 1,
+        150: 1,
+        156: 1,
         298: 1,
         301: 1,
         304: 1,
         307: 1,
         310: 1,
-        316: 1,
-        332: 1,
-        341: 1,
+        313: 1,
+        319: 1,
+        335: 1,
         344: 1,
         347: 1,
         350: 1,
-        354: 1,
-        355: 1,
-        359: 1,
-        365: 1,
-        402: 1,
+        353: 1,
+        357: 1,
+        358: 1,
+        362: 1,
+        368: 1,
+        405: 1,
     },
     "tools/w5_002_ci.py": {
         39: 1,
@@ -432,8 +442,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 49
-    assert sum(len(findings) for findings in results.values()) == 405
+    assert len(results) == 54
+    assert sum(len(findings) for findings in results.values()) == 416
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

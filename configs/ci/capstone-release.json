@@ -1,0 +1,154 @@
+{
+  "schema_version": "w12-001.release.v1",
+  "repository": "gprai/enterprize_ai_platform",
+  "github_ref": "refs/heads/main",
+  "github_workflow": "capstone-release.yml",
+  "github_environment": "sandbox",
+  "hcp_organization": "Enterprise_AI_AWS_Arch",
+  "hcp_project": "enterprise-ai-capstone",
+  "hcp_bootstrap_workspace": "enterprise-ai-bootstrap",
+  "hcp_sandbox_workspace": "enterprise-ai-sandbox",
+  "aws_region": "ap-southeast-1",
+  "deployment_environment": "sandbox",
+  "record_max_bytes": 32768,
+  "record_max_b64url_chars": 43691,
+  "opa_receipt_schema_version": "w12-001.opa-receipt.v1",
+  "opa_receipt_max_bytes": 8192,
+  "opa_receipt_max_b64url_chars": 10923,
+  "opa_receipt_validity_seconds": 7200,
+  "github_dispatch_max_input_chars": 60000,
+  "github_api_version": "2026-03-10",
+  "approval_evidence_schema_version": "w12-001.approval-evidence.v1",
+  "opa_receipt_fields": [
+    "schema_version", "receipt_id", "revision", "created_at_utc", "expires_at_utc",
+    "record_sha256", "source", "hcp", "opa", "infracost", "evidence", "decision"
+  ],
+  "opa_receipt_source_fields": ["repository", "commit", "operation"],
+  "opa_receipt_hcp_fields": [
+    "organization", "project", "workspace", "configuration_version_id", "run_id",
+    "plan_id", "input_state_version_id", "state_lineage", "state_serial", "plan_json_sha256"
+  ],
+  "opa_receipt_opa_fields": [
+    "executable_version", "executable_sha256", "package", "decision_entrypoint",
+    "policy_sha256", "exceptions_sha256", "result", "violation_count",
+    "waiver_used", "override_used"
+  ],
+  "opa_receipt_infracost_fields": ["result_id", "status", "waiver_used", "override_used"],
+  "opa_receipt_evidence_fields": [
+    "normalized_plan_sha256", "opa_output_sha256", "infracost_result_sha256"
+  ],
+  "approval_evidence_fields": [
+    "schema_version", "transition", "record_id", "from_revision", "to_revision",
+    "parent_record_sha256", "github_approval", "hcp_authenticated_resource",
+    "hcp_apply", "observed_at_utc"
+  ],
+  "approval_github_fields": [
+    "repository", "workflow_run_id", "run_attempt", "environment_id", "environment_name",
+    "state", "comment_sha256", "approver_id", "approver_login", "approver_node_id",
+    "approver_type", "canonical_subset_sha256", "client_observed_at_utc"
+  ],
+  "approval_hcp_resource_fields": [
+    "api_base", "account_user_id", "account_user_type", "username", "is_service_account",
+    "auth_method", "resource_type", "resource_id", "canonical_subset_sha256",
+    "client_observed_at_utc"
+  ],
+  "approval_hcp_apply_fields": [
+    "organization", "project", "workspace", "configuration_version_id", "run_id", "plan_id",
+    "input_state_version_id", "state_lineage", "input_state_serial", "pre_status",
+    "pre_is_confirmable", "request_method", "request_path", "request_body_sha256",
+    "response_status", "post_status", "post_is_confirmable", "apply_id",
+    "post_run_subset_sha256", "client_requested_at_utc", "client_observed_at_utc"
+  ],
+  "record_expiry_seconds": 86400,
+  "github_artifact_retention_days": 7,
+  "publication_selector_schema_version": "w12-001.publication-selector.v1",
+  "publication_selector_max_bytes": 8192,
+  "verified_record_key_template": "w12-001/releases/{record_id}/records/r5/release-record.json",
+  "verified_sidecar_key_template": "w12-001/releases/{record_id}/records/r5/release-record.sha256",
+  "future_lineage_key_template": "w12-001/releases/{record_id}/lineage/verified-lineage.zip",
+  "verified_transition_key_template": "w12-001/releases/{record_id}/transitions/r5/transition-evidence.json",
+  "verified_transition_sidecar_key_template": "w12-001/releases/{record_id}/transitions/r5/transition-evidence.sha256",
+  "opa_receipt_key_template": "w12-001/releases/{record_id}/receipts/opa-receipt.json",
+  "opa_receipt_sidecar_key_template": "w12-001/releases/{record_id}/receipts/opa-receipt.sha256",
+  "github_workflow_deadline_seconds": 7200,
+  "github_job_deadline_seconds": 3600,
+  "github_preflight_deadline_seconds": 300,
+  "github_connect_timeout_seconds": 5,
+  "github_read_timeout_seconds": 20,
+  "github_get_attempts": 6,
+  "github_get_backoff_seconds": [1, 2, 4, 8, 16],
+  "github_dispatch_attempts": 1,
+  "hcp_connect_timeout_seconds": 5,
+  "hcp_read_timeout_seconds": 20,
+  "hcp_run_discovery_seconds": 600,
+  "hcp_apply_deadline_seconds": 3600,
+  "codebuild_queue_timeout_minutes": 15,
+  "codebuild_build_timeout_minutes": 30,
+  "probe_token_audience": "enterprise-ai-capstone-probe",
+  "probe_token_expiration_seconds": 600,
+  "probe_job_deadline_seconds": 120,
+  "probe_overall_deadline_seconds": 90,
+  "probe_connect_timeout_seconds": 3,
+  "probe_read_timeout_seconds": 25,
+  "probe_backoff_seconds": [2, 5],
+  "record_fields": [
+    "schema_version", "record_id", "revision", "previous_record_sha256",
+    "status", "operation", "created_at_utc", "expires_at_utc", "source",
+    "artifacts", "terraform", "gates", "deployment", "recovery", "evidence"
+  ],
+  "source_fields": [
+    "repository", "commit", "tree", "archive_sha256", "s3_bucket", "s3_key", "s3_version_id"
+  ],
+  "artifact_fields": [
+    "container_repository", "image_digest", "otel_collector_image", "model_package_arn", "sbom_sha256",
+    "provenance_sha256", "signature_ref"
+  ],
+  "terraform_fields": [
+    "organization", "project", "workspace", "configuration_version_id",
+    "run_id", "plan_id", "input_state_version_id", "state_lineage",
+    "input_state_serial", "configuration_sha256"
+  ],
+  "gate_fields": [
+    "opa_status", "opa_evidence_sha256", "run_task_status", "run_task_result_id",
+    "scan_status", "github_run_id", "github_environment_id",
+    "github_approval_status", "hcp_approval_status"
+  ],
+  "deployment_fields": [
+    "account_id", "region", "environment", "render_contract", "render_inputs_sha256",
+    "w6_release_hashes_sha256", "derivative_manifest_sha256",
+    "root_fingerprint_sha256", "trust_bundle_sha256"
+  ],
+  "render_input_schema_version": "w12-001.render-inputs.v1",
+  "render_input_fields": [
+    "schema_version", "ready_record_sha256", "approved_record_sha256",
+    "source_archive_sha256", "w6_release_hashes_sha256", "hcp_organization",
+    "hcp_workspace", "hcp_run_id", "hcp_plan_id", "applied_state_version_id",
+    "state_lineage", "state_serial", "aws_account_id", "aws_region",
+    "environment", "application_image", "otel_collector_image",
+    "opensearch_domain_arn", "opensearch_https_endpoint",
+    "bedrock_inference_profile_arn", "release_binding_sha256",
+    "created_at_utc", "expires_at_utc"
+  ],
+  "rendered_release_schema_version": "w12-001.rendered-release.v1",
+  "rendered_release_fields": [
+    "schema_version", "ready_record_sha256", "approved_record_sha256",
+    "applied_record_sha256", "source_archive_sha256", "w6_release_hashes_sha256",
+    "render_inputs_sha256", "renderer_path", "renderer_sha256",
+    "created_at_utc", "files"
+  ],
+  "recovery_fields": ["previous_good_record_sha256", "rollback_ref", "teardown_ref"],
+  "evidence_fields": ["kind", "uri", "sha256"],
+  "status_values": [
+    "REQUESTED", "READY_FOR_OWNER", "APPROVED", "APPLIED", "VERIFIED",
+    "FAILED", "CANCELED", "WITHDRAWN", "ROLLED_BACK"
+  ],
+  "gate_values": ["NOT_RUN", "PASS", "FAIL", "INDETERMINATE"],
+  "status_transitions": {
+    "REQUESTED": ["READY_FOR_OWNER", "FAILED", "CANCELED"],
+    "READY_FOR_OWNER": ["APPROVED", "FAILED", "CANCELED"],
+    "APPROVED": ["APPLIED", "FAILED", "CANCELED"],
+    "APPLIED": ["VERIFIED", "FAILED", "WITHDRAWN"],
+    "VERIFIED": ["ROLLED_BACK", "WITHDRAWN"],
+    "FAILED": [], "CANCELED": [], "WITHDRAWN": [], "ROLLED_BACK": []
+  }
+}

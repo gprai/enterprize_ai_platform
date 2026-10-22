@@ -21,7 +21,10 @@ def test_exact_storage_ecr_and_opensearch_sandbox_values_are_encoded() -> None:
     assert 'instance_type          = "t3.small.search"' in sandbox
     assert "days_after_initiation = 7" in storage
     assert storage_lines.count("days = 30") == 2
-    assert storage_lines.count("noncurrent_days = 30") == 1
+    assert storage_lines.count("noncurrent_days = var.noncurrent_version_retention_days") == 1
+    assert "default     = 30" in (ROOT / "infra/modules/storage/variables.tf").read_text(
+        encoding="utf-8"
+    )
     assert 'prefix = "tmp/"' in storage and 'prefix = "test/"' in storage
     assert 'image_tag_mutability = "IMMUTABLE"' in ecr
     assert "countNumber = var.retained_image_count" in ecr

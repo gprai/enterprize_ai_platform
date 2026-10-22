@@ -226,6 +226,29 @@ resource "aws_security_group" "endpoints" {
   tags   = merge(var.tags, { Name = "enterprise-ai-sandbox-vpc-endpoints" })
 }
 
+# The executor has no internet route in the endpoint-only private subnets.
+resource "aws_security_group" "capstone_codebuild" {
+  name        = "enterprise-ai-capstone-codebuild"
+  description = "HTTPS-only egress for the reviewed private deployment executor"
+  vpc_id      = aws_vpc.this.id
+  ingress     = []
+  egress {
+    description = "TLS to private VPC endpoints and EKS API"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+  egress {
+    description     = "TLS to S3 through the regional gateway endpoint"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    prefix_list_ids = [aws_vpc_endpoint.gateway["S3"].prefix_list_id]
+  }
+  tags = merge(var.tags, { Name = "enterprise-ai-capstone-codebuild" })
+}
+
 resource "aws_vpc_endpoint" "gateway" {
   for_each = local.gateway_endpoint_services
 

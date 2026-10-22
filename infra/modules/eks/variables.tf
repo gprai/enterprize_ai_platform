@@ -16,6 +16,26 @@ variable "administrator_role_arn" {
 variable "deployment_role_arn" {
   type = string
 }
+
+variable "capstone_deploy_role_arn" {
+  type        = string
+  description = "Reviewed regular CodeBuild role for namespaced RBAC."
+}
+
+variable "capstone_pki_role_arn" {
+  type        = string
+  description = "Reviewed temporary PKI bootstrap role."
+}
+
+variable "capstone_enabled" {
+  type        = bool
+  description = "Owner activation of regular W12 access entry."
+}
+
+variable "pki_bootstrap_enabled" {
+  type        = bool
+  description = "Temporary owner activation of PKI bootstrap access."
+}
 variable "resilience_role_arn" {
   type = string
 }

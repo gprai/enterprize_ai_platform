@@ -12,7 +12,7 @@ source_identities:
   fis_plan_sha256: db680d16-0206c49c-6d4bf8aa-c37712c0-bc19a2df-ac255ac4-06fecd40-a812274f
   slo_policy_sha256: e6786d2a-6a7ed3b5-06051c56-716d8cea-b2d69200-ee2acfae-299faacb-9fcb21ae
   fis_template_sha256: 83737a2a-4bc7f483-5cfc21c0-8d290cc4-fdc8e1be-a7fa8a88-fcaeff7e-6db4a534
-  fis_iam_sha256: ea1f0ea3-c1e6b915-17aa3673-4a7daef7-076eb19e-6b17cb4d-df2f7d88-a98dafea
+  fis_iam_sha256: 28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1
 blast_radius:
   maximum_scenarios: 1
   maximum_targets: 1

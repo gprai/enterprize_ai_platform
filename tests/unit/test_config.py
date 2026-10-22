@@ -510,3 +510,22 @@ def test_telemetry_rejects_unsafe_or_unapproved_configuration(
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None, **values)
+
+
+def test_capstone_tls_and_workload_identity_require_reviewed_bindings(
+    valid_settings: Settings,
+) -> None:
+    import pytest
+
+    data = valid_settings.model_dump()
+    data.update(capstone_tls_enabled=True, capstone_tls_root_fingerprint_sha256=None)
+    with pytest.raises(ValueError, match="capstone TLS"):
+        Settings.model_validate(data)
+    data.update(
+        capstone_tls_root_fingerprint_sha256="a" * 64,
+        workload_probe_auth_enabled=True,
+        workload_probe_issuer="https://issuer.example.invalid",
+        workload_probe_tenant_id="approved-tenant",
+    )
+    with pytest.raises(ValueError, match="workload probe"):
+        Settings.model_validate(data)

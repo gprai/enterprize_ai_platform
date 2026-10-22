@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: enterprise-ai-capstone-probe
+  namespace: enterprise-ai-sandbox
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: enterprise-ai-capstone-token-reviewer
+rules:
+  - apiGroups: [authentication.k8s.io]
+    resources: [tokenreviews]
+    verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: enterprise-ai-capstone-token-reviewer
+subjects:
+  - kind: ServiceAccount
+    name: enterprise-ai-runtime
+    namespace: enterprise-ai-sandbox
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: enterprise-ai-capstone-token-reviewer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: enterprise-ai-capstone-deployer
+  namespace: enterprise-ai-sandbox
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [enterprise-ai-api]
+    verbs: [get, patch, update]
+  - apiGroups: [""]
+    resources: [services]
+    resourceNames: [enterprise-ai-api]
+    verbs: [get, patch, update]
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [enterprise-ai-runtime, enterprise-ai-otel-collector, enterprise-ai-capstone-root]
+    verbs: [get, patch, update]
+  - apiGroups: [""]
+    resources: [serviceaccounts]
+    resourceNames: [enterprise-ai-runtime, enterprise-ai-ingestion, fis-experiment, enterprise-ai-capstone-probe]
+    verbs: [get]
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [roles, rolebindings]
+    resourceNames: [fis-pod-delete, enterprise-ai-capstone-deployer]
+    verbs: [get]
+  - apiGroups: [networking.k8s.io]
+    resources: [networkpolicies]
+    resourceNames: [enterprise-ai-default-deny, enterprise-ai-dns-egress, enterprise-ai-api-ingress, enterprise-ai-private-aws-egress, enterprise-ai-pod-identity-egress]
+    verbs: [get, patch, update]
+  - apiGroups: [autoscaling]
+    resources: [horizontalpodautoscalers]
+    resourceNames: [enterprise-ai-api]
+    verbs: [get, patch, update]
+  - apiGroups: [policy]
+    resources: [poddisruptionbudgets]
+    resourceNames: [enterprise-ai-api]
+    verbs: [get, patch, update]
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, watch]
+  - apiGroups: [batch]
+    resources: [jobs]
+    resourceNames: [enterprise-ai-capstone-probe]
+    verbs: [get, delete, watch]
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [create]
+  - apiGroups: [cert-manager.io]
+    resources: [certificates]
+    resourceNames: [enterprise-ai-api-tls]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: enterprise-ai-capstone-deployer
+  namespace: enterprise-ai-sandbox
+subjects:
+  - kind: Group
+    name: enterprise-ai-capstone-deploy
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: enterprise-ai-capstone-deployer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: enterprise-ai-capstone-pki-observer
+rules:
+  - apiGroups: [""]
+    resources: [namespaces]
+    resourceNames: [enterprise-ai-sandbox, enterprise-ai-trust]
+    verbs: [get]
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [clusterroles, clusterrolebindings]
+    resourceNames: [enterprise-ai-capstone-token-reviewer, enterprise-ai-capstone-pki-observer]
+    verbs: [get]
+  - apiGroups: [cert-manager.io]
+    resources: [clusterissuers]
+    resourceNames: [enterprise-ai-capstone-ca]
+    verbs: [get]
+  - apiGroups: [trust.cert-manager.io]
+    resources: [bundles]
+    resourceNames: [enterprise-ai-capstone-root]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: enterprise-ai-capstone-pki-observer
+subjects:
+  - kind: Group
+    name: enterprise-ai-capstone-deploy
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: enterprise-ai-capstone-pki-observer
+  apiGroup: rbac.authorization.k8s.io

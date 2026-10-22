@@ -104,3 +104,17 @@ def test_aws_embedding_warmup_failure_prevents_application_startup(
             pass
 
     assert runtime.events == ["start", "close"]
+
+
+def test_workload_probe_fails_without_regular_authenticator(valid_settings: Settings) -> None:
+    settings = valid_settings.model_copy(
+        update={
+            "workload_probe_auth_enabled": True,
+            "workload_probe_issuer": "https://issuer.example.invalid",
+            "workload_probe_tenant_id": "approved-tenant",
+            "capstone_tls_enabled": True,
+            "capstone_tls_root_fingerprint_sha256": "a" * 64,
+        }
+    )
+    with pytest.raises(ValueError, match="approved regular authenticator"):
+        create_app(settings)

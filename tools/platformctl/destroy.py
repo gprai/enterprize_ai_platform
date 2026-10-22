@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
+from .aws_inventory import canonical_purge_inventory_v3, decode_purge_inventory
 from .contracts import (
     Action,
     ApprovalConsumptionRegistry,
@@ -21,12 +22,15 @@ from .contracts import (
     parse_utc_timestamp,
     validate_mutation_request,
 )
-from .lifecycle_io import canonical_json_bytes, decode_operational_record, sha256_bytes
+from .lifecycle_io import canonical_json_bytes, sha256_bytes
 from .lifecycle_models import (
     OPERATIONAL_SCHEMA_VERSION,
+    PURGE_INVENTORY_V3_SCHEMA_VERSION,
     OperationPhase,
     PurgeInventoryV2,
+    PurgeInventoryV3,
     PurgeItem,
+    W12RetentionBinding,
 )
 from .operation_state import OperationLedger
 from .terraform_runner import TerraformRunner
@@ -40,14 +44,16 @@ def validate_purge_review(
     package: ReviewPackage,
     reader: EvidenceReader,
     now: datetime,
-) -> PurgeInventoryV2:
+    *,
+    bindings: tuple[W12RetentionBinding, ...] = (),
+) -> PurgeInventoryV2 | PurgeInventoryV3:
     """Purge policy is exact inventory reconciliation, not create-only Terraform policy."""
     from .lifecycle_io import decode_json_strict
 
-    inventory = decode_operational_record(
-        reader.read(package.artifact.path, package.artifact.sha256, package.artifact.byte_count),
-        PurgeInventoryV2,
+    inventory = decode_purge_inventory(
+        reader.read(package.artifact.path, package.artifact.sha256, package.artifact.byte_count)
     )
+    _validate_w12_purge_scope(inventory, bindings, now)
     if (
         inventory.operation_id != package.operation_id
         or inventory.account_id != package.account_id
@@ -121,7 +127,7 @@ def validate_purge_review(
 class PurgeAdapter(Protocol):
     """Exact S3 inventory and one-item mutation boundary, never a broad bucket purge."""
 
-    def inventory(self, expected: PurgeInventoryV2) -> tuple[PurgeItem, ...]:
+    def inventory(self, expected: PurgeInventoryV2 | PurgeInventoryV3) -> tuple[PurgeItem, ...]:
         """Return complete current versions, markers and uploads, or raise."""
         ...
 
@@ -137,13 +143,76 @@ class PurgeAdapter(Protocol):
         ...
 
 
+def _validate_w12_purge_scope(
+    inventory: PurgeInventoryV2 | PurgeInventoryV3,
+    bindings: tuple[W12RetentionBinding, ...],
+    now: datetime,
+) -> None:
+    all_items = (*inventory.items, *inventory.retained)
+    has_w12 = any(item.key.startswith("w12-001/") for item in all_items)
+    if isinstance(inventory, PurgeInventoryV2):
+        if has_w12 or bindings:
+            raise ContractError("PURGE_V2_W12_SCOPE_INDETERMINATE")
+        return
+    if (
+        inventory.schema_version != PURGE_INVENTORY_V3_SCHEMA_VERSION
+        or not bindings
+        or inventory.w12_retention_bindings != bindings
+    ):
+        raise ContractError("PURGE_V3_PROOF_BINDING_REQUIRED")
+    all_versions = {
+        (item.key, item.identifier): item for item in all_items if item.kind == "OBJECT_VERSION"
+    }
+    deletions = {
+        (item.key, item.identifier) for item in inventory.items if item.kind == "OBJECT_VERSION"
+    }
+    for binding in bindings:
+        if binding.verified_record_object.bucket != inventory.bucket or binding.kms_key_arn == "":
+            raise ContractError("PURGE_V3_BUCKET_OR_KMS_CHANGED")
+        protected_until = parse_utc_timestamp(binding.retain_until_utc, "W12 retain until")
+        if protected_until <= parse_utc_timestamp(binding.publication_anchor_utc, "W12 anchor"):
+            raise ContractError("PURGE_V3_RETENTION_DATE_INVALID")
+        for item in binding.protected_objects:
+            identity = (item.key, item.version_id)
+            if item.bucket != inventory.bucket or identity not in all_versions:
+                raise ContractError("PURGE_V3_CANONICAL_VERSION_UNINVENTORIED")
+            if now < protected_until and identity in deletions:
+                raise ContractError("PURGE_W12_EVIDENCE_RETAINED_BY_POLICY")
+            if (
+                (
+                    item.coverage == "VERIFIED_SELF_PUBLICATION"
+                    and item.evidence_kind not in {"verified_record", "verified_sidecar"}
+                )
+                or (
+                    item.coverage == "VERIFIED_LINEAGE_DERIVATIVE"
+                    and item.evidence_kind != "future_lineage"
+                )
+                or item.coverage
+                not in {
+                    "R5_LOCATOR",
+                    "VERIFIED_SELF_PUBLICATION",
+                    "VERIFIED_LINEAGE_DERIVATIVE",
+                }
+            ):
+                raise ContractError("PURGE_V3_COVERAGE_INVALID")
+
+
 def validate_purge_inventory(
-    inventory: PurgeInventoryV2, context: VerifiedExecutionContext
+    inventory: PurgeInventoryV2 | PurgeInventoryV3,
+    context: VerifiedExecutionContext,
+    *,
+    bindings: tuple[W12RetentionBinding, ...] = (),
+    now: datetime | None = None,
 ) -> None:
     """Validate exact, disjoint purge and retained identities without exposing object keys."""
     package = context.package
     if (
-        inventory.schema_version != OPERATIONAL_SCHEMA_VERSION
+        inventory.schema_version
+        != (
+            PURGE_INVENTORY_V3_SCHEMA_VERSION
+            if isinstance(inventory, PurgeInventoryV3)
+            else OPERATIONAL_SCHEMA_VERSION
+        )
         or inventory.operation_id != package.operation_id
         or inventory.account_id != package.account_id
         or inventory.region != package.region
@@ -153,7 +222,12 @@ def validate_purge_inventory(
         or not inventory.items
         or parse_utc_timestamp(inventory.valid_until, "purge expiry")
         < parse_utc_timestamp(package.expires_at, "review expiry")
-        or sha256_bytes(canonical_json_bytes(inventory)) != package.artifact.sha256
+        or sha256_bytes(
+            canonical_purge_inventory_v3(inventory)
+            if isinstance(inventory, PurgeInventoryV3)
+            else canonical_json_bytes(inventory)
+        )
+        != package.artifact.sha256
     ):
         raise ContractError("PURGE_INVENTORY_BINDING")
     identities = (*inventory.items, *inventory.retained)
@@ -169,6 +243,7 @@ def validate_purge_inventory(
         != inventory.items
     ):
         raise ContractError("PURGE_ITEM_ORDER_INVALID")
+    _validate_w12_purge_scope(inventory, bindings, now or datetime.now(UTC))
 
 
 def purge_approved_inventory(
@@ -176,6 +251,8 @@ def purge_approved_inventory(
     ledger: OperationLedger,
     adapter: PurgeAdapter,
     now: datetime,
+    *,
+    bindings: tuple[W12RetentionBinding, ...] = (),
 ) -> OperationResult:
     """Consume once, reconcile each exact batch and stop on any partial outcome."""
     if not isinstance(context, VerifiedExecutionContext) or not isinstance(ledger, OperationLedger):
@@ -183,8 +260,8 @@ def purge_approved_inventory(
     package = context.package
     if package.action is not Action.PURGE_SANDBOX or package.artifact.kind != "purge-inventory":
         raise ContractError("PURGE_ACTION_REQUIRED")
-    inventory = decode_operational_record(context.artifact_bytes(), PurgeInventoryV2)
-    validate_purge_inventory(inventory, context)
+    inventory = decode_purge_inventory(context.artifact_bytes())
+    validate_purge_inventory(inventory, context, bindings=bindings, now=now)
     context.revalidate(package.action, package.artifact.sha256, consumed=False)
     expected = set((*inventory.items, *inventory.retained))
     observed_initial = adapter.inventory(inventory)
@@ -196,6 +273,7 @@ def purge_approved_inventory(
     try:
         for sequence, item in enumerate(inventory.items, start=1):
             context.revalidate(package.action, package.artifact.sha256, consumed=True)
+            _validate_w12_purge_scope(inventory, bindings, now)
             observed = adapter.inventory(inventory)
             if len(observed) != len(set(observed)) or set(observed) != expected:
                 raise ContractError("PURGE_BATCH_INVENTORY_DRIFT")
@@ -229,6 +307,7 @@ def verify_purge_execution(
     adapter: PurgeAdapter,
     ledger: OperationLedger,
     now: datetime,
+    bindings: tuple[W12RetentionBinding, ...] = (),
 ) -> OperationResultV2:
     """Independently reconcile retained versions/uploads; a bucket read is insufficient."""
     from .lifecycle_models import OperationResultV2, Outcome
@@ -268,10 +347,10 @@ def verify_purge_execution(
         )
     ):
         raise ContractError("PURGE_POST_NATIVE_INCOMPLETE")
-    inventory = decode_operational_record(
-        reader.read(package.artifact.path, package.artifact.sha256, package.artifact.byte_count),
-        PurgeInventoryV2,
+    inventory = decode_purge_inventory(
+        reader.read(package.artifact.path, package.artifact.sha256, package.artifact.byte_count)
     )
+    _validate_w12_purge_scope(inventory, bindings, now)
     bucket = native.entries[0]
     if (
         bucket.address != package.summary[0].address

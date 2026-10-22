@@ -63,6 +63,26 @@ W11_004_PESTER_MODULE ?= C:/Program Files/WindowsPowerShell/Modules/Pester/3.4.0
 .PHONY: plan-sandbox w5-004-bootstrap-plan w5-004-bootstrap-apply w5-004-platform-plan w5-004-policy-review w5-004-cost-review w5-004-platform-apply w5-004-aws-verify w5-004-infrastructure-rollback w5-004-destroy-plan w5-004-purge-sandbox w5-004-platform-destroy w5-004-bootstrap-destroy w5-004-verify-clean
 .PHONY: w6-001-template-validate w6-001-policy w6-001-checkov w6-001-tests w6-001-release-bind w6-001-release-validate
 .PHONY: w6-002-validate w6-002-promtool w6-002-tests
+.PHONY: w12-001-record-tests w12-001-identity-tests w12-001-policy-tests w12-001-contract-tests w12-001-static-tests w12-001-tests
+
+w12-001-record-tests:
+	$(PYTHON) -B -m pytest -q tests/unit/test_capstone_release.py tests/contract/test_capstone_release_contract.py tests/integration/test_capstone_release_composition.py tests/feature/test_capstone_release.py tests/smoke/test_capstone_release_cli.py tests/security/test_capstone_release_security.py tests/rollback/test_capstone_release_rollback.py tests/teardown/test_capstone_release_cleanliness.py
+
+w12-001-identity-tests:
+	$(PYTHON) -B -m pytest -q tests/unit/test_workload_auth.py tests/unit/test_tls_rotation.py tests/contract/test_capstone_identity_tls_contract.py tests/unit/test_app.py tests/unit/test_config.py tests/security/test_api_authorization.py
+
+w12-001-policy-tests:
+	$(OPA) test policies/opa/terraform_plan.rego policies/opa/terraform_plan_test.rego
+	$(PYTHON) -B -m pytest -q tests/feature/test_policy_gate.py tests/security/test_policy_pack.py
+
+w12-001-contract-tests:
+	$(PYTHON) -B -m pytest -q tests/contract/test_terraform_module_contract.py tests/teardown/test_platformctl_cleanup.py tests/integration/test_w5_004_lifecycle_composition.py tests/security/test_w5_004_lifecycle_security.py tests/unit/test_platformctl.py
+
+w12-001-static-tests:
+	$(PYTHON) -B -m ruff check tools/capstone_release.py tools/capstone_deploy.py tools/w6_001_k8s.py tools/platformctl/policy_runner.py tools/platformctl/aws_inventory.py src/enterprise_ai_platform/app.py src/enterprise_ai_platform/config.py src/enterprise_ai_platform/api/workload_auth.py src/enterprise_ai_platform/api/tls_rotation.py tests/fakes/capstone_release.py tests/unit/test_capstone_release.py tests/contract/test_capstone_release_contract.py tests/integration/test_capstone_release_composition.py tests/feature/test_capstone_release.py tests/smoke/test_capstone_release_cli.py tests/security/test_capstone_release_security.py tests/rollback/test_capstone_release_rollback.py tests/teardown/test_capstone_release_cleanliness.py tests/unit/test_workload_auth.py tests/unit/test_tls_rotation.py tests/contract/test_capstone_identity_tls_contract.py
+	$(PYTHON) -B -m mypy src tools/capstone_release.py tools/capstone_deploy.py tools/w6_001_k8s.py tools/platformctl
+
+w12-001-tests: w12-001-record-tests w12-001-identity-tests w12-001-policy-tests w12-001-contract-tests w12-001-static-tests
 .PHONY: w6-003-validate w6-003-source-identity w6-003-tests w6-003-evidence-validate
 .PHONY: w6-004-source-validate w6-004-tests w7-001-tests w7-002-tests w7-003-tests w7-004-tests w8-002-tests w8-003-tests w8-004-tests w9-001-tests w9-002-tests w9-003-tests w9-004-validate w9-004-tests w10-001-tests w10-002-tests w10-003-tests w10-004-tests w11-001-validate w11-001-tests w11-002-validate w11-002-tests w11-003-validate w11-003-tests w11-004-validate w11-004-tests w11-004-pester-windows w11-004-pester-pwsh
 

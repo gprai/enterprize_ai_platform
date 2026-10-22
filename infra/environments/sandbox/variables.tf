@@ -20,12 +20,12 @@ variable "w7_data_zone_prefixes" {
   type        = map(string)
   description = "Exact W7-001 prefixes in the existing platform bucket."
   validation {
-    condition = var.w7_data_zone_prefixes == {
+    condition = var.w7_data_zone_prefixes == tomap({
       raw        = "raw/"
       quarantine = "quarantine/"
       processed  = "processed/"
       evidence   = "evidence/"
-    }
+    })
     error_message = "w7_data_zone_prefixes differs from the approved contract."
   }
 }
@@ -34,12 +34,12 @@ variable "w7_data_zone_retention_days" {
   type        = map(number)
   description = "Exact W7-001 object retention contract, separate from sandbox lifetime."
   validation {
-    condition = var.w7_data_zone_retention_days == {
+    condition = var.w7_data_zone_retention_days == tomap({
       raw        = 7
       quarantine = 7
       processed  = 30
       evidence   = 30
-    }
+    })
     error_message = "w7_data_zone_retention_days differs from the approved contract."
   }
 }

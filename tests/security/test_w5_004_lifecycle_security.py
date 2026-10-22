@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
+from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
 from typing import cast
@@ -5366,3 +5367,118 @@ def test_plan_owner_envelope_rejects_same_named_noncanonical_example(tmp_path: P
             sha256(expected.read_bytes()).hexdigest(),
             repository,
         )
+
+
+def test_w12_residue_unknown_never_classifies_clean() -> None:
+    from tools.platformctl.aws_inventory import (
+        W12_001_RESIDUAL_SURFACES,
+        classify_w12_residuals,
+    )
+
+    observed = {name: [] for name in W12_001_RESIDUAL_SURFACES}
+    observed["hcp-workspaces-runs-and-state-versions"] = None
+    assert classify_w12_residuals(observed) == "INDETERMINATE"
+
+
+def _synthetic_w12_purge(delete: bool):
+    from tools.platformctl.lifecycle_models import PurgeInventoryV3, PurgeItem
+
+    from tests.unit.test_platformctl import _w12_coverage_binding
+
+    binding = _w12_coverage_binding()
+    versions = tuple(
+        PurgeItem("OBJECT_VERSION", item.key, item.version_id) for item in binding.protected_objects
+    )
+    return (
+        PurgeInventoryV3(
+            schema_version="platformctl.purge-inventory.v3",
+            operation_id="synthetic",
+            account_id="123456789012",
+            region="ap-southeast-1",
+            environment="sandbox",
+            bucket=binding.verified_record_object.bucket,
+            ownership="PROJECT_MANAGED",
+            items=versions if delete else (),
+            retained=() if delete else versions,
+            pagination_evidence=None,
+            observed_at="2026-01-01T00:00:00Z",
+            valid_until="2026-01-02T00:00:00Z",
+            w12_retention_bindings=(binding,),
+        ),
+        binding,
+    )
+
+
+def test_publication_selector_not_serialized() -> None:
+    from tools.platformctl.aws_inventory import canonical_purge_inventory_v3
+
+    inventory, _ = _synthetic_w12_purge(False)
+    encoded = canonical_purge_inventory_v3(inventory)
+    assert b"publication-selector.json" not in encoded
+    assert b"proof_root" not in encoded
+
+
+def test_publication_selector_is_untrusted() -> None:
+    from tools.capstone_release import validate_publication_proof
+
+    source = __import__("inspect").getsource(validate_publication_proof)
+    assert "_read_selected_object" in source
+    assert "validate_publication_selector" in source
+    assert "_s3_read_exact" in source
+
+
+def test_local_retention_paths_not_serialized() -> None:
+    from tools.platformctl.aws_inventory import canonical_purge_inventory_v3
+
+    inventory, _ = _synthetic_w12_purge(False)
+    encoded = canonical_purge_inventory_v3(inventory)
+    assert b"w12-retention-proof-root" not in encoded
+    assert b"publication-selector.json" not in encoded
+
+
+def test_purge_rejects_unexpired_w12_version() -> None:
+    from tools.platformctl.contracts import ContractError
+    from tools.platformctl.destroy import _validate_w12_purge_scope
+
+    inventory, binding = _synthetic_w12_purge(True)
+    with pytest.raises(ContractError, match="PURGE_W12_EVIDENCE_RETAINED_BY_POLICY"):
+        _validate_w12_purge_scope(
+            inventory,
+            (binding,),
+            datetime(2026, 1, 2, tzinfo=UTC),
+        )
+
+
+def test_storage_module_remains_single_lifecycle_owner() -> None:
+    root = Path(__file__).resolve().parents[2]
+    storage = (root / "infra/modules/storage/main.tf").read_text()
+    sandbox = (root / "infra/environments/sandbox/main.tf").read_text()
+    assert 'resource "aws_s3_bucket_lifecycle_configuration"' in storage
+    assert 'resource "aws_s3_bucket_lifecycle_configuration"' not in sandbox
+
+
+def test_w12_evidence_not_expired_before_180_days() -> None:
+    root = Path(__file__).resolve().parents[2]
+    storage = (root / "infra/modules/storage/main.tf").read_text()
+    sandbox = (root / "infra/environments/sandbox/main.tf").read_text()
+    assert "noncurrent_days = var.noncurrent_version_retention_days" in storage
+    assert "noncurrent_version_retention_days = 180" in sandbox
+
+
+def test_live_delete_revalidates_w12_version() -> None:
+    source = (Path(__file__).resolve().parents[2] / "tools/platformctl/destroy.py").read_text()
+    purge = source.split("def purge_approved_inventory(", 1)[1].split(
+        "def verify_purge_execution(", 1
+    )[0]
+    assert "_validate_w12_purge_scope(inventory, bindings, now)" in purge
+    assert "adapter.inventory(inventory)" in purge
+    assert "context.revalidate(" in purge
+
+
+def test_platform_destroy_requires_w12_dependency_proof() -> None:
+    root = Path(__file__).resolve().parents[2]
+    plan = (root / "tools/platformctl/plan.py").read_text()
+    destroy = (root / "tools/platformctl/destroy.py").read_text()
+    assert "w12_bucket_residue_present" in plan
+    assert "W12_SOURCE_BUCKET" in plan
+    assert "W12" in destroy

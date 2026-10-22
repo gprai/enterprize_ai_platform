@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
@@ -802,14 +803,48 @@ def build_release_files(
     *,
     binding_input_sha256: str | None = None,
 ) -> dict[str, bytes]:
+    runtime = _mapping(binding.get("runtime"), "runtime")
+    files, rendered_documents = _substitute_release_templates(
+        payloads,
+        images,
+        cast(str, runtime["opensearch_endpoint"]),
+        cast(str, runtime["bedrock_inference_profile"]),
+    )
+    rendered_documents.sort(
+        key=lambda item: (
+            str(item.get("apiVersion")),
+            str(item.get("kind")),
+            str(_metadata(item).get("name")),
+        )
+    )
+    files["rendered.json"] = _canonical_json(rendered_documents)
+    files["release-binding.json"] = _canonical_json(binding)
+    hashes = {name: _sha256(payload) for name, payload in sorted(files.items())}
+    files["release-hashes.json"] = _canonical_json(
+        {
+            "schema_version": "w6-004.release-hashes.v2",
+            "binding_input_sha256": binding_input_sha256 or _sha256(_canonical_json(binding)),
+            "source_template_files": {
+                name: _sha256(payload) for name, payload in sorted(payloads.items())
+            },
+            "output_files": hashes,
+        }
+    )
+    return files
+
+
+def _substitute_release_templates(
+    payloads: dict[str, bytes],
+    images: tuple[str, str],
+    opensearch_endpoint: str,
+    bedrock_profile: str,
+) -> tuple[dict[str, bytes], list[dict[str, object]]]:
+    """One fixed substitution implementation shared by the two explicit contracts."""
     files: dict[str, bytes] = {}
     rendered_documents: list[dict[str, object]] = []
     app_occurrences = 0
     collector_occurrences = 0
     app_image, collector_image = images
-    runtime = _mapping(binding.get("runtime"), "runtime")
-    opensearch_endpoint = cast(str, runtime["opensearch_endpoint"])
-    bedrock_profile = cast(str, runtime["bedrock_inference_profile"])
     for name, payload in payloads.items():
         app_occurrences += payload.count(APP_SENTINEL.encode())
         collector_occurrences += payload.count(COLLECTOR_SENTINEL.encode())
@@ -838,27 +873,147 @@ def build_release_files(
             )
     if app_occurrences != 1 or collector_occurrences != 1:
         raise W6001Error("release binding must replace both reserved sentinels exactly once")
-    rendered_documents.sort(
-        key=lambda item: (
-            str(item.get("apiVersion")),
-            str(item.get("kind")),
-            str(_metadata(item).get("name")),
+    return files, rendered_documents
+
+
+@dataclass(frozen=True, slots=True)
+class W12RenderBindings:
+    application_image: str
+    otel_collector_image: str
+    opensearch_https_endpoint: str
+    bedrock_inference_profile_arn: str
+    release_record_sha256: str
+    render_inputs_sha256: str
+    w6_release_hashes_sha256: str
+
+
+class _W12NoAliasDumper(yaml.SafeDumper):  # type: ignore[misc]
+    def ignore_aliases(self, data: object) -> bool:
+        return True
+
+
+def _w12_annotate(document: dict[str, object], digests: dict[str, str]) -> None:
+    if document.get("kind") == "List":
+        for item in _list(document.get("items"), "List items"):
+            _w12_annotate(_mapping(item, "List object"), digests)
+        return
+    metadata = _metadata(document)
+    annotations = metadata.setdefault("annotations", {})
+    if not isinstance(annotations, dict):
+        raise W6001Error("W12 annotation metadata is malformed")
+    for name, value in digests.items():
+        if name in annotations and annotations[name] != value:
+            raise W6001Error("W12 provenance annotation conflicts")
+        annotations[name] = value
+    spec = document.get("spec")
+    if isinstance(spec, dict) and isinstance(spec.get("template"), dict):
+        template = cast(dict[str, object], spec["template"])
+        pod_metadata = template.setdefault("metadata", {})
+        if not isinstance(pod_metadata, dict):
+            raise W6001Error("W12 pod-template metadata is malformed")
+        pod_annotations = pod_metadata.setdefault("annotations", {})
+        if not isinstance(pod_annotations, dict):
+            raise W6001Error("W12 pod-template annotations are malformed")
+        for name, value in digests.items():
+            if name in pod_annotations and pod_annotations[name] != value:
+                raise W6001Error("W12 pod-template provenance annotation conflicts")
+            pod_annotations[name] = value
+
+
+def render_w12_release(*, source_root: Path, bindings: W12RenderBindings) -> dict[str, bytes]:
+    """Pure W12 rendering path; W6 v2 binding and output contracts stay separate."""
+    if not isinstance(bindings, W12RenderBindings):
+        raise W6001Error("W12 render bindings are required")
+    image_re = re.compile(
+        r"[a-z0-9][a-z0-9.-]*(?::[0-9]{1,5})?/[a-z0-9][a-z0-9._/-]*@sha256:[0-9a-f]{64}\Z"
+    )
+    for image in (bindings.application_image, bindings.otel_collector_image):
+        if (
+            not isinstance(image, str)
+            or not image_re.fullmatch(image)
+            or any(c.isspace() for c in image)
+        ):
+            raise W6001Error("W12 immutable image binding is invalid")
+    endpoint = bindings.opensearch_https_endpoint
+    if not isinstance(endpoint, str):
+        raise W6001Error("W12 OpenSearch HTTPS origin is invalid")
+    parsed = urlsplit(endpoint)
+    if (
+        parsed.scheme != "https"
+        or not parsed.hostname
+        or parsed.hostname != parsed.hostname.lower()
+        or parsed.username
+        or parsed.password
+        or parsed.netloc != parsed.hostname
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+        or endpoint != f"https://{parsed.hostname}"
+    ):
+        raise W6001Error("W12 OpenSearch HTTPS origin is invalid")
+    profile = bindings.bedrock_inference_profile_arn
+    if not isinstance(profile, str) or not re.fullmatch(
+        r"arn:(?:aws|aws-us-gov|aws-cn):bedrock:[a-z0-9-]+:(?:[0-9]{12})?:inference-profile/[A-Za-z0-9._-]+",
+        profile,
+    ):
+        raise W6001Error("W12 Bedrock inference profile is invalid")
+    for value in (
+        bindings.release_record_sha256,
+        bindings.render_inputs_sha256,
+        bindings.w6_release_hashes_sha256,
+    ):
+        if not isinstance(value, str) or not SHA256_RE.fullmatch(value):
+            raise W6001Error("W12 provenance digest is invalid")
+    if not source_root.is_dir() or source_root.is_symlink():
+        raise W6001Error("W12 source root is invalid")
+    for name in TEMPLATE_FILES:
+        path = source_root / name
+        if (
+            path.is_symlink()
+            or not path.is_file()
+            or path.resolve().parent != source_root.resolve()
+        ):
+            raise W6001Error("W12 source template path is unsafe")
+    source_documents, payloads = load_template(source_root)
+    validate_documents(source_documents, template_mode=True)
+    files, _ = _substitute_release_templates(
+        payloads,
+        (bindings.application_image, bindings.otel_collector_image),
+        endpoint,
+        profile,
+    )
+    annotations = {
+        "enterprise.ai/release-record-sha256": bindings.release_record_sha256,
+        "enterprise.ai/render-inputs-sha256": bindings.render_inputs_sha256,
+        "enterprise.ai/w6-release-hashes-sha256": bindings.w6_release_hashes_sha256,
+    }
+    rendered: dict[str, bytes] = {}
+    for name in sorted(files):
+        if name == "kustomization.yaml":
+            continue
+        try:
+            documents = list(yaml.load_all(files[name].decode("utf-8"), Loader=UniqueSafeLoader))
+        except (UnicodeDecodeError, yaml.YAMLError, TypeError) as exc:
+            raise W6001Error("W12 Kubernetes object is malformed") from exc
+        if not documents or any(not isinstance(item, dict) for item in documents):
+            raise W6001Error("W12 Kubernetes object is malformed")
+        for document in documents:
+            _w12_annotate(cast(dict[str, object], document), annotations)
+        text = yaml.dump_all(
+            documents, Dumper=_W12NoAliasDumper, sort_keys=True, allow_unicode=True
         )
-    )
-    files["rendered.json"] = _canonical_json(rendered_documents)
-    files["release-binding.json"] = _canonical_json(binding)
-    hashes = {name: _sha256(payload) for name, payload in sorted(files.items())}
-    files["release-hashes.json"] = _canonical_json(
-        {
-            "schema_version": "w6-004.release-hashes.v2",
-            "binding_input_sha256": binding_input_sha256 or _sha256(_canonical_json(binding)),
-            "source_template_files": {
-                name: _sha256(payload) for name, payload in sorted(payloads.items())
-            },
-            "output_files": hashes,
-        }
-    )
-    return files
+        output = text.replace("\r\n", "\n").rstrip("\n") + "\n"
+        if (
+            "OWNER_BINDING_REQUIRED" in output
+            or APP_SENTINEL in output
+            or COLLECTOR_SENTINEL in output
+            or re.search(r"\$\{[^}]+\}|\{\{[^}]+\}\}|__[A-Z0-9_]+__", output)
+        ):
+            raise W6001Error("W12 unresolved source placeholder")
+        rendered[name] = output.encode("utf-8")
+    if not rendered or len({name.casefold() for name in rendered}) != len(rendered):
+        raise W6001Error("W12 rendered output set is invalid")
+    return rendered
 
 
 def bind_release(template_root: Path, binding_path: Path, repository_root: Path) -> Path:

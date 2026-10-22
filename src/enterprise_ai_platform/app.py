@@ -13,10 +13,17 @@ from pydantic import BaseModel
 from . import __version__
 from .agent.contracts import AgentController
 from .api.aws_composition import AWSRuntimeComposition, compose_aws_runtime
-from .api.dependencies import Authenticator, RAGAnswerService, ReadinessProbe
+from .api.dependencies import (
+    Authenticator,
+    RAGAnswerService,
+    ReadinessProbe,
+    UnconfiguredReadinessProbe,
+)
 from .api.routes import register_api_boundary
 from .api.runtime import ApplicationDrainController, RequestIdMiddleware
 from .api.sandbox_auth import SandboxTokenAuthenticator
+from .api.tls_rotation import TLSReadinessProbe, TLSRotationMonitor
+from .api.workload_auth import ProbeAwareAuthenticator, WorkloadTokenAuthenticator
 from .config import Settings
 from .telemetry.export import ExportingTelemetryRuntime
 from .telemetry.runtime import (
@@ -71,6 +78,38 @@ def create_app(
             audience=audience,
             tenant_id=tenant_id,
         )
+    if resolved_settings.workload_probe_auth_enabled:
+        if not isinstance(authenticator, SandboxTokenAuthenticator):
+            raise ValueError("probe authentication requires the approved regular authenticator")
+        if (
+            resolved_settings.workload_probe_issuer is None
+            or resolved_settings.workload_probe_tenant_id is None
+        ):
+            raise ValueError("probe workload identity is incomplete")
+        authenticator = ProbeAwareAuthenticator(
+            WorkloadTokenAuthenticator(
+                issuer=resolved_settings.workload_probe_issuer,
+                tenant_id=resolved_settings.workload_probe_tenant_id,
+                api_token_file=resolved_settings.workload_probe_api_token_file,
+                api_ca_file=resolved_settings.workload_probe_api_ca_file,
+            ),
+            authenticator,
+        )
+    tls_monitor: TLSRotationMonitor | None = None
+    if resolved_settings.capstone_tls_enabled:
+        root = resolved_settings.capstone_tls_root_fingerprint_sha256
+        if root is None:
+            raise ValueError("reviewed TLS root fingerprint is required")
+        tls_monitor = TLSRotationMonitor(
+            resolved_settings.capstone_tls_cert_file,
+            resolved_settings.capstone_tls_key_file,
+            resolved_settings.capstone_tls_ca_file,
+            root,
+        )
+        readiness_probe = TLSReadinessProbe(
+            tls_monitor,
+            readiness_probe if readiness_probe is not None else UnconfiguredReadinessProbe(),
+        )
     api_enabled = resolved_settings.api_routes_enabled
     resolved_telemetry = telemetry_for_application(
         enabled=resolved_settings.telemetry_enabled,
@@ -84,14 +123,33 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
+        rotation_task: asyncio.Task[None] | None = None
         try:
             if aws_runtime is not None:
                 await aws_runtime.start()
                 configuration_hashes = getattr(aws_runtime, "configuration_hashes", None)
                 if configuration_hashes is not None:
                     resolved_telemetry.record_runtime_configuration(configuration_hashes)
+            if tls_monitor is not None:
+
+                async def restart_after_drain() -> None:
+                    controller = getattr(application.state, "api_drain_controller", None)
+                    if isinstance(controller, ApplicationDrainController):
+                        await controller.drain(
+                            completion_timeout_seconds=20, cancellation_timeout_seconds=2
+                        )
+
+                if not tls_monitor.inspect():
+                    raise ValueError("TLS certificate is missing, invalid or expired")
+                rotation_task = asyncio.create_task(tls_monitor.watch(restart_after_drain))
             yield
         finally:
+            if rotation_task is not None:
+                rotation_task.cancel()
+                try:
+                    await rotation_task
+                except asyncio.CancelledError:
+                    pass
             drain_controller = getattr(application.state, "api_drain_controller", None)
             if isinstance(drain_controller, ApplicationDrainController):
                 await drain_controller.drain(

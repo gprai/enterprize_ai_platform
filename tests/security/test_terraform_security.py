@@ -51,7 +51,7 @@ def test_prohibited_action_wildcards_and_permissions_are_absent() -> None:
     ):
         assert prohibited not in source
     network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
-    assert source.count('"ecr:GetAuthorizationToken"') == 2
+    assert source.count('"ecr:GetAuthorizationToken"') == 3
     assert network.count('"ecr:GetAuthorizationToken"') == 2
     assert '"ECR API" = [' in network
     assert '"ECR DKR" = [' in network
@@ -59,7 +59,7 @@ def test_prohibited_action_wildcards_and_permissions_are_absent() -> None:
 
 def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     source = terraform_source()
-    assert source.count('resources = ["*"]') == 12
+    assert source.count('resources = ["*"]') == 14
     assert source.count('identifiers = ["*"]') == 5
     network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
     assert network.count('identifiers = ["*"]') == 3
