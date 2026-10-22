@@ -109,7 +109,13 @@ def test_cleanup_is_bounded_to_migration_created_paths_and_builder() -> None:
     assert 'echo "RAW_DIR=$RUNNER_TEMP/w5-002-py313-raw"' in workflow
     assert 'echo "TRIVY_CACHE=$RUNNER_TEMP/w5-002-py313-trivy"' in workflow
     assert 'echo "GRYPE_CACHE=$RUNNER_TEMP/w5-002-py313-grype"' in workflow
+    assert 'echo "SUPPLY_CHAIN_DOWNLOADS=$RUNNER_TEMP/w5-002-supply-chain-downloads"' in workflow
+    assert 'echo "SUPPLY_CHAIN_TOOLS_DIR=$RUNNER_TEMP/w5-002-supply-chain-tools"' in workflow
     assert '} >> "$GITHUB_ENV"' in workflow
+    assert '"$SUPPLY_CHAIN_DOWNLOADS"' in cleanup
+    assert '"$SUPPLY_CHAIN_TOOLS_DIR"' in cleanup
+    assert 'test ! -e "$SUPPLY_CHAIN_DOWNLOADS"' in cleanup
+    assert 'test ! -e "$SUPPLY_CHAIN_TOOLS_DIR"' in cleanup
     assert "enterprise-ai-platform-w5-002-py313" in cleanup
     assert "reports/verification" not in cleanup
     assert "scanner-cache" not in cleanup

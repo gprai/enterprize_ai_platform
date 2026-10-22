@@ -79,6 +79,22 @@ def test_chainguard_pull_token_is_bounded_to_the_trusted_supply_chain_workflow()
     assert 'test ! -e "$DOCKER_CONFIG"' in supply
 
 
+def test_supply_chain_scanner_installation_is_pinned_and_hash_verified() -> None:
+    supply = (ROOT / ".github/workflows/security-scan.yml").read_text(encoding="utf-8")
+    installer = supply.split("Install exact hash-verified security tools", maxsplit=1)[1]
+    installer = installer.split("Verify immutable local security-tool identities", maxsplit=1)[0]
+
+    assert installer.count("curl --fail --silent --show-error --location") == 3
+    assert installer.count("--proto '=https' --tlsv1.2") == 3
+    assert installer.count("sha256sum --check --strict") == 3
+    assert 'tar -xzf "$SUPPLY_CHAIN_DOWNLOADS/trivy.tar.gz"' in installer
+    assert 'tar -xzf "$SUPPLY_CHAIN_DOWNLOADS/grype.tar.gz"' in installer
+    assert 'tar -xzf "$SUPPLY_CHAIN_DOWNLOADS/syft.tar.gz"' in installer
+    assert 'echo "$SUPPLY_CHAIN_TOOLS_DIR" >> "$GITHUB_PATH"' in installer
+    for prohibited in ("sudo", "latest", "curl |", "curl -sL |", "wget |"):
+        assert prohibited not in installer
+
+
 def test_qualified_images_are_immutable_and_exact() -> None:
     supply = (ROOT / ".github/workflows/security-scan.yml").read_text(encoding="utf-8")
     dockerfile = (ROOT / "docker/application.Dockerfile").read_text(encoding="utf-8")

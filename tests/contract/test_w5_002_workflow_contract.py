@@ -134,6 +134,57 @@ def test_supply_chain_uses_exact_images_one_oci_and_no_push_or_load() -> None:
     assert "docker push" not in text
 
 
+def test_supply_chain_installs_exact_hash_verified_scanner_releases() -> None:
+    text = _text("security-scan.yml")
+    expected = {
+        "v0.74.0/trivy_0.74.0_Linux-64bit.tar.gz": "".join(
+            (
+                "2ae6fe3e",
+                "e734b7fd",
+                "f1133566",
+                "3e18c75e",
+                "a12dccc7",
+                "6062f09f",
+                "164a3b0f",
+                "8be4371a",
+            )
+        ),
+        "v0.118.0/grype_0.118.0_linux_amd64.tar.gz": "".join(
+            (
+                "1d444c5e",
+                "73604718",
+                "15f7158f",
+                "71935fce",
+                "cc68a3c4",
+                "17d85c73",
+                "44f77085",
+                "4300bba2",
+            )
+        ),
+        "v1.51.1/syft_1.51.1_linux_amd64.tar.gz": "".join(
+            (
+                "8fcb3301",
+                "7a0dc105",
+                "8298c923",
+                "c436d19d",
+                "fa68ae93",
+                "968e0b42",
+                "3248542e",
+                "3afb9fc3",
+            )
+        ),
+    }
+
+    for release, digest in expected.items():
+        assert release in text
+        assert digest in text
+    assert text.count("sha256sum --check --strict") == 3
+    assert "SUPPLY_CHAIN_DOWNLOADS=$RUNNER_TEMP/w5-002-supply-chain-downloads" in text
+    assert "SUPPLY_CHAIN_TOOLS_DIR=$RUNNER_TEMP/w5-002-supply-chain-tools" in text
+    assert 'echo "$SUPPLY_CHAIN_TOOLS_DIR" >> "$GITHUB_PATH"' in text
+    assert "install: false" not in text
+
+
 def test_four_base_scan_paths_and_independent_composed_scanners_are_required() -> None:
     text = _text("security-scan.yml")
 
@@ -255,3 +306,6 @@ def test_supply_chain_cleanup_builder_absence_check_is_fail_closed() -> None:
         "if docker buildx inspect enterprise-ai-platform-w5-002-py313 "
         ">/dev/null 2>&1; then exit 1; fi"
     ) in cleanup
+    assert cleanup.index("docker buildx rm") < cleanup.index('rm -rf -- "$DOCKER_CONFIG"')
+    assert 'test ! -e "$SUPPLY_CHAIN_DOWNLOADS"' in cleanup
+    assert 'test ! -e "$SUPPLY_CHAIN_TOOLS_DIR"' in cleanup
