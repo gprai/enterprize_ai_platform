@@ -185,6 +185,16 @@ def test_supply_chain_installs_exact_hash_verified_scanner_releases() -> None:
     assert "install: false" not in text
 
 
+def test_supply_chain_tool_version_checks_allow_alignment_but_require_exact_versions() -> None:
+    text = _text("security-scan.yml")
+
+    for version in ("0.74.0", "0.118.0", "1.51.1"):
+        assert (
+            f'awk \'$1 == "Version:" && $2 == "{version}" {{ found=1 }} END {{ exit !found }}\''
+        ) in text
+        assert f'grep -F "Version: {version}"' not in text
+
+
 def test_four_base_scan_paths_and_independent_composed_scanners_are_required() -> None:
     text = _text("security-scan.yml")
 
