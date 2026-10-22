@@ -27,23 +27,23 @@ def _qualified_image(role: str) -> dict[str, object]:
     if role == "builder":
         return {
             "architecture": "amd64",
-            "glibc": "2.44-r5",
+            "glibc": w5_002_ci.IMAGE_GLIBC,
             "index_digest": w5_002_ci.BUILDER_INDEX_DIGEST,
             "manifest_digest": w5_002_ci.BUILDER_MANIFEST_DIGEST,
             "os": "linux",
             "os_family": "wolfi",
-            "python_package": "3.13.15-r7",
+            "python_package": w5_002_ci.IMAGE_PYTHON_PACKAGE,
             "reference": w5_002_ci.BUILDER_IMAGE,
             "tag": w5_002_ci.BUILDER_TAG,
         }
     return {
         "architecture": "amd64",
-        "glibc": "2.44-r5",
+        "glibc": w5_002_ci.IMAGE_GLIBC,
         "index_digest": w5_002_ci.RUNTIME_INDEX_DIGEST,
         "manifest_digest": w5_002_ci.RUNTIME_MANIFEST_DIGEST,
         "os": "linux",
         "os_family": "wolfi",
-        "python_package": "3.13.15-r7",
+        "python_package": w5_002_ci.IMAGE_PYTHON_PACKAGE,
         "reference": w5_002_ci.RUNTIME_IMAGE,
         "tag": w5_002_ci.RUNTIME_TAG,
     }
@@ -64,7 +64,7 @@ def _image_identity() -> dict[str, object]:
             "requirements_runtime_lock_sha256": OTHER_DIGEST,
         },
         "platform": "linux/amd64",
-        "python_version": "3.13.15",
+        "python_version": w5_002_ci.IMAGE_PYTHON_VERSION,
         "runtime_image": _qualified_image("runtime"),
         "schema_version": w5_002_ci.IMAGE_SCHEMA,
         "source_identity": _source_identity(),

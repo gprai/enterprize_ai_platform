@@ -147,13 +147,11 @@ def test_security_config_preserves_accepted_findings_without_overclaim() -> None
     qualification = config["base_qualification"]
 
     assert qualification["vulnerability_free_claim"] is False
-    assert qualification["builder"]["trivy_purl_skips"] == 147
-    assert qualification["runtime"]["trivy_purl_skips"] == 48
+    assert qualification["builder"]["trivy_purl_skips"] == 152
+    assert qualification["runtime"]["trivy_purl_skips"] == 56
     assert [finding["severity"] for finding in qualification["accepted_findings"]] == [
         "Medium",
         "Medium",
-        "Medium",
-        "Low",
     ]
 
 

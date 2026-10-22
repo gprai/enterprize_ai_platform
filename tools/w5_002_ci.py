@@ -39,18 +39,21 @@ BASE_IMAGE_V1 = (
     "b1add8a6f2aca6bcfcf0b9c9b522352f7ce0d62a3d556a2f2f32511aa0cca250"
 )
 PYTHON_VERSION = "3.13.15"
+IMAGE_PYTHON_VERSION = "3.13.16"
+IMAGE_PYTHON_PACKAGE = "3.13.16_git20261016-r1"
+IMAGE_GLIBC = "2.44-r9"
 PYTHON_REQUIREMENT = ">=3.13,<3.14"
 BASELINE_HEAD = "9963f2b24d9c42c03c62b97615fd650ab0eb5bc8"
 BASELINE_SOURCE_COMPOSITION = (
     "sha256:5059e1857af13d017daa9d92b58ea50a30ac5e6234227f566d4ca139c7f02957"
 )
-BUILDER_TAG = "cgr.dev/vayunetrix.com/python:3.13.15-dev"
-BUILDER_INDEX_DIGEST = "sha256:fb566a1a7663cdf0041186af5484204650d880ee305a4a42cdf92b6c8706a1bd"
-BUILDER_MANIFEST_DIGEST = "sha256:023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811"
+BUILDER_TAG = "cgr.dev/vayunetrix.com/python:3.13.16-dev"
+BUILDER_INDEX_DIGEST = "sha256:649d6e0f8359c0712b22f4aa489da7bf46e61d1984b726bf8cd55299c3c6b05b"
+BUILDER_MANIFEST_DIGEST = "sha256:6fe25bf4fd388ac8edb0934eb5eb1bda7ca2d0e7e997c6843356b5be143506ff"
 BUILDER_IMAGE = f"{BUILDER_TAG}@{BUILDER_MANIFEST_DIGEST}"
-RUNTIME_TAG = "cgr.dev/vayunetrix.com/python:3.13.15"
-RUNTIME_INDEX_DIGEST = "sha256:7a212636a3bd38fa184cf1f0ccfe025d683d7f32fd8bad810e437aa351d3b634"
-RUNTIME_MANIFEST_DIGEST = "sha256:f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa"
+RUNTIME_TAG = "cgr.dev/vayunetrix.com/python:3.13.16"
+RUNTIME_INDEX_DIGEST = "sha256:10952cdea1eed1b0664414e94141c44d18c29c7aa0fc264580f371d094a0bbae"
+RUNTIME_MANIFEST_DIGEST = "sha256:6984fc8ab2fe31cfc5bf6547e9d94987eda7663d4a0791d086dc6c871ea4d9ac"
 RUNTIME_IMAGE = f"{RUNTIME_TAG}@{RUNTIME_MANIFEST_DIGEST}"
 BASE_IMAGE = RUNTIME_IMAGE
 REPORT_PATHS_V1 = (
@@ -707,23 +710,23 @@ def _qualified_image(value: object, role: str) -> dict[str, object]:
     expected = {
         "builder": {
             "architecture": "amd64",
-            "glibc": "2.44-r5",
+            "glibc": IMAGE_GLIBC,
             "index_digest": BUILDER_INDEX_DIGEST,
             "manifest_digest": BUILDER_MANIFEST_DIGEST,
             "os": "linux",
             "os_family": "wolfi",
-            "python_package": "3.13.15-r7",
+            "python_package": IMAGE_PYTHON_PACKAGE,
             "reference": BUILDER_IMAGE,
             "tag": BUILDER_TAG,
         },
         "runtime": {
             "architecture": "amd64",
-            "glibc": "2.44-r5",
+            "glibc": IMAGE_GLIBC,
             "index_digest": RUNTIME_INDEX_DIGEST,
             "manifest_digest": RUNTIME_MANIFEST_DIGEST,
             "os": "linux",
             "os_family": "wolfi",
-            "python_package": "3.13.15-r7",
+            "python_package": IMAGE_PYTHON_PACKAGE,
             "reference": RUNTIME_IMAGE,
             "tag": RUNTIME_TAG,
         },
@@ -751,7 +754,7 @@ def _validate_image_identity_v2(value: object) -> dict[str, object]:
     )
     if data["schema_version"] != IMAGE_SCHEMA:
         raise ContractError("unexpected image identity schema")
-    if data["platform"] != PLATFORM or data["python_version"] != PYTHON_VERSION:
+    if data["platform"] != PLATFORM or data["python_version"] != IMAGE_PYTHON_VERSION:
         raise ContractError("application platform or Python identity differs from approval")
     _source_identity(data["source_identity"])
     _qualified_image(data["builder_image"], "builder")
@@ -1126,14 +1129,20 @@ def _validate_config_v2(value: object) -> dict[str, object]:
         raise ContractError("Python 3.13 lock resolver contract differs from approval")
     if data["base_qualification"] != {
         "accepted_findings": [
-            {"id": "CVE-2026-19672", "package": "python-3.13 3.13.15-r7", "severity": "Medium"},
-            {"id": "CVE-2025-15367", "package": "python-3.13 3.13.15-r7", "severity": "Medium"},
-            {"id": "CVE-2026-18374", "package": "glibc-2.44 2.44-r5", "severity": "Medium"},
-            {"id": "CVE-2026-15310", "package": "python-3.13 3.13.15-r7", "severity": "Low"},
+            {
+                "id": "CVE-2025-15367",
+                "package": f"python-3.13 {IMAGE_PYTHON_PACKAGE}",
+                "severity": "Medium",
+            },
+            {
+                "id": "CVE-2026-12345",
+                "package": f"python-3.13 {IMAGE_PYTHON_PACKAGE}",
+                "severity": "Medium",
+            },
         ],
-        "builder": {"grype_critical": 0, "trivy_critical": 0, "trivy_purl_skips": 147},
+        "builder": {"grype_critical": 0, "trivy_critical": 0, "trivy_purl_skips": 152},
         "claim": "zero-Critical at the recorded scanner database snapshots",
-        "runtime": {"grype_critical": 0, "trivy_critical": 0, "trivy_purl_skips": 48},
+        "runtime": {"grype_critical": 0, "trivy_critical": 0, "trivy_purl_skips": 56},
         "vulnerability_free_claim": False,
     }:
         raise ContractError("base qualification facts differ from owner-accepted evidence")
@@ -1453,12 +1462,12 @@ def write_image_identity(
         "application_image": _oci_application_identity(oci_archive),
         "builder_image": {
             "architecture": "amd64",
-            "glibc": "2.44-r5",
+            "glibc": IMAGE_GLIBC,
             "index_digest": BUILDER_INDEX_DIGEST,
             "manifest_digest": BUILDER_MANIFEST_DIGEST,
             "os": "linux",
             "os_family": "wolfi",
-            "python_package": "3.13.15-r7",
+            "python_package": IMAGE_PYTHON_PACKAGE,
             "reference": BUILDER_IMAGE,
             "tag": BUILDER_TAG,
         },
@@ -1477,15 +1486,15 @@ def write_image_identity(
             ),
         },
         "platform": PLATFORM,
-        "python_version": PYTHON_VERSION,
+        "python_version": IMAGE_PYTHON_VERSION,
         "runtime_image": {
             "architecture": "amd64",
-            "glibc": "2.44-r5",
+            "glibc": IMAGE_GLIBC,
             "index_digest": RUNTIME_INDEX_DIGEST,
             "manifest_digest": RUNTIME_MANIFEST_DIGEST,
             "os": "linux",
             "os_family": "wolfi",
-            "python_package": "3.13.15-r7",
+            "python_package": IMAGE_PYTHON_PACKAGE,
             "reference": RUNTIME_IMAGE,
             "tag": RUNTIME_TAG,
         },

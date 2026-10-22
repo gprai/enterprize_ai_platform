@@ -117,12 +117,12 @@ def test_supply_chain_uses_exact_images_one_oci_and_no_push_or_load() -> None:
     text = _text("security-scan.yml")
 
     assert (
-        "cgr.dev/vayunetrix.com/python:3.13.15-dev@sha256:"
-        "023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811"
+        "cgr.dev/vayunetrix.com/python:3.13.16-dev@sha256:"
+        "6fe25bf4fd388ac8edb0934eb5eb1bda7ca2d0e7e997c6843356b5be143506ff"
     ) in text
     assert (
-        "cgr.dev/vayunetrix.com/python:3.13.15@sha256:"
-        "f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa"
+        "cgr.dev/vayunetrix.com/python:3.13.16@sha256:"
+        "6984fc8ab2fe31cfc5bf6547e9d94987eda7663d4a0791d086dc6c871ea4d9ac"
     ) in text
     assert '--output "type=oci,dest=$OCI_ARCHIVE"' in text
     assert 'tar -xf "$OCI_ARCHIVE" -C "$OCI_LAYOUT"' in text

@@ -23,8 +23,8 @@ jobs:
     permissions:
       contents: read
     env:
-      BUILDER_IMAGE: cgr.dev/vayunetrix.com/python:3.13.15-dev@sha256:023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811
-      RUNTIME_IMAGE: cgr.dev/vayunetrix.com/python:3.13.15@sha256:f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa
+      BUILDER_IMAGE: cgr.dev/vayunetrix.com/python:3.13.16-dev@sha256:6fe25bf4fd388ac8edb0934eb5eb1bda7ca2d0e7e997c6843356b5be143506ff
+      RUNTIME_IMAGE: cgr.dev/vayunetrix.com/python:3.13.16@sha256:6984fc8ab2fe31cfc5bf6547e9d94987eda7663d4a0791d086dc6c871ea4d9ac
     steps:
       - name: Establish bounded runner temporary paths
         shell: bash
@@ -87,9 +87,9 @@ jobs:
         shell: bash
         run: |
           docker buildx imagetools inspect "$BUILDER_IMAGE" | \
-            grep -F "sha256:023795336613750af2cd86cf06503b5b74370c6a561d2a22219a2e80c6fe4811"
+            grep -F "sha256:6fe25bf4fd388ac8edb0934eb5eb1bda7ca2d0e7e997c6843356b5be143506ff"
           docker buildx imagetools inspect "$RUNTIME_IMAGE" | \
-            grep -F "sha256:f7cc453a5d7ac0cf86f585e22b6e404eaa10f69db5d00da50f9940e2806358fa"
+            grep -F "sha256:6984fc8ab2fe31cfc5bf6547e9d94987eda7663d4a0791d086dc6c871ea4d9ac"
       - name: Set up exact BuildKit
         uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5
         with:
