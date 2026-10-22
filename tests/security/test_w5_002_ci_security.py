@@ -63,7 +63,7 @@ def test_chainguard_oidc_is_bounded_to_the_trusted_supply_chain_workflow() -> No
     assert "github.event_name == 'workflow_dispatch'" in supply
     assert "github.ref == 'refs/heads/main'" in supply
     assert "github.repository == 'gprai/enterprize_ai_platform'" in supply
-    assert "chainguard-dev/setup-chainctl@be0acd273acf04bfdf91f51198327e719f6af978" in supply
+    assert "chainguard-dev/setup-chainctl@9014a6ef4f9783eef6414ed71e92fcecf152dfe7" in supply
     assert "identity: ${{ vars.CHAINGUARD_PULL_IDENTITY }}" in supply
     assert "secrets." not in supply
     assert "docker login" not in supply.casefold()
