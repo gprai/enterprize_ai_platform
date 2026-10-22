@@ -18,6 +18,7 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    environment: sandbox
     timeout-minutes: 60
     permissions:
       contents: read
@@ -67,6 +68,15 @@ jobs:
         run: |
           python -B tools/w5_002_ci.py validate-config --config configs/ci/w5-002.json
           python -B -m tools.platformctl w6-004-validate-source --config configs/lifecycle/w6-004.json
+      - name: Require the configured Chainguard pull identity
+        shell: bash
+        env:
+          CHAINGUARD_PULL_IDENTITY: ${{ vars.CHAINGUARD_PULL_IDENTITY }}
+        run: |
+          if [[ -z "$CHAINGUARD_PULL_IDENTITY" ]]; then
+            echo "::error title=Missing Chainguard identity::Set the CHAINGUARD_PULL_IDENTITY variable in the sandbox GitHub environment."
+            exit 1
+          fi
       - name: Authenticate to Chainguard with the pull-only GitHub identity
         uses: chainguard-dev/setup-chainctl@9014a6ef4f9783eef6414ed71e92fcecf152dfe7
         with:
