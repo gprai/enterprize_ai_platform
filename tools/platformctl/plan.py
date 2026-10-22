@@ -2450,7 +2450,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_precommit_controls.py",
         # pragma: allowlist nextline secret
-        "a09b3bf3c220066328a344ce4e1646494bff0e767253c3a5df8f728455164720",
+        "26bdd2cf617435a7902c583588408adaf8ae8f7fa896f0cfdef733d75d2b2acb",
     ),
     (
         "tests/security/test_repository_security.py",
