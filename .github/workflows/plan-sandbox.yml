@@ -58,8 +58,9 @@ jobs:
           python -B tools/w5_002_ci.py validate-locks \
             --runtime requirements-runtime.lock --ci requirements-ci.lock \
             --checkov requirements-checkov.lock
-          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m pip install --require-hashes --no-deps -r requirements-bootstrap.lock
           python -m pip --version | grep -F "pip 26.2.1"
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
           python -m pip check
       - name: Revalidate before requesting the OIDC token
         shell: bash
