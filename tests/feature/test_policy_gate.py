@@ -1784,7 +1784,7 @@ def test_current_terraform_checkov_baseline_is_exact() -> None:
 
     assert completed.returncode == 0, combined
     assert counts is not None, "Checkov did not emit the required complete scan counts"
-    assert tuple(map(int, counts.groups())) == (435, 0, 26)
+    assert tuple(map(int, counts.groups())) == (483, 0, 26)
 
 
 def test_production_decision_requires_one_defined_consistent_value() -> None:

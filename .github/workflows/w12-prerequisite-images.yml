@@ -1,0 +1,153 @@
+name: W12-001 prerequisite image publication
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: w12-001-prerequisite-images
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'gprai/enterprize_ai_platform' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: sandbox
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ap-southeast-1
+      AWS_ACCOUNT_ID: '526338061652'
+      TOOLCHAIN_REPOSITORY: enterprise-ai/sandbox/w12-toolchain
+      CODEBUILD_REPOSITORY: enterprise-ai/sandbox/w12-codebuild
+    steps:
+      - name: Reject any other execution identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REPOSITORY" = gprai/enterprize_ai_platform
+          test "$GITHUB_REF" = refs/heads/main
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+      - name: Check out the exact protected main commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - name: Verify tracked recipe and lock identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 -B - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('images/w12')
+          manifest = json.loads((root / 'pinned-inputs.json').read_text())
+          assert manifest['platform'] == 'linux/amd64'
+          assert {entry['name'] for entry in manifest['recipes']} == {
+              'toolchain.Dockerfile', 'codebuild.Dockerfile', 'codebuild-requirements.lock'
+          }
+          for entry in manifest['recipes']:
+              data = (root / entry['name']).read_bytes()
+              assert len(data) == entry['bytes']
+              assert hashlib.sha256(data).hexdigest() == entry['sha256']
+          PY
+      - name: Build both pinned Linux AMD64 images
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --pull --platform linux/amd64 \
+            -f images/w12/toolchain.Dockerfile -t w12-toolchain:reviewed images/w12
+          docker build --pull --platform linux/amd64 \
+            -f images/w12/codebuild.Dockerfile -t w12-codebuild:reviewed images/w12
+      - name: Test image compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network none --read-only --tmpfs /tmp \
+            --tmpfs /root/.cache --tmpfs /root/.sigstore \
+            w12-toolchain:reviewed trivy --version | grep -Fx 'Version: 0.74.0'
+          docker run --rm --network none w12-toolchain:reviewed grype version | grep -F '0.118.0'
+          docker run --rm --network none w12-toolchain:reviewed syft version | grep -F '1.51.1'
+          docker run --rm --network none w12-toolchain:reviewed cosign version | grep -F 'v3.1.2'
+          docker run --rm --network none w12-codebuild:reviewed python --version | grep -Fx 'Python 3.13.15'
+          docker run --rm --network none w12-codebuild:reviewed aws --version | grep -F '2.38.5'
+          docker run --rm --network none w12-codebuild:reviewed kubectl version --client | grep -F 'v1.36.5'
+          docker run --rm --network none w12-codebuild:reviewed python -m pip check
+          docker run --rm --network none -v "$GITHUB_WORKSPACE:/work:ro" \
+            -w /work w12-codebuild:reviewed python -B -m tools.capstone_deploy --help > /dev/null
+      - name: Install checksum-verified scanners
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/w12-scanners"
+          cd "$RUNNER_TEMP/w12-scanners"
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            -o trivy.tar.gz https://github.com/aquasecurity/trivy/releases/download/v0.74.0/trivy_0.74.0_Linux-64bit.tar.gz
+          echo '2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a  trivy.tar.gz' | sha256sum -c -
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            -o grype.tar.gz https://github.com/anchore/grype/releases/download/v0.118.0/grype_0.118.0_linux_amd64.tar.gz
+          echo '1d444c5e7360471815f7158f71935fcecc68a3c417d85c7344f770854300bba2  grype.tar.gz' | sha256sum -c -
+          tar -xzf trivy.tar.gz trivy
+          tar -xzf grype.tar.gz grype
+          echo "$RUNNER_TEMP/w12-scanners" >> "$GITHUB_PATH"
+      - name: Scan both final images against the exact approved exception
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in toolchain codebuild; do
+            image="w12-$name:reviewed"
+            trivy image --scanners vuln,secret \
+              --format json --output "$RUNNER_TEMP/$name-trivy.json" "$image"
+            grype "$image" -o json > "$RUNNER_TEMP/$name-grype.json"
+          done
+          python3 -B tools/w12_001_images.py "$RUNNER_TEMP" \
+            --exception configs/ci/w12-001-image-scan-exception.json \
+            --source-manifest images/w12/pinned-inputs.json
+      - name: Assume only the dedicated prerequisite publisher role
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: arn:aws:iam::526338061652:role/enterprise-ai-w12-prerequisite-image-publisher
+          role-duration-seconds: 900
+          aws-region: ap-southeast-1
+      - name: Reject missing or mismatched Terraform-managed repositories
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(aws sts get-caller-identity --query Account --output text)" = "$AWS_ACCOUNT_ID"
+          for repository in "$TOOLCHAIN_REPOSITORY" "$CODEBUILD_REPOSITORY"; do
+            test "$(aws ecr describe-repositories --repository-names "$repository" --query 'repositories[0].repositoryName' --output text)" = "$repository"
+            test "$(aws ecr describe-repositories --repository-names "$repository" --query 'repositories[0].imageTagMutability' --output text)" = IMMUTABLE
+            test "$(aws ecr describe-repositories --repository-names "$repository" --query 'repositories[0].encryptionConfiguration.encryptionType' --output text)" = KMS
+            aws ecr get-lifecycle-policy --repository-name "$repository" --query 'lifecyclePolicyText' --output text > /dev/null
+          done
+      - name: Push only scanned images and read back immutable registry digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          registry="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+          export DOCKER_CONFIG="$RUNNER_TEMP/w12-docker-config"
+          mkdir -m 700 "$DOCKER_CONFIG"
+          trap 'rm -rf -- "$DOCKER_CONFIG"' EXIT
+          aws ecr get-login-password --region "$AWS_REGION" | \
+            docker login --username AWS --password-stdin "$registry" > /dev/null
+          for name in toolchain codebuild; do
+            if [ "$name" = toolchain ]; then repository="$TOOLCHAIN_REPOSITORY"; else repository="$CODEBUILD_REPOSITORY"; fi
+            tag="source-$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+            reference="$registry/$repository:$tag"
+            docker tag "w12-$name:reviewed" "$reference"
+            docker push "$reference" > /dev/null
+            digest="$(aws ecr describe-images --repository-name "$repository" \
+              --image-ids "imageTag=$tag" --query 'imageDetails[0].imageDigest' --output text)"
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+            docker buildx imagetools inspect "$registry/$repository@$digest" > /dev/null
+            printf '%s=%s/%s@%s\n' "$name" "$registry" "$repository" "$digest"
+          done

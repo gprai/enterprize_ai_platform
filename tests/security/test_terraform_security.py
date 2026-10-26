@@ -51,16 +51,22 @@ def test_prohibited_action_wildcards_and_permissions_are_absent() -> None:
     ):
         assert prohibited not in source
     network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
-    assert source.count('"ecr:GetAuthorizationToken"') == 3
+    assert source.count('"ecr:GetAuthorizationToken"') == 5
     assert network.count('"ecr:GetAuthorizationToken"') == 2
+    w12 = (INFRA / "modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
+    assert w12.count('"ecr:GetAuthorizationToken"') == 2
+    assert w12.count('variable = "aws:RequestedRegion"') == 2
     assert '"ECR API" = [' in network
     assert '"ECR DKR" = [' in network
 
 
 def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     source = terraform_source()
-    assert source.count('resources = ["*"]') == 14
+    assert source.count('resources = ["*"]') == 16
     assert source.count('identifiers = ["*"]') == 5
+    w12 = (INFRA / "modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
+    assert w12.count('resources = ["*"]') == 2
+    assert w12.count('identifiers = ["*"]') == 0
     network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
     assert network.count('identifiers = ["*"]') == 3
     assert network.count('variable = "aws:PrincipalAccount"') == 2

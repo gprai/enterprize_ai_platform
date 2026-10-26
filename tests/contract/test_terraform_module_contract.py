@@ -161,11 +161,14 @@ def test_w12_private_codebuild_and_owner_gated_access_contract() -> None:
 def test_every_approved_module_has_main_variables_and_outputs() -> None:
     for module in MODULES:
         directory = ROOT / "infra/modules" / module
-        assert {path.name for path in directory.glob("*.tf")} == {
+        expected = {
             "main.tf",
             "outputs.tf",
             "variables.tf",
         }
+        if module == "iam":
+            expected.update({"w12_prerequisite_images.tf", "w12_prerequisite_outputs.tf"})
+        assert {path.name for path in directory.glob("*.tf")} == expected
 
 
 def test_fis_expiry_tag_does_not_force_template_replacement() -> None:
