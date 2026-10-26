@@ -114,6 +114,18 @@ def _text(value: Any, *, nullable: bool = False) -> bool:
     )
 
 
+def _empty_input_state(state_id: Any, lineage: Any, serial: Any) -> bool:
+    """An initial workspace has no input state identity at all."""
+    values = (state_id, lineage, serial)
+    if all(value is None for value in values):
+        return True
+    if any(value is None for value in values):
+        raise ReleaseError("HCP_INPUT_STATE_IDENTITY_PARTIAL")
+    if not _text(state_id) or not _text(lineage) or type(serial) is not int or serial < 0:
+        raise ReleaseError("HCP_INPUT_STATE_IDENTITY_INVALID")
+    return False
+
+
 def _utc(value: Any) -> datetime:
     if not isinstance(value, str) or not re.fullmatch(
         r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", value
@@ -304,10 +316,11 @@ def validate_record(
     ):
         if not _text(tf[name], nullable=True):
             raise ReleaseError("HCP_IDENTITY")
-    if tf["input_state_serial"] is not None and (
-        type(tf["input_state_serial"]) is not int or tf["input_state_serial"] < 0
-    ):
-        raise ReleaseError("STATE_SERIAL")
+    empty_input_state = _empty_input_state(
+        tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
+    )
+    if empty_input_state and record["operation"] != "deploy":
+        raise ReleaseError("ROLLBACK_INPUT_STATE_REQUIRED")
     if not _hex(tf["configuration_sha256"]):
         raise ReleaseError("TERRAFORM_CONFIG_DIGEST")
     gates = record["gates"]
@@ -506,9 +519,6 @@ def validate_record(
             tf["configuration_version_id"],
             tf["run_id"],
             tf["plan_id"],
-            tf["input_state_version_id"],
-            tf["state_lineage"],
-            tf["input_state_serial"],
             tf["configuration_sha256"],
             gates["opa_evidence_sha256"],
             gates["run_task_result_id"],
@@ -1468,7 +1478,8 @@ def validate_terraform_configuration_binding(record: dict[str, Any]) -> str:
     """Bind the record to committed configuration, never the working tree or HCP archive."""
     raw = terraform_configuration_manifest(record["source"]["commit"], record["source"]["tree"])
     digest = hashlib.sha256(raw).hexdigest()
-    if record["terraform"]["configuration_sha256"] != digest:
+    expected = record["terraform"]["configuration_sha256"]
+    if expected not in (None, digest):
         raise ReleaseError("TERRAFORM_CONFIGURATION_MANIFEST_MISMATCH")
     return digest
 
@@ -2397,7 +2408,8 @@ def validate_render_inputs(
     if any(document[name] != value or value is None for name, value in expected.items()):
         raise ReleaseError("RENDER_INPUT_RELEASE_BINDING")
     if (
-        document["state_lineage"] != ready["terraform"]["state_lineage"]
+        not _text(document["state_lineage"])
+        or ready["terraform"]["state_lineage"] not in (None, document["state_lineage"])
         or type(document["state_serial"]) is not int
         or document["state_serial"] < 0
     ):
@@ -2563,21 +2575,40 @@ def validate_opa_receipt(
     }:
         raise ReleaseError("OPA_RECEIPT_RECORD_BINDING")
     hcp, tf = value["hcp"], record["terraform"]
-    mapping = {
-        "organization": "organization",
-        "project": "project",
-        "workspace": "workspace",
+    fixed = ("organization", "project", "workspace")
+    observed = {
         "configuration_version_id": "configuration_version_id",
         "run_id": "run_id",
         "plan_id": "plan_id",
+    }
+    if (
+        any(hcp[name] != tf[name] for name in fixed)
+        or any(
+            not _text(hcp[name]) or tf[field] not in (None, hcp[name])
+            for name, field in observed.items()
+        )
+        or not _hex(hcp["plan_json_sha256"], required=True)
+    ):
+        raise ReleaseError("OPA_RECEIPT_HCP_BINDING")
+    initial = _empty_input_state(
+        hcp["input_state_version_id"], hcp["state_lineage"], hcp["state_serial"]
+    )
+    if initial and record["operation"] != "deploy":
+        raise ReleaseError("OPA_RECEIPT_INITIAL_STATE_OPERATION")
+    if (
+        _empty_input_state(
+            tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
+        )
+        != initial
+    ):
+        raise ReleaseError("OPA_RECEIPT_INPUT_STATE_SUBSTITUTION")
+    state_mapping = {
         "input_state_version_id": "input_state_version_id",
         "state_lineage": "state_lineage",
         "state_serial": "input_state_serial",
     }
-    if any(hcp[key] != tf[field] or hcp[key] is None for key, field in mapping.items()) or not _hex(
-        hcp["plan_json_sha256"], required=True
-    ):
-        raise ReleaseError("OPA_RECEIPT_HCP_BINDING")
+    if any(tf[field] not in (None, hcp[name]) for name, field in state_mapping.items()):
+        raise ReleaseError("OPA_RECEIPT_HCP_STATE_BINDING")
     policy = value["opa"]
     if (policy["executable_version"], policy["package"], policy["decision_entrypoint"]) != (
         "1.20.0",
@@ -2602,7 +2633,7 @@ def validate_opa_receipt(
         or cost["status"] != "PASS"
         or cost["waiver_used"] is not False
         or cost["override_used"] is not False
-        or cost["result_id"] != record["gates"]["run_task_result_id"]
+        or record["gates"]["run_task_result_id"] not in (None, cost["result_id"])
     ):
         raise ReleaseError("OPA_RECEIPT_COST_NOT_PASS")
     if value["decision"] != "PASS" or any(
@@ -3428,9 +3459,28 @@ def _transition_record(
     return result, _canonical_bytes(result)
 
 
+def _bind_observed_plan_to_ready(
+    requested: dict[str, Any], ready: dict[str, Any], receipt: dict[str, Any]
+) -> None:
+    """Carry the independently checked post-plan identities into revision two."""
+    observed = receipt["hcp"]
+    ready["terraform"].update(
+        {
+            "configuration_version_id": observed["configuration_version_id"],
+            "run_id": observed["run_id"],
+            "plan_id": observed["plan_id"],
+            "input_state_version_id": observed["input_state_version_id"],
+            "state_lineage": observed["state_lineage"],
+            "input_state_serial": observed["state_serial"],
+            "configuration_sha256": validate_terraform_configuration_binding(requested),
+        }
+    )
+
+
 def workflow_prepare_ready() -> None:
     requested, requested_raw, receipt = _workflow_requested()
     ready, _ = _transition_record(requested, requested_raw, "READY_FOR_OWNER")
+    _bind_observed_plan_to_ready(requested, ready, receipt)
     build_artifact = os.environ.get("W12_BUILD_ARTIFACT_ID", "")
     build_digest = os.environ.get("W12_BUILD_ARTIFACT_DIGEST", "")
     signature_sha = os.environ.get("W12_SIGNATURE_SHA256", "")
@@ -3986,7 +4036,7 @@ def _hcp_preapply(
         "input-state-version": tf["input_state_version_id"],
     }
     if any(
-        relationships.get(name, {}).get("data", {}).get("id") != value
+        (relationships.get(name, {}).get("data") or {}).get("id") != value
         for name, value in expected.items()
     ):
         raise ReleaseError("HCP_RUN_RELATIONSHIP_CHANGED")
@@ -4023,24 +4073,39 @@ def _hcp_preapply(
         or ingress_matches[0].get("attributes", {}).get("commit-sha") != ready["source"]["commit"]
     ):
         raise ReleaseError("HCP_VCS_COMMIT_CHANGED")
-    state_status, state_response = _hcp_request(
-        "GET", f"/state-versions/{tf['input_state_version_id']}", token
+    initial = _empty_input_state(
+        tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
     )
-    state = state_response.get("data") if isinstance(state_response, dict) else None
-    if (
-        state_status != 200
-        or not isinstance(state, dict)
-        or state.get("id") != tf["input_state_version_id"]
-        or (state.get("attributes", {}).get("lineage"), state.get("attributes", {}).get("serial"))
-        != (tf["state_lineage"], tf["input_state_serial"])
-    ):
-        raise ReleaseError("HCP_INPUT_STATE_CHANGED")
-    current_status, current_response = _hcp_request(
-        "GET", f"/workspaces/{workspace['id']}/current-state-version", token
-    )
-    current = current_response.get("data") if isinstance(current_response, dict) else None
-    if current_status != 200 or not isinstance(current, dict) or current.get("id") != state["id"]:
-        raise ReleaseError("HCP_CURRENT_STATE_REPLACED")
+    if initial:
+        if ready["operation"] != "deploy":
+            raise ReleaseError("HCP_INITIAL_STATE_OPERATION")
+        _hcp_initial_state_empty(ready, workspace["id"], token)
+    else:
+        state_status, state_response = _hcp_request(
+            "GET", f"/state-versions/{tf['input_state_version_id']}", token
+        )
+        state = state_response.get("data") if isinstance(state_response, dict) else None
+        if (
+            state_status != 200
+            or not isinstance(state, dict)
+            or state.get("id") != tf["input_state_version_id"]
+            or (
+                state.get("attributes", {}).get("lineage"),
+                state.get("attributes", {}).get("serial"),
+            )
+            != (tf["state_lineage"], tf["input_state_serial"])
+        ):
+            raise ReleaseError("HCP_INPUT_STATE_CHANGED")
+        current_status, current_response = _hcp_request(
+            "GET", f"/workspaces/{workspace['id']}/current-state-version", token
+        )
+        current = current_response.get("data") if isinstance(current_response, dict) else None
+        if (
+            current_status != 200
+            or not isinstance(current, dict)
+            or current.get("id") != state["id"]
+        ):
+            raise ReleaseError("HCP_CURRENT_STATE_REPLACED")
     plan_status, plan_response = _hcp_request("GET", f"/plans/{tf['plan_id']}", token)
     plan = plan_response.get("data") if isinstance(plan_response, dict) else None
     if (
@@ -4072,8 +4137,8 @@ def _hcp_preapply(
 def _hcp_relationships_match(left: dict[str, Any], right: dict[str, Any]) -> bool:
     names = ("workspace", "plan", "configuration-version", "input-state-version")
     return all(
-        left.get("relationships", {}).get(name, {}).get("data", {}).get("id")
-        == right.get("relationships", {}).get(name, {}).get("data", {}).get("id")
+        (left.get("relationships", {}).get(name, {}).get("data") or {}).get("id")
+        == (right.get("relationships", {}).get(name, {}).get("data") or {}).get("id")
         for name in names
     )
 
@@ -4148,7 +4213,9 @@ def workflow_apply_wait() -> None:
         "is_confirmable": post["actions"]["is-confirmable"],
         "plan_id": post["relationships"]["plan"]["data"]["id"],
         "configuration_version_id": post["relationships"]["configuration-version"]["data"]["id"],
-        "input_state_version_id": post["relationships"]["input-state-version"]["data"]["id"],
+        "input_state_version_id": (
+            post["relationships"].get("input-state-version", {}).get("data") or {}
+        ).get("id"),
     }
     apply_evidence = {
         "organization": tf["organization"],
@@ -4236,10 +4303,20 @@ def workflow_apply_wait() -> None:
     ):
         raise ReleaseError("HCP_APPLIED_STATE_MISSING", "INDETERMINATE")
     state_attrs = state.get("attributes", {})
+    initial = _empty_input_state(
+        tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
+    )
     if (
-        state_attrs.get("lineage") != tf["state_lineage"]
+        not _text(state_attrs.get("lineage"))
         or type(state_attrs.get("serial")) is not int
-        or state_attrs["serial"] <= tf["input_state_serial"]
+        or state_attrs["serial"] < 0
+        or (
+            not initial
+            and (
+                state_attrs["lineage"] != tf["state_lineage"]
+                or state_attrs["serial"] <= tf["input_state_serial"]
+            )
+        )
     ):
         raise ReleaseError("HCP_APPLIED_STATE_LINEAGE")
     output_names = (
@@ -5475,7 +5552,14 @@ def _hcp_vcs_binding(record: dict[str, Any], run: dict[str, Any], token: str) ->
         or project.get("attributes", {}).get("name") != tf["project"]
     ):
         raise ReleaseError("HCP_PROJECT_BINDING")
-    config_id = tf["configuration_version_id"]
+    config_id = (
+        run.get("relationships", {}).get("configuration-version", {}).get("data") or {}
+    ).get("id")
+    if not isinstance(config_id, str) or tf["configuration_version_id"] not in (
+        None,
+        config_id,
+    ):
+        raise ReleaseError("HCP_CONFIGURATION_VERSION_BINDING")
     config_status, config_response = _hcp_request(
         "GET",
         f"/configuration-versions/{config_id}?include=ingress_attributes",
@@ -5499,49 +5583,142 @@ def _hcp_vcs_binding(record: dict[str, Any], run: dict[str, Any], token: str) ->
         config_status != 200
         or not isinstance(config, dict)
         or config.get("id") != config_id
-        or config.get("attributes", {}).get("source") != "tfe-vcs"
+        or config.get("attributes", {}).get("source") not in ("tfe-vcs", "github")
         or len(matches) != 1
         or matches[0].get("attributes", {}).get("commit-sha") != record["source"]["commit"]
     ):
         raise ReleaseError("HCP_CONFIGURATION_COMMIT_BINDING")
 
 
+def _hcp_initial_state_empty(record: dict[str, Any], workspace_id: str, token: str) -> None:
+    """Prove the initial-state representation without requesting raw state."""
+    tf = record["terraform"]
+    path = (
+        "/state-versions?filter%5Bworkspace%5D%5Bname%5D="
+        + urllib.parse.quote(tf["workspace"], safe="")
+        + "&filter%5Borganization%5D%5Bname%5D="
+        + urllib.parse.quote(tf["organization"], safe="")
+        + "&page%5Bsize%5D=1"
+    )
+    status, response = _hcp_request("GET", path, token)
+    data = response.get("data") if isinstance(response, dict) else None
+    if status != 200 or not isinstance(data, list) or data:
+        raise ReleaseError("HCP_INITIAL_STATE_NOT_EMPTY")
+    workspace_status, workspace_response = _hcp_request("GET", f"/workspaces/{workspace_id}", token)
+    workspace = workspace_response.get("data") if isinstance(workspace_response, dict) else None
+    current = (
+        workspace.get("relationships", {}).get("current-state-version", {}).get("data")
+        if isinstance(workspace, dict)
+        else None
+    )
+    if (
+        workspace_status != 200
+        or not isinstance(workspace, dict)
+        or workspace.get("id") != workspace_id
+        or current is not None
+    ):
+        raise ReleaseError("HCP_INITIAL_CURRENT_STATE_PRESENT")
+
+
+def _hcp_infracost_binding(workspace_id: str, task_result: dict[str, Any], token: str) -> None:
+    """Match the passing result to the one configured post-plan workspace task."""
+    attrs = task_result.get("attributes", {})
+    status, response = _hcp_request("GET", f"/workspaces/{workspace_id}/tasks", token)
+    bindings = response.get("data") if isinstance(response, dict) else None
+    if (
+        status != 200
+        or not isinstance(bindings, list)
+        or response.get("links", {}).get("next") is not None
+    ):
+        raise ReleaseError("INFRACOST_BINDING_UNAVAILABLE")
+    matches = [
+        item
+        for item in bindings
+        if isinstance(item, dict)
+        and item.get("id") == attrs.get("workspace-task-id")
+        and (item.get("relationships", {}).get("task", {}).get("data") or {}).get("id")
+        == attrs.get("task-id")
+        and (item.get("relationships", {}).get("workspace", {}).get("data") or {}).get("id")
+        == workspace_id
+        and item.get("attributes", {}).get("stages") == ["post_plan"]
+    ]
+    if len(matches) != 1 or attrs.get("task-name") != "Infracost":
+        raise ReleaseError("INFRACOST_WORKSPACE_TASK_MISMATCH")
+
+
+def _hcp_apply_not_started(run: dict[str, Any], token: str) -> None:
+    """A pending apply object may exist before anyone confirms the run."""
+    apply_id = (run.get("relationships", {}).get("apply", {}).get("data") or {}).get("id")
+    if apply_id is None:
+        return
+    status, response = _hcp_request("GET", f"/applies/{apply_id}", token)
+    apply = response.get("data") if isinstance(response, dict) else None
+    attrs = apply.get("attributes", {}) if isinstance(apply, dict) else {}
+    timestamps = attrs.get("status-timestamps", {})
+    if (
+        status != 200
+        or not isinstance(apply, dict)
+        or apply.get("id") != apply_id
+        or attrs.get("status") != "pending"
+        or not isinstance(timestamps, dict)
+        or timestamps.get("queued-at") is not None
+        or timestamps.get("started-at") is not None
+    ):
+        raise ReleaseError("HCP_APPLY_ALREADY_STARTED")
+
+
 def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
     _, record, digest = _read_record(args, requested=True)
-    validate_terraform_configuration_binding(record)
+    configuration_sha = validate_terraform_configuration_binding(record)
     tf = record["terraform"]
-    required = (
-        "configuration_version_id",
-        "run_id",
-        "plan_id",
-        "input_state_version_id",
-        "state_lineage",
-        "input_state_serial",
-        "configuration_sha256",
-    )
-    if any(tf[name] is None for name in required) or args.run_id != tf["run_id"]:
-        raise ReleaseError("REQUESTED_HCP_IDENTITY_INCOMPLETE")
+    if tf["run_id"] not in (None, args.run_id):
+        raise ReleaseError("REQUESTED_HCP_RUN_MISMATCH")
     token = _hcp_token()
     run = _hcp_run(record, args.run_id, token)
     _hcp_vcs_binding(record, run, token)
+    run_attrs = run.get("attributes", {})
+    if run_attrs.get("auto-apply") is not False or run_attrs.get("status") != "post_plan_completed":
+        raise ReleaseError("HCP_RUN_APPLY_UNSAFE")
+    _hcp_apply_not_started(run, token)
     relationships = run["relationships"]
-    plan_id = relationships.get("plan", {}).get("data", {}).get("id")
-    state_id = relationships.get("input-state-version", {}).get("data", {}).get("id")
-    config_id = relationships.get("configuration-version", {}).get("data", {}).get("id")
-    if (plan_id, state_id, config_id) != (
-        tf["plan_id"],
-        tf["input_state_version_id"],
-        tf["configuration_version_id"],
+    plan_id = (relationships.get("plan", {}).get("data") or {}).get("id")
+    state_id = (relationships.get("input-state-version", {}).get("data") or {}).get("id")
+    config_id = (relationships.get("configuration-version", {}).get("data") or {}).get("id")
+    if (
+        not isinstance(plan_id, str)
+        or not isinstance(config_id, str)
+        or tf["plan_id"] not in (None, plan_id)
+        or tf["configuration_version_id"] not in (None, config_id)
+        or tf["input_state_version_id"] not in (None, state_id)
+        or _empty_input_state(
+            tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
+        )
+        != (state_id is None)
     ):
         raise ReleaseError("HCP_PLAN_CONFIG_OR_STATE_MISMATCH")
-    _, state_response = _hcp_request("GET", f"/state-versions/{state_id}", token)
-    state = state_response.get("data", {}) if isinstance(state_response, dict) else {}
-    state_attrs = state.get("attributes", {})
-    if state.get("id") != state_id or (state_attrs.get("lineage"), state_attrs.get("serial")) != (
-        tf["state_lineage"],
-        tf["input_state_serial"],
-    ):
-        raise ReleaseError("HCP_STATE_LINEAGE_OR_SERIAL_MISMATCH")
+    if state_id is None:
+        if record["operation"] != "deploy" or not _empty_input_state(
+            tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
+        ):
+            raise ReleaseError("HCP_INITIAL_STATE_BINDING")
+        _hcp_initial_state_empty(record, relationships["workspace"]["data"]["id"], token)
+        state_lineage = None
+        state_serial = None
+    else:
+        _, state_response = _hcp_request("GET", f"/state-versions/{state_id}", token)
+        state = state_response.get("data", {}) if isinstance(state_response, dict) else {}
+        state_attrs = state.get("attributes", {})
+        state_lineage, state_serial = state_attrs.get("lineage"), state_attrs.get("serial")
+        if (
+            state.get("id") != state_id
+            or _empty_input_state(state_id, state_lineage, state_serial)
+            or (tf["state_lineage"], tf["input_state_serial"])
+            not in (
+                (None, None),
+                (state_lineage, state_serial),
+            )
+        ):
+            raise ReleaseError("HCP_STATE_LINEAGE_OR_SERIAL_MISMATCH")
     _, plan = _hcp_request("GET", f"/plans/{plan_id}", token)
     if (
         plan.get("data", {}).get("id") != plan_id
@@ -5567,14 +5744,23 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
     if len(task_results) != 1 or not isinstance(task_results[0].get("id"), str):
         raise ReleaseError("INFRACOST_RESULT_AMBIGUOUS")
     task_id = task_results[0]["id"]
-    if task_id != record["gates"]["run_task_result_id"]:
+    if record["gates"]["run_task_result_id"] not in (None, task_id):
         raise ReleaseError("INFRACOST_RECORD_BINDING")
     _, task = _hcp_request("GET", f"/task-results/{task_id}", token)
+    task_attrs = task.get("data", {}).get("attributes", {})
     if (
         task.get("data", {}).get("id") != task_id
-        or task.get("data", {}).get("attributes", {}).get("status") != "passed"
+        or task_attrs.get("status") != "passed"
+        or task_attrs.get("task-name") != "Infracost"
+        or task_attrs.get("stage") != "post_plan"
+        or task_attrs.get("is-speculative") is not False
+        or (
+            task.get("data", {}).get("relationships", {}).get("task-stage", {}).get("data") or {}
+        ).get("id")
+        != post_plan[0].get("id")
     ):
         raise ReleaseError("INFRACOST_RESULT_NOT_PASSED")
+    _hcp_infracost_binding(relationships["workspace"]["data"]["id"], task["data"], token)
     from tools.platformctl.policy_runner import (
         capstone_source_commit,
         normalize_plan,
@@ -5665,8 +5851,8 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
             "run_id": args.run_id,
             "plan_id": plan_id,
             "input_state_version_id": state_id,
-            "state_lineage": tf["state_lineage"],
-            "state_serial": tf["input_state_serial"],
+            "state_lineage": state_lineage,
+            "state_serial": state_serial,
             "plan_json_sha256": plan_sha,
         },
         "opa": {
@@ -5704,6 +5890,7 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
     receipt_sha = _write_new_pair(Path(args.receipt_output), Path(args.receipt_sha256_file), raw)
     return {
         "record_sha256": digest,
+        "configuration_sha256": configuration_sha,
         "receipt_id": receipt["receipt_id"],
         "opa_receipt_sha256": receipt_sha,
         "hcp_run_id": args.run_id,
