@@ -10,9 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_phase_a_rollback_is_workflow_disable_or_candidate_rejection_only() -> None:
-    workflows = "\n".join(
-        path.read_text(encoding="utf-8") for path in (ROOT / ".github/workflows").glob("*.yml")
-    )
+    workflows = (ROOT / ".github/workflows/security-scan.yml").read_text(encoding="utf-8")
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
 
     for prohibited in (

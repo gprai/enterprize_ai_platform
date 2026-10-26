@@ -1,8 +1,12 @@
 variable "repository_name" {
   type = string
   validation {
-    condition     = var.repository_name == "enterprise-ai/sandbox/api"
-    error_message = "repository_name must equal enterprise-ai/sandbox/api."
+    condition = contains([
+      "enterprise-ai/sandbox/api",
+      "enterprise-ai/sandbox/w12-toolchain",
+      "enterprise-ai/sandbox/w12-codebuild",
+    ], var.repository_name)
+    error_message = "repository_name must be one of the three exact sandbox image repositories."
   }
 }
 

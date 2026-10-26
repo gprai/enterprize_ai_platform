@@ -89,6 +89,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "configs/releases/versions/w4-known-good-v1.json": {"Hex High Entropy String": 101},
     "configs/releases/versions/w4-synthetic-regression-v1.json": {"Hex High Entropy String": 101},
     "docker-compose.w2-004.yml": {"Base64 High Entropy String": 1},
+    "images/w12/pinned-inputs.json": {"Hex High Entropy String": 4},
     "docs/resource-cleanliness/W5-report.json": {"Hex High Entropy String": 1},
     "docs/resource-cleanliness/W6-final.json": {"Hex High Entropy String": 3},
     "docs/test-evidence/W10/W10-003.md": {"Hex High Entropy String": 1},
@@ -198,6 +199,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/releases/versions/w4-known-good-v1.json": {1: 101},
     "configs/releases/versions/w4-synthetic-regression-v1.json": {1: 101},
     "docker-compose.w2-004.yml": {29: 1},
+    "images/w12/pinned-inputs.json": {9: 1, 14: 1, 19: 1, 24: 1},
     "docs/resource-cleanliness/W5-report.json": {61: 1},
     "docs/resource-cleanliness/W6-final.json": {43: 1, 70: 1, 72: 1},
     "docs/test-evidence/W10/W10-003.md": {279: 1},
@@ -440,8 +442,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 54
-    assert sum(len(findings) for findings in results.values()) == 408
+    assert len(results) == 55
+    assert sum(len(findings) for findings in results.values()) == 412
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

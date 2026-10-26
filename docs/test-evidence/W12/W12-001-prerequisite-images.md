@@ -1,0 +1,19 @@
+# W12-001 prerequisite image preparation
+
+Status: **PREPARATION ONLY — PUBLICATION NOT RUN**.
+
+The reviewed Order-4 local builds produced a Linux AMD64 toolchain image and a custom CodeBuild executor image. Local compatibility checks passed. Their local Docker image IDs and archive hashes are evidence of local builds, not ECR registry digests. Raw build logs, archives, scanner reports, and database files are retained in the approved external Order-4 evidence location; none belongs in Git.
+
+The saved first scans were **REVIEW_REQUIRED**. Toolchain: Trivy 456 vulnerabilities, including 145 High/Critical, and zero secret findings; Grype 413 matches, including 188 High/Critical. CodeBuild executor: Trivy 314 vulnerabilities, including 84 High/Critical, and zero secret findings; Grype 306 matches, including 117 High/Critical. These are historical snapshots, not a fresh-scan pass or an exception.
+
+Fresh scans of images rebuilt from these tracked recipes on 2026-10-26 remain **REVIEW_REQUIRED**. Toolchain: Trivy 456 vulnerabilities, including 145 High/Critical, zero secrets, 65 High/Critical without a listed fix; Grype 449 matches, including 202 High/Critical. CodeBuild executor: Trivy 314 vulnerabilities, including 84 High/Critical, zero secrets, 63 without a listed fix; Grype 342 matches, including 131 High/Critical. Scanner database identities: Trivy metadata SHA-256 `5e494a8fae5a76378c50b0d239ad53446b0d77cd789ebb0b623ec72da33ee3e2`; Grype database SHA-256 `780441c356552f97d1b954530fb368807e34413466488c6799f7800bdc084b90`. Raw reports and scanner logs remain in the external Order-4 evidence location. No scan waiver or publication eligibility is claimed.
+
+A disposable pinned Chainguard base candidate reduced the toolchain scan to 83 Trivy and 113 Grype High/Critical findings, with zero Trivy secret findings. Most remaining candidate findings are in the pinned Go scanner binaries. The candidate was not promoted into the tracked recipe because it still fails the publication gate; its raw reports remain external.
+
+This PR prepares two Terraform-managed, private, immutable-tag ECR repositories with KMS encryption, scan-on-push, retention, and project tags. A separate GitHub environment OIDC role can publish only to those two repositories. The CodeBuild service role gains pull access only to its executor repository. The dedicated workflow is manual and restricted to protected `main` and the `sandbox` environment. It rebuilds from pinned tracked inputs, checks compatibility, scans both final images, then requires the Terraform-created repositories and role before any push. It reports registry digests only after ECR read-back.
+
+Execution sequence requiring separate owner approval: initial sandbox Terraform apply with capstone activation disabled; review the created repositories and role; run the manual publication job only after scan disposition; bind the resulting registry digests; then seek capstone activation approval. Terraform does not push images. No Terraform plan/apply, HCP run, ECR creation, image push, CodeBuild service execution, or workflow dispatch occurred in this preparation.
+
+The sandbox Terraform configuration includes other baseline infrastructure. A future apply review must inspect its complete proposed change set and cost before approval; this preparation does not establish an ECR-only apply path.
+
+Open gate: remediate findings and perform fresh Trivy and Grype scans. Specific residual findings require an explicit, bounded owner exception decision; no blanket waiver is implied by this document.
