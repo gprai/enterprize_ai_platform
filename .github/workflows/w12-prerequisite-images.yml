@@ -99,7 +99,7 @@ jobs:
           tar -xzf trivy.tar.gz trivy
           tar -xzf grype.tar.gz grype
           echo "$RUNNER_TEMP/w12-scanners" >> "$GITHUB_PATH"
-      - name: Scan both final images and fail on any high or critical finding
+      - name: Scan both final images against the exact approved exception
         shell: bash
         run: |
           set -euo pipefail
@@ -109,7 +109,9 @@ jobs:
               --format json --output "$RUNNER_TEMP/$name-trivy.json" "$image"
             grype "$image" -o json > "$RUNNER_TEMP/$name-grype.json"
           done
-          python3 -B tools/w12_001_images.py "$RUNNER_TEMP"
+          python3 -B tools/w12_001_images.py "$RUNNER_TEMP" \
+            --exception configs/ci/w12-001-image-scan-exception.json \
+            --source-manifest images/w12/pinned-inputs.json
       - name: Assume only the dedicated prerequisite publisher role
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
         with:

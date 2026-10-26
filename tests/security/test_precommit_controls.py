@@ -80,6 +80,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tools/platformctl/policy_runner.py": {"Hex High Entropy String": 23},
     "tools/w6_003_readiness.py": {"Hex High Entropy String": 1},
     "configs/ci/w5-002.json": {"Hex High Entropy String": 6},
+    "configs/ci/w12-001-image-scan-exception.json": {"Hex High Entropy String": 5},
     "configs/eval/baselines/w3-002-v1.json": {"Hex High Entropy String": 6},
     "configs/readiness/local-integrated-readiness.yaml": {"Hex High Entropy String": 1},
     "configs/rag/versions/w3-002-v1.json": {"Hex High Entropy String": 14},
@@ -129,6 +130,7 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "deploy/capstone/api-overlay.yaml": {76: 1},
     "deploy/capstone/pki.yaml": {16: 1, 24: 1},
     "configs/ci/w5-002.json": {1: 6},
+    "configs/ci/w12-001-image-scan-exception.json": {5: 1, 10: 1, 14: 1, 20: 1, 24: 1},
     "configs/eval/baselines/w3-002-v1.json": {1: 6},
     "configs/lifecycle/w5-004.json": {6: 1, 7: 1, 86: 1, 90: 1, 91: 1},
     "configs/readiness/local-integrated-readiness.yaml": {4: 1},
@@ -442,8 +444,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 55
-    assert sum(len(findings) for findings in results.values()) == 412
+    assert len(results) == 56
+    assert sum(len(findings) for findings in results.values()) == 417
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

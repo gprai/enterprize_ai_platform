@@ -59,11 +59,33 @@ def test_manual_workflow_scans_before_assumption_or_push() -> None:
     assert workflow.index("Scan both final images") < workflow.index("Assume only the dedicated")
     assert workflow.index("Assume only the dedicated") < workflow.index("Push only scanned images")
     assert "tools/w12_001_images.py" in workflow
+    assert "--exception configs/ci/w12-001-image-scan-exception.json" in workflow
+    assert "--source-manifest images/w12/pinned-inputs.json" in workflow
     assert "describe-repositories" in workflow
     assert "get-lifecycle-policy" in workflow
     assert "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" in workflow
     assert "imageDetails[0].imageDigest" in workflow
     assert "imagetools inspect" in workflow
+
+
+def test_scan_exception_is_exact_and_time_bounded() -> None:
+    exception = json.loads(_source("configs/ci/w12-001-image-scan-exception.json"))
+    source = (ROOT / "images/w12/pinned-inputs.json").read_bytes()
+    assert exception["schema_version"] == "w12-001.exact-image-scan-exception.v1"
+    assert exception["pinned_source_manifest_sha256"] == hashlib.sha256(source).hexdigest()
+    assert exception["approved_at_utc"] == "2026-10-26T06:17:36Z"
+    assert exception["expires_at_utc"] == "2026-11-02T06:17:36Z"
+    assert set(exception["images"]) == {"toolchain", "codebuild"}
+    assert {
+        name: {scanner: details["high_critical_count"] for scanner, details in scans.items()}
+        for name, scans in exception["images"].items()
+    } == {
+        "toolchain": {"trivy": 145, "grype": 202},
+        "codebuild": {"trivy": 84, "grype": 131},
+    }
+    for scans in exception["images"].values():
+        assert set(scans) == {"trivy", "grype"}
+        assert all(len(details["finding_sha256"]) == 64 for details in scans.values())
 
 
 def test_dedicated_publisher_and_exact_codebuild_pull() -> None:

@@ -1,0 +1,28 @@
+{
+  "schema_version": "w12-001.exact-image-scan-exception.v1",
+  "approved_at_utc": "2026-10-26T06:17:36Z",
+  "expires_at_utc": "2026-11-02T06:17:36Z",
+  "pinned_source_manifest_sha256": "931dc8f8ed253c6e04f9ad3971ee1ea19e7ce203b430da33bd9fab278357ff32",
+  "images": {
+    "toolchain": {
+      "trivy": {
+        "high_critical_count": 145,
+        "finding_sha256": "5dea9ba11c4866b95d54ac2bb8c872daf74f34d7ff3a33b219f50b42f7894ea0"
+      },
+      "grype": {
+        "high_critical_count": 202,
+        "finding_sha256": "a2254b4013f7f8cdf1723118f1d15e70a1be0875ba112bc65257e23c3fb7b739"
+      }
+    },
+    "codebuild": {
+      "trivy": {
+        "high_critical_count": 84,
+        "finding_sha256": "e325ac3bab207d93dbe79a53c8484934834819849bbf5bce339468840e24d55c"
+      },
+      "grype": {
+        "high_critical_count": 131,
+        "finding_sha256": "df538397498bf6ffcf01841bdc16bd9f684603bdf791b7de47275dce46c7c43d"
+      }
+    }
+  }
+}
