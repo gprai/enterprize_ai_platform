@@ -83,13 +83,15 @@ def test_exact_time_bounded_exception_and_changed_findings(tmp_path: Path) -> No
     trivy = _write(tmp_path / "trivy.json", trivy_document)
     grype = _write(tmp_path / "grype.json", grype_document)
     source = tmp_path / "source.json"
-    source.write_text("{}", encoding="utf-8")
+    source.write_bytes(b"{\r\n}\r\n")
     approved = datetime(2026, 10, 26, tzinfo=UTC)
     exception = {
         "schema_version": "w12-001.exact-image-scan-exception.v1",
         "approved_at_utc": approved.isoformat(),
         "expires_at_utc": (approved + timedelta(days=7)).isoformat(),
-        "pinned_source_manifest_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        "pinned_source_manifest_sha256": hashlib.sha256(
+            source.read_bytes().replace(b"\r\n", b"\n")
+        ).hexdigest(),
         "images": {
             name: {
                 scanner: {
@@ -117,7 +119,7 @@ def test_exact_time_bounded_exception_and_changed_findings(tmp_path: Path) -> No
     source.write_text('{"changed": true}', encoding="utf-8")
     with pytest.raises(ImageScanError, match="recipe identity changed"):
         evaluate_approved_scan(trivy, grype, now=approved + timedelta(days=1), **kwargs)
-    source.write_text("{}", encoding="utf-8")
+    source.write_bytes(b"{\r\n}\r\n")
     trivy_document["Results"][0]["Vulnerabilities"][0]["InstalledVersion"] = "1.0.1"
     _write(trivy, trivy_document)
     with pytest.raises(ImageScanError, match="findings differ"):

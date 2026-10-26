@@ -2,7 +2,7 @@
   "schema_version": "w12-001.exact-image-scan-exception.v1",
   "approved_at_utc": "2026-10-26T06:17:36Z",
   "expires_at_utc": "2026-11-02T06:17:36Z",
-  "pinned_source_manifest_sha256": "931dc8f8ed253c6e04f9ad3971ee1ea19e7ce203b430da33bd9fab278357ff32",
+  "pinned_source_manifest_sha256": "3ab935903af540784f03cca9f4127ff008d27021571ffbefd0421c86178a118f",
   "images": {
     "toolchain": {
       "trivy": {

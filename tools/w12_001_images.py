@@ -166,7 +166,9 @@ def evaluate_approved_scan(
     expected_source = _required_text(
         exception.get("pinned_source_manifest_sha256"), "pinned source manifest hash"
     )
-    actual_source = hashlib.sha256(source_manifest_path.read_bytes()).hexdigest()
+    actual_source = hashlib.sha256(
+        source_manifest_path.read_bytes().replace(b"\r\n", b"\n")
+    ).hexdigest()
     if actual_source != expected_source:
         raise ImageScanError("Pinned recipe identity changed")
     images = exception.get("images")

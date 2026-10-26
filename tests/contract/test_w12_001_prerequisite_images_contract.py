@@ -72,7 +72,10 @@ def test_scan_exception_is_exact_and_time_bounded() -> None:
     exception = json.loads(_source("configs/ci/w12-001-image-scan-exception.json"))
     source = (ROOT / "images/w12/pinned-inputs.json").read_bytes()
     assert exception["schema_version"] == "w12-001.exact-image-scan-exception.v1"
-    assert exception["pinned_source_manifest_sha256"] == hashlib.sha256(source).hexdigest()
+    assert (
+        exception["pinned_source_manifest_sha256"]
+        == hashlib.sha256(source.replace(b"\r\n", b"\n")).hexdigest()
+    )
     assert exception["approved_at_utc"] == "2026-10-26T06:17:36Z"
     assert exception["expires_at_utc"] == "2026-11-02T06:17:36Z"
     assert set(exception["images"]) == {"toolchain", "codebuild"}
