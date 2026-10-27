@@ -327,6 +327,7 @@ platform_vpc_reference_consumers := (platform_gateway_endpoint_addresses | platf
 	"module.network.aws_default_security_group.restricted",
 	"module.network.aws_route_table.private",
 	"module.network.aws_security_group.endpoints",
+	"module.network.aws_security_group.capstone_codebuild",
 	"module.network.aws_subnet.private[0]",
 	"module.network.aws_subnet.private[1]",
 }
@@ -405,6 +406,41 @@ platform_recovery_resources := object.union(
 )
 
 platform_policy_document_relationships := {
+	{
+		"resource_address": "module.iam.aws_iam_role_policy.capstone_build",
+		"resource_type": "aws_iam_role_policy",
+		"field_path": "policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.capstone_build",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role_policy.capstone_codebuild",
+		"resource_type": "aws_iam_role_policy",
+		"field_path": "policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.capstone_codebuild",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role_policy.capstone_deploy_caller",
+		"resource_type": "aws_iam_role_policy",
+		"field_path": "policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.github_eks_deployment",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role_policy.capstone_rollback_reader",
+		"resource_type": "aws_iam_role_policy",
+		"field_path": "policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.capstone_rollback_reader",
+		"relationship": "exact-policy-document",
+	},
+	{
+		"resource_address": "module.iam.aws_iam_role_policy.github_eks_deployment",
+		"resource_type": "aws_iam_role_policy",
+		"field_path": "policy",
+		"policy_document_address": "module.iam.data.aws_iam_policy_document.github_eks_deployment",
+		"relationship": "exact-policy-document",
+	},
 	{
 		"resource_address": "module.iam.aws_iam_role_policy.ingestion",
 		"resource_type": "aws_iam_role_policy",
@@ -1335,7 +1371,11 @@ valid_opensearch_vpc_reference(binding) if {
 }
 
 valid_ecr_kms_reference(binding) if {
-	binding.address == "module.ecr.aws_ecr_repository.this"
+	binding.address in {
+		"module.ecr.aws_ecr_repository.this",
+		"module.w12_toolchain_ecr.aws_ecr_repository.this",
+		"module.w12_codebuild_ecr.aws_ecr_repository.this",
+	}
 	binding.type == "aws_ecr_repository"
 	binding.unknown_paths == ["encryption_configuration[].kms_key"]
 	binding.source_addresses == [platform_kms_address]
@@ -3828,6 +3868,53 @@ operational_apply_profile_valid if {
 operational_profile_valid if operational_apply_profile_valid
 
 operational_profile_valid if operational_destroy_profile_valid
+
+# This profile reviews one source-bound initial W12 plan. It cannot authorize
+# updates, replacements, deletes, or an apply; the release receipt retains the
+# independently verified HCP and source identities.
+valid_w12_initial_action(change) if {
+	change.change.actions in [["create"], ["read"]]
+}
+
+valid_w12_initial_action(change) if {
+	change.change.actions == ["no-op"]
+	change.change.before == change.change.after
+	change.change.after_unknown == {}
+}
+
+w12_initial_plan_review_profile_valid if {
+	is_object(operational)
+	object.keys(operational) == {
+		"schema_version", "action", "profile", "record_sha256", "source_commit",
+		"source_tree", "configuration_version_id", "run_id", "plan_id",
+		"plan_json_sha256", "workspace", "input_state_version_id",
+	}
+	operational.schema_version == "w12-001.plan-review.v1"
+	operational.action == "PLAN_REVIEW"
+	operational.profile == "INITIAL_EMPTY_STATE"
+	operational.workspace == "enterprise-ai-sandbox"
+	operational.input_state_version_id == null
+	regex.match("^[0-9a-f]{64}$", operational.record_sha256)
+	regex.match("^[0-9a-f]{40}$", operational.source_commit)
+	regex.match("^[0-9a-f]{40}$", operational.source_tree)
+	regex.match("^[0-9a-f]{64}$", operational.plan_json_sha256)
+	regex.match("^cv-[A-Za-z0-9]+$", operational.configuration_version_id)
+	regex.match("^run-[A-Za-z0-9]+$", operational.run_id)
+	regex.match("^plan-[A-Za-z0-9]+$", operational.plan_id)
+	input.terraform_version == "1.16.1"
+	input.variables.aws_region.value == "ap-southeast-1"
+	count(resource_changes) > 0
+	some change in resource_changes
+	change.change.actions == ["create"]
+	every candidate in resource_changes {
+		valid_change(candidate)
+		valid_w12_initial_action(candidate)
+		change_has_no_sensitive_markers(candidate)
+		not critical_unknown_present(candidate)
+	}
+}
+
+operational_profile_valid if w12_initial_plan_review_profile_valid
 
 operational_destroy_resource_valid(change) if {
 	change.type in supported_aws_resource_types

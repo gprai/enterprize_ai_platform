@@ -88,6 +88,12 @@ OPENSEARCH_USERNAME_FIELD_PATH = (
 PLATFORM_VPC_ADDRESS = "module.network.aws_vpc.this"
 PLATFORM_KMS_ADDRESS = "module.kms.aws_kms_key.this"
 PLATFORM_ECR_ADDRESS = "module.ecr.aws_ecr_repository.this"
+W12_PREREQUISITE_ECR_ADDRESSES = frozenset(
+    {
+        "module.w12_toolchain_ecr.aws_ecr_repository.this",
+        "module.w12_codebuild_ecr.aws_ecr_repository.this",
+    }
+)
 PLATFORM_SUBNET_ADDRESSES = (
     "module.network.aws_subnet.private[0]",
     "module.network.aws_subnet.private[1]",
@@ -111,6 +117,20 @@ PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/modules/kms/outputs.tf",
         "a53438e5dca3c8f0ca4d05651b116ff71927a607a4713ca769d573efabfec3c0",
+    ),
+)
+W12_PREREQUISITE_ECR_REFERENCE_SOURCE_SHA256 = (
+    (
+        "infra/environments/sandbox/w12_prerequisite_images.tf",
+        "",  # W12 requires the reviewed commit/tree context instead of a static digest.
+    ),
+    PLATFORM_ECR_REFERENCE_SOURCE_SHA256[1],
+    PLATFORM_ECR_REFERENCE_SOURCE_SHA256[2],
+)
+W12_CODEBUILD_NETWORK_SOURCE_SHA256 = (
+    (
+        "infra/modules/network/main.tf",
+        "28cd9e933056fa621e2eb3f6660c1d790f80227d5de3d63b26aa406f94e4a458",
     ),
 )
 PLATFORM_OPENSEARCH_LOG_SOURCE_SHA256 = (
@@ -218,6 +238,61 @@ PLATFORM_POLICY_DOCUMENT_BINDINGS = {
                 "RuntimeWriteXRayTelemetry",
             }
         ),
+    ),
+    ("module.iam.aws_iam_role_policy.capstone_build", "policy"): (
+        "aws_iam_role_policy",
+        "module.iam.data.aws_iam_policy_document.capstone_build",
+        frozenset(
+            {
+                "ReadExactEcrAuthorization",
+                "BuildAndInspectExactEcrRepository",
+                "InspectExactSourceVersions",
+                "RequireSourceBucketVersioning",
+                "WriteAndReadExactPrimarySource",
+                "EncryptAndReadPrimarySource",
+            }
+        ),
+    ),
+    ("module.iam.aws_iam_role_policy.capstone_codebuild", "policy"): (
+        "aws_iam_role_policy",
+        "module.iam.data.aws_iam_policy_document.capstone_codebuild",
+        frozenset(
+            {
+                "DescribeExactCluster",
+                "ReadExactVersionedSource",
+                "WriteRedactedBuildResult",
+                "VerifyExactRenderResources",
+                "VerifyExactInferenceProfile",
+                "DecryptExactSource",
+                "WriteBoundedLogs",
+                "VpcNetworkInterfaceLifecycle",
+                "VpcNetworkInterfacePermission",
+            }
+        ),
+    ),
+    **{
+        (address, "policy"): (
+            "aws_iam_role_policy",
+            "module.iam.data.aws_iam_policy_document.github_eks_deployment",
+            frozenset(
+                {
+                    "InspectExactVersionedCapstoneInputs",
+                    "RequireVersionedCapstoneBucket",
+                    "StartOnlyExactCapstoneProject",
+                    "WriteVersionedCapstoneSource",
+                    "EncryptExactCapstoneSource",
+                }
+            ),
+        )
+        for address in (
+            "module.iam.aws_iam_role_policy.capstone_deploy_caller",
+            "module.iam.aws_iam_role_policy.github_eks_deployment",
+        )
+    },
+    ("module.iam.aws_iam_role_policy.capstone_rollback_reader", "policy"): (
+        "aws_iam_role_policy",
+        "module.iam.data.aws_iam_policy_document.capstone_rollback_reader",
+        frozenset({"ReadExactPriorReleaseVersions", "DecryptPriorReleaseEvidence"}),
     ),
     ("module.kms.aws_kms_key.this", "policy"): (
         "aws_kms_key",
@@ -383,6 +458,18 @@ PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
         "infra/modules/iam/main.tf",
         "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
     ),
+    **{
+        f"module.iam.data.aws_iam_policy_document.{name}": (
+            "infra/modules/iam/main.tf",
+            "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
+        )
+        for name in (
+            "capstone_build",
+            "capstone_codebuild",
+            "github_eks_deployment",
+            "capstone_rollback_reader",
+        )
+    },
     "module.opensearch.data.aws_iam_policy_document.domain_access": (
         "infra/modules/opensearch/main.tf",
         "41b13212d7b4940c8faa0a1ff05690b126e83ad98f4fb26367e3699a1d7563d3",
@@ -644,12 +731,15 @@ def capstone_source_commit(commit: str, tree: str) -> Iterator[None]:
         relative_path
         for group in (
             PLATFORM_ECR_REFERENCE_SOURCE_SHA256,
+            W12_PREREQUISITE_ECR_REFERENCE_SOURCE_SHA256,
+            W12_CODEBUILD_NETWORK_SOURCE_SHA256,
             PLATFORM_EKS_SOURCE_SHA256,
             PLATFORM_OBSERVABILITY_SOURCE_SHA256,
             PLATFORM_OPENSEARCH_LOG_SOURCE_SHA256,
         )
         for relative_path, _ in group
     }
+    source_names.add("infra/modules/iam/main.tf")
     identities: dict[str, str] = {}
     for name in sorted(source_names):
         source = root / name
@@ -1131,6 +1221,7 @@ def _resource_reference_binding(
         "module.network.aws_default_security_group.restricted",
         "module.network.aws_route_table.private",
         "module.network.aws_security_group.endpoints",
+        "module.network.aws_security_group.capstone_codebuild",
         *PLATFORM_GATEWAY_ENDPOINTS,
         *PLATFORM_INTERFACE_ENDPOINTS,
     }
@@ -1173,10 +1264,10 @@ def _resource_reference_binding(
         sources = (PLATFORM_KMS_ADDRESS,)
         relationship = "platform-kms-key-reference"
     elif (
-        address == PLATFORM_ECR_ADDRESS
+        address in ({PLATFORM_ECR_ADDRESS} | W12_PREREQUISITE_ECR_ADDRESSES)
         and resource_type == "aws_ecr_repository"
         and field_path == "encryption_configuration[].kms_key"
-        and _ecr_kms_unknown_is_exact(raw, item)
+        and _ecr_kms_unknown_is_exact(raw, item, address)
     ):
         sources = (PLATFORM_KMS_ADDRESS,)
         relationship = "platform-ecr-kms-key-reference"
@@ -1252,15 +1343,23 @@ def _source_arn_is_provider_computed(raw: Mapping[str, object], address: str) ->
     )
 
 
-def _ecr_kms_unknown_is_exact(raw: Mapping[str, object], item: Mapping[str, object]) -> bool:
+def _ecr_kms_unknown_is_exact(
+    raw: Mapping[str, object], item: Mapping[str, object], address: str
+) -> bool:
     modules = _configured_module_index(raw)
-    configuration = _configuration_resource(raw, PLATFORM_ECR_ADDRESS, "aws_ecr_repository")
+    configuration = _configuration_resource(raw, address, "aws_ecr_repository")
+    source_identities = (
+        PLATFORM_ECR_REFERENCE_SOURCE_SHA256
+        if address == PLATFORM_ECR_ADDRESS
+        else W12_PREREQUISITE_ECR_REFERENCE_SOURCE_SHA256
+    )
     body = item.get("change")
     if (
         modules is None
         or configuration is None
         or not isinstance(body, dict)
-        or not _source_files_match(PLATFORM_ECR_REFERENCE_SOURCE_SHA256)
+        or (address in W12_PREREQUISITE_ECR_ADDRESSES and _CAPSTONE_SOURCE_SHA256.get() is None)
+        or not _source_files_match(source_identities)
     ):
         return False
     expressions = configuration.get("expressions")
@@ -1269,7 +1368,7 @@ def _ecr_kms_unknown_is_exact(raw: Mapping[str, object], item: Mapping[str, obje
         if isinstance(expressions, dict)
         else []
     )
-    ecr_module = modules.get("module.ecr")
+    ecr_module = modules.get(address.removesuffix(".aws_ecr_repository.this"))
     kms_module = modules.get("module.kms")
     if not isinstance(ecr_module, dict) or not isinstance(kms_module, dict):
         return False

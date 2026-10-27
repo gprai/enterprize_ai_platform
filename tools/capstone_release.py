@@ -5797,6 +5797,25 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
         normalized = normalize_plan(
             plan_json, evaluation_time=datetime.now(UTC).strftime(UTC_FORMAT)
         )
+    if state_id is not None:
+        raise ReleaseError("OPA_NONINITIAL_PLAN_PROFILE_NOT_APPROVED")
+    evaluation_context = normalized["evaluation_context"]
+    if not isinstance(evaluation_context, dict):
+        raise ReleaseError("OPA_EVALUATION_CONTEXT_INVALID")
+    evaluation_context["operation"] = {
+        "schema_version": "w12-001.plan-review.v1",
+        "action": "PLAN_REVIEW",
+        "profile": "INITIAL_EMPTY_STATE",
+        "record_sha256": digest,
+        "source_commit": record["source"]["commit"],
+        "source_tree": record["source"]["tree"],
+        "configuration_version_id": config_id,
+        "run_id": args.run_id,
+        "plan_id": plan_id,
+        "plan_json_sha256": plan_sha,
+        "workspace": tf["workspace"],
+        "input_state_version_id": None,
+    }
     normalized_raw = json.dumps(
         normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
     ).encode("utf-8")
