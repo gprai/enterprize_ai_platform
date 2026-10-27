@@ -5499,9 +5499,7 @@ def _hcp_token() -> str:
 def _hcp_run(record: dict[str, Any], run_id: str, token: str) -> dict[str, Any]:
     if not re.fullmatch(r"run-[A-Za-z0-9]+", run_id):
         raise ReleaseError("HCP_RUN_ID")
-    _, response = _hcp_request(
-        "GET", f"/runs/{run_id}?include=plan,configuration_version,input_state_version", token
-    )
+    _, response = _hcp_request("GET", f"/runs/{run_id}?include=plan,configuration_version", token)
     run = response.get("data") if isinstance(response, dict) else None
     if not isinstance(run, dict) or run.get("id") != run_id:
         raise ReleaseError("HCP_RUN_MISMATCH")
