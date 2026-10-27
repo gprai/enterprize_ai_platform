@@ -64,6 +64,7 @@ POLICY_CRITICAL_UNKNOWN_KEYS = frozenset(
         "kms_master_key_id",
         "policy",
         "policy_document",
+        "prefix_list_ids",
         "publicly_accessible",
         "security_group_ids",
         "subnet_id",
@@ -1247,6 +1248,14 @@ def _resource_reference_binding(
     elif address in PLATFORM_INTERFACE_ENDPOINTS and field_path == "security_group_ids":
         sources = (PLATFORM_ENDPOINT_SECURITY_GROUP_ADDRESS,)
         relationship = "network-endpoint-security-group-reference"
+    elif (
+        address == "module.network.aws_security_group.capstone_codebuild"
+        and resource_type == "aws_security_group"
+        and field_path == "egress[].prefix_list_ids"
+        and _source_files_match(W12_CODEBUILD_NETWORK_SOURCE_SHA256)
+    ):
+        sources = ('module.network.aws_vpc_endpoint.gateway["S3"]',)
+        relationship = "network-s3-gateway-prefix-list-reference"
     elif address == PLATFORM_EKS_CLUSTER_ADDRESS:
         if field_path == "encryption_config[].provider[].key_arn":
             sources = (PLATFORM_KMS_ADDRESS,)
@@ -1302,6 +1311,29 @@ def _resource_reference_binding(
         return None
     if relationship == "opensearch-log-groups-reference":
         sources_match = True
+    elif relationship == "network-s3-gateway-prefix-list-reference":
+        configuration = _configuration_resource(raw, address, resource_type)
+        expressions = configuration.get("expressions") if configuration else None
+        matches = (
+            _expressions_at_path(expressions, field_path) if isinstance(expressions, dict) else []
+        )
+        egress = expressions.get("egress") if isinstance(expressions, dict) else None
+        sources_match = (
+            isinstance(egress, list)
+            and len(egress) == 2
+            and len(matches) == 1
+            and _expression_references(matches[0])
+            in (
+                {'aws_vpc_endpoint.gateway["S3"].prefix_list_id'},
+                {
+                    'aws_vpc_endpoint.gateway["S3"].prefix_list_id',
+                    'aws_vpc_endpoint.gateway["S3"]',
+                },
+            )
+            and _resolved_expression_sources(raw, matches[0], "module.network")
+            == {"module.network.aws_vpc_endpoint.gateway"}
+            and _managed_sources_exist(raw, sources)
+        )
     else:
         sources_match = _configured_sources_match(raw, item, field_path, sources)
     provider_arn_relationship = relationship in {

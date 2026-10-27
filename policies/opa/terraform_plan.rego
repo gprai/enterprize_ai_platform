@@ -1433,6 +1433,14 @@ valid_approved_resource_reference(binding) if {
 }
 
 valid_approved_resource_reference(binding) if {
+	binding.address == "module.network.aws_security_group.capstone_codebuild"
+	binding.type == "aws_security_group"
+	binding.unknown_paths == ["egress[].prefix_list_ids"]
+	binding.source_addresses == [`module.network.aws_vpc_endpoint.gateway["S3"]`]
+	binding.relationship == "network-s3-gateway-prefix-list-reference"
+}
+
+valid_approved_resource_reference(binding) if {
 	valid_eks_vpc_reference(binding)
 }
 
@@ -2050,6 +2058,26 @@ s3_lifecycle_valid(change, address) if {
 	lifecycle_prefix_expires(rules, "test/")
 }
 
+# The W12 platform bucket retains noncurrent evidence versions for 180 days.
+s3_lifecycle_valid(change, address) if {
+	address == "module.storage.aws_s3_bucket_lifecycle_configuration.this"
+	operational.profile == "INITIAL_EMPTY_STATE"
+	operational.action == "PLAN_REVIEW"
+	change.change.actions == ["create"]
+	rules := object.get(after(change), "rule", [])
+	count(rules) == 8
+	count({object.get(rule, "id", "") | some rule in rules}) == 8
+	every rule in rules { object.get(rule, "status", "") == "Enabled" }
+	main := [rule | some rule in rules; object.get(rule, "id", "") == "abort-incomplete-and-expire-noncurrent"]
+	count(main) == 1
+	some abort in object.get(main[0], "abort_incomplete_multipart_upload", [])
+	object.get(abort, "days_after_initiation", 0) == 7
+	some noncurrent in object.get(main[0], "noncurrent_version_expiration", [])
+	object.get(noncurrent, "noncurrent_days", 0) == 180
+	lifecycle_prefix_expires(rules, "tmp/")
+	lifecycle_prefix_expires(rules, "test/")
+}
+
 s3_tls_policy_valid(change) if {
 	policy := lower(object.get(after(change), "policy", ""))
 	contains(policy, `"effect":"deny"`)
@@ -2083,6 +2111,99 @@ policy_has_prohibited_action(policy) if {
 		`(?i)(kms:\*|es:ESHttp\*|logs:\*|ecr:GetAuthorizationToken|iam:(List|Describe)[A-Za-z0-9]*)`,
 		action_field,
 	)
+}
+
+single_action(value, action) if value == action
+single_action(value, action) if value == [action]
+
+single_resource(value, resource) if value == resource
+single_resource(value, resource) if value == [resource]
+
+w12_exact_ecr_repository_resources(address, resources) if {
+	address == "module.iam.aws_iam_role_policy.w12_image_publisher"
+	is_array(resources)
+	count(resources) == 2
+	{resource | some resource in resources} == {
+		"arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-codebuild",
+		"arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-toolchain",
+	}
+}
+
+w12_exact_ecr_statement_sids(address) := ["AuthorizeEcrLoginInExactRegion", "PublishAndVerifyTwoPrerequisiteRepositories"] if {
+	address == "module.iam.aws_iam_role_policy.w12_image_publisher"
+}
+
+w12_exact_ecr_statement_sids(address) := ["AuthorizeExactExecutorImagePull", "PullExactExecutorImage"] if {
+	address == "module.iam.aws_iam_role_policy.w12_codebuild_executor_pull"
+}
+
+w12_exact_ecr_repository_resources(address, resources) if {
+	address == "module.iam.aws_iam_role_policy.w12_codebuild_executor_pull"
+	single_resource(resources, "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-codebuild")
+}
+
+w12_ecr_authorization_policy_valid(change) if {
+	operational.profile == "INITIAL_EMPTY_STATE"
+	operational.action == "PLAN_REVIEW"
+	change.type == "aws_iam_role_policy"
+	change.change.actions == ["create"]
+	change.address in {
+		"module.iam.aws_iam_role_policy.w12_image_publisher",
+		"module.iam.aws_iam_role_policy.w12_codebuild_executor_pull",
+	}
+	policy := policy_text(change)
+	document := json.unmarshal(policy)
+	object.keys(document) == {"Statement", "Version"}
+	statements := object.get(document, "Statement", [])
+	count(statements) == 2
+	sids := w12_exact_ecr_statement_sids(change.address)
+	authorization_sid := sids[0]
+	repository_sid := sids[1]
+	auth := [statement | some statement in statements; object.get(statement, "Sid", "") == authorization_sid]
+	count(auth) == 1
+	object.keys(auth[0]) == {"Action", "Condition", "Effect", "Resource", "Sid"}
+	object.get(auth[0], "Effect", "") == "Allow"
+	single_action(object.get(auth[0], "Action", null), "ecr:GetAuthorizationToken")
+	single_resource(object.get(auth[0], "Resource", null), "*")
+	object.get(auth[0], "Condition", {}) == {"StringEquals": {"aws:RequestedRegion": "ap-southeast-1"}}
+	remaining := [statement | some statement in statements; statement != auth[0]]
+	count(remaining) == 1
+	object.get(remaining[0], "Sid", "") == repository_sid
+	object.keys(remaining[0]) == {"Action", "Effect", "Resource", "Sid"}
+	object.get(remaining[0], "Effect", "") == "Allow"
+	w12_exact_ecr_repository_resources(change.address, object.get(remaining[0], "Resource", null))
+	allowed := {"ecr:BatchCheckLayerAvailability", "ecr:BatchGetImage", "ecr:CompleteLayerUpload", "ecr:DescribeImages", "ecr:DescribeRepositories", "ecr:GetLifecyclePolicy", "ecr:GetDownloadUrlForLayer", "ecr:InitiateLayerUpload", "ecr:PutImage", "ecr:UploadLayerPart"}
+	actions := object.get(remaining[0], "Action", [])
+	is_array(actions)
+	count(actions) > 0
+	every action in actions { action in allowed }
+	object.get(remaining[0], "Condition", {}) == {}
+}
+
+w12_main_branch_github_trust_valid(change) if {
+	operational.profile == "INITIAL_EMPTY_STATE"
+	operational.action == "PLAN_REVIEW"
+	change.type == "aws_iam_role"
+	change.change.actions == ["create"]
+	change.address in {
+		"module.iam.aws_iam_role.capstone_build",
+		"module.iam.aws_iam_role.capstone_deploy_caller",
+		"module.iam.aws_iam_role.capstone_rollback_reader",
+	}
+	policy := policy_text(change)
+	document := json.unmarshal(policy)
+	object.keys(document) == {"Statement", "Version"}
+	statements := object.get(document, "Statement", [])
+	count(statements) == 1
+	statement := statements[0]
+	object.keys(statement) == {"Action", "Condition", "Effect", "Principal"}
+	object.get(statement, "Effect", "") == "Allow"
+	single_action(object.get(statement, "Action", null), "sts:AssumeRoleWithWebIdentity")
+	object.get(statement, "Principal", {}) == {"Federated": "arn:aws:iam::526338061652:oidc-provider/token.actions.githubusercontent.com"}
+	object.get(statement, "Condition", {}) == {"StringEquals": {
+		"token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+		"token.actions.githubusercontent.com:sub": "repo:gprai/enterprize_ai_platform:ref:refs/heads/main",
+	}}
 }
 
 approved_wildcard_arn(arn) if arn in approved_wildcard_arns
@@ -2181,6 +2302,44 @@ network_traffic_invalid(change) if {
 network_traffic_invalid(change) if {
 	change.type in {"aws_security_group", "aws_default_security_group"}
 	count(object.get(after(change), "egress", [])) > 0
+	not w12_private_codebuild_egress_valid(change)
+}
+
+w12_private_codebuild_egress_valid(change) if {
+	operational.profile == "INITIAL_EMPTY_STATE"
+	operational.action == "PLAN_REVIEW"
+	change.address == "module.network.aws_security_group.capstone_codebuild"
+	change.type == "aws_security_group"
+	change.change.actions == ["create"]
+	count(object.get(after(change), "ingress", [])) == 0
+	rules := object.get(after(change), "egress", [])
+	count(rules) == 2
+	resource_reference_record_exists(change.address, "egress[].prefix_list_ids", "network-s3-gateway-prefix-list-reference")
+	some vpc in evaluated_changes
+	vpc.address == platform_vpc_address
+	vpc.type == "aws_vpc"
+	vpc_cidr := object.get(after(vpc), "cidr_block", "")
+	vpc_cidr != ""
+	private := [rule | some rule in rules; object.get(rule, "description", "") == "TLS to private VPC endpoints and EKS API"]
+	count(private) == 1
+	object.get(private[0], "from_port", 0) == 443
+	object.get(private[0], "to_port", 0) == 443
+	object.get(private[0], "protocol", "") == "tcp"
+	object.get(private[0], "cidr_blocks", []) == [vpc_cidr]
+	object.get(private[0], "ipv6_cidr_blocks", []) == []
+	object.get(private[0], "prefix_list_ids", []) == []
+	object.get(private[0], "security_groups", []) == []
+	object.get(private[0], "self", false) == false
+	gateway := [rule | some rule in rules; object.get(rule, "description", "") == "TLS to S3 through the regional gateway endpoint"]
+	count(gateway) == 1
+	object.get(gateway[0], "from_port", 0) == 443
+	object.get(gateway[0], "to_port", 0) == 443
+	object.get(gateway[0], "protocol", "") == "tcp"
+	object.get(gateway[0], "cidr_blocks", []) == []
+	object.get(gateway[0], "ipv6_cidr_blocks", []) == []
+	object.get(gateway[0], "prefix_list_ids", []) == []
+	object.get(gateway[0], "security_groups", []) == []
+	object.get(gateway[0], "self", false) == false
 }
 
 opensearch_kms_valid(change) if {
@@ -2605,6 +2764,7 @@ raw_violations contains violation("W5-IAM-001", change.address) if {
 	change.type in {"aws_iam_policy", "aws_iam_role_policy", "aws_cloudwatch_log_resource_policy"}
 	policy := policy_text(change)
 	policy_has_prohibited_action(policy)
+	not w12_ecr_authorization_policy_valid(change)
 }
 
 raw_violations contains violation("W5-IAM-002", change.address) if {
@@ -2613,6 +2773,8 @@ raw_violations contains violation("W5-IAM-002", change.address) if {
 	policy := policy_text(change)
 	iam_scope_invalid(policy)
 	not approved_existing_w6_004_iam_policy(change)
+	not w12_ecr_authorization_policy_valid(change)
+	not w12_main_branch_github_trust_valid(change)
 }
 
 approved_existing_w6_004_iam_policy(change) if {

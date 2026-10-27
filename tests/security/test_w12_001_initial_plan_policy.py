@@ -16,6 +16,7 @@ from tools.platformctl.policy_runner import (
     PLATFORM_POLICY_DOCUMENT_BINDINGS,
     POLICY_IDS,
     _policy_document_binding,
+    _resource_reference_binding,
     capstone_source_commit,
     normalize_plan,
 )
@@ -332,3 +333,287 @@ def test_w12_initial_profile_is_required_by_production_decision() -> None:
     assert any(
         finding["resource_address"] == "policy.operation" for finding in decision["findings"]
     )
+
+
+def test_codebuild_s3_prefix_list_unknown_requires_exact_gateway_source() -> None:
+    address = "module.network.aws_security_group.capstone_codebuild"
+    gateway = 'module.network.aws_vpc_endpoint.gateway["S3"]'
+    consumer = {
+        "address": address,
+        "type": "aws_security_group",
+        "change": {"actions": ["create"]},
+    }
+    raw = {
+        "configuration": {
+            "root_module": {
+                "module_calls": {
+                    "network": {
+                        "module": {
+                            "resources": [
+                                {
+                                    "address": "aws_security_group.capstone_codebuild",
+                                    "mode": "managed",
+                                    "type": "aws_security_group",
+                                    "expressions": {
+                                        "egress": [
+                                            {"cidr_blocks": {"references": ["var.vpc_cidr"]}},
+                                            {
+                                                "prefix_list_ids": {
+                                                    "references": [
+                                                        'aws_vpc_endpoint.gateway["S3"].prefix_list_id',
+                                                        'aws_vpc_endpoint.gateway["S3"]',
+                                                    ]
+                                                }
+                                            },
+                                        ]
+                                    },
+                                },
+                                {
+                                    "address": "aws_vpc_endpoint.gateway",
+                                    "mode": "managed",
+                                    "type": "aws_vpc_endpoint",
+                                },
+                            ]
+                        },
+                        "expressions": {},
+                    }
+                }
+            }
+        },
+        "resource_changes": [consumer, {"address": gateway, "type": "aws_vpc_endpoint"}],
+    }
+    with _current_reviewed_source():
+        binding = _resource_reference_binding(raw, consumer, "egress[].prefix_list_ids")
+        assert binding == {
+            "address": address,
+            "type": "aws_security_group",
+            "unknown_paths": ["egress[].prefix_list_ids"],
+            "source_addresses": [gateway],
+            "relationship": "network-s3-gateway-prefix-list-reference",
+        }
+        expressions = raw["configuration"]["root_module"]["module_calls"]["network"]["module"][
+            "resources"
+        ][0]["expressions"]
+        expressions["egress"][1]["prefix_list_ids"]["references"] = [
+            'aws_vpc_endpoint.gateway["DynamoDB"].prefix_list_id'
+        ]
+        assert _resource_reference_binding(raw, consumer, "egress[].prefix_list_ids") is None
+
+
+@pytest.mark.parametrize(
+    ("name", "repository", "actions"),
+    (
+        (
+            "w12_image_publisher",
+            [
+                "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-codebuild",
+                "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-toolchain",
+            ],
+            ["ecr:PutImage"],
+        ),
+        (
+            "w12_codebuild_executor_pull",
+            "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-codebuild",
+            ["ecr:BatchGetImage"],
+        ),
+    ),
+)
+def test_regional_ecr_login_exception_rejects_broader_permissions(
+    name: str, repository: str | list[str], actions: list[str]
+) -> None:
+    plan = _initial_profile_plan()
+    document = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "AuthorizeEcrLoginInExactRegion"
+                if name == "w12_image_publisher"
+                else "AuthorizeExactExecutorImagePull",
+                "Effect": "Allow",
+                "Action": ["ecr:GetAuthorizationToken"],
+                "Resource": ["*"],
+                "Condition": {"StringEquals": {"aws:RequestedRegion": "ap-southeast-1"}},
+            },
+            {
+                "Sid": "PublishAndVerifyTwoPrerequisiteRepositories"
+                if name == "w12_image_publisher"
+                else "PullExactExecutorImage",
+                "Effect": "Allow",
+                "Action": actions,
+                "Resource": repository,
+            },
+        ],
+    }
+    plan["resource_changes"].append(
+        {
+            "address": f"module.iam.aws_iam_role_policy.{name}",
+            "type": "aws_iam_role_policy",
+            "change": {"actions": ["create"], "after": {"policy": json.dumps(document)}},
+        }
+    )
+    query = (
+        "data.enterprise_ai.terraform.plan.w12_ecr_authorization_policy_valid"
+        "(input.resource_changes[1])"
+    )
+    assert _opa_value(plan, query) is True
+    document["Statement"][0]["Condition"]["StringEquals"]["aws:RequestedRegion"] = "*"
+    plan["resource_changes"][1]["change"]["after"]["policy"] = json.dumps(document)
+    assert _opa_value(plan, query) is False
+    document["Statement"][0]["Condition"]["StringEquals"]["aws:RequestedRegion"] = "ap-southeast-1"
+    document["Statement"][1]["Action"] = ["ecr:*"]
+    plan["resource_changes"][1]["change"]["after"]["policy"] = json.dumps(document)
+    assert _opa_value(plan, query) is False
+
+
+@pytest.mark.parametrize(
+    "name", ("capstone_build", "capstone_deploy_caller", "capstone_rollback_reader")
+)
+def test_main_branch_github_trust_exception_is_exact(name: str) -> None:
+    plan = _initial_profile_plan()
+    document = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": ["sts:AssumeRoleWithWebIdentity"],
+                "Principal": {
+                    "Federated": (
+                        "arn:aws:iam::526338061652:oidc-provider/"
+                        "token.actions.githubusercontent.com"
+                    )
+                },
+                "Condition": {
+                    "StringEquals": {
+                        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                        "token.actions.githubusercontent.com:sub": (
+                            "repo:gprai/enterprize_ai_platform:ref:refs/heads/main"
+                        ),
+                    }
+                },
+            }
+        ],
+    }
+    plan["resource_changes"].append(
+        {
+            "address": f"module.iam.aws_iam_role.{name}",
+            "type": "aws_iam_role",
+            "change": {
+                "actions": ["create"],
+                "after": {"assume_role_policy": json.dumps(document)},
+            },
+        }
+    )
+    query = (
+        "data.enterprise_ai.terraform.plan.w12_main_branch_github_trust_valid"
+        "(input.resource_changes[1])"
+    )
+    assert _opa_value(plan, query) is True
+    document["Statement"][0]["Condition"]["StringEquals"][
+        "token.actions.githubusercontent.com:sub"
+    ] = "repo:gprai/enterprize_ai_platform:ref:refs/heads/*"
+    plan["resource_changes"][1]["change"]["after"]["assume_role_policy"] = json.dumps(document)
+    assert _opa_value(plan, query) is False
+
+
+def test_private_codebuild_egress_requires_exact_https_and_s3_binding() -> None:
+    plan = _initial_profile_plan()
+    plan["resource_changes"][0]["change"]["after"]["cidr_block"] = "10.42.0.0/16"
+    address = "module.network.aws_security_group.capstone_codebuild"
+    plan["evaluation_context"]["resource_reference_unknowns"] = [
+        {
+            "address": address,
+            "type": "aws_security_group",
+            "unknown_paths": ["egress[].prefix_list_ids"],
+            "source_addresses": ['module.network.aws_vpc_endpoint.gateway["S3"]'],
+            "relationship": "network-s3-gateway-prefix-list-reference",
+        }
+    ]
+    plan["resource_changes"].append(
+        {
+            "address": address,
+            "type": "aws_security_group",
+            "change": {
+                "actions": ["create"],
+                "before": None,
+                "after_unknown": {},
+                "after_sensitive": {},
+                "after": {
+                    "ingress": [],
+                    "egress": [
+                        {
+                            "description": "TLS to private VPC endpoints and EKS API",
+                            "from_port": 443,
+                            "to_port": 443,
+                            "protocol": "tcp",
+                            "cidr_blocks": ["10.42.0.0/16"],
+                        },
+                        {
+                            "description": "TLS to S3 through the regional gateway endpoint",
+                            "from_port": 443,
+                            "to_port": 443,
+                            "protocol": "tcp",
+                        },
+                    ],
+                },
+            },
+        }
+    )
+    plan["resource_changes"].append(
+        {
+            "address": 'module.network.aws_vpc_endpoint.gateway["S3"]',
+            "type": "aws_vpc_endpoint",
+            "change": {
+                "actions": ["create"],
+                "before": None,
+                "after": {},
+                "after_unknown": {"prefix_list_id": True},
+                "after_sensitive": {},
+            },
+        }
+    )
+    query = (
+        "data.enterprise_ai.terraform.plan.w12_private_codebuild_egress_valid"
+        "(input.resource_changes[1])"
+    )
+    assert _opa_value(plan, query) is True
+    plan["resource_changes"][1]["change"]["after"]["egress"][0]["cidr_blocks"] = ["0.0.0.0/0"]
+    assert _opa_value(plan, query) is False
+    plan["resource_changes"][1]["change"]["after"]["egress"][0]["cidr_blocks"] = ["10.42.0.0/16"]
+    plan["evaluation_context"]["resource_reference_unknowns"] = []
+    assert _opa_value(plan, query) is False
+
+
+def test_w12_platform_lifecycle_accepts_only_bounded_180_day_rule() -> None:
+    plan = _initial_profile_plan()
+    rules = [
+        {
+            "id": "abort-incomplete-and-expire-noncurrent",
+            "status": "Enabled",
+            "abort_incomplete_multipart_upload": [{"days_after_initiation": 7}],
+            "noncurrent_version_expiration": [{"noncurrent_days": 180}],
+        }
+    ]
+    rules.extend(
+        {
+            "id": name,
+            "status": "Enabled",
+            "filter": [{"prefix": prefix}],
+            "expiration": [{"days": 30}],
+        }
+        for name, prefix in (("expire-tmp", "tmp/"), ("expire-test", "test/"))
+    )
+    rules.extend({"id": f"other-{index}", "status": "Enabled"} for index in range(5))
+    plan["resource_changes"].append(
+        {
+            "address": "module.storage.aws_s3_bucket_lifecycle_configuration.this",
+            "type": "aws_s3_bucket_lifecycle_configuration",
+            "change": {"actions": ["create"], "after": {"rule": rules}},
+        }
+    )
+    query = (
+        "data.enterprise_ai.terraform.plan.s3_lifecycle_valid"
+        "(input.resource_changes[1], input.resource_changes[1].address)"
+    )
+    assert _opa_value(plan, query) is True
+    rules[0]["noncurrent_version_expiration"][0]["noncurrent_days"] = 181
+    assert _opa_value(plan, query) is False
