@@ -165,6 +165,39 @@ def test_missing_input_state_relationship_matches_explicit_null() -> None:
     assert release._hcp_relationships_match(left, right)
 
 
+@pytest.mark.parametrize("state_relationship", [None, {"data": None}])
+def test_hcp_run_uses_supported_includes_for_empty_initial_state(
+    monkeypatch: pytest.MonkeyPatch,
+    state_relationship: dict[str, None] | None,
+) -> None:
+    record = _initial_requested()
+    relationships: dict[str, Any] = {
+        "workspace": {"data": {"id": "ws-approved"}},
+        "configuration-version": {"data": {"id": "cv-observed"}},
+        "plan": {"data": {"id": "plan-observed"}},
+    }
+    if state_relationship is not None:
+        relationships["input-state-version"] = state_relationship
+
+    def fake_request(method: str, path: str, token: str) -> tuple[int, dict[str, Any]]:
+        assert (method, path, token) == (
+            "GET",
+            "/runs/run-observed?include=plan,configuration_version",
+            "test-token",
+        )
+        return 200, {
+            "data": {
+                "id": "run-observed",
+                "attributes": {"is-speculative": False},
+                "relationships": relationships,
+            }
+        }
+
+    monkeypatch.setattr(release, "_hcp_request", fake_request)
+    run = release._hcp_run(record, "run-observed", "test-token")
+    assert run["relationships"].get("input-state-version", {}).get("data") is None
+
+
 @pytest.mark.parametrize(
     "status,queued,started,allowed",
     [
