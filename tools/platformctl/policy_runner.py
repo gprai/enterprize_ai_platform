@@ -1318,19 +1318,41 @@ def _resource_reference_binding(
             _expressions_at_path(expressions, field_path) if isinstance(expressions, dict) else []
         )
         egress = expressions.get("egress") if isinstance(expressions, dict) else None
-        sources_match = (
-            isinstance(egress, list)
-            and len(egress) == 2
-            and len(matches) == 1
-            and _expression_references(matches[0])
-            in (
-                {'aws_vpc_endpoint.gateway["S3"].prefix_list_id'},
-                {
-                    'aws_vpc_endpoint.gateway["S3"].prefix_list_id',
+        s3_prefix_list_reference = 'aws_vpc_endpoint.gateway["S3"].prefix_list_id'
+        if isinstance(egress, dict):
+            references = egress.get("references")
+            expression_matches = (
+                set(egress) == {"references"}
+                and isinstance(references, list)
+                and len(references) == 4
+                and all(isinstance(reference, str) for reference in references)
+                and set(references)
+                == {
+                    "var.vpc_cidr",
+                    s3_prefix_list_reference,
                     'aws_vpc_endpoint.gateway["S3"]',
-                },
+                    "aws_vpc_endpoint.gateway",
+                }
             )
-            and _resolved_expression_sources(raw, matches[0], "module.network")
+        else:
+            expression_matches = (
+                isinstance(egress, list)
+                and len(egress) == 2
+                and len(matches) == 1
+                and _expression_references(matches[0])
+                in (
+                    {s3_prefix_list_reference},
+                    {
+                        s3_prefix_list_reference,
+                        'aws_vpc_endpoint.gateway["S3"]',
+                    },
+                )
+            )
+        sources_match = (
+            expression_matches
+            and _resolved_expression_sources(
+                raw, {"references": [s3_prefix_list_reference]}, "module.network"
+            )
             == {"module.network.aws_vpc_endpoint.gateway"}
             and _managed_sources_exist(raw, sources)
         )

@@ -15,6 +15,7 @@ from tools.platformctl.contracts import ContractError
 from tools.platformctl.policy_runner import (
     PLATFORM_POLICY_DOCUMENT_BINDINGS,
     POLICY_IDS,
+    _normalized_unknowns,
     _policy_document_binding,
     _resource_reference_binding,
     capstone_source_commit,
@@ -397,6 +398,42 @@ def test_codebuild_s3_prefix_list_unknown_requires_exact_gateway_source() -> Non
         expressions["egress"][1]["prefix_list_ids"]["references"] = [
             'aws_vpc_endpoint.gateway["DynamoDB"].prefix_list_id'
         ]
+        assert _resource_reference_binding(raw, consumer, "egress[].prefix_list_ids") is None
+
+        # Terraform can encode the two configured blocks as one expression whose
+        # references contain both the VPC CIDR and the S3 gateway prefix list.
+        expressions["egress"] = {
+            "references": [
+                "var.vpc_cidr",
+                'aws_vpc_endpoint.gateway["S3"].prefix_list_id',
+                'aws_vpc_endpoint.gateway["S3"]',
+                "aws_vpc_endpoint.gateway",
+            ]
+        }
+        assert _resource_reference_binding(raw, consumer, "egress[].prefix_list_ids") == binding
+
+        body = {"after_unknown": {"egress": [{}, {"prefix_list_ids": True}]}}
+        normalized, _, bindings, _, _, _ = _normalized_unknowns(raw, consumer, body)
+        assert normalized == {"egress": [{}, {}]}
+        assert bindings == [binding]
+
+        duplicated = {
+            "after_unknown": {"egress": [{"prefix_list_ids": True}, {"prefix_list_ids": True}]}
+        }
+        unmodified, _, rejected, _, _, _ = _normalized_unknowns(raw, consumer, duplicated)
+        assert unmodified == duplicated["after_unknown"]
+        assert rejected == []
+
+        for unexpected in (
+            'aws_vpc_endpoint.gateway["DynamoDB"].prefix_list_id',
+            "aws_vpc_endpoint.gateway[0].prefix_list_id",
+        ):
+            altered = deepcopy(expressions["egress"])
+            altered["references"][1] = unexpected
+            expressions["egress"] = altered
+            assert _resource_reference_binding(raw, consumer, "egress[].prefix_list_ids") is None
+
+        expressions["egress"] = {"references": ["var.vpc_cidr"]}
         assert _resource_reference_binding(raw, consumer, "egress[].prefix_list_ids") is None
 
 
