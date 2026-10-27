@@ -5508,7 +5508,11 @@ def _hcp_run(record: dict[str, Any], run_id: str, token: str) -> dict[str, Any]:
     workspace = relationships.get("workspace", {}).get("data", {}).get("id")
     if record["terraform"]["run_id"] not in (None, run_id) or not workspace:
         raise ReleaseError("HCP_RUN_OR_WORKSPACE_MISMATCH")
-    if attrs.get("is-speculative") is not False:
+    if (
+        attrs.get("plan-only") is not False
+        or attrs.get("save-plan") is not False
+        or ("is-speculative" in attrs and attrs["is-speculative"] is not False)
+    ):
         raise ReleaseError("HCP_SPECULATIVE_RUN")
     return run
 

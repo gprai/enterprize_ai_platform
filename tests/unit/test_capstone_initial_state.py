@@ -188,7 +188,7 @@ def test_hcp_run_uses_supported_includes_for_empty_initial_state(
         return 200, {
             "data": {
                 "id": "run-observed",
-                "attributes": {"is-speculative": False},
+                "attributes": {"plan-only": False, "save-plan": False},
                 "relationships": relationships,
             }
         }
@@ -196,6 +196,46 @@ def test_hcp_run_uses_supported_includes_for_empty_initial_state(
     monkeypatch.setattr(release, "_hcp_request", fake_request)
     run = release._hcp_run(record, "run-observed", "test-token")
     assert run["relationships"].get("input-state-version", {}).get("data") is None
+
+
+@pytest.mark.parametrize(
+    "attributes,accepted",
+    [
+        ({"plan-only": False, "save-plan": False}, True),
+        ({"plan-only": False, "save-plan": False, "is-speculative": False}, True),
+        ({"plan-only": True, "save-plan": False}, False),
+        ({"plan-only": False, "save-plan": True}, False),
+        ({"plan-only": False, "save-plan": False, "is-speculative": True}, False),
+        ({"plan-only": False, "save-plan": False, "is-speculative": None}, False),
+        ({"save-plan": False}, False),
+        ({"plan-only": False}, False),
+    ],
+)
+def test_hcp_run_mode_uses_documented_fields_and_rejects_speculation(
+    monkeypatch: pytest.MonkeyPatch,
+    attributes: dict[str, Any],
+    accepted: bool,
+) -> None:
+    def fake_request(method: str, path: str, token: str) -> tuple[int, dict[str, Any]]:
+        assert (method, path, token) == (
+            "GET",
+            "/runs/run-observed?include=plan,configuration_version",
+            "test-token",
+        )
+        return 200, {
+            "data": {
+                "id": "run-observed",
+                "attributes": attributes,
+                "relationships": {"workspace": {"data": {"id": "ws-approved"}}},
+            }
+        }
+
+    monkeypatch.setattr(release, "_hcp_request", fake_request)
+    if accepted:
+        release._hcp_run(_initial_requested(), "run-observed", "test-token")
+    else:
+        with pytest.raises(release.ReleaseError, match="HCP_SPECULATIVE_RUN"):
+            release._hcp_run(_initial_requested(), "run-observed", "test-token")
 
 
 @pytest.mark.parametrize(
