@@ -56,8 +56,19 @@ def test_manual_workflow_scans_before_assumption_or_push() -> None:
     assert "environment: sandbox" in workflow
     assert "github.ref == 'refs/heads/main'" in workflow
     assert "git rev-parse HEAD" in workflow
+    assert workflow.index("Assume only the read-only Public ECR role") < workflow.index(
+        "Authenticate only to Public ECR"
+    )
+    assert workflow.index("Authenticate only to Public ECR") < workflow.index(
+        "Build both pinned Linux AMD64 images"
+    )
+    assert workflow.index("Build both pinned Linux AMD64 images") < workflow.index(
+        "Remove temporary Public ECR authentication"
+    )
     assert workflow.index("Scan both final images") < workflow.index("Assume only the dedicated")
     assert workflow.index("Assume only the dedicated") < workflow.index("Push only scanned images")
+    assert "aws ecr-public get-login-password --region us-east-1" in workflow
+    assert "docker login --username AWS --password-stdin public.ecr.aws" in workflow
     assert "tools/w12_001_images.py" in workflow
     assert "--exception configs/ci/w12-001-image-scan-exception.json" in workflow
     assert "--source-manifest images/w12/pinned-inputs.json" in workflow
@@ -116,3 +127,20 @@ def test_dedicated_publisher_and_exact_codebuild_pull() -> None:
     assert "local.w12_codebuild_ecr_arn" in codebuild
     assert "local.w12_toolchain_ecr_arn" not in codebuild
     assert "role   = aws_iam_role.capstone_codebuild.id" in iam
+
+
+def test_public_ecr_reader_is_token_only_and_uses_exact_environment_trust() -> None:
+    iam = _source("infra/modules/iam/w12_prerequisite_images.tf")
+    reader = iam.split('data "aws_iam_policy_document" "w12_public_ecr_reader"', 1)[1]
+    reader = reader.split('resource "aws_iam_role_policy" "w12_public_ecr_reader"', 1)[0]
+    assert 'actions   = ["ecr-public:GetAuthorizationToken"]' in reader
+    assert 'actions   = ["sts:GetServiceBearerToken"]' in reader
+    assert 'variable = "sts:AWSServiceName"' in reader
+    assert 'values   = ["ecr-public.amazonaws.com"]' in reader
+    assert "ecr:PutImage" not in reader
+    assert "ecr:InitiateLayerUpload" not in reader
+    assert "ecr:UploadLayerPart" not in reader
+    role = iam.split('resource "aws_iam_role" "w12_public_ecr_reader"', 1)[1]
+    role = role.split('data "aws_iam_policy_document" "w12_public_ecr_reader"', 1)[0]
+    assert 'name               = "enterprise-ai-w12-public-ecr-reader"' in role
+    assert "data.aws_iam_policy_document.w12_image_publisher_trust.json" in role

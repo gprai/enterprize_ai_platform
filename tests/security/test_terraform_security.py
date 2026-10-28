@@ -21,6 +21,7 @@ EXPECTED_CHECKOV_SKIPS = {
     ("infra/modules/eks/main.tf", "CKV_AWS_39"),
     ("infra/modules/iam/main.tf", "CKV_AWS_111"),
     ("infra/modules/iam/main.tf", "CKV_AWS_355"),
+    ("infra/modules/iam/w12_prerequisite_images.tf", "CKV_AWS_107"),
     ("infra/modules/observability/main.tf", "CKV_AWS_158"),
     ("infra/modules/observability/main.tf", "CKV_AWS_338"),
     ("infra/modules/network/main.tf", "CKV2_AWS_11"),
@@ -62,11 +63,19 @@ def test_prohibited_action_wildcards_and_permissions_are_absent() -> None:
 
 def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     source = terraform_source()
-    assert source.count('resources = ["*"]') == 16
+    assert source.count('resources = ["*"]') == 18
     assert source.count('identifiers = ["*"]') == 5
     w12 = (INFRA / "modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
-    assert w12.count('resources = ["*"]') == 2
+    assert w12.count('resources = ["*"]') == 4
     assert w12.count('identifiers = ["*"]') == 0
+    public_ecr_reader = w12.split(
+        'data "aws_iam_policy_document" "w12_public_ecr_reader" {', maxsplit=1
+    )[1].split("\n}\n", maxsplit=1)[0]
+    assert public_ecr_reader.count('resources = ["*"]') == 2
+    assert 'actions   = ["ecr-public:GetAuthorizationToken"]' in public_ecr_reader
+    assert 'actions   = ["sts:GetServiceBearerToken"]' in public_ecr_reader
+    assert 'variable = "sts:AWSServiceName"' in public_ecr_reader
+    assert 'values   = ["ecr-public.amazonaws.com"]' in public_ecr_reader
     network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
     assert network.count('identifiers = ["*"]') == 3
     assert network.count('variable = "aws:PrincipalAccount"') == 2

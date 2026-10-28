@@ -15,6 +15,8 @@ from tools.w12_001_images import (
     finding_digest,
 )
 
+ROOT = Path(__file__).resolve().parents[2]
+
 
 def _write(path: Path, value: object) -> Path:
     path.write_text(json.dumps(value), encoding="utf-8")
@@ -128,3 +130,29 @@ def test_exact_time_bounded_exception_and_changed_findings(tmp_path: Path) -> No
     _write(trivy, trivy_document)
     with pytest.raises(ImageScanError, match="Secret findings"):
         evaluate_approved_scan(trivy, grype, now=approved + timedelta(days=1), **kwargs)
+
+
+def test_public_ecr_reader_cannot_publish_or_manage_aws_resources() -> None:
+    source = (ROOT / "infra/modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
+    reader = source.split('data "aws_iam_policy_document" "w12_public_ecr_reader"', 1)[1]
+    reader = reader.split('resource "aws_iam_role_policy" "w12_public_ecr_reader"', 1)[0]
+    assert "ecr-public:GetAuthorizationToken" in reader
+    assert "sts:GetServiceBearerToken" in reader
+    for prohibited in (
+        "ecr:PutImage",
+        "ecr-public:PutImage",
+        "ecr:CreateRepository",
+        "ecr-public:CreateRepository",
+        "iam:",
+        "ec2:",
+        "kms:",
+    ):
+        assert prohibited not in reader
+
+
+def test_private_publisher_credentials_remain_after_the_scan_gate() -> None:
+    workflow = (ROOT / ".github/workflows/w12-prerequisite-images.yml").read_text(encoding="utf-8")
+    scan = workflow.index("Scan both final images against the exact approved exception")
+    private_assumption = workflow.index("Assume only the dedicated prerequisite publisher role")
+    push = workflow.index("Push only scanned images and read back immutable registry digests")
+    assert scan < private_assumption < push

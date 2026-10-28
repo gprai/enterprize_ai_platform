@@ -129,6 +129,7 @@ EXPECTED_SKIPS = {
         "CKV_AWS_318",
         "CKV2_AWS_59",
     ),
+    "infra/modules/iam/w12_prerequisite_images.tf": ("CKV_AWS_107",),
     "infra/modules/secrets/main.tf": ("CKV2_AWS_57",),
 }
 
@@ -226,7 +227,7 @@ def test_inline_checkov_skip_inventory_and_rationales_are_exact() -> None:
         rationales.extend(item[1] for item in directives)
 
     assert observed == EXPECTED_SKIPS
-    assert sum(len(items) for items in observed.values()) == 25
+    assert sum(len(items) for items in observed.values()) == 26
     weighted_skips = 17 + 3
     assert weighted_skips == 20
     opensearch = (ROOT / "infra/modules/opensearch/main.tf").read_text(encoding="utf-8")
