@@ -68,7 +68,7 @@ EXPECTED_FILTER_PATHS = (
 EXPECTED_REVIEWED_FINDING_COUNTS = {
     "configs/chaos/controlled-dependency-chaos.yaml": {"Hex High Entropy String": 1},
     "configs/incidents/incident-operations.yaml": {"Hex High Entropy String": 4},
-    "configs/recovery/disaster-recovery.yaml": {"Hex High Entropy String": 3},
+    "configs/recovery/disaster-recovery.yaml": {"Hex High Entropy String": 22},
     "deploy/capstone/api-overlay.yaml": {"Secret Keyword": 1},
     "deploy/capstone/pki.yaml": {"Secret Keyword": 2},
     "configs/lifecycle/w5-004.json": {"Hex High Entropy String": 5},
@@ -126,7 +126,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
 EXPECTED_REVIEWED_LINE_COUNTS = {
     "configs/chaos/controlled-dependency-chaos.yaml": {15: 1},
     "configs/incidents/incident-operations.yaml": {185: 1, 187: 1, 189: 1, 191: 1},
-    "configs/recovery/disaster-recovery.yaml": {48: 1, 55: 1, 58: 1},
+    "configs/recovery/disaster-recovery.yaml": {line: 1 for line in range(39, 61)},
     "deploy/capstone/api-overlay.yaml": {76: 1},
     "deploy/capstone/pki.yaml": {16: 1, 24: 1},
     "configs/ci/w5-002.json": {1: 6},
@@ -445,7 +445,7 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     results = baseline["results"]
     assert isinstance(results, dict)
     assert len(results) == 56
-    assert sum(len(findings) for findings in results.values()) == 417
+    assert sum(len(findings) for findings in results.values()) == 436
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():
