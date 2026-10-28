@@ -42,10 +42,38 @@ variable "expires_at" {
 
 variable "github_organization" {
   type = string
+
+  validation {
+    condition     = var.github_organization == "gprai"
+    error_message = "github_organization must equal gprai."
+  }
+}
+
+variable "github_organization_id" {
+  type = string
+
+  validation {
+    condition     = var.github_organization_id == "82297871"
+    error_message = "github_organization_id must equal the verified immutable GitHub owner ID."
+  }
 }
 
 variable "github_repository" {
   type = string
+
+  validation {
+    condition     = var.github_repository == "enterprize_ai_platform"
+    error_message = "github_repository must equal enterprize_ai_platform."
+  }
+}
+
+variable "github_repository_id" {
+  type = string
+
+  validation {
+    condition     = var.github_repository_id == "1340913005"
+    error_message = "github_repository_id must equal the verified immutable GitHub repository ID."
+  }
 }
 
 variable "github_environment" {

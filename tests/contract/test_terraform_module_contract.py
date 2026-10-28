@@ -49,7 +49,9 @@ EXPECTED_INPUT_KEYS = (
     "kms_deletion_window_days",
     "kms_follow_up_owner",
     "github_organization",
+    "github_organization_id",
     "github_repository",
+    "github_repository_id",
     "github_environment",
     "github_oidc_role_name",
     "github_allowed_ref",
@@ -87,12 +89,12 @@ MODULES = (
 )
 
 
-def test_exact_47_key_tfvars_schema_is_preserved_without_az_key() -> None:
+def test_exact_49_key_tfvars_schema_is_preserved_without_az_key() -> None:
     source = (SANDBOX / "variables.tf").read_text(encoding="utf-8")
     variables = tuple(re.findall(r'^variable "([^"]+)"', source, flags=re.MULTILINE))
 
     assert variables == EXPECTED_INPUT_KEYS
-    assert len(variables) == 47
+    assert len(variables) == 49
     assert "availability_zones" not in variables
     assert 'allowed_data_regions == tolist(["Global Cross-Region"])' in source
     assert "aws_region must equal ap-southeast-1" in source
@@ -225,34 +227,42 @@ def test_backend_example_uses_exact_owner_approved_boundary() -> None:
     assert 'kms_key_id     = "alias/enterprise-ai-platform-sandbox-terraform-state"' in source
 
 
-def test_github_repository_identity_produces_the_exact_oidc_subject() -> None:
+def test_github_repository_identity_produces_the_exact_immutable_oidc_subject() -> None:
     tfvars = (SANDBOX / "terraform.tfvars.example").read_text(encoding="utf-8")
     variables = (SANDBOX / "variables.tf").read_text(encoding="utf-8")
     iam = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
 
     values = dict(
         re.findall(
-            r'^(github_(?:organization|repository|environment))\s*=\s*"([^"]+)"$',
+            r'^(github_(?:organization|organization_id|repository|repository_id|environment))\s*=\s*"([^"]+)"$',
             tfvars,
             flags=re.MULTILINE,
         )
     )
     assert values == {
         "github_organization": "gprai",
+        "github_organization_id": "82297871",
         "github_repository": "enterprize_ai_platform",
+        "github_repository_id": "1340913005",
         "github_environment": "sandbox",
     }
     subject = (
-        f"repo:{values['github_organization']}/{values['github_repository']}:"
+        f"repo:{values['github_organization']}@{values['github_organization_id']}/"
+        f"{values['github_repository']}@{values['github_repository_id']}:"
         f"environment:{values['github_environment']}"
     )
-    assert subject == "repo:gprai/enterprize_ai_platform:environment:sandbox"
+    assert subject == "repo:gprai@82297871/enterprize_ai_platform@1340913005:environment:sandbox"
+    assert 'var.github_organization_id == "82297871"' in variables
     assert 'var.github_repository == "enterprize_ai_platform"' in variables
+    assert 'var.github_repository_id == "1340913005"' in variables
     assert "github_repository must equal enterprize_ai_platform" in variables
     assert (
-        "repo:${var.github_organization}/${var.github_repository}:"
-        "environment:${var.github_environment}" in iam
+        'github_repository_subject = "repo:${var.github_organization}@'
+        "${var.github_organization_id}/"
+        '${var.github_repository}@${var.github_repository_id}"' in iam
     )
+    assert '"${local.github_repository_subject}:environment:${var.github_environment}"' in iam
+    assert '"${local.github_repository_subject}:ref:refs/heads/main"' in iam
 
 
 def test_future_backend_contract_rejects_deprecated_or_dual_locking() -> None:

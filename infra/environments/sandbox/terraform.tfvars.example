@@ -130,7 +130,11 @@ kms_follow_up_owner = "Gyan Prakash Rai"
 
 github_organization = "gprai"
 
+github_organization_id = "82297871"
+
 github_repository = "enterprize_ai_platform"
+
+github_repository_id = "1340913005"
 
 github_environment = "sandbox"
 

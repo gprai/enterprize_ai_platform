@@ -225,7 +225,9 @@ module "iam" {
   bedrock_inference_profile_id   = var.bedrock_model_id
   expires_at                     = var.mandatory_tags["ExpiresAt"]
   github_organization            = var.github_organization
+  github_organization_id         = var.github_organization_id
   github_repository              = var.github_repository
+  github_repository_id           = var.github_repository_id
   github_environment             = var.github_environment
   github_oidc_role_name          = var.github_oidc_role_name
   github_allowed_ref             = var.github_allowed_ref

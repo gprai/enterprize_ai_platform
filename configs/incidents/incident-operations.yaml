@@ -184,8 +184,8 @@ source_bindings:
   - path: configs/observability/slo.yaml
     sha256: e6786d2a6a7ed3b506051c56716d8ceab2d69200ee2acfae299faacb9fcb21ae
   - path: configs/chaos/controlled-dependency-chaos.yaml
-    sha256: a93aae3165f32f200885c416d63a1f723cc8d1d95319ceae8f3e18cabca6fe8c
+    sha256: f8640acfc144c5feb24c5d559b415e184af1d84514d6ec44fae9efb8079cbf8a
   - path: configs/recovery/disaster-recovery.yaml
-    sha256: f978f47caa19b93229f93ac2ca61a6703db08ba9e416cec88bca68dfe6d89421
+    sha256: 382bb9cde3d78b4f9b365d600d8e780c761281a963d49f677a44c561d2724908
   - path: docs/governance/W7-001-remediation-traceability.md
     sha256: 9f7b873bd9b9264464218dafda4f6119189367c3d33207431fb16e0164c592dd

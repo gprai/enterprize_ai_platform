@@ -369,12 +369,30 @@ variable "github_organization" {
   }
 }
 
+variable "github_organization_id" {
+  type        = string
+  description = "Verified immutable GitHub organization/user owner ID used in OIDC subjects."
+  validation {
+    condition     = var.github_organization_id == "82297871"
+    error_message = "github_organization_id must equal 82297871."
+  }
+}
+
 variable "github_repository" {
   type        = string
   description = "Exact GitHub repository name."
   validation {
     condition     = var.github_repository == "enterprize_ai_platform"
     error_message = "github_repository must equal enterprize_ai_platform."
+  }
+}
+
+variable "github_repository_id" {
+  type        = string
+  description = "Verified immutable GitHub repository ID used in OIDC subjects."
+  validation {
+    condition     = var.github_repository_id == "1340913005"
+    error_message = "github_repository_id must equal 1340913005."
   }
 }
 

@@ -70,6 +70,12 @@ test_w6_004_private_endpoint_inventory_is_exact if {
 	}
 }
 
+test_github_oidc_subject_accepts_only_verified_immutable_repository_ids if {
+	github_oidc_subject_valid("repo:gprai@82297871/enterprize_ai_platform@1340913005:environment:sandbox")
+	github_oidc_subject_valid("repo:gprai@82297871/enterprize_ai_platform@1340913005:ref:refs/heads/main")
+	not github_oidc_subject_valid("repo:gprai/enterprize_ai_platform:environment:sandbox")
+}
+
 approved_tags := {
 	"Project": "enterprise-ai-platform",
 	"Environment": "sandbox",

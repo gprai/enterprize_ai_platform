@@ -109,7 +109,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "e33f8ac09c3450f84efa8991bd206ec022b4914a4512fc6d26820b248c8bdfc8",
+        "3c599aea07f20ed3f8c0e07fe373172ec05c662124d501a53f9ed2ba1c9f8dac",
     ),
     (
         "infra/modules/ecr/main.tf",
@@ -441,28 +441,28 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime": (
         "infra/modules/iam/main.tf",
-        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
         "infra/modules/iam/main.tf",
-        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
         "infra/modules/iam/main.tf",
-        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
         "infra/modules/iam/main.tf",
-        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
         "infra/modules/iam/main.tf",
-        "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     **{
         f"module.iam.data.aws_iam_policy_document.{name}": (
             "infra/modules/iam/main.tf",
-            "28c56ab2b169ae372d9b9b02449dea7ee83ca6db678cac2a696d1487c4118ec1",
+            "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
         )
         for name in (
             "capstone_build",
