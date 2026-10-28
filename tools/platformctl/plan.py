@@ -2400,7 +2400,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         ".secrets.baseline",
         # pragma: allowlist nextline secret
-        "f6c3b2f09c54a49e1920c087c513e52587eba6961dff0f322ee23b6855b362ef",
+        "bfcbb9a11339ff713efa1df36a3779105554f1b6f5e31ef4a0ddd0a47258b891",
     ),
     (
         "feature-matrix.yaml",
@@ -2425,7 +2425,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/environments/sandbox/main.tf",
         # pragma: allowlist nextline secret
-        "e33f8ac09c3450f84efa8991bd206ec022b4914a4512fc6d26820b248c8bdfc8",
+        "3c599aea07f20ed3f8c0e07fe373172ec05c662124d501a53f9ed2ba1c9f8dac",
     ),
     (
         "infra/environments/sandbox/versions.tf",
@@ -2435,7 +2435,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/contract/test_terraform_module_contract.py",
         # pragma: allowlist nextline secret
-        "c2cd0331c5d9becde46f1539b6d698e53c2944d2d09f4ecdc24e352011ab0dba",
+        "31c1d44d010a6945b1e4e1f33fa67c90f8d6f9fd851f46f96f82c1cc3a5b0a3e",
     ),
     (
         "tests/feature/test_feature_matrix.py",
@@ -2460,7 +2460,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_terraform_security.py",
         # pragma: allowlist nextline secret
-        "15185bc1f7cb62c9a01e894b0a309f77afb2183429e5227d08fdba31f701b922",
+        "696e28b876570ab5627efa44d66a2ba7ef37387f5c5613783c6797bf3b2a6310",
     ),
     (
         "tests/teardown/test_platformctl_cleanup.py",
@@ -2500,7 +2500,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/environments/sandbox/terraform.tfvars.example",
         # pragma: allowlist nextline secret
-        "49c7dd12b9762d92dc37e3c070f3644fe3c8d739536650013ac9d1b88854166f",
+        "6003a2491a4837e9eaee3a157eddb28bbd8d76bdf06e866847970da67acd7c73",
     ),
     (
         "docs/cost-estimates/W5-inputs.md",

@@ -109,7 +109,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "e33f8ac09c3450f84efa8991bd206ec022b4914a4512fc6d26820b248c8bdfc8",
+        "3c599aea07f20ed3f8c0e07fe373172ec05c662124d501a53f9ed2ba1c9f8dac",
     ),
     (
         "infra/modules/ecr/main.tf",
