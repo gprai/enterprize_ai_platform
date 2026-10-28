@@ -29,6 +29,7 @@ data "aws_iam_policy_document" "this" {
       "kms:ListGrants",
       "kms:ListResourceTags",
       "kms:PutKeyPolicy",
+      "kms:RetireGrant",
       "kms:RevokeGrant",
       "kms:ScheduleKeyDeletion",
       "kms:TagResource",

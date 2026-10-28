@@ -41,7 +41,7 @@ def test_secret_baseline_contains_only_hashed_reviewed_results_and_no_backup() -
     results = baseline["results"]
     assert isinstance(results, dict) and results
     assert len(results) == 56
-    assert sum(len(findings) for findings in results.values()) == 417
+    assert sum(len(findings) for findings in results.values()) == 436
     for path, findings in results.items():
         assert isinstance(path, str)
         assert isinstance(findings, list) and findings

@@ -186,6 +186,6 @@ source_bindings:
   - path: configs/chaos/controlled-dependency-chaos.yaml
     sha256: a93aae3165f32f200885c416d63a1f723cc8d1d95319ceae8f3e18cabca6fe8c
   - path: configs/recovery/disaster-recovery.yaml
-    sha256: 3829c83aef027165c05fd924425eaf1b7821e4d9bed4b4823dcdd02b983ecdd5
+    sha256: f978f47caa19b93229f93ac2ca61a6703db08ba9e416cec88bca68dfe6d89421
   - path: docs/governance/W7-001-remediation-traceability.md
     sha256: 9f7b873bd9b9264464218dafda4f6119189367c3d33207431fb16e0164c592dd
