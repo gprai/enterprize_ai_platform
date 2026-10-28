@@ -238,26 +238,29 @@ def main() -> int:
     parser.add_argument("--exception", type=Path)
     parser.add_argument("--source-manifest", type=Path)
     args = parser.parse_args()
-    blocked = False
-    for name in ("toolchain", "codebuild"):
-        try:
+    image_names = ("toolchain", "codebuild")
+    if args.exception is not None:
+        if args.source_manifest is None:
+            print("scan gate blocked code=SCAN_REPORT_OR_EXCEPTION_INVALID")
+            return 1
+        reports: dict[str, tuple[Path, Path]] = {}
+        for name in image_names:
             trivy_path = args.report_dir / f"{name}-trivy.json"
             grype_path = args.report_dir / f"{name}-grype.json"
-            if args.exception is None:
-                counts = evaluate_scan(trivy_path, grype_path)
-                blocked |= any(counts)
-            else:
-                if args.source_manifest is None:
-                    raise ImageScanError("Pinned source manifest path is required")
+            try:
                 summary = scan_summary(trivy_path, grype_path)
-                print(
-                    f"{name}: observed Trivy high/critical={summary[0]}, "
-                    f"secrets={summary[1]}, finding_sha256={summary[3]}"
-                )
-                print(
-                    f"{name}: observed Grype high/critical={summary[2]}, "
-                    f"finding_sha256={summary[4]}"
-                )
+            except (ImageScanError, OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+                print(f"{name}: scan gate blocked code={diagnostic_code(exc)}")
+                return 1
+            reports[name] = (trivy_path, grype_path)
+            print(
+                f"{name}: observed Trivy high/critical={summary[0]}, "
+                f"secrets={summary[1]}, finding_sha256={summary[3]}"
+            )
+            print(f"{name}: observed Grype high/critical={summary[2]}, finding_sha256={summary[4]}")
+        for name in image_names:
+            trivy_path, grype_path = reports[name]
+            try:
                 counts = evaluate_approved_scan(
                     trivy_path,
                     grype_path,
@@ -265,6 +268,20 @@ def main() -> int:
                     exception_path=args.exception,
                     source_manifest_path=args.source_manifest,
                 )
+            except (ImageScanError, OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+                print(f"{name}: scan gate blocked code={diagnostic_code(exc)}")
+                return 1
+            print(f"{name}: Trivy high/critical={counts[0]}, secrets={counts[1]}")
+            print(f"{name}: Grype high/critical={counts[2]}")
+        return 0
+
+    blocked = False
+    for name in image_names:
+        try:
+            trivy_path = args.report_dir / f"{name}-trivy.json"
+            grype_path = args.report_dir / f"{name}-grype.json"
+            counts = evaluate_scan(trivy_path, grype_path)
+            blocked |= any(counts)
         except (ImageScanError, OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
             print(f"{name}: scan gate blocked code={diagnostic_code(exc)}")
             return 1
