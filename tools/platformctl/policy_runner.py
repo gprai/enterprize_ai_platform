@@ -441,28 +441,28 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime": (
         "infra/modules/iam/main.tf",
-        "8f1bc5fb274c102ab76713ea0dab2f1f6abcf809681c17a0e5120cd32c5c6dad",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
         "infra/modules/iam/main.tf",
-        "8f1bc5fb274c102ab76713ea0dab2f1f6abcf809681c17a0e5120cd32c5c6dad",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
         "infra/modules/iam/main.tf",
-        "8f1bc5fb274c102ab76713ea0dab2f1f6abcf809681c17a0e5120cd32c5c6dad",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
         "infra/modules/iam/main.tf",
-        "8f1bc5fb274c102ab76713ea0dab2f1f6abcf809681c17a0e5120cd32c5c6dad",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
         "infra/modules/iam/main.tf",
-        "8f1bc5fb274c102ab76713ea0dab2f1f6abcf809681c17a0e5120cd32c5c6dad",
+        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
     ),
     **{
         f"module.iam.data.aws_iam_policy_document.{name}": (
             "infra/modules/iam/main.tf",
-            "8f1bc5fb274c102ab76713ea0dab2f1f6abcf809681c17a0e5120cd32c5c6dad",
+            "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
         )
         for name in (
             "capstone_build",

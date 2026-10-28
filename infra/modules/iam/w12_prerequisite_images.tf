@@ -4,6 +4,7 @@ locals {
 }
 
 data "aws_iam_policy_document" "w12_image_publisher_trust" {
+  #checkov:skip=CKV_AWS_358:Owner-approved GitHub immutable owner and repository ID subjects are stricter than legacy repo subjects but are not recognized by Checkov 3.3.16.
   statement {
     sid     = "ExactSandboxGitHubEnvironment"
     actions = ["sts:AssumeRoleWithWebIdentity"]

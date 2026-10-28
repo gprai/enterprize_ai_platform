@@ -80,6 +80,7 @@ data "aws_iam_policy_document" "administrator_trust" {
 }
 
 data "aws_iam_policy_document" "github_trust" {
+  #checkov:skip=CKV_AWS_358:Owner-approved GitHub immutable owner and repository ID subjects are stricter than legacy repo subjects but are not recognized by Checkov 3.3.16.
   statement {
     sid     = "ExactGitHubEnvironmentTrust"
     effect  = "Allow"
@@ -180,6 +181,7 @@ resource "aws_iam_role" "github_oidc" {
 }
 
 data "aws_iam_policy_document" "capstone_build_trust" {
+  #checkov:skip=CKV_AWS_358:Owner-approved GitHub immutable owner and repository ID subjects are stricter than legacy repo subjects but are not recognized by Checkov 3.3.16.
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
