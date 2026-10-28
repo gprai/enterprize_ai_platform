@@ -69,6 +69,11 @@ def test_manual_workflow_scans_before_assumption_or_push() -> None:
     assert workflow.index("Assume only the dedicated") < workflow.index("Push only scanned images")
     assert "aws ecr-public get-login-password --region us-east-1" in workflow
     assert "docker login --username AWS --password-stdin public.ecr.aws" in workflow
+    public_config = workflow.index('public_config="$RUNNER_TEMP/w12-public-ecr-docker-config"')
+    export_config = workflow.index('export DOCKER_CONFIG="$public_config"')
+    persist_config = workflow.index('echo "DOCKER_CONFIG=$public_config" >> "$GITHUB_ENV"')
+    public_login = workflow.index("docker login --username AWS --password-stdin public.ecr.aws")
+    assert public_config < export_config < persist_config < public_login
     assert "tools/w12_001_images.py" in workflow
     assert "--exception configs/ci/w12-001-image-scan-exception.json" in workflow
     assert "--source-manifest images/w12/pinned-inputs.json" in workflow

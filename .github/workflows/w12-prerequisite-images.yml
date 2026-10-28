@@ -72,6 +72,7 @@ jobs:
           set -euo pipefail
           public_config="$RUNNER_TEMP/w12-public-ecr-docker-config"
           mkdir -m 700 "$public_config"
+          export DOCKER_CONFIG="$public_config"
           echo "DOCKER_CONFIG=$public_config" >> "$GITHUB_ENV"
           aws ecr-public get-login-password --region us-east-1 | \
             docker login --username AWS --password-stdin public.ecr.aws > /dev/null
