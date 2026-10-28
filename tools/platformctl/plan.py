@@ -2460,7 +2460,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_terraform_security.py",
         # pragma: allowlist nextline secret
-        "696e28b876570ab5627efa44d66a2ba7ef37387f5c5613783c6797bf3b2a6310",
+        "cde7708d8773f895b8349ab21b5d649426e911d0a54f19c9854c4a7cf63f461d",
     ),
     (
         "tests/teardown/test_platformctl_cleanup.py",

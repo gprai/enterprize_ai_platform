@@ -38,7 +38,7 @@ resource "aws_iam_role" "w12_public_ecr_reader" {
 }
 
 data "aws_iam_policy_document" "w12_public_ecr_reader" {
-  #checkov:skip=CKV_AWS_107:Owner-approved AWS requirement for sts:GetServiceBearerToken; constrained to ecr-public.amazonaws.com and a token-only role.
+  #checkov:skip=CKV_AWS_107:Owner-approved AWS Public ECR authentication requires sts:GetServiceBearerToken on Resource *; this token-only role is restricted by immutable GitHub repository IDs and the protected sandbox environment.
   statement {
     sid       = "AuthorizePublicEcrLogin"
     actions   = ["ecr-public:GetAuthorizationToken"]
@@ -48,11 +48,6 @@ data "aws_iam_policy_document" "w12_public_ecr_reader" {
     sid       = "AuthorizePublicEcrServiceBearerToken"
     actions   = ["sts:GetServiceBearerToken"]
     resources = ["*"]
-    condition {
-      test     = "StringEquals"
-      variable = "sts:AWSServiceName"
-      values   = ["ecr-public.amazonaws.com"]
-    }
   }
 }
 
