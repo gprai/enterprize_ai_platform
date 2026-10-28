@@ -60,6 +60,21 @@ jobs:
               assert len(data) == entry['bytes']
               assert hashlib.sha256(data).hexdigest() == entry['sha256']
           PY
+      - name: Assume only the read-only Public ECR role
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
+        with:
+          role-to-assume: arn:aws:iam::526338061652:role/enterprise-ai-w12-public-ecr-reader
+          role-duration-seconds: 900
+          aws-region: us-east-1
+      - name: Authenticate only to Public ECR for the pinned base pull
+        shell: bash
+        run: |
+          set -euo pipefail
+          public_config="$RUNNER_TEMP/w12-public-ecr-docker-config"
+          mkdir -m 700 "$public_config"
+          echo "DOCKER_CONFIG=$public_config" >> "$GITHUB_ENV"
+          aws ecr-public get-login-password --region us-east-1 | \
+            docker login --username AWS --password-stdin public.ecr.aws > /dev/null
       - name: Build both pinned Linux AMD64 images
         shell: bash
         run: |
@@ -68,6 +83,13 @@ jobs:
             -f images/w12/toolchain.Dockerfile -t w12-toolchain:reviewed images/w12
           docker build --pull --platform linux/amd64 \
             -f images/w12/codebuild.Dockerfile -t w12-codebuild:reviewed images/w12
+      - name: Remove temporary Public ECR authentication
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker logout public.ecr.aws > /dev/null 2>&1 || true
+          rm -rf -- "$DOCKER_CONFIG"
       - name: Test image compatibility
         shell: bash
         run: |

@@ -30,6 +30,37 @@ resource "aws_iam_role" "w12_image_publisher" {
   tags               = var.tags
 }
 
+resource "aws_iam_role" "w12_public_ecr_reader" {
+  name               = "enterprise-ai-w12-public-ecr-reader"
+  assume_role_policy = data.aws_iam_policy_document.w12_image_publisher_trust.json
+  tags               = var.tags
+}
+
+data "aws_iam_policy_document" "w12_public_ecr_reader" {
+  #checkov:skip=CKV_AWS_107:AWS requires sts:GetServiceBearerToken for authenticated Public ECR; constrained to ecr-public.amazonaws.com and a token-only role.
+  statement {
+    sid       = "AuthorizePublicEcrLogin"
+    actions   = ["ecr-public:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+  statement {
+    sid       = "AuthorizePublicEcrServiceBearerToken"
+    actions   = ["sts:GetServiceBearerToken"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "sts:AWSServiceName"
+      values   = ["ecr-public.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "w12_public_ecr_reader" {
+  name   = "enterprise-ai-w12-public-ecr-reader"
+  role   = aws_iam_role.w12_public_ecr_reader.id
+  policy = data.aws_iam_policy_document.w12_public_ecr_reader.json
+}
+
 data "aws_iam_policy_document" "w12_image_publisher" {
   statement {
     sid       = "AuthorizeEcrLoginInExactRegion"
