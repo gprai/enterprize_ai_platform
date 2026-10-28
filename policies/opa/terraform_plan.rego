@@ -2061,8 +2061,7 @@ s3_lifecycle_valid(change, address) if {
 # The W12 platform bucket retains noncurrent evidence versions for 180 days.
 s3_lifecycle_valid(change, address) if {
 	address == "module.storage.aws_s3_bucket_lifecycle_configuration.this"
-	operational.profile == "INITIAL_EMPTY_STATE"
-	operational.action == "PLAN_REVIEW"
+	w12_plan_review_profile
 	change.change.actions == ["create"]
 	rules := object.get(after(change), "rule", [])
 	count(rules) == 8
@@ -2143,8 +2142,7 @@ w12_exact_ecr_repository_resources(address, resources) if {
 }
 
 w12_ecr_authorization_policy_valid(change) if {
-	operational.profile == "INITIAL_EMPTY_STATE"
-	operational.action == "PLAN_REVIEW"
+	w12_plan_review_profile
 	change.type == "aws_iam_role_policy"
 	change.change.actions == ["create"]
 	change.address in {
@@ -2181,8 +2179,7 @@ w12_ecr_authorization_policy_valid(change) if {
 }
 
 w12_main_branch_github_trust_valid(change) if {
-	operational.profile == "INITIAL_EMPTY_STATE"
-	operational.action == "PLAN_REVIEW"
+	w12_plan_review_profile
 	change.type == "aws_iam_role"
 	change.change.actions == ["create"]
 	change.address in {
@@ -2306,8 +2303,7 @@ network_traffic_invalid(change) if {
 }
 
 w12_private_codebuild_egress_valid(change) if {
-	operational.profile == "INITIAL_EMPTY_STATE"
-	operational.action == "PLAN_REVIEW"
+	w12_plan_review_profile
 	change.address == "module.network.aws_security_group.capstone_codebuild"
 	change.type == "aws_security_group"
 	change.change.actions == ["create"]
@@ -3393,14 +3389,10 @@ bedrock_logging_configuration_snapshot := {
 	"region": "ap-southeast-1",
 }
 
-bedrock_logging_configuration_before_sensitive := {
-	"logging_config": [{
-		"cloudwatch_config": [{
-			"large_data_delivery_s3_config": [{}],
-		}],
-		"s3_config": [{}],
-	}],
-}
+bedrock_logging_configuration_before_sensitive := {"logging_config": [{
+	"cloudwatch_config": [{"large_data_delivery_s3_config": [{}]}],
+	"s3_config": [{}],
+}]}
 
 w6_004_bedrock_logging_disable(change, rule) if {
 	change.address == "module.observability[0].aws_bedrock_model_invocation_logging_configuration.this[0]"
@@ -4031,6 +4023,11 @@ operational_profile_valid if operational_apply_profile_valid
 
 operational_profile_valid if operational_destroy_profile_valid
 
+w12_plan_review_profile if {
+	operational.action == "PLAN_REVIEW"
+	operational.profile in {"INITIAL_EMPTY_STATE", "RECOVERY_EXISTING_STATE"}
+}
+
 # This profile reviews one source-bound initial W12 plan. It cannot authorize
 # updates, replacements, deletes, or an apply; the release receipt retains the
 # independently verified HCP and source identities.
@@ -4077,6 +4074,53 @@ w12_initial_plan_review_profile_valid if {
 }
 
 operational_profile_valid if w12_initial_plan_review_profile_valid
+
+# This profile reviews a source-bound W12 recovery plan against an existing
+# HCP state version. It permits only non-destructive convergence: creates,
+# updates, reads, and exact no-ops. Deletes and replacements remain invalid.
+valid_w12_recovery_action(change) if {
+	change.change.actions in [["create"], ["read"], ["update"]]
+}
+
+valid_w12_recovery_action(change) if {
+	change.change.actions == ["no-op"]
+	change.change.before == change.change.after
+	change.change.after_unknown == {}
+}
+
+w12_recovery_plan_review_profile_valid if {
+	is_object(operational)
+	object.keys(operational) == {
+		"schema_version", "action", "profile", "record_sha256", "source_commit",
+		"source_tree", "configuration_version_id", "run_id", "plan_id",
+		"plan_json_sha256", "workspace", "input_state_version_id",
+	}
+	operational.schema_version == "w12-001.plan-review.v1"
+	operational.action == "PLAN_REVIEW"
+	operational.profile == "RECOVERY_EXISTING_STATE"
+	operational.workspace == "enterprise-ai-sandbox"
+	regex.match("^sv-[A-Za-z0-9]+$", operational.input_state_version_id)
+	regex.match("^[0-9a-f]{64}$", operational.record_sha256)
+	regex.match("^[0-9a-f]{40}$", operational.source_commit)
+	regex.match("^[0-9a-f]{40}$", operational.source_tree)
+	regex.match("^[0-9a-f]{64}$", operational.plan_json_sha256)
+	regex.match("^cv-[A-Za-z0-9]+$", operational.configuration_version_id)
+	regex.match("^run-[A-Za-z0-9]+$", operational.run_id)
+	regex.match("^plan-[A-Za-z0-9]+$", operational.plan_id)
+	input.terraform_version == "1.16.1"
+	input.variables.aws_region.value == "ap-southeast-1"
+	count(resource_changes) > 0
+	some change in resource_changes
+	change.change.actions in [["create"], ["update"]]
+	every candidate in resource_changes {
+		valid_change(candidate)
+		valid_w12_recovery_action(candidate)
+		change_has_no_sensitive_markers(candidate)
+		not critical_unknown_present(candidate)
+	}
+}
+
+operational_profile_valid if w12_recovery_plan_review_profile_valid
 
 operational_destroy_resource_valid(change) if {
 	change.type in supported_aws_resource_types
