@@ -37,7 +37,7 @@ resource "aws_iam_role" "w12_public_ecr_reader" {
 }
 
 data "aws_iam_policy_document" "w12_public_ecr_reader" {
-  #checkov:skip=CKV_AWS_107:AWS requires sts:GetServiceBearerToken for authenticated Public ECR; constrained to ecr-public.amazonaws.com and a token-only role.
+  #checkov:skip=CKV_AWS_107:Owner-approved AWS requirement for sts:GetServiceBearerToken; constrained to ecr-public.amazonaws.com and a token-only role.
   statement {
     sid       = "AuthorizePublicEcrLogin"
     actions   = ["ecr-public:GetAuthorizationToken"]
