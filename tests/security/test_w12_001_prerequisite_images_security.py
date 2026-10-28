@@ -165,3 +165,21 @@ def test_private_publisher_credentials_remain_after_the_scan_gate() -> None:
     private_assumption = workflow.index("Assume only the dedicated prerequisite publisher role")
     push = workflow.index("Push only scanned images and read back immutable registry digests")
     assert scan < private_assumption < push
+
+
+def test_public_ecr_login_and_build_share_the_bounded_docker_config() -> None:
+    workflow = (ROOT / ".github/workflows/w12-prerequisite-images.yml").read_text(encoding="utf-8")
+    authentication = workflow.split(
+        "- name: Authenticate only to Public ECR for the pinned base pull", 1
+    )[1].split("- name: Build both pinned Linux AMD64 images", 1)[0]
+    assert 'public_config="$RUNNER_TEMP/w12-public-ecr-docker-config"' in authentication
+    assert 'mkdir -m 700 "$public_config"' in authentication
+    assert 'export DOCKER_CONFIG="$public_config"' in authentication
+    assert 'echo "DOCKER_CONFIG=$public_config" >> "$GITHUB_ENV"' in authentication
+    assert authentication.index('export DOCKER_CONFIG="$public_config"') < authentication.index(
+        "docker login --username AWS --password-stdin public.ecr.aws"
+    )
+    cleanup = workflow.split("- name: Remove temporary Public ECR authentication", 1)[1]
+    cleanup = cleanup.split("- name: Test image compatibility", 1)[0]
+    assert "docker logout public.ecr.aws" in cleanup
+    assert 'rm -rf -- "$DOCKER_CONFIG"' in cleanup
