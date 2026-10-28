@@ -5803,9 +5803,7 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
     evaluation_context["operation"] = {
         "schema_version": "w12-001.plan-review.v1",
         "action": "PLAN_REVIEW",
-        "profile": (
-            "INITIAL_EMPTY_STATE" if state_id is None else "RECOVERY_EXISTING_STATE"
-        ),
+        "profile": ("INITIAL_EMPTY_STATE" if state_id is None else "RECOVERY_EXISTING_STATE"),
         "record_sha256": digest,
         "source_commit": record["source"]["commit"],
         "source_tree": record["source"]["tree"],
