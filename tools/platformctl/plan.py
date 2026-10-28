@@ -2450,7 +2450,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/security/test_precommit_controls.py",
         # pragma: allowlist nextline secret
-        "d558bd1cc2d373792cf51fa48315dc3f6598f3d933125274efadc365c1355233",
+        "2c6926f3464fd18bc39cf593bf6ba3b93e5e9b117f353d17f29bd5bb4e7fba20",
     ),
     (
         "tests/security/test_repository_security.py",
@@ -2475,7 +2475,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "tests/teardown/test_w1_08_cleanliness.py",
         # pragma: allowlist nextline secret
-        "6958a57f5780b327d5b553ce7d01af7b7ae174d216ecd2f506974f91c066f204",
+        "6cda51ba30ca0a10126766e24e71021479b2af7f65747b56e45f648f7738a33e",
     ),
     (
         "tools/platformctl/__init__.py",
