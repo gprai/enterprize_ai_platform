@@ -132,8 +132,9 @@ def test_public_ecr_reader_is_token_only_and_uses_exact_environment_trust() -> N
     reader = reader.split('resource "aws_iam_role_policy" "w12_public_ecr_reader"', 1)[0]
     assert 'actions   = ["ecr-public:GetAuthorizationToken"]' in reader
     assert 'actions   = ["sts:GetServiceBearerToken"]' in reader
-    assert 'variable = "sts:AWSServiceName"' in reader
-    assert 'values   = ["ecr-public.amazonaws.com"]' in reader
+    assert 'variable = "sts:AWSServiceName"' not in reader
+    assert 'values   = ["ecr-public.amazonaws.com"]' not in reader
+    assert reader.count('resources = ["*"]') == 2
     assert "ecr:PutImage" not in reader
     assert "ecr:InitiateLayerUpload" not in reader
     assert "ecr:UploadLayerPart" not in reader

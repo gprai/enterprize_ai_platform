@@ -138,6 +138,9 @@ def test_public_ecr_reader_cannot_publish_or_manage_aws_resources() -> None:
     reader = reader.split('resource "aws_iam_role_policy" "w12_public_ecr_reader"', 1)[0]
     assert "ecr-public:GetAuthorizationToken" in reader
     assert "sts:GetServiceBearerToken" in reader
+    assert "sts:AWSServiceName" not in reader
+    assert "ecr-public.amazonaws.com" not in reader
+    assert reader.count('resources = ["*"]') == 2
     for prohibited in (
         "ecr:PutImage",
         "ecr-public:PutImage",
