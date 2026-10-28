@@ -76,8 +76,8 @@ def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     assert public_ecr_reader.count('resources = ["*"]') == 2
     assert 'actions   = ["ecr-public:GetAuthorizationToken"]' in public_ecr_reader
     assert 'actions   = ["sts:GetServiceBearerToken"]' in public_ecr_reader
-    assert 'variable = "sts:AWSServiceName"' in public_ecr_reader
-    assert 'values   = ["ecr-public.amazonaws.com"]' in public_ecr_reader
+    assert 'variable = "sts:AWSServiceName"' not in public_ecr_reader
+    assert 'values   = ["ecr-public.amazonaws.com"]' not in public_ecr_reader
     network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
     assert network.count('identifiers = ["*"]') == 3
     assert network.count('variable = "aws:PrincipalAccount"') == 2
