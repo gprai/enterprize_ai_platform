@@ -377,9 +377,7 @@ def test_w12_recovery_profile_requires_existing_state_and_non_destructive_change
 
 
 def test_w12_recovery_profile_is_accepted_by_production_decision() -> None:
-    decision = _opa_value(
-        _recovery_profile_plan(), "data.enterprise_ai.terraform.plan.decision"
-    )
+    decision = _opa_value(_recovery_profile_plan(), "data.enterprise_ai.terraform.plan.decision")
     assert not any(
         finding["resource_address"] == "policy.operation" for finding in decision["findings"]
     )
