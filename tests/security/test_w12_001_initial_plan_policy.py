@@ -570,7 +570,8 @@ def test_main_branch_github_trust_exception_is_exact(name: str) -> None:
                     "StringEquals": {
                         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
                         "token.actions.githubusercontent.com:sub": (
-                            "repo:gprai/enterprize_ai_platform:ref:refs/heads/main"
+                            "repo:gprai@82297871/enterprize_ai_platform@1340913005:"
+                            "ref:refs/heads/main"
                         ),
                     }
                 },
@@ -594,7 +595,7 @@ def test_main_branch_github_trust_exception_is_exact(name: str) -> None:
     assert _opa_value(plan, query) is True
     document["Statement"][0]["Condition"]["StringEquals"][
         "token.actions.githubusercontent.com:sub"
-    ] = "repo:gprai/enterprize_ai_platform:ref:refs/heads/*"
+    ] = "repo:gprai@82297871/enterprize_ai_platform@1340913005:ref:refs/heads/*"
     plan["resource_changes"][1]["change"]["after"]["assume_role_policy"] = json.dumps(document)
     assert _opa_value(plan, query) is False
 

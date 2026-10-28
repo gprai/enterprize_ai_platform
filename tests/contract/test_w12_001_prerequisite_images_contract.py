@@ -113,10 +113,7 @@ def test_dedicated_publisher_and_exact_codebuild_pull() -> None:
     assert "ecr:GetLifecyclePolicy" in publisher
     trust = iam.split('data "aws_iam_policy_document" "w12_image_publisher_trust"', 1)[1]
     trust = trust.split('resource "aws_iam_role" "w12_image_publisher"', 1)[0]
-    assert (
-        "repo:${var.github_organization}/${var.github_repository}:environment:${var.github_environment}"
-        in trust
-    )
+    assert "${local.github_repository_subject}:environment:${var.github_environment}" in trust
     codebuild = iam.split('data "aws_iam_policy_document" "w12_codebuild_executor_pull"', 1)[1]
     codebuild = codebuild.split('resource "aws_iam_role_policy" "w12_codebuild_executor_pull"', 1)[
         0

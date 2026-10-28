@@ -150,6 +150,12 @@ def test_public_ecr_reader_cannot_publish_or_manage_aws_resources() -> None:
         assert prohibited not in reader
 
 
+def test_prerequisite_roles_use_only_the_immutable_repository_subject() -> None:
+    source = (ROOT / "infra/modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
+    assert "${local.github_repository_subject}:environment:${var.github_environment}" in source
+    assert "repo:${var.github_organization}/${var.github_repository}" not in source
+
+
 def test_private_publisher_credentials_remain_after_the_scan_gate() -> None:
     workflow = (ROOT / ".github/workflows/w12-prerequisite-images.yml").read_text(encoding="utf-8")
     scan = workflow.index("Scan both final images against the exact approved exception")

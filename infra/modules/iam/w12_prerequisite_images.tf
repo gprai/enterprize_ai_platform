@@ -19,7 +19,7 @@ data "aws_iam_policy_document" "w12_image_publisher_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_organization}/${var.github_repository}:environment:${var.github_environment}"]
+      values   = ["${local.github_repository_subject}:environment:${var.github_environment}"]
     }
   }
 }

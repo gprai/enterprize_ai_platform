@@ -2199,7 +2199,7 @@ w12_main_branch_github_trust_valid(change) if {
 	object.get(statement, "Principal", {}) == {"Federated": "arn:aws:iam::526338061652:oidc-provider/token.actions.githubusercontent.com"}
 	object.get(statement, "Condition", {}) == {"StringEquals": {
 		"token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-		"token.actions.githubusercontent.com:sub": "repo:gprai/enterprize_ai_platform:ref:refs/heads/main",
+		"token.actions.githubusercontent.com:sub": "repo:gprai@82297871/enterprize_ai_platform@1340913005:ref:refs/heads/main",
 	}}
 }
 
@@ -2215,9 +2215,13 @@ iam_scope_invalid(policy) if {
 
 iam_scope_invalid(policy) if contains(policy, "repo:gprai/enterprise-ai-platform:")
 
+github_oidc_subject_valid(policy) if contains(policy, "repo:gprai@82297871/enterprize_ai_platform@1340913005:environment:sandbox")
+
+github_oidc_subject_valid(policy) if contains(policy, "repo:gprai@82297871/enterprize_ai_platform@1340913005:ref:refs/heads/main")
+
 iam_scope_invalid(policy) if {
 	contains(policy, "token.actions.githubusercontent.com:sub")
-	not contains(policy, "repo:gprai/enterprize_ai_platform:environment:sandbox")
+	not github_oidc_subject_valid(policy)
 }
 
 iam_scope_invalid(policy) if {

@@ -1241,7 +1241,8 @@ def diagnostic_policy_templates(scope: str) -> dict[str, object]:
                     "StringEquals": {
                         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
                         "token.actions.githubusercontent.com:sub": (
-                            "repo:gprai/enterprize_ai_platform:environment:sandbox"
+                            "repo:gprai@82297871/enterprize_ai_platform@1340913005:"
+                            "environment:sandbox"
                         ),
                     }
                 },

@@ -12,6 +12,7 @@ locals {
   regional_model_arn        = "arn:aws:bedrock:${var.aws_region}::foundation-model/${local.foundation_model_id}"
   global_model_arn          = "arn:aws:bedrock:::foundation-model/${local.foundation_model_id}"
   github_provider_arn       = "arn:aws:iam::${var.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
+  github_repository_subject = "repo:${var.github_organization}@${var.github_organization_id}/${var.github_repository}@${var.github_repository_id}"
   eks_cluster_arn           = "arn:aws:eks:${var.aws_region}:${var.aws_account_id}:cluster/${var.eks_cluster_name}"
   capstone_ecr_arn          = "arn:aws:ecr:${var.aws_region}:${var.aws_account_id}:repository/enterprise-ai/sandbox/api"
   application_log_arn       = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/enterprise-ai-platform/sandbox/application:*"
@@ -96,7 +97,7 @@ data "aws_iam_policy_document" "github_trust" {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       values = [
-        "repo:${var.github_organization}/${var.github_repository}:environment:${var.github_environment}",
+        "${local.github_repository_subject}:environment:${var.github_environment}",
       ]
     }
   }
@@ -193,7 +194,7 @@ data "aws_iam_policy_document" "capstone_build_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_organization}/${var.github_repository}:ref:refs/heads/main"]
+      values   = ["${local.github_repository_subject}:ref:refs/heads/main"]
     }
   }
 }
