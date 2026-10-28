@@ -6,22 +6,22 @@
   "images": {
     "toolchain": {
       "trivy": {
-        "high_critical_count": 145,
-        "finding_sha256": "5dea9ba11c4866b95d54ac2bb8c872daf74f34d7ff3a33b219f50b42f7894ea0"
+        "high_critical_count": 150,
+        "finding_sha256": "5bbaf2e3eea59fdc3a1b5540c672ab8e0804a592ca358627607972290d295bff"
       },
       "grype": {
-        "high_critical_count": 202,
-        "finding_sha256": "a2254b4013f7f8cdf1723118f1d15e70a1be0875ba112bc65257e23c3fb7b739"
+        "high_critical_count": 192,
+        "finding_sha256": "f6458e909b80b28406c93baa2b5c0b1256a36429daea025ebe322ccb53149394"
       }
     },
     "codebuild": {
       "trivy": {
-        "high_critical_count": 84,
-        "finding_sha256": "e325ac3bab207d93dbe79a53c8484934834819849bbf5bce339468840e24d55c"
+        "high_critical_count": 85,
+        "finding_sha256": "479111d95fe402ca0f98cf147e953b9fe5e8dfc4f39741f3a243d94e35bd6a4c"
       },
       "grype": {
-        "high_critical_count": 131,
-        "finding_sha256": "df538397498bf6ffcf01841bdc16bd9f684603bdf791b7de47275dce46c7c43d"
+        "high_critical_count": 117,
+        "finding_sha256": "fef5d5a2a552a6b4baa3ba42f7eaa54250e5c4930cf1788d7ba927fe186e0b0a"
       }
     }
   }

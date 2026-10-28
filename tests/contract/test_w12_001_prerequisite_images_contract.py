@@ -99,8 +99,21 @@ def test_scan_exception_is_exact_and_time_bounded() -> None:
         name: {scanner: details["high_critical_count"] for scanner, details in scans.items()}
         for name, scans in exception["images"].items()
     } == {
-        "toolchain": {"trivy": 145, "grype": 202},
-        "codebuild": {"trivy": 84, "grype": 131},
+        "toolchain": {"trivy": 150, "grype": 192},
+        "codebuild": {"trivy": 85, "grype": 117},
+    }
+    assert {
+        name: {scanner: details["finding_sha256"] for scanner, details in scans.items()}
+        for name, scans in exception["images"].items()
+    } == {
+        "toolchain": {
+            "trivy": "5bbaf2e3eea59fdc3a1b5540c672ab8e0804a592ca358627607972290d295bff",
+            "grype": "f6458e909b80b28406c93baa2b5c0b1256a36429daea025ebe322ccb53149394",
+        },
+        "codebuild": {
+            "trivy": "479111d95fe402ca0f98cf147e953b9fe5e8dfc4f39741f3a243d94e35bd6a4c",
+            "grype": "fef5d5a2a552a6b4baa3ba42f7eaa54250e5c4930cf1788d7ba927fe186e0b0a",
+        },
     }
     for scans in exception["images"].values():
         assert set(scans) == {"trivy", "grype"}

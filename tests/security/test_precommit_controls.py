@@ -105,6 +105,7 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "src/enterprise_ai_platform/retrieval/models.py": {"Hex High Entropy String": 1},
     "tests/contract/test_embedder.py": {"Hex High Entropy String": 1},
     "tests/contract/test_w5_002_workflow_contract.py": {"Hex High Entropy String": 8},
+    "tests/contract/test_w12_001_prerequisite_images_contract.py": {"Hex High Entropy String": 4},
     "tests/fakes/w10_003_rag_evaluation.py": {"Hex High Entropy String": 3},
     "tests/feature/test_local_retrieval.py": {"Hex High Entropy String": 1},
     "tests/integration/test_sentence_transformer_embedder.py": {"Hex High Entropy String": 1},
@@ -131,6 +132,12 @@ EXPECTED_REVIEWED_LINE_COUNTS = {
     "deploy/capstone/pki.yaml": {16: 1, 24: 1},
     "configs/ci/w5-002.json": {1: 6},
     "configs/ci/w12-001-image-scan-exception.json": {5: 1, 10: 1, 14: 1, 20: 1, 24: 1},
+    "tests/contract/test_w12_001_prerequisite_images_contract.py": {
+        110: 1,
+        111: 1,
+        114: 1,
+        115: 1,
+    },
     "configs/eval/baselines/w3-002-v1.json": {1: 6},
     "configs/lifecycle/w5-004.json": {6: 1, 7: 1, 86: 1, 90: 1, 91: 1},
     "configs/readiness/local-integrated-readiness.yaml": {4: 1},
@@ -444,8 +451,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 56
-    assert sum(len(findings) for findings in results.values()) == 436
+    assert len(results) == 57
+    assert sum(len(findings) for findings in results.values()) == 440
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():
