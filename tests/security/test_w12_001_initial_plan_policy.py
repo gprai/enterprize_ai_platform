@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from collections.abc import Iterator
@@ -25,7 +26,7 @@ from tools.platformctl.policy_runner import (
 from tests.security.test_w5_004_lifecycle_security import ecr_kms_reference_plan
 
 ROOT = Path(__file__).resolve().parents[2]
-OPA = Path(r"E:\AI\.tools\opa\1.20.0\opa.exe")
+OPA = Path(os.environ.get("W12_TEST_OPA", r"E:\AI\.tools\opa\1.20.0\opa.exe"))
 
 
 @contextmanager
@@ -332,6 +333,52 @@ def test_w12_initial_profile_is_required_by_production_decision() -> None:
     del plan["evaluation_context"]["operation"]
     decision = _opa_value(plan, query)
     assert any(
+        finding["resource_address"] == "policy.operation" for finding in decision["findings"]
+    )
+
+
+def _recovery_profile_plan() -> dict[str, object]:
+    plan = _initial_profile_plan()
+    operation = plan["evaluation_context"]["operation"]
+    operation["profile"] = "RECOVERY_EXISTING_STATE"
+    operation["input_state_version_id"] = "sv-Exact1"
+    change = plan["resource_changes"][0]["change"]
+    change.update(
+        actions=["update"],
+        before={"tags": {"ExpiresAt": "2026-10-27T01:00:00Z"}},
+        after={"tags": {"ExpiresAt": "2026-10-27T23:00:00Z"}},
+    )
+    return plan
+
+
+def test_w12_recovery_profile_requires_existing_state_and_non_destructive_changes() -> None:
+    plan = _recovery_profile_plan()
+    query = "data.enterprise_ai.terraform.plan.w12_recovery_plan_review_profile_valid"
+    assert _opa_value(plan, query) is True
+
+    for field, value in (
+        ("action", "APPLY"),
+        ("record_sha256", "not-a-digest"),
+        ("input_state_version_id", None),
+        ("input_state_version_id", "not-a-state-version"),
+    ):
+        changed = deepcopy(plan)
+        changed["evaluation_context"]["operation"][field] = value
+        assert _opa_value(changed, query) is False
+
+    for actions in (["delete"], ["delete", "create"], ["create", "delete"]):
+        changed = deepcopy(plan)
+        changed["resource_changes"][0]["change"]["actions"] = actions
+        assert _opa_value(changed, query) is False
+
+    changed = deepcopy(plan)
+    changed["resource_changes"][0]["change"]["after_unknown"] = {"vpc_id": True}
+    assert _opa_value(changed, query) is False
+
+
+def test_w12_recovery_profile_is_accepted_by_production_decision() -> None:
+    decision = _opa_value(_recovery_profile_plan(), "data.enterprise_ai.terraform.plan.decision")
+    assert not any(
         finding["resource_address"] == "policy.operation" for finding in decision["findings"]
     )
 
