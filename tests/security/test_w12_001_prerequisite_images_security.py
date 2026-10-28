@@ -10,9 +10,12 @@ from pathlib import Path
 import pytest
 from tools.w12_001_images import (
     ImageScanError,
+    diagnostic_code,
     evaluate_approved_scan,
     evaluate_scan,
     finding_digest,
+    main,
+    scan_summary,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -124,12 +127,139 @@ def test_exact_time_bounded_exception_and_changed_findings(tmp_path: Path) -> No
     source.write_bytes(b"{\r\n}\r\n")
     trivy_document["Results"][0]["Vulnerabilities"][0]["InstalledVersion"] = "1.0.1"
     _write(trivy, trivy_document)
-    with pytest.raises(ImageScanError, match="findings differ"):
+    with pytest.raises(ImageScanError, match="findings differ") as changed:
         evaluate_approved_scan(trivy, grype, now=approved + timedelta(days=1), **kwargs)
+    assert diagnostic_code(changed.value) == "FINDING_SET_MISMATCH"
     trivy_document["Results"][0]["Secrets"] = [{"RuleID": "synthetic"}]
     _write(trivy, trivy_document)
     with pytest.raises(ImageScanError, match="Secret findings"):
         evaluate_approved_scan(trivy, grype, now=approved + timedelta(days=1), **kwargs)
+
+
+def test_scan_summary_contains_only_counts_and_finding_set_hashes(tmp_path: Path) -> None:
+    trivy = _write(
+        tmp_path / "trivy.json",
+        {
+            "Results": [
+                {
+                    "Type": "debian",
+                    "Secrets": [],
+                    "Vulnerabilities": [
+                        {
+                            "VulnerabilityID": "CVE-SYNTHETIC-1",
+                            "PkgName": "example",
+                            "InstalledVersion": "1.0",
+                            "Severity": "HIGH",
+                            "FixedVersion": "1.1",
+                        }
+                    ],
+                }
+            ]
+        },
+    )
+    grype = _write(
+        tmp_path / "grype.json",
+        {
+            "matches": [
+                {
+                    "vulnerability": {
+                        "id": "CVE-SYNTHETIC-1",
+                        "namespace": "example",
+                        "severity": "High",
+                        "fix": {"state": "fixed", "versions": ["1.1"]},
+                    },
+                    "artifact": {"name": "example", "version": "1.0", "type": "deb"},
+                }
+            ]
+        },
+    )
+    summary = scan_summary(trivy, grype)
+    assert summary[:3] == (1, 0, 1)
+    assert all(len(value) == 64 for value in summary[3:])
+    assert all("CVE-SYNTHETIC-1" not in value for value in summary[3:])
+
+
+def test_cli_reports_only_sanitized_finding_set_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    trivy_document = {
+        "Results": [
+            {
+                "Type": "debian",
+                "Secrets": [],
+                "Vulnerabilities": [
+                    {
+                        "VulnerabilityID": "CVE-SYNTHETIC-PRIVATE",
+                        "PkgName": "private-package-name",
+                        "InstalledVersion": "1.0",
+                        "Severity": "HIGH",
+                        "FixedVersion": "1.1",
+                    }
+                ],
+            }
+        ]
+    }
+    grype_document = {
+        "matches": [
+            {
+                "vulnerability": {
+                    "id": "CVE-SYNTHETIC-PRIVATE",
+                    "namespace": "private-namespace",
+                    "severity": "High",
+                    "fix": {"state": "fixed", "versions": ["1.1"]},
+                },
+                "artifact": {
+                    "name": "private-package-name",
+                    "version": "1.0",
+                    "type": "deb",
+                },
+            }
+        ]
+    }
+    trivy = _write(tmp_path / "toolchain-trivy.json", trivy_document)
+    grype = _write(tmp_path / "toolchain-grype.json", grype_document)
+    source = tmp_path / "source.json"
+    source.write_bytes(b"{\r\n}\r\n")
+    now = datetime.now(UTC)
+    exception = {
+        "schema_version": "w12-001.exact-image-scan-exception.v1",
+        "approved_at_utc": (now - timedelta(hours=1)).isoformat(),
+        "expires_at_utc": (now + timedelta(hours=1)).isoformat(),
+        "pinned_source_manifest_sha256": hashlib.sha256(
+            source.read_bytes().replace(b"\r\n", b"\n")
+        ).hexdigest(),
+        "images": {
+            name: {
+                scanner: {
+                    "high_critical_count": 1,
+                    "finding_sha256": finding_digest(path, scanner)[1],
+                }
+                for scanner, path in (("trivy", trivy), ("grype", grype))
+            }
+            for name in ("toolchain", "codebuild")
+        },
+    }
+    exception_path = _write(tmp_path / "exception.json", exception)
+    trivy_document["Results"][0]["Vulnerabilities"][0]["InstalledVersion"] = "1.0.1"
+    _write(trivy, trivy_document)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "w12_001_images.py",
+            str(tmp_path),
+            "--exception",
+            str(exception_path),
+            "--source-manifest",
+            str(source),
+        ],
+    )
+    assert main() == 1
+    output = capsys.readouterr().out
+    assert "observed Trivy high/critical=1, secrets=0, finding_sha256=" in output
+    assert "observed Grype high/critical=1, finding_sha256=" in output
+    assert "scan gate blocked code=FINDING_SET_MISMATCH" in output
+    assert "CVE-SYNTHETIC-PRIVATE" not in output
+    assert "private-package-name" not in output
 
 
 def test_public_ecr_reader_cannot_publish_or_manage_aws_resources() -> None:

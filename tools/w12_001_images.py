@@ -14,6 +14,36 @@ class ImageScanError(ValueError):
     """An image scan is missing, malformed, or has unresolved findings."""
 
 
+_DIAGNOSTIC_CODES = (
+    ("Secret findings cannot be excepted", "SECRET_FINDINGS_PRESENT"),
+    ("Scan exception is not currently valid", "EXCEPTION_NOT_CURRENT"),
+    ("Pinned recipe identity changed", "SOURCE_MANIFEST_MISMATCH"),
+    ("Scanner findings differ from the approved set", "FINDING_SET_MISMATCH"),
+    ("Scanner count disagrees with report", "SCANNER_COUNT_MISMATCH"),
+    ("Unrecognized scan exception", "EXCEPTION_SCHEMA_INVALID"),
+    ("Scan exception image scope changed", "EXCEPTION_SCOPE_INVALID"),
+    ("Unapproved image", "EXCEPTION_SCOPE_INVALID"),
+    ("Scanner exception is absent", "EXCEPTION_SCOPE_INVALID"),
+    ("Scan exception times must be UTC", "EXCEPTION_TIME_INVALID"),
+    ("Scan exception window exceeds seven days", "EXCEPTION_TIME_INVALID"),
+)
+
+
+def diagnostic_code(exc: Exception) -> str:
+    """Return a stable, sanitized failure code without exposing report contents."""
+    if isinstance(exc, json.JSONDecodeError):
+        return "SCAN_REPORT_JSON_INVALID"
+    if isinstance(exc, (OSError, UnicodeError)):
+        return "SCAN_REPORT_UNREADABLE"
+    message = str(exc)
+    for fragment, code in _DIAGNOSTIC_CODES:
+        if fragment in message:
+            return code
+    if isinstance(exc, ImageScanError):
+        return "SCAN_REPORT_OR_EXCEPTION_INVALID"
+    return "SCAN_GATE_ERROR"
+
+
 def _document(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -129,6 +159,16 @@ def finding_digest(path: Path, scanner: str) -> tuple[int, str]:
     return len(rows), hashlib.sha256(payload).hexdigest()
 
 
+def scan_summary(trivy_path: Path, grype_path: Path) -> tuple[int, int, int, str, str]:
+    """Return sanitized counts and finding-set identities for gate diagnostics."""
+    counts = evaluate_scan(trivy_path, grype_path)
+    trivy_count, trivy_sha256 = finding_digest(trivy_path, "trivy")
+    grype_count, grype_sha256 = finding_digest(grype_path, "grype")
+    if trivy_count != counts[0] or grype_count != counts[2]:
+        raise ImageScanError("Scanner count disagrees with report")
+    return (*counts, trivy_sha256, grype_sha256)
+
+
 def evaluate_approved_scan(
     trivy_path: Path,
     grype_path: Path,
@@ -139,7 +179,8 @@ def evaluate_approved_scan(
     now: datetime | None = None,
 ) -> tuple[int, int, int]:
     """Accept only the owner's time-bounded, exact finding sets for one reviewed image."""
-    counts = evaluate_scan(trivy_path, grype_path)
+    summary = scan_summary(trivy_path, grype_path)
+    counts = summary[:3]
     if counts[1]:
         raise ImageScanError("Secret findings cannot be excepted")
     if counts[0] == 0 and counts[2] == 0:
@@ -176,18 +217,15 @@ def evaluate_approved_scan(
         raise ImageScanError("Scan exception image scope changed")
     if image_name not in images or not isinstance(images[image_name], dict):
         raise ImageScanError("Unapproved image")
-    for scanner, path, observed_count in (
-        ("trivy", trivy_path, counts[0]),
-        ("grype", grype_path, counts[2]),
+    for scanner, observed_count, digest in (
+        ("trivy", counts[0], summary[3]),
+        ("grype", counts[2], summary[4]),
     ):
         approved = images[image_name].get(scanner)
         if not isinstance(approved, dict):
             raise ImageScanError("Scanner exception is absent")
-        finding_count, digest = finding_digest(path, scanner)
-        if finding_count != observed_count:
-            raise ImageScanError("Scanner count disagrees with report")
         if (
-            approved.get("high_critical_count") != finding_count
+            approved.get("high_critical_count") != observed_count
             or approved.get("finding_sha256") != digest
         ):
             raise ImageScanError("Scanner findings differ from the approved set")
@@ -211,6 +249,15 @@ def main() -> int:
             else:
                 if args.source_manifest is None:
                     raise ImageScanError("Pinned source manifest path is required")
+                summary = scan_summary(trivy_path, grype_path)
+                print(
+                    f"{name}: observed Trivy high/critical={summary[0]}, "
+                    f"secrets={summary[1]}, finding_sha256={summary[3]}"
+                )
+                print(
+                    f"{name}: observed Grype high/critical={summary[2]}, "
+                    f"finding_sha256={summary[4]}"
+                )
                 counts = evaluate_approved_scan(
                     trivy_path,
                     grype_path,
@@ -219,7 +266,7 @@ def main() -> int:
                     source_manifest_path=args.source_manifest,
                 )
         except (ImageScanError, OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
-            print(f"{name}: scan report invalid ({type(exc).__name__})")
+            print(f"{name}: scan gate blocked code={diagnostic_code(exc)}")
             return 1
         print(f"{name}: Trivy high/critical={counts[0]}, secrets={counts[1]}")
         print(f"{name}: Grype high/critical={counts[2]}")
