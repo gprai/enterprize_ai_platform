@@ -218,6 +218,8 @@ def test_cli_reports_only_sanitized_finding_set_mismatch(
     }
     trivy = _write(tmp_path / "toolchain-trivy.json", trivy_document)
     grype = _write(tmp_path / "toolchain-grype.json", grype_document)
+    _write(tmp_path / "codebuild-trivy.json", trivy_document)
+    _write(tmp_path / "codebuild-grype.json", grype_document)
     source = tmp_path / "source.json"
     source.write_bytes(b"{\r\n}\r\n")
     now = datetime.now(UTC)
@@ -255,8 +257,10 @@ def test_cli_reports_only_sanitized_finding_set_mismatch(
     )
     assert main() == 1
     output = capsys.readouterr().out
-    assert "observed Trivy high/critical=1, secrets=0, finding_sha256=" in output
-    assert "observed Grype high/critical=1, finding_sha256=" in output
+    assert "toolchain: observed Trivy high/critical=1, secrets=0, finding_sha256=" in output
+    assert "toolchain: observed Grype high/critical=1, finding_sha256=" in output
+    assert "codebuild: observed Trivy high/critical=1, secrets=0, finding_sha256=" in output
+    assert "codebuild: observed Grype high/critical=1, finding_sha256=" in output
     assert "scan gate blocked code=FINDING_SET_MISMATCH" in output
     assert "CVE-SYNTHETIC-PRIVATE" not in output
     assert "private-package-name" not in output
