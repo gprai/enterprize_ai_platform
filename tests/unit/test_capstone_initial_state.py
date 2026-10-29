@@ -245,11 +245,15 @@ def test_hcp_run_mode_uses_documented_fields_and_rejects_speculation(
 
 
 @pytest.mark.parametrize(
-    "status,queued,started,allowed",
+    "status,queued,started,allow_unreachable,accepted",
     [
-        ("pending", None, None, True),
-        ("queued", "2026-01-01T00:00:00Z", None, False),
-        ("pending", None, "2026-01-01T00:00:00Z", False),
+        ("pending", None, None, False, True),
+        ("unreachable", None, None, False, False),
+        ("unreachable", None, None, True, True),
+        ("unreachable", "2026-01-01T00:00:00Z", None, True, False),
+        ("finished", None, None, True, False),
+        ("queued", "2026-01-01T00:00:00Z", None, False, False),
+        ("pending", None, "2026-01-01T00:00:00Z", False, False),
     ],
 )
 def test_only_unstarted_apply_is_accepted(
@@ -257,7 +261,8 @@ def test_only_unstarted_apply_is_accepted(
     status: str,
     queued: str | None,
     started: str | None,
-    allowed: bool,
+    allow_unreachable: bool,
+    accepted: bool,
 ) -> None:
     run = {"relationships": {"apply": {"data": {"id": "apply-test"}}}}
 
@@ -274,11 +279,11 @@ def test_only_unstarted_apply_is_accepted(
         }
 
     monkeypatch.setattr(release, "_hcp_request", fake_request)
-    if allowed:
-        release._hcp_apply_not_started(run, "test-token")
+    if accepted:
+        release._hcp_apply_not_started(run, "test-token", allow_unreachable=allow_unreachable)
     else:
         with pytest.raises(release.ReleaseError):
-            release._hcp_apply_not_started(run, "test-token")
+            release._hcp_apply_not_started(run, "test-token", allow_unreachable=allow_unreachable)
 
 
 def test_infracost_result_must_match_workspace_task(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -119,6 +119,7 @@ def test_final_zero_change_run_review_stays_fail_closed() -> None:
     assert '"planned_and_finished"' in review
     assert "_hcp_plan_is_zero_change(plan_json)" in review
     assert 'ReleaseError("HCP_FINAL_RUN_NOT_ZERO_CHANGE")' in review
+    assert 'allow_unreachable=run_status == "planned_and_finished"' in review
     helper = source.split("def _hcp_plan_is_zero_change(", 1)[1].split("\ndef _review_plan", 1)[0]
     for guarded_field in (
         "resource_changes",
@@ -128,6 +129,12 @@ def test_final_zero_change_run_review_stays_fail_closed() -> None:
         "action_invocations",
     ):
         assert guarded_field in helper
+    apply_guard = source.split("def _hcp_apply_not_started(", 1)[1].split(
+        "\ndef _hcp_plan_is_zero_change", 1
+    )[0]
+    assert '{"pending", "unreachable"} if allow_unreachable else {"pending"}' in apply_guard
+    assert 'timestamps.get("queued-at") is not None' in apply_guard
+    assert 'timestamps.get("started-at") is not None' in apply_guard
 
 
 def test_codebuild_role_cannot_read_kubernetes_secret() -> None:
