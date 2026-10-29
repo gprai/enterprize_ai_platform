@@ -5808,6 +5808,41 @@ def _hcp_plan_is_zero_change(plan: dict[str, Any]) -> bool:
     )
 
 
+def _hcp_final_zero_change_state_identity(
+    record: dict[str, Any], workspace_id: str, plan: dict[str, Any], token: str
+) -> tuple[str, str, int]:
+    """Recover an omitted run-state relationship from exact finalized current state."""
+    tf = record["terraform"]
+    expected_id = tf["input_state_version_id"]
+    expected_lineage = tf["state_lineage"]
+    expected_serial = tf["input_state_serial"]
+    if (
+        not isinstance(expected_id, str)
+        or not isinstance(expected_lineage, str)
+        or type(expected_serial) is not int
+        or _empty_input_state(expected_id, expected_lineage, expected_serial)
+        or not _hcp_plan_is_zero_change(plan)
+    ):
+        raise ReleaseError("HCP_FINAL_STATE_FALLBACK_UNSAFE")
+
+    status, response = _hcp_request(
+        "GET", f"/workspaces/{workspace_id}/current-state-version", token
+    )
+    current = response.get("data") if isinstance(response, dict) else None
+    if (
+        status != 200
+        or not isinstance(current, dict)
+        or current.get("id") != expected_id
+        or current.get("attributes", {}).get("status") != "finalized"
+    ):
+        raise ReleaseError("HCP_FINAL_CURRENT_STATE_MISMATCH")
+
+    state, lineage, serial = _hcp_state_identity(expected_id, token, state=current)
+    if state.get("id") != expected_id or lineage != expected_lineage or serial != expected_serial:
+        raise ReleaseError("HCP_FINAL_STATE_IDENTITY_MISMATCH")
+    return expected_id, lineage, serial
+
+
 def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
     _, record, digest = _read_record(args, requested=True)
     configuration_sha = validate_terraform_configuration_binding(record)
@@ -5827,40 +5862,15 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
     _hcp_apply_not_started(run, token, allow_unreachable=run_status == "planned_and_finished")
     relationships = run["relationships"]
     plan_id = (relationships.get("plan", {}).get("data") or {}).get("id")
-    state_id = (relationships.get("input-state-version", {}).get("data") or {}).get("id")
+    reported_state_id = (relationships.get("input-state-version", {}).get("data") or {}).get("id")
     config_id = (relationships.get("configuration-version", {}).get("data") or {}).get("id")
     if (
         not isinstance(plan_id, str)
         or not isinstance(config_id, str)
         or tf["plan_id"] not in (None, plan_id)
         or tf["configuration_version_id"] not in (None, config_id)
-        or tf["input_state_version_id"] not in (None, state_id)
-        or _empty_input_state(
-            tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
-        )
-        != (state_id is None)
     ):
         raise ReleaseError("HCP_PLAN_CONFIG_OR_STATE_MISMATCH")
-    if state_id is None:
-        if record["operation"] != "deploy" or not _empty_input_state(
-            tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
-        ):
-            raise ReleaseError("HCP_INITIAL_STATE_BINDING")
-        _hcp_initial_state_empty(record, relationships["workspace"]["data"]["id"], token)
-        state_lineage = None
-        state_serial = None
-    else:
-        state, state_lineage, state_serial = _hcp_state_identity(state_id, token)
-        if (
-            state.get("id") != state_id
-            or _empty_input_state(state_id, state_lineage, state_serial)
-            or (tf["state_lineage"], tf["input_state_serial"])
-            not in (
-                (None, None),
-                (state_lineage, state_serial),
-            )
-        ):
-            raise ReleaseError("HCP_STATE_LINEAGE_OR_SERIAL_MISMATCH")
     _, plan = _hcp_request("GET", f"/plans/{plan_id}", token)
     if (
         plan.get("data", {}).get("id") != plan_id
@@ -5878,6 +5888,36 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
         raise ReleaseError("HCP_PLAN_JSON_INCOMPLETE")
     if run_status == "planned_and_finished" and not _hcp_plan_is_zero_change(plan_json):
         raise ReleaseError("HCP_FINAL_RUN_NOT_ZERO_CHANGE")
+
+    record_has_empty_state = _empty_input_state(
+        tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
+    )
+    state_id = reported_state_id
+    if state_id is None and not record_has_empty_state:
+        if run_status != "planned_and_finished":
+            raise ReleaseError("HCP_PLAN_CONFIG_OR_STATE_MISMATCH")
+        state_id, state_lineage, state_serial = _hcp_final_zero_change_state_identity(
+            record,
+            relationships["workspace"]["data"]["id"],
+            plan_json,
+            token,
+        )
+    elif state_id is None:
+        if record["operation"] != "deploy":
+            raise ReleaseError("HCP_INITIAL_STATE_BINDING")
+        _hcp_initial_state_empty(record, relationships["workspace"]["data"]["id"], token)
+        state_lineage = None
+        state_serial = None
+    else:
+        if record_has_empty_state or tf["input_state_version_id"] != state_id:
+            raise ReleaseError("HCP_PLAN_CONFIG_OR_STATE_MISMATCH")
+        state, state_lineage, state_serial = _hcp_state_identity(state_id, token)
+        if (
+            state.get("id") != state_id
+            or _empty_input_state(state_id, state_lineage, state_serial)
+            or (tf["state_lineage"], tf["input_state_serial"]) != (state_lineage, state_serial)
+        ):
+            raise ReleaseError("HCP_STATE_LINEAGE_OR_SERIAL_MISMATCH")
     plan_sha = hashlib.sha256(plan_raw).hexdigest()
     _, stages = _hcp_request("GET", f"/runs/{args.run_id}/task-stages", token)
     entries = stages.get("data", []) if isinstance(stages, dict) else []
