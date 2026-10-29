@@ -5742,8 +5742,10 @@ def _hcp_infracost_binding(workspace_id: str, task_result: dict[str, Any], token
         raise ReleaseError("INFRACOST_WORKSPACE_TASK_MISMATCH")
 
 
-def _hcp_apply_not_started(run: dict[str, Any], token: str) -> None:
-    """A pending apply object may exist before anyone confirms the run."""
+def _hcp_apply_not_started(
+    run: dict[str, Any], token: str, *, allow_unreachable: bool = False
+) -> None:
+    """Require an apply that is pending, or unreachable for a final zero-change run."""
     apply_id = (run.get("relationships", {}).get("apply", {}).get("data") or {}).get("id")
     if apply_id is None:
         return
@@ -5751,11 +5753,12 @@ def _hcp_apply_not_started(run: dict[str, Any], token: str) -> None:
     apply = response.get("data") if isinstance(response, dict) else None
     attrs = apply.get("attributes", {}) if isinstance(apply, dict) else {}
     timestamps = attrs.get("status-timestamps", {})
+    allowed_statuses = {"pending", "unreachable"} if allow_unreachable else {"pending"}
     if (
         status != 200
         or not isinstance(apply, dict)
         or apply.get("id") != apply_id
-        or attrs.get("status") != "pending"
+        or attrs.get("status") not in allowed_statuses
         or not isinstance(timestamps, dict)
         or timestamps.get("queued-at") is not None
         or timestamps.get("started-at") is not None
@@ -5821,7 +5824,7 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
         "planned_and_finished",
     }:
         raise ReleaseError("HCP_RUN_APPLY_UNSAFE")
-    _hcp_apply_not_started(run, token)
+    _hcp_apply_not_started(run, token, allow_unreachable=run_status == "planned_and_finished")
     relationships = run["relationships"]
     plan_id = (relationships.get("plan", {}).get("data") or {}).get("id")
     state_id = (relationships.get("input-state-version", {}).get("data") or {}).get("id")
