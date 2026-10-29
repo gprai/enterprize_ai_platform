@@ -137,6 +137,22 @@ def test_final_zero_change_run_review_stays_fail_closed() -> None:
     assert 'timestamps.get("started-at") is not None' in apply_guard
 
 
+def test_zero_change_drift_exception_is_exact_codebuild_provider_normalization() -> None:
+    source = (ROOT / "tools/capstone_release.py").read_text(encoding="utf-8")
+    helper = source.split("def _hcp_codebuild_default_only_drift(", 1)[1].split(
+        "\ndef _hcp_plan_is_zero_change", 1
+    )[0]
+    assert 'address = "aws_codebuild_project.capstone_deploy[0]"' in helper
+    assert 'drift.get("provider_name") != "registry.terraform.io/hashicorp/aws"' in helper
+    assert 'planned.get("change", {}).get("actions") != ["no-op"]' in helper
+    assert 'change.get("actions") != ["update"]' in helper
+    assert 'change.get("replace_paths", []) != []' in helper
+    for field in ("git_clone_depth", "insecure_ssl", "report_build_status"):
+        assert f'"secondary_sources[0].{field}"' in helper
+    for guard in ("before_sensitive", "after_sensitive", "after_unknown"):
+        assert f'"{guard}"' in helper
+
+
 def test_final_zero_change_state_fallback_requires_exact_finalized_current_state() -> None:
     source = (ROOT / "tools/capstone_release.py").read_text(encoding="utf-8")
     helper = source.split("def _hcp_final_zero_change_state_identity(", 1)[1].split(
