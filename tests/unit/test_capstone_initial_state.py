@@ -309,19 +309,26 @@ def test_infracost_result_must_match_workspace_task(monkeypatch: pytest.MonkeyPa
         release._hcp_infracost_binding("ws-approved", result, "test-token")
 
 
-def test_initial_review_binds_run_plan_task_before_opa(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    ("run_status", "include_pending_apply"),
+    [("post_plan_completed", True), ("planned_and_finished", False)],
+)
+def test_initial_review_binds_run_plan_task_before_opa(
+    monkeypatch: pytest.MonkeyPatch, run_status: str, include_pending_apply: bool
+) -> None:
     record = _initial_requested()
     run = {
         "id": "run-observed",
-        "attributes": {"status": "post_plan_completed", "auto-apply": False},
+        "attributes": {"status": run_status, "auto-apply": False},
         "relationships": {
             "workspace": {"data": {"id": "ws-approved"}},
             "configuration-version": {"data": {"id": "cv-observed"}},
             "plan": {"data": {"id": "plan-observed"}},
             "input-state-version": {"data": None},
-            "apply": {"data": {"id": "apply-pending"}},
         },
     }
+    if include_pending_apply:
+        run["relationships"]["apply"] = {"data": {"id": "apply-pending"}}
     queried: list[str] = []
 
     def fake_request(method: str, path: str, token: str) -> tuple[int, dict[str, Any]]:
@@ -410,6 +417,36 @@ def test_initial_review_binds_run_plan_task_before_opa(monkeypatch: pytest.Monke
     with pytest.raises(release.ReleaseError) as failure:
         release._review_plan(Namespace(run_id="run-observed", opa_bin=sys.executable))
     assert failure.value.code == "OPA_EXECUTABLE_IDENTITY_REQUIRED"
-    assert "/applies/apply-pending" in queried
+    assert ("/applies/apply-pending" in queried) is include_pending_apply
     assert "/task-results/taskrs-observed" in queried
     assert all("/state-versions/None" not in path for path in queried)
+
+
+@pytest.mark.parametrize(
+    ("plan", "expected"),
+    [
+        ({"resource_changes": []}, True),
+        (
+            {
+                "resource_changes": [
+                    {"address": "terraform_data.example", "change": {"actions": ["no-op"]}}
+                ]
+            },
+            True,
+        ),
+        (
+            {
+                "resource_changes": [
+                    {"address": "terraform_data.example", "change": {"actions": ["create"]}}
+                ]
+            },
+            False,
+        ),
+        ({"resource_changes": [], "output_changes": {"value": {"actions": ["update"]}}}, False),
+        ({"resource_changes": [], "action_invocations": [{"address": "action.example"}]}, False),
+        ({"resource_changes": [], "deferred_changes": [{"reason": "unknown"}]}, False),
+        ({}, False),
+    ],
+)
+def test_zero_change_plan_classification(plan: dict[str, Any], expected: bool) -> None:
+    assert release._hcp_plan_is_zero_change(plan) is expected
