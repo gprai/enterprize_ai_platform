@@ -1842,7 +1842,7 @@ valid_change(change) if {
 # action changes. These exact addresses need a profile-scoped no-op rule because
 # their Terraform for_each keys contain characters intentionally excluded from
 # the generic resource-address grammar, or because they are terraform_data
-# governance gates rather than AWS resources.
+# governance gates rather than provider-managed resources.
 w12_final_zero_change_special_address(change) if {
 	change.address in w6_004_special_aws_addresses
 }
