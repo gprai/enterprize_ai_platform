@@ -2724,12 +2724,17 @@ def _valid_run(run: Any, commit: str) -> tuple[int, str, str]:
     run_id = run["id"]
     api_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/actions/runs/{run_id}"
     html_url = f"https://github.com/{GITHUB_REPOSITORY}/actions/runs/{run_id}"
+    workflow_path = str(run.get("path", ""))
+    expected_workflow_path = ".github/workflows/" + GITHUB_WORKFLOW
+    workflow_path_matches = workflow_path == expected_workflow_path or workflow_path.startswith(
+        expected_workflow_path + "@"
+    )
     if (run.get("url"), run.get("html_url"), run.get("head_sha"), run.get("head_branch")) != (
         api_url,
         html_url,
         commit,
         "main",
-    ) or not str(run.get("path", "")).startswith(".github/workflows/" + GITHUB_WORKFLOW + "@"):
+    ) or not workflow_path_matches:
         raise ReleaseError("GITHUB_RUN_IDENTITY", "INDETERMINATE")
     return run_id, api_url, html_url
 

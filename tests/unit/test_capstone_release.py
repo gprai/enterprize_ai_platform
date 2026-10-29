@@ -426,6 +426,48 @@ def test_ambiguous_dispatch_not_retried(monkeypatch: pytest.MonkeyPatch, tmp_pat
     ]
 
 
+@pytest.mark.parametrize(
+    "workflow_path",
+    [
+        ".github/workflows/capstone-release.yml",
+        ".github/workflows/capstone-release.yml@refs/heads/main",
+    ],
+)
+def test_valid_run_accepts_documented_workflow_path_shapes(workflow_path: str) -> None:
+    commit = "a" * 40
+    run_id = 40914999727
+    run = {
+        "id": run_id,
+        "url": (f"https://api.github.com/repos/gprai/enterprize_ai_platform/actions/runs/{run_id}"),
+        "html_url": (f"https://github.com/gprai/enterprize_ai_platform/actions/runs/{run_id}"),
+        "head_sha": commit,
+        "head_branch": "main",
+        "path": workflow_path,
+    }
+
+    assert release._valid_run(run, commit) == (
+        run_id,
+        run["url"],
+        run["html_url"],
+    )
+
+
+def test_valid_run_rejects_workflow_path_prefix_collision() -> None:
+    commit = "a" * 40
+    run_id = 40914999727
+    run = {
+        "id": run_id,
+        "url": (f"https://api.github.com/repos/gprai/enterprize_ai_platform/actions/runs/{run_id}"),
+        "html_url": (f"https://github.com/gprai/enterprize_ai_platform/actions/runs/{run_id}"),
+        "head_sha": commit,
+        "head_branch": "main",
+        "path": ".github/workflows/capstone-release.yml-foreign",
+    }
+
+    with pytest.raises(release.ReleaseError, match="GITHUB_RUN_IDENTITY"):
+        release._valid_run(run, commit)
+
+
 def test_lineage_manifest_binds_verified_and_parent() -> None:
     import json
 
