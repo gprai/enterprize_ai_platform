@@ -1,0 +1,36 @@
+{
+  "schema_version": "w12-pki-bootstrap.v1",
+  "execution_boundary": {
+    "checkout": "E:\\AI\\enterprise_ai_platform",
+    "executor": "OWNER_LOCAL",
+    "temporary_eks_role": "enterprise-ai-capstone-pki-bootstrap"
+  },
+  "root_ca": {
+    "algorithm": "ECDSA_P256",
+    "common_name": "enterprise-ai-capstone-root",
+    "validity_hours": 8760,
+    "material_policy": "GENERATE_OWNER_LOCAL_AND_DELETE_AFTER_KUBERNETES_SECRET_VERIFICATION"
+  },
+  "kubernetes": {
+    "namespace": "enterprise-ai-trust",
+    "ca_resource_name": "enterprise-ai-capstone-root",
+    "ca_data_keys": [
+      "tls.crt",
+      "tls.key"
+    ],
+    "public_config_map_name": "enterprise-ai-capstone-public-root",
+    "public_config_map_key": "ca.crt"
+  },
+  "retained_evidence": [
+    "ROOT_CERTIFICATE_SHA256",
+    "ROOT_SPKI_SHA256",
+    "TRUST_BUNDLE_SHA256",
+    "KUBERNETES_RESOURCE_IDENTITIES"
+  ],
+  "forbidden_evidence": [
+    "PRIVATE_KEY_BYTES",
+    "KUBERNETES_SECRET_BYTES",
+    "SERVICE_ACCOUNT_TOKEN",
+    "AWS_CREDENTIALS"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": "w12-pki-supply-chain.v1",
+  "cert_manager": {
+    "chart": "oci://quay.io/jetstack/charts/cert-manager",
+    "version": "v1.21.3",
+    "digest": "sha256:e482675aec32862d323a9218293ff7de81192337998615e4378c56498473f240",
+    "images": {
+      "cainjector": "quay.io/jetstack/cert-manager-cainjector:v1.21.3@sha256:083d0e906f8eb44e255fe4ff817ae54e49f9ed82e22f1011bb4e9e4f4b8a641f",
+      "controller": "quay.io/jetstack/cert-manager-controller:v1.21.3@sha256:9f4f96a33c7774cef24466fcd85031997531a03a8d117f151126baa8d1290dcc",
+      "startupapicheck": "quay.io/jetstack/cert-manager-startupapicheck:v1.21.3@sha256:1c519d4afca1413d1e4ccd78bdc756184418ab55a34569a3b3de39d32f9974e1",
+      "webhook": "quay.io/jetstack/cert-manager-webhook:v1.21.3@sha256:055ac8e9de6a0ba6763794838fe38944acc650f68ebe1b01dd8be079e580f458"
+    }
+  },
+  "metrics_server": "registry.k8s.io/metrics-server/metrics-server@sha256:d9862115e7c7881280d3d75ca26bda8ffc0fc213315979575bf23ce9826205c0",
+  "trust_manager": {
+    "chart": "oci://quay.io/jetstack/charts/trust-manager",
+    "version": "v0.26.0",
+    "digest": "sha256:946c6e52f0a6e251c81102de83ffc6e0b11446193bed8670d4cdbfd3cecbc2e8",
+    "images": {
+      "controller": "quay.io/jetstack/trust-manager:v0.26.0@sha256:783afe31d39f122a811b96ac3aedab9f358488088df21622ae5b057b4a38b5c2",
+      "default_package": "quay.io/jetstack/trust-pkg-debian-trixie:20250419-deb13u1.1@sha256:477cc69ef6a026b90a6d67d4ac7114735c5f66edf1cc97e68b9da599adf231af"
+    }
+  }
+}
