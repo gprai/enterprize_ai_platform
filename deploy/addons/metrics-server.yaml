@@ -113,7 +113,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: metrics-server
-          image: 526338061652.dkr.ecr.ap-southeast-1.amazonaws.com/enterprise-ai/sandbox/api@sha256:25d291fde59974547bac6f07fa9d6cf6f5bedd1f19d60c893311c5e741e0a42f
+          image: registry.k8s.io/metrics-server/metrics-server@sha256:d9862115e7c7881280d3d75ca26bda8ffc0fc213315979575bf23ce9826205c0
           imagePullPolicy: IfNotPresent
           args:
             - --cert-dir=/tmp
