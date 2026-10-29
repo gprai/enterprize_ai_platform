@@ -54,19 +54,24 @@ def _current_reviewed_source() -> Iterator[None]:
         yield
 
 
-def _opa_value(plan: dict[str, object], query: str) -> object:
+def _opa_value(
+    plan: dict[str, object], query: str, *, include_exception_registry: bool = False
+) -> object:
     if not OPA.is_file():
         pytest.skip("owner-controlled OPA 1.20.0 executable is absent")
+    command = [
+        str(OPA),
+        "eval",
+        "--format=json",
+        "--stdin-input",
+        "--data",
+        str(ROOT / "policies/opa/terraform_plan.rego"),
+    ]
+    if include_exception_registry:
+        command.extend(["--data", str(ROOT / "policies/opa/exceptions.json")])
+    command.append(query)
     result = subprocess.run(  # noqa: S603 -- fixed owner-controlled executable
-        [
-            str(OPA),
-            "eval",
-            "--format=json",
-            "--stdin-input",
-            "--data",
-            str(ROOT / "policies/opa/terraform_plan.rego"),
-            query,
-        ],
+        command,
         input=json.dumps(plan),
         text=True,
         capture_output=True,
@@ -381,6 +386,121 @@ def test_w12_recovery_profile_is_accepted_by_production_decision() -> None:
     assert not any(
         finding["resource_address"] == "policy.operation" for finding in decision["findings"]
     )
+
+
+def _final_zero_change_profile_plan() -> dict[str, object]:
+    plan = _recovery_profile_plan()
+    operation = plan["evaluation_context"]["operation"]
+    operation["profile"] = "FINAL_ZERO_CHANGE_EXISTING_STATE"
+    plan["resource_changes"] = [
+        {
+            "address": "terraform_data.owner_expiry_gate",
+            "type": "terraform_data",
+            "change": {
+                "actions": ["no-op"],
+                "before": {"input": "2026-10-30T01:00:00Z"},
+                "after": {"input": "2026-10-30T01:00:00Z"},
+                "before_sensitive": {},
+                "after_sensitive": {},
+                "after_unknown": {},
+            },
+        }
+    ]
+    return plan
+
+
+def test_w12_final_zero_change_profile_accepts_only_exact_noops() -> None:
+    plan = _final_zero_change_profile_plan()
+    query = "data.enterprise_ai.terraform.plan.w12_final_zero_change_plan_review_profile_valid"
+    assert _opa_value(plan, query) is True
+
+    for field, value in (
+        ("action", "APPLY"),
+        ("record_sha256", "not-a-digest"),
+        ("input_state_version_id", None),
+    ):
+        changed = deepcopy(plan)
+        changed["evaluation_context"]["operation"][field] = value
+        assert _opa_value(changed, query) is False
+
+    changed = deepcopy(plan)
+    changed["resource_changes"][0]["change"]["actions"] = ["update"]
+    assert _opa_value(changed, query) is False
+
+    changed = deepcopy(plan)
+    changed["resource_changes"][0]["change"]["after"] = {"input": "changed"}
+    assert _opa_value(changed, query) is False
+
+    changed = deepcopy(plan)
+    changed["resource_changes"][0]["change"]["after_unknown"] = {"input": True}
+    assert _opa_value(changed, query) is False
+
+    changed = deepcopy(plan)
+    changed["resource_changes"][0]["address"] = "terraform_data.unreviewed_gate"
+    assert _opa_value(changed, query) is False
+
+
+@pytest.mark.parametrize(
+    ("address", "resource_type"),
+    (
+        (
+            'module.eks[0].aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"]',
+            "aws_iam_role_policy_attachment",
+        ),
+        (
+            'module.observability[0].aws_sns_topic_subscription.email["vayunetrix.aws.dev@zohomail.com"]',
+            "aws_sns_topic_subscription",
+        ),
+        ("terraform_data.w12_activation_gate[0]", "terraform_data"),
+        ("terraform_data.w6_004_runtime_gate[0]", "terraform_data"),
+    ),
+)
+def test_w12_final_zero_change_profile_accepts_exact_special_addresses(
+    address: str, resource_type: str
+) -> None:
+    plan = _final_zero_change_profile_plan()
+    change = plan["resource_changes"][0]
+    change["address"] = address
+    change["type"] = resource_type
+    query = "data.enterprise_ai.terraform.plan.w12_final_zero_change_plan_review_profile_valid"
+    assert _opa_value(plan, query) is True
+
+    change["address"] = address.replace("]", "-near-match]", 1)
+    assert _opa_value(plan, query) is False
+
+
+def test_w12_final_zero_change_profile_is_accepted_by_production_decision() -> None:
+    decision = _opa_value(
+        _final_zero_change_profile_plan(),
+        "data.enterprise_ai.terraform.plan.decision",
+        include_exception_registry=True,
+    )
+    assert decision["allow"] is True
+    assert decision["findings"] == []
+
+
+def test_w12_final_zero_change_profile_retains_non_exemptible_boundaries() -> None:
+    plan = _final_zero_change_profile_plan()
+    plan["resource_changes"][0]["address"] = "terraform_data.unreviewed_gate"
+    decision = _opa_value(
+        plan,
+        "data.enterprise_ai.terraform.plan.decision",
+        include_exception_registry=True,
+    )
+    policy_ids = {finding["policy_id"] for finding in decision["findings"]}
+    assert "W5-PLAN-001" in policy_ids
+    assert decision["allow"] is False
+
+    plan = _final_zero_change_profile_plan()
+    plan["resource_changes"][0]["change"]["after_sensitive"] = {"input": True}
+    decision = _opa_value(
+        plan,
+        "data.enterprise_ai.terraform.plan.decision",
+        include_exception_registry=True,
+    )
+    policy_ids = {finding["policy_id"] for finding in decision["findings"]}
+    assert "W5-SEC-001" in policy_ids
+    assert decision["allow"] is False
 
 
 def test_codebuild_s3_prefix_list_unknown_requires_exact_gateway_source() -> None:

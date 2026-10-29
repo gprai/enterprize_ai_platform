@@ -27,6 +27,7 @@ reports/w4-release/.regression.json.*.tmp
 reports/w4-release/.rollback.json.*.tmp
 reports/w4-release/.smoke.json.*.tmp
 .terraform/
+infra/environments/sandbox/terraform.auto.tfvars
 *.tfstate
 *.tfstate.*
 *.tfplan
