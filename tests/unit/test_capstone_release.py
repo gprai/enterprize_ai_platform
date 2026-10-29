@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import json
 from copy import deepcopy
 
 import pytest
@@ -150,6 +151,169 @@ def test_dispatch_payload_boundaries() -> None:
         release._strict_transport("A" * 43_692, digest, receipt=False)
     with pytest.raises(release.ReleaseError):
         release._strict_transport("A" * 10_924, receipt_digest, receipt=True)
+
+
+def test_hcp_state_identity_uses_metadata_without_downloading(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unexpected_download(*_args, **_kwargs):
+        raise AssertionError("raw state download was not required")
+
+    monkeypatch.setattr(release.urllib.request, "build_opener", unexpected_download)
+    state = {
+        "id": "sv-ExactState123",
+        "attributes": {"lineage": "lineage-001", "serial": 21},
+    }
+    observed, lineage, serial = release._hcp_state_identity(
+        "sv-ExactState123", "synthetic-token", state=state
+    )
+    assert observed is state
+    assert (lineage, serial) == ("lineage-001", 21)
+
+
+def test_hcp_state_identity_reads_only_exact_hosted_state_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured_headers = {}
+
+    class Response:
+        status = 200
+        url = "https://archivist.terraform.io/v1/object/synthetic"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _limit):
+            return json.dumps(
+                {"version": 4, "lineage": "lineage-001", "serial": 21, "outputs": {}}
+            ).encode()
+
+    class Opener:
+        def open(self, request, timeout):
+            assert timeout == 20
+            captured_headers.update(dict(request.header_items()))
+            return Response()
+
+    monkeypatch.setattr(release.urllib.request, "build_opener", lambda *_handlers: Opener())
+    state = {
+        "id": "sv-ExactState123",
+        "attributes": {
+            "serial": 21,
+            "hosted-state-download-url": (
+                "https://archivist.terraform.io/v1/object/synthetic?sig=redacted"
+            ),
+        },
+    }
+    observed, lineage, serial = release._hcp_state_identity(
+        "sv-ExactState123", "synthetic-token", state=state
+    )
+    assert observed is state
+    assert (lineage, serial) == ("lineage-001", 21)
+    assert "Authorization" not in captured_headers
+
+
+def test_hcp_state_identity_refetches_exact_state_when_shortcut_omits_download_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = []
+
+    def fake_hcp_request(method, path, token, body=None):
+        calls.append((method, path, token, body))
+        return 200, {
+            "data": {
+                "id": "sv-ExactState123",
+                "attributes": {
+                    "serial": 21,
+                    "hosted-state-download-url": (
+                        "https://archivist.terraform.io/v1/object/synthetic"
+                    ),
+                },
+            }
+        }
+
+    class Response:
+        status = 200
+        url = "https://archivist.terraform.io/v1/object/synthetic"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _limit):
+            return b'{"lineage":"lineage-001","serial":21}'
+
+    class Opener:
+        def open(self, _request, timeout):
+            assert timeout == 20
+            return Response()
+
+    monkeypatch.setattr(release, "_hcp_request", fake_hcp_request)
+    monkeypatch.setattr(release.urllib.request, "build_opener", lambda *_handlers: Opener())
+    shortcut = {
+        "id": "sv-ExactState123",
+        "attributes": {"status": "finalized", "serial": 21},
+    }
+    observed, lineage, serial = release._hcp_state_identity(
+        "sv-ExactState123", "synthetic-token", state=shortcut
+    )
+    assert observed is not shortcut
+    assert (lineage, serial) == ("lineage-001", 21)
+    assert calls == [
+        (
+            "GET",
+            "/state-versions/sv-ExactState123",
+            "synthetic-token",
+            None,
+        )
+    ]
+
+
+def test_hcp_state_identity_rejects_host_and_serial_substitution(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    unsafe = {
+        "id": "sv-ExactState123",
+        "attributes": {
+            "serial": 21,
+            "hosted-state-download-url": "https://example.invalid/state",
+        },
+    }
+    with pytest.raises(release.ReleaseError, match="HCP_STATE_DOWNLOAD_HOST"):
+        release._hcp_state_identity("sv-ExactState123", "synthetic-token", state=unsafe)
+
+    class Response:
+        status = 200
+        url = "https://archivist.terraform.io/v1/object/synthetic"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _limit):
+            return b'{"lineage":"lineage-001","serial":22}'
+
+    class Opener:
+        def open(self, _request, timeout):
+            assert timeout == 20
+            return Response()
+
+    monkeypatch.setattr(release.urllib.request, "build_opener", lambda *_handlers: Opener())
+    mismatched = {
+        "id": "sv-ExactState123",
+        "attributes": {
+            "serial": 21,
+            "hosted-state-download-url": "https://archivist.terraform.io/v1/object/synthetic",
+        },
+    }
+    with pytest.raises(release.ReleaseError, match="HCP_STATE_DOCUMENT_IDENTITY_MISMATCH"):
+        release._hcp_state_identity("sv-ExactState123", "synthetic-token", state=mismatched)
 
 
 def test_ambiguous_dispatch_not_retried(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
