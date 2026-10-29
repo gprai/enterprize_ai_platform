@@ -521,6 +521,83 @@ def test_final_state_fallback_rejects_change_bearing_plan_without_hcp_read(
         )
 
 
+def _codebuild_default_drift_plan() -> dict[str, Any]:
+    identity = {
+        "address": "aws_codebuild_project.capstone_deploy[0]",
+        "mode": "managed",
+        "type": "aws_codebuild_project",
+        "provider_name": "registry.terraform.io/hashicorp/aws",
+        "module_address": None,
+    }
+    before_source = {
+        "git_clone_depth": None,
+        "insecure_ssl": None,
+        "report_build_status": None,
+        "source_identifier": "W12_CONTROL",
+    }
+    after_source = {
+        "git_clone_depth": 0,
+        "insecure_ssl": False,
+        "report_build_status": False,
+        "source_identifier": "W12_CONTROL",
+    }
+    return {
+        "resource_changes": [
+            {**identity, "change": {"actions": ["no-op"]}},
+        ],
+        "resource_drift": [
+            {
+                **identity,
+                "change": {
+                    "actions": ["update"],
+                    "before": {"secondary_sources": [before_source]},
+                    "after": {"secondary_sources": [after_source]},
+                    "after_unknown": {},
+                    "before_sensitive": {},
+                    "after_sensitive": {},
+                    "replace_paths": [],
+                },
+            }
+        ],
+    }
+
+
+def test_zero_change_plan_accepts_exact_codebuild_default_normalization() -> None:
+    assert release._hcp_plan_is_zero_change(_codebuild_default_drift_plan())
+
+
+@pytest.mark.parametrize(
+    ("mutation",),
+    [
+        ("missing_planned_resource",),
+        ("planned_update",),
+        ("extra_drift_path",),
+        ("wrong_default_transition",),
+        ("unknown_changed_path",),
+        ("sensitive_changed_path",),
+        ("replacement",),
+    ],
+)
+def test_zero_change_plan_rejects_near_match_codebuild_drift(mutation: str) -> None:
+    plan = _codebuild_default_drift_plan()
+    drift_change = plan["resource_drift"][0]["change"]
+    if mutation == "missing_planned_resource":
+        plan["resource_changes"] = []
+    elif mutation == "planned_update":
+        plan["resource_changes"][0]["change"]["actions"] = ["update"]
+    elif mutation == "extra_drift_path":
+        drift_change["after"]["secondary_sources"][0]["location"] = "changed"
+    elif mutation == "wrong_default_transition":
+        drift_change["after"]["secondary_sources"][0]["git_clone_depth"] = 1
+    elif mutation == "unknown_changed_path":
+        drift_change["after_unknown"] = {"secondary_sources": [{"git_clone_depth": True}]}
+    elif mutation == "sensitive_changed_path":
+        drift_change["after_sensitive"] = {"secondary_sources": [{"insecure_ssl": True}]}
+    elif mutation == "replacement":
+        drift_change["replace_paths"] = [["secondary_sources"]]
+    assert not release._hcp_plan_is_zero_change(plan)
+
+
 @pytest.mark.parametrize(
     ("plan", "expected"),
     [

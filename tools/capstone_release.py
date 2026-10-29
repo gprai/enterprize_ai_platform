@@ -5766,28 +5766,123 @@ def _hcp_apply_not_started(
         raise ReleaseError("HCP_APPLY_ALREADY_STARTED")
 
 
+def _plan_changed_paths(before: Any, after: Any, prefix: str = "") -> set[str]:
+    """Return structural value-change paths without exposing plan values."""
+    if type(before) is not type(after):
+        return {prefix or "<root>"}
+    if isinstance(before, dict):
+        paths: set[str] = set()
+        for key in before.keys() | after.keys():
+            path = f"{prefix}.{key}" if prefix else key
+            if key not in before or key not in after:
+                paths.add(path)
+            else:
+                paths.update(_plan_changed_paths(before[key], after[key], path))
+        return paths
+    if isinstance(before, list):
+        if len(before) != len(after):
+            return {f"{prefix}.length"}
+        paths = set()
+        for index, (left, right) in enumerate(zip(before, after, strict=True)):
+            paths.update(_plan_changed_paths(left, right, f"{prefix}[{index}]"))
+        return paths
+    return set() if before == after else {prefix or "<root>"}
+
+
+def _hcp_codebuild_default_only_drift(
+    drift: dict[str, Any], resource_changes: dict[str, dict[str, Any]]
+) -> bool:
+    """Recognize one exact AWS-provider normalization with no planned mutation."""
+    address = "aws_codebuild_project.capstone_deploy[0]"
+    expected_paths = {
+        "secondary_sources[0].git_clone_depth",
+        "secondary_sources[0].insecure_ssl",
+        "secondary_sources[0].report_build_status",
+    }
+    planned = resource_changes.get(address)
+    change = drift.get("change")
+    if (
+        drift.get("address") != address
+        or drift.get("mode") != "managed"
+        or drift.get("type") != "aws_codebuild_project"
+        or drift.get("provider_name") != "registry.terraform.io/hashicorp/aws"
+        or drift.get("module_address") is not None
+        or not isinstance(change, dict)
+        or change.get("actions") != ["update"]
+        or change.get("replace_paths", []) != []
+        or not isinstance(change.get("before"), dict)
+        or not isinstance(change.get("after"), dict)
+        or not isinstance(planned, dict)
+        or planned.get("mode") != "managed"
+        or planned.get("type") != "aws_codebuild_project"
+        or planned.get("provider_name") != "registry.terraform.io/hashicorp/aws"
+        or planned.get("change", {}).get("actions") != ["no-op"]
+        or _plan_changed_paths(change["before"], change["after"]) != expected_paths
+    ):
+        return False
+    try:
+        before = change["before"]["secondary_sources"][0]
+        after = change["after"]["secondary_sources"][0]
+    except (KeyError, IndexError, TypeError):
+        return False
+
+    def marked(section: str, key: str) -> bool:
+        try:
+            return change.get(section, {})["secondary_sources"][0].get(key) is True
+        except (AttributeError, KeyError, IndexError, TypeError):
+            return False
+
+    fields = ("git_clone_depth", "insecure_ssl", "report_build_status")
+    return (
+        isinstance(before, dict)
+        and isinstance(after, dict)
+        and not any(
+            marked(section, field)
+            for section in ("before_sensitive", "after_sensitive", "after_unknown")
+            for field in fields
+        )
+        and before.get("git_clone_depth") is None
+        and after.get("git_clone_depth") == 0
+        and before.get("insecure_ssl") is None
+        and after.get("insecure_ssl") is False
+        and before.get("report_build_status") is None
+        and after.get("report_build_status") is False
+    )
+
+
 def _hcp_plan_is_zero_change(plan: dict[str, Any]) -> bool:
     """Recognize only a complete plan with no infrastructure, output, or action changes."""
 
     resource_changes = plan.get("resource_changes")
     if not isinstance(resource_changes, list):
         return False
+    resource_changes_by_address: dict[str, dict[str, Any]] = {}
     for entry in resource_changes:
         if (
             not isinstance(entry, dict)
+            or not isinstance(entry.get("address"), str)
+            or entry["address"] in resource_changes_by_address
             or not isinstance(entry.get("change"), dict)
             or entry["change"].get("actions") != ["no-op"]
         ):
             return False
+        resource_changes_by_address[entry["address"]] = entry
 
     resource_drift = plan.get("resource_drift", [])
     if not isinstance(resource_drift, list):
         return False
+    seen_drift_addresses: set[str] = set()
     for entry in resource_drift:
         if (
             not isinstance(entry, dict)
+            or not isinstance(entry.get("address"), str)
+            or entry["address"] in seen_drift_addresses
             or not isinstance(entry.get("change"), dict)
-            or entry["change"].get("actions") != ["no-op"]
+        ):
+            return False
+        seen_drift_addresses.add(entry["address"])
+        if entry["change"].get("actions") != ["no-op"] and not _hcp_codebuild_default_only_drift(
+            entry, resource_changes_by_address
         ):
             return False
 
