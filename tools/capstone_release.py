@@ -5763,6 +5763,48 @@ def _hcp_apply_not_started(run: dict[str, Any], token: str) -> None:
         raise ReleaseError("HCP_APPLY_ALREADY_STARTED")
 
 
+def _hcp_plan_is_zero_change(plan: dict[str, Any]) -> bool:
+    """Recognize only a complete plan with no infrastructure, output, or action changes."""
+
+    resource_changes = plan.get("resource_changes")
+    if not isinstance(resource_changes, list):
+        return False
+    for entry in resource_changes:
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("change"), dict)
+            or entry["change"].get("actions") != ["no-op"]
+        ):
+            return False
+
+    resource_drift = plan.get("resource_drift", [])
+    if not isinstance(resource_drift, list):
+        return False
+    for entry in resource_drift:
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("change"), dict)
+            or entry["change"].get("actions") != ["no-op"]
+        ):
+            return False
+
+    output_changes = plan.get("output_changes", {})
+    if not isinstance(output_changes, dict):
+        return False
+    for change in output_changes.values():
+        if not isinstance(change, dict) or change.get("actions") != ["no-op"]:
+            return False
+
+    deferred_changes = plan.get("deferred_changes", [])
+    action_invocations = plan.get("action_invocations", [])
+    return (
+        isinstance(deferred_changes, list)
+        and isinstance(action_invocations, list)
+        and not deferred_changes
+        and not action_invocations
+    )
+
+
 def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
     _, record, digest = _read_record(args, requested=True)
     configuration_sha = validate_terraform_configuration_binding(record)
@@ -5773,7 +5815,11 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
     run = _hcp_run(record, args.run_id, token)
     _hcp_vcs_binding(record, run, token)
     run_attrs = run.get("attributes", {})
-    if run_attrs.get("auto-apply") is not False or run_attrs.get("status") != "post_plan_completed":
+    run_status = run_attrs.get("status")
+    if run_attrs.get("auto-apply") is not False or run_status not in {
+        "post_plan_completed",
+        "planned_and_finished",
+    }:
         raise ReleaseError("HCP_RUN_APPLY_UNSAFE")
     _hcp_apply_not_started(run, token)
     relationships = run["relationships"]
@@ -5827,6 +5873,8 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
         raise ReleaseError("HCP_PLAN_JSON_INVALID") from exc
     if not isinstance(plan_json, dict) or not isinstance(plan_json.get("resource_changes"), list):
         raise ReleaseError("HCP_PLAN_JSON_INCOMPLETE")
+    if run_status == "planned_and_finished" and not _hcp_plan_is_zero_change(plan_json):
+        raise ReleaseError("HCP_FINAL_RUN_NOT_ZERO_CHANGE")
     plan_sha = hashlib.sha256(plan_raw).hexdigest()
     _, stages = _hcp_request("GET", f"/runs/{args.run_id}/task-stages", token)
     entries = stages.get("data", []) if isinstance(stages, dict) else []

@@ -113,6 +113,23 @@ def test_state_lineage_fallback_never_forwards_token_or_persists_raw_state() -> 
     assert "print(" not in helper
 
 
+def test_final_zero_change_run_review_stays_fail_closed() -> None:
+    source = (ROOT / "tools/capstone_release.py").read_text(encoding="utf-8")
+    review = source.split("def _review_plan(", 1)[1].split("\ndef _workflow_requested", 1)[0]
+    assert '"planned_and_finished"' in review
+    assert "_hcp_plan_is_zero_change(plan_json)" in review
+    assert 'ReleaseError("HCP_FINAL_RUN_NOT_ZERO_CHANGE")' in review
+    helper = source.split("def _hcp_plan_is_zero_change(", 1)[1].split("\ndef _review_plan", 1)[0]
+    for guarded_field in (
+        "resource_changes",
+        "resource_drift",
+        "output_changes",
+        "deferred_changes",
+        "action_invocations",
+    ):
+        assert guarded_field in helper
+
+
 def test_codebuild_role_cannot_read_kubernetes_secret() -> None:
     policy = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
     role = policy.split('data "aws_iam_policy_document" "capstone_codebuild"', 1)[1]
