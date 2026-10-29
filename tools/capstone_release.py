@@ -5577,7 +5577,7 @@ def _hcp_state_identity(
         or (type(serial) is int and serial != resolved_serial)
     ):
         raise ReleaseError("HCP_STATE_DOCUMENT_IDENTITY_MISMATCH", "INDETERMINATE")
-    return state, resolved_lineage, resolved_serial
+    return state, cast(str, resolved_lineage), resolved_serial
 
 
 def _hcp_token() -> str:
