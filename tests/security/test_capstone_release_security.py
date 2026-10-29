@@ -120,6 +120,8 @@ def test_final_zero_change_run_review_stays_fail_closed() -> None:
     assert "_hcp_plan_is_zero_change(plan_json)" in review
     assert 'ReleaseError("HCP_FINAL_RUN_NOT_ZERO_CHANGE")' in review
     assert 'allow_unreachable=run_status == "planned_and_finished"' in review
+    assert '"FINAL_ZERO_CHANGE_EXISTING_STATE"' in review
+    assert 'run_status == "planned_and_finished" and state_id is not None' in review
     helper = source.split("def _hcp_plan_is_zero_change(", 1)[1].split("\ndef _review_plan", 1)[0]
     for guarded_field in (
         "resource_changes",

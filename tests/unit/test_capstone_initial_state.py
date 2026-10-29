@@ -111,6 +111,7 @@ def test_receipt_cannot_substitute_existing_state_for_empty_request() -> None:
 def test_review_plan_source_selects_recovery_profile_for_existing_state() -> None:
     source = release._review_plan.__code__
     assert "RECOVERY_EXISTING_STATE" in source.co_consts
+    assert "FINAL_ZERO_CHANGE_EXISTING_STATE" in source.co_consts
     assert "OPA_NONINITIAL_PLAN_PROFILE_NOT_APPROVED" not in source.co_consts
 
 
