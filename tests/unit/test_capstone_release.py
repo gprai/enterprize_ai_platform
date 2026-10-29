@@ -215,6 +215,69 @@ def test_hcp_state_identity_reads_only_exact_hosted_state_metadata(
     assert "Authorization" not in captured_headers
 
 
+def test_hcp_state_identity_authenticates_only_initial_app_download(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured_headers = {}
+    redirected_headers = {}
+
+    class Response:
+        status = 200
+        url = "https://archivist.terraform.io/v1/object/synthetic"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _limit):
+            return b'{"lineage":"lineage-001","serial":21}'
+
+    class Opener:
+        def open(self, request, timeout):
+            assert timeout == 20
+            captured_headers.update(dict(request.header_items()))
+            return Response()
+
+    def fake_build_opener(redirect_handler):
+        initial = release.urllib.request.Request(
+            "https://app.terraform.io/api/v2/state-versions/sv-ExactState123/download",
+            headers={
+                "Accept": "application/json",
+                "Authorization": "Bearer synthetic-token",
+            },
+        )
+        redirected = redirect_handler.redirect_request(
+            initial,
+            None,
+            307,
+            "Temporary Redirect",
+            {},
+            "https://archivist.terraform.io/v1/object/synthetic",
+        )
+        assert redirected is not None
+        redirected_headers.update(dict(redirected.header_items()))
+        return Opener()
+
+    monkeypatch.setattr(release.urllib.request, "build_opener", fake_build_opener)
+    state = {
+        "id": "sv-ExactState123",
+        "attributes": {
+            "serial": 21,
+            "hosted-state-download-url": (
+                "https://app.terraform.io/api/v2/state-versions/sv-ExactState123/download"
+            ),
+        },
+    }
+    _, lineage, serial = release._hcp_state_identity(
+        "sv-ExactState123", "synthetic-token", state=state
+    )
+    assert (lineage, serial) == ("lineage-001", 21)
+    assert captured_headers["Authorization"] == "Bearer synthetic-token"
+    assert redirected_headers == {"Accept": "application/json"}
+
+
 def test_hcp_state_identity_refetches_exact_state_when_shortcut_omits_download_url(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
