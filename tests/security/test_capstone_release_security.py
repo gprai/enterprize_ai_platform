@@ -99,6 +99,17 @@ def test_preflight_log_and_privilege_boundary() -> None:
     assert "TFC_TOKEN: ${{ secrets.TFC_TOKEN }}" in protected
 
 
+def test_state_lineage_fallback_never_forwards_token_or_persists_raw_state() -> None:
+    source = (ROOT / "tools/capstone_release.py").read_text(encoding="utf-8")
+    helper = source.split("def _hcp_state_identity(", 1)[1].split("\ndef _hcp_token()", 1)[0]
+    assert '{"app.terraform.io", "archivist.terraform.io"}' in helper
+    assert 'headers={"Accept": "application/json"}' in helper
+    assert '"Authorization"' not in helper
+    assert "write_bytes" not in helper
+    assert "write_text" not in helper
+    assert "print(" not in helper
+
+
 def test_codebuild_role_cannot_read_kubernetes_secret() -> None:
     policy = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
     role = policy.split('data "aws_iam_policy_document" "capstone_codebuild"', 1)[1]

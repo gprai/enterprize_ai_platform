@@ -3673,14 +3673,13 @@ def workflow_prepare_ready() -> None:
             relationships.get("input-state-version", {}).get("data", {}).get("id"),
         ) != (tf["plan_id"], tf["configuration_version_id"], tf["input_state_version_id"]):
             raise ReleaseError("ROLLBACK_HCP_PLAN_STATE_IDENTITY")
-        _, state_response = _hcp_request(
-            "GET", f"/state-versions/{tf['input_state_version_id']}", token
+        state, state_lineage, state_serial = _hcp_state_identity(
+            tf["input_state_version_id"], token
         )
-        state = state_response.get("data", {}) if isinstance(state_response, dict) else {}
         if (
             state.get("id") != tf["input_state_version_id"]
-            or state.get("attributes", {}).get("lineage") != tf["state_lineage"]
-            or state.get("attributes", {}).get("serial") != tf["input_state_serial"]
+            or state_lineage != tf["state_lineage"]
+            or state_serial != tf["input_state_serial"]
         ):
             raise ReleaseError("ROLLBACK_HCP_INPUT_STATE_CHANGED")
         _, plan_response = _hcp_request("GET", f"/plans/{tf['plan_id']}", token)
@@ -4081,19 +4080,12 @@ def _hcp_preapply(
             raise ReleaseError("HCP_INITIAL_STATE_OPERATION")
         _hcp_initial_state_empty(ready, workspace["id"], token)
     else:
-        state_status, state_response = _hcp_request(
-            "GET", f"/state-versions/{tf['input_state_version_id']}", token
+        state, state_lineage, state_serial = _hcp_state_identity(
+            tf["input_state_version_id"], token
         )
-        state = state_response.get("data") if isinstance(state_response, dict) else None
-        if (
-            state_status != 200
-            or not isinstance(state, dict)
-            or state.get("id") != tf["input_state_version_id"]
-            or (
-                state.get("attributes", {}).get("lineage"),
-                state.get("attributes", {}).get("serial"),
-            )
-            != (tf["state_lineage"], tf["input_state_serial"])
+        if state.get("id") != tf["input_state_version_id"] or (state_lineage, state_serial) != (
+            tf["state_lineage"],
+            tf["input_state_serial"],
         ):
             raise ReleaseError("HCP_INPUT_STATE_CHANGED")
         current_status, current_response = _hcp_request(
@@ -4302,21 +4294,15 @@ def workflow_apply_wait() -> None:
         or state["id"] == tf["input_state_version_id"]
     ):
         raise ReleaseError("HCP_APPLIED_STATE_MISSING", "INDETERMINATE")
-    state_attrs = state.get("attributes", {})
+    state, output_state_lineage, output_state_serial = _hcp_state_identity(
+        state["id"], token, state=state
+    )
     initial = _empty_input_state(
         tf["input_state_version_id"], tf["state_lineage"], tf["input_state_serial"]
     )
-    if (
-        not _text(state_attrs.get("lineage"))
-        or type(state_attrs.get("serial")) is not int
-        or state_attrs["serial"] < 0
-        or (
-            not initial
-            and (
-                state_attrs["lineage"] != tf["state_lineage"]
-                or state_attrs["serial"] <= tf["input_state_serial"]
-            )
-        )
+    if not initial and (
+        output_state_lineage != tf["state_lineage"]
+        or output_state_serial <= tf["input_state_serial"]
     ):
         raise ReleaseError("HCP_APPLIED_STATE_LINEAGE")
     output_names = (
@@ -4336,8 +4322,8 @@ def workflow_apply_wait() -> None:
         "hcp_run_id": tf["run_id"],
         "hcp_plan_id": tf["plan_id"],
         "applied_state_version_id": state["id"],
-        "state_lineage": state_attrs["lineage"],
-        "state_serial": state_attrs["serial"],
+        "state_lineage": output_state_lineage,
+        "state_serial": output_state_serial,
         "aws_account_id": ready["deployment"]["account_id"],
         "aws_region": ready["deployment"]["region"],
         "environment": ready["deployment"]["environment"],
@@ -4391,8 +4377,8 @@ def workflow_apply_wait() -> None:
             "hcp_apply_id": final_apply["id"],
             "input_state_version_id": tf["input_state_version_id"],
             "output_state_version_id": state["id"],
-            "output_state_lineage": state_attrs["lineage"],
-            "output_state_serial": state_attrs["serial"],
+            "output_state_lineage": output_state_lineage,
+            "output_state_serial": output_state_serial,
             "render_inputs_sha256": render_sha,
             "observed_at_utc": datetime.now(UTC).strftime(UTC_FORMAT),
         }
@@ -5489,6 +5475,111 @@ def _hcp_plan_json_bytes(plan_id: str, token: str) -> bytes:
     return raw
 
 
+def _hcp_state_identity(
+    state_id: str, token: str, *, state: dict[str, Any] | None = None
+) -> tuple[dict[str, Any], str, int]:
+    """Resolve exact state lineage/serial without retaining raw state material."""
+    if not re.fullmatch(r"sv-[A-Za-z0-9]+", state_id):
+        raise ReleaseError("HCP_STATE_VERSION_ID")
+    fetched_exact = False
+    if state is None or state.get("id") != state_id:
+        status, response = _hcp_request("GET", f"/state-versions/{state_id}", token)
+        state = response.get("data") if isinstance(response, dict) else None
+        if status != 200 or not isinstance(state, dict) or state.get("id") != state_id:
+            raise ReleaseError("HCP_STATE_VERSION_UNAVAILABLE", "INDETERMINATE")
+        fetched_exact = True
+    attributes = state.get("attributes", {})
+    lineage, serial = attributes.get("lineage"), attributes.get("serial")
+    if _text(lineage) and type(serial) is int and serial >= 0:
+        return state, lineage, serial
+
+    hosted_url = attributes.get("hosted-state-download-url")
+    if not isinstance(hosted_url, str) and not fetched_exact:
+        status, response = _hcp_request("GET", f"/state-versions/{state_id}", token)
+        exact = response.get("data") if isinstance(response, dict) else None
+        if status != 200 or not isinstance(exact, dict) or exact.get("id") != state_id:
+            raise ReleaseError("HCP_STATE_VERSION_UNAVAILABLE", "INDETERMINATE")
+        state = exact
+        attributes = state.get("attributes", {})
+        lineage, serial = attributes.get("lineage"), attributes.get("serial")
+        if _text(lineage) and type(serial) is int and serial >= 0:
+            return state, lineage, serial
+        hosted_url = attributes.get("hosted-state-download-url")
+    if not isinstance(hosted_url, str):
+        raise ReleaseError("HCP_STATE_LINEAGE_UNAVAILABLE", "INDETERMINATE")
+    target = urllib.parse.urlsplit(hosted_url)
+    if (
+        target.scheme != "https"
+        or target.hostname not in {"app.terraform.io", "archivist.terraform.io"}
+        or target.username
+        or target.password
+        or target.fragment
+    ):
+        raise ReleaseError("HCP_STATE_DOWNLOAD_HOST")
+
+    class NoCredentialRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(
+            self,
+            request: urllib.request.Request,
+            fp: Any,
+            code: int,
+            msg: str,
+            headers: Any,
+            newurl: str,
+        ) -> urllib.request.Request | None:
+            redirect = urllib.parse.urlsplit(newurl)
+            if (
+                redirect.scheme != "https"
+                or redirect.hostname not in {"app.terraform.io", "archivist.terraform.io"}
+                or redirect.username
+                or redirect.password
+                or redirect.fragment
+            ):
+                raise ReleaseError("HCP_STATE_REDIRECT_HOST")
+            return urllib.request.Request(  # noqa: S310 -- bounded HTTPS host; no credential
+                newurl, method="GET", headers={"Accept": "application/json"}
+            )
+
+    request = urllib.request.Request(  # noqa: S310 -- exact HCP-provided HTTPS URL validated above
+        hosted_url, method="GET", headers={"Accept": "application/json"}
+    )
+    try:
+        with urllib.request.build_opener(NoCredentialRedirect()).open(
+            request, timeout=20
+        ) as response:
+            final = urllib.parse.urlsplit(response.url)
+            if response.status != 200 or final.hostname not in {
+                "app.terraform.io",
+                "archivist.terraform.io",
+            }:
+                raise ReleaseError("HCP_STATE_DOWNLOAD_RESPONSE", "INDETERMINATE")
+            raw = response.read(100_000_001)
+    except urllib.error.HTTPError as exc:
+        raise ReleaseError(
+            "HCP_STATE_HTTP_" + str(exc.code),
+            "INDETERMINATE" if exc.code >= 500 else "FAIL",
+        ) from None
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise ReleaseError("HCP_STATE_TRANSPORT", "INDETERMINATE") from exc
+    if not isinstance(raw, bytes) or not raw or len(raw) > 100_000_000:
+        raise ReleaseError("HCP_STATE_DOCUMENT_OVERSIZE", "INDETERMINATE")
+    try:
+        document = json.loads(raw, object_pairs_hook=_unique_pairs, parse_constant=_reject_constant)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ReleaseError("HCP_STATE_DOCUMENT_INVALID", "INDETERMINATE") from exc
+    if not isinstance(document, dict):
+        raise ReleaseError("HCP_STATE_DOCUMENT_INVALID", "INDETERMINATE")
+    resolved_lineage, resolved_serial = document.get("lineage"), document.get("serial")
+    if (
+        not _text(resolved_lineage)
+        or type(resolved_serial) is not int
+        or resolved_serial < 0
+        or (type(serial) is int and serial != resolved_serial)
+    ):
+        raise ReleaseError("HCP_STATE_DOCUMENT_IDENTITY_MISMATCH", "INDETERMINATE")
+    return state, cast(str, resolved_lineage), resolved_serial
+
+
 def _hcp_token() -> str:
     token = os.environ.get("TFC_TOKEN", "")
     if not token:
@@ -5707,10 +5798,7 @@ def _review_plan(args: argparse.Namespace) -> dict[str, Any]:
         state_lineage = None
         state_serial = None
     else:
-        _, state_response = _hcp_request("GET", f"/state-versions/{state_id}", token)
-        state = state_response.get("data", {}) if isinstance(state_response, dict) else {}
-        state_attrs = state.get("attributes", {})
-        state_lineage, state_serial = state_attrs.get("lineage"), state_attrs.get("serial")
+        state, state_lineage, state_serial = _hcp_state_identity(state_id, token)
         if (
             state.get("id") != state_id
             or _empty_input_state(state_id, state_lineage, state_serial)
