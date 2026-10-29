@@ -104,7 +104,10 @@ def test_state_lineage_fallback_never_forwards_token_or_persists_raw_state() -> 
     helper = source.split("def _hcp_state_identity(", 1)[1].split("\ndef _hcp_token()", 1)[0]
     assert '{"app.terraform.io", "archivist.terraform.io"}' in helper
     assert 'headers={"Accept": "application/json"}' in helper
-    assert '"Authorization"' not in helper
+    assert 'if target.hostname == "app.terraform.io":' in helper
+    assert 'request_headers["Authorization"] = f"Bearer {token}"' in helper
+    redirect = helper.split("class NoCredentialRedirect", 1)[1].split("request_headers =", 1)[0]
+    assert '"Authorization"' not in redirect
     assert "write_bytes" not in helper
     assert "write_text" not in helper
     assert "print(" not in helper

@@ -5540,8 +5540,11 @@ def _hcp_state_identity(
                 newurl, method="GET", headers={"Accept": "application/json"}
             )
 
+    request_headers = {"Accept": "application/json"}
+    if target.hostname == "app.terraform.io":
+        request_headers["Authorization"] = f"Bearer {token}"
     request = urllib.request.Request(  # noqa: S310 -- exact HCP-provided HTTPS URL validated above
-        hosted_url, method="GET", headers={"Accept": "application/json"}
+        hosted_url, method="GET", headers=request_headers
     )
     try:
         with urllib.request.build_opener(NoCredentialRedirect()).open(
