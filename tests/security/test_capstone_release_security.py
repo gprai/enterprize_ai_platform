@@ -137,6 +137,22 @@ def test_final_zero_change_run_review_stays_fail_closed() -> None:
     assert 'timestamps.get("started-at") is not None' in apply_guard
 
 
+def test_final_zero_change_state_fallback_requires_exact_finalized_current_state() -> None:
+    source = (ROOT / "tools/capstone_release.py").read_text(encoding="utf-8")
+    helper = source.split("def _hcp_final_zero_change_state_identity(", 1)[1].split(
+        "\ndef _review_plan", 1
+    )[0]
+    assert "_hcp_plan_is_zero_change(plan)" in helper
+    assert 'f"/workspaces/{workspace_id}/current-state-version"' in helper
+    assert 'current.get("id") != expected_id' in helper
+    assert 'current.get("attributes", {}).get("status") != "finalized"' in helper
+    assert "lineage != expected_lineage" in helper
+    assert "serial != expected_serial" in helper
+    review = source.split("def _review_plan(", 1)[1].split("\ndef _workflow_requested", 1)[0]
+    assert 'run_status != "planned_and_finished"' in review
+    assert "_hcp_final_zero_change_state_identity(" in review
+
+
 def test_codebuild_role_cannot_read_kubernetes_secret() -> None:
     policy = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
     role = policy.split('data "aws_iam_policy_document" "capstone_codebuild"', 1)[1]

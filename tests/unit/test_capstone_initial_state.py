@@ -315,23 +315,40 @@ def test_infracost_result_must_match_workspace_task(monkeypatch: pytest.MonkeyPa
 
 
 @pytest.mark.parametrize(
-    ("run_status", "include_pending_apply"),
-    [("post_plan_completed", True), ("planned_and_finished", False)],
+    ("run_status", "include_pending_apply", "existing_state_without_relationship"),
+    [
+        ("post_plan_completed", True, False),
+        ("planned_and_finished", False, False),
+        ("planned_and_finished", False, True),
+    ],
 )
-def test_initial_review_binds_run_plan_task_before_opa(
-    monkeypatch: pytest.MonkeyPatch, run_status: str, include_pending_apply: bool
+def test_review_binds_run_plan_state_and_task_before_opa(
+    monkeypatch: pytest.MonkeyPatch,
+    run_status: str,
+    include_pending_apply: bool,
+    existing_state_without_relationship: bool,
 ) -> None:
-    record = _initial_requested()
-    run = {
+    record = requested_record() if existing_state_without_relationship else _initial_requested()
+    if existing_state_without_relationship:
+        for key in (
+            "configuration_version_id",
+            "run_id",
+            "plan_id",
+            "configuration_sha256",
+        ):
+            record["terraform"][key] = None
+        record["gates"]["run_task_result_id"] = None
+    run: dict[str, Any] = {
         "id": "run-observed",
         "attributes": {"status": run_status, "auto-apply": False},
         "relationships": {
             "workspace": {"data": {"id": "ws-approved"}},
             "configuration-version": {"data": {"id": "cv-observed"}},
             "plan": {"data": {"id": "plan-observed"}},
-            "input-state-version": {"data": None},
         },
     }
+    if not existing_state_without_relationship:
+        run["relationships"]["input-state-version"] = {"data": None}
     if include_pending_apply:
         run["relationships"]["apply"] = {"data": {"id": "apply-pending"}}
     queried: list[str] = []
@@ -357,6 +374,17 @@ def test_initial_review_binds_run_plan_task_before_opa(
                     "id": "ws-approved",
                     "relationships": {
                         "current-state-version": {"data": None},
+                    },
+                }
+            }
+        if path == "/workspaces/ws-approved/current-state-version":
+            return 200, {
+                "data": {
+                    "id": "sv-123",
+                    "attributes": {
+                        "status": "finalized",
+                        "lineage": "lineage-123",
+                        "serial": 4,
                     },
                 }
             }
@@ -423,8 +451,74 @@ def test_initial_review_binds_run_plan_task_before_opa(
         release._review_plan(Namespace(run_id="run-observed", opa_bin=sys.executable))
     assert failure.value.code == "OPA_EXECUTABLE_IDENTITY_REQUIRED"
     assert ("/applies/apply-pending" in queried) is include_pending_apply
+    assert (
+        "/workspaces/ws-approved/current-state-version" in queried
+    ) is existing_state_without_relationship
     assert "/task-results/taskrs-observed" in queried
     assert all("/state-versions/None" not in path for path in queried)
+
+
+@pytest.mark.parametrize(
+    ("current_id", "current_status", "lineage", "serial", "error_code"),
+    [
+        ("sv-other", "finalized", "lineage-123", 4, "HCP_FINAL_CURRENT_STATE_MISMATCH"),
+        ("sv-123", "pending", "lineage-123", 4, "HCP_FINAL_CURRENT_STATE_MISMATCH"),
+        ("sv-123", "finalized", "lineage-other", 4, "HCP_FINAL_STATE_IDENTITY_MISMATCH"),
+        ("sv-123", "finalized", "lineage-123", 5, "HCP_FINAL_STATE_IDENTITY_MISMATCH"),
+    ],
+)
+def test_final_zero_change_state_fallback_requires_exact_current_identity(
+    monkeypatch: pytest.MonkeyPatch,
+    current_id: str,
+    current_status: str,
+    lineage: str,
+    serial: int,
+    error_code: str,
+) -> None:
+    def fake_request(method: str, path: str, token: str) -> tuple[int, dict[str, Any]]:
+        assert (method, path, token) == (
+            "GET",
+            "/workspaces/ws-approved/current-state-version",
+            "test-token",
+        )
+        return 200, {
+            "data": {
+                "id": current_id,
+                "attributes": {
+                    "status": current_status,
+                    "lineage": lineage,
+                    "serial": serial,
+                },
+            }
+        }
+
+    monkeypatch.setattr(release, "_hcp_request", fake_request)
+    with pytest.raises(release.ReleaseError) as failure:
+        release._hcp_final_zero_change_state_identity(
+            requested_record(), "ws-approved", {"resource_changes": []}, "test-token"
+        )
+    assert failure.value.code == error_code
+
+
+def test_final_state_fallback_rejects_change_bearing_plan_without_hcp_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        release,
+        "_hcp_request",
+        lambda *_args: pytest.fail("change-bearing fallback must not contact HCP"),
+    )
+    with pytest.raises(release.ReleaseError, match="HCP_FINAL_STATE_FALLBACK_UNSAFE"):
+        release._hcp_final_zero_change_state_identity(
+            requested_record(),
+            "ws-approved",
+            {
+                "resource_changes": [
+                    {"address": "terraform_data.example", "change": {"actions": ["update"]}}
+                ]
+            },
+            "test-token",
+        )
 
 
 @pytest.mark.parametrize(
