@@ -74,6 +74,28 @@ def test_current_run_record_and_opa_receipt_chain() -> None:
     assert "actions/download-artifact@" in workflow
 
 
+def test_workflow_exports_canonical_artifact_digests() -> None:
+    from pathlib import Path
+
+    workflow = (
+        Path(__file__).resolve().parents[2] / ".github/workflows/capstone-release.yml"
+    ).read_text()
+    expected_outputs = (
+        "record_artifact_digest: ${{ format('sha256:{0}', steps.upload.outputs.artifact-digest) }}",
+        "build_artifact_digest: ${{ format('sha256:{0}', "
+        "steps.upload_build.outputs.artifact-digest) }}",
+        "ready_artifact_digest: ${{ format('sha256:{0}', steps.upload.outputs.artifact-digest) }}",
+        "approved_artifact_digest: ${{ format('sha256:{0}', "
+        "steps.upload_approved.outputs.artifact-digest) }}",
+        "applied_artifact_digest: ${{ format('sha256:{0}', "
+        "steps.upload_applied.outputs.artifact-digest) }}",
+        "result_artifact_digest: ${{ format('sha256:{0}', "
+        "steps.upload_result.outputs.artifact-digest) }}",
+    )
+    assert all(output in workflow for output in expected_outputs)
+    assert workflow.count("format('sha256:{0}',") == len(expected_outputs)
+
+
 def test_future_lineage_publication_follows_verified_pair(monkeypatch: pytest.MonkeyPatch) -> None:
     chain = verified_release_chain()
     order: list[str] = []
