@@ -11,7 +11,7 @@ live_execution_status: NOT RUN
 source_identities:
   fis_plan_sha256: db680d16-0206c49c-6d4bf8aa-c37712c0-bc19a2df-ac255ac4-06fecd40-a812274f
   slo_policy_sha256: e6786d2a-6a7ed3b5-06051c56-716d8cea-b2d69200-ee2acfae-299faacb-9fcb21ae
-  fis_template_sha256: 83737a2a-4bc7f483-5cfc21c0-8d290cc4-fdc8e1be-a7fa8a88-fcaeff7e-6db4a534
+  fis_template_sha256: 4af51d75-d4b86472-a77a456f-4cfe8eaf-41f3e17b-44b4fdd4-69914d71-4e528930
   fis_iam_sha256: b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc
 blast_radius:
   maximum_scenarios: 1

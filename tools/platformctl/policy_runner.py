@@ -168,13 +168,13 @@ PLATFORM_ALERT_TOPIC_ADDRESS = "module.observability[0].aws_sns_topic.alerts"
 PLATFORM_EKS_SOURCE_SHA256 = (
     (
         "infra/modules/eks/main.tf",
-        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
+        "d72452d9adb90d902668bc7b34fdc799174a7369b8b493703839409585a4f806",
     ),
 )
 PLATFORM_OBSERVABILITY_SOURCE_SHA256 = (
     (
         "infra/modules/observability/main.tf",
-        "83737a2a4bc7f4835cfc21c08d290cc4fdc8e1bea7fa8a88fcaeff7e6db4a534",
+        "4af51d75d4b86472a77a456f4cfe8eaf41f3e17b44b4fdd469914d714e528930",
     ),
 )
 PLATFORM_ENDPOINT_POLICY_BINDINGS = {
@@ -481,11 +481,11 @@ PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     ),
     "module.eks[0].data.aws_iam_policy_document.cluster_assume": (
         "infra/modules/eks/main.tf",
-        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
+        "d72452d9adb90d902668bc7b34fdc799174a7369b8b493703839409585a4f806",
     ),
     "module.eks[0].data.aws_iam_policy_document.node_assume": (
         "infra/modules/eks/main.tf",
-        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
+        "d72452d9adb90d902668bc7b34fdc799174a7369b8b493703839409585a4f806",
     ),
     **{
         policy_address: (

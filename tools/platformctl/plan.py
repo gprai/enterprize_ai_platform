@@ -2400,7 +2400,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         ".secrets.baseline",
         # pragma: allowlist nextline secret
-        "037dc8a09158ce240130be4f956b017ef2e3e52aeb4e0a11c17348ee5f53e405",
+        "5c7f87e14efde60e47e218e85ea821f688da924452e0368fadbd29626187af77",
     ),
     (
         "feature-matrix.yaml",
