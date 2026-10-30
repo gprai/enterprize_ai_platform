@@ -112,6 +112,7 @@ jobs:
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/w12-requested
+          merge-multiple: true
       - name: Validate exact owner-local receipt and artifact
         env:
           GH_TOKEN: ${{ github.token }}
@@ -152,6 +153,7 @@ jobs:
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/w12-consumed
+          merge-multiple: true
       - name: Revalidate current-run record artifact
         env:
           GH_TOKEN: ${{ github.token }}
@@ -238,6 +240,7 @@ jobs:
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/w12-requested
+          merge-multiple: true
       - name: Obtain read-only exact-version release credentials
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
         with:
@@ -326,12 +329,14 @@ jobs:
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/w12-requested
+          merge-multiple: true
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           artifact-ids: ${{ needs.prepare_ready_record.outputs.ready_artifact_id }}
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/w12-ready
+          merge-multiple: true
       - name: Validate exact GitHub human approval and READY artifact
         id: review
         env:
@@ -450,6 +455,7 @@ jobs:
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/w12-applied
+          merge-multiple: true
       - name: Revalidate before AWS authority
         env:
           GH_TOKEN: ${{ github.token }}
@@ -536,12 +542,14 @@ jobs:
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/w12-applied
+          merge-multiple: true
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           artifact-ids: ${{ needs.codebuild_deploy.outputs.result_artifact_id }}
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/w12-codebuild-result
+          merge-multiple: true
       - name: Obtain bounded publication credentials
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c
         with:

@@ -894,6 +894,16 @@ def test_artifact_digest_outputs_cannot_bypass_canonical_prefix() -> None:
     assert "format('sha256:sha256:{0}'," not in workflow
 
 
+def test_artifact_id_downloads_cannot_introduce_name_subdirectories() -> None:
+    workflow = (ROOT / ".github/workflows/capstone-release.yml").read_text()
+    downloads = workflow.split("- uses: actions/download-artifact@")[1:]
+    assert downloads
+    for download in downloads:
+        step = download.split("\n      - ", 1)[0]
+        if "artifact-ids:" in step:
+            assert "merge-multiple: true" in step
+
+
 def test_result_version_substitution_prevents_verified() -> None:
     from tools.capstone_release import _s3_result_version
 
