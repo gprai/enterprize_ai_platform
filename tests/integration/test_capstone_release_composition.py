@@ -96,6 +96,16 @@ def test_workflow_exports_canonical_artifact_digests() -> None:
     assert workflow.count("format('sha256:{0}',") == len(expected_outputs)
 
 
+def test_workflow_downloads_artifacts_into_declared_directories() -> None:
+    from pathlib import Path
+
+    workflow = (
+        Path(__file__).resolve().parents[2] / ".github/workflows/capstone-release.yml"
+    ).read_text()
+    assert workflow.count("artifact-ids:") == 8
+    assert workflow.count("merge-multiple: true") == 8
+
+
 def test_future_lineage_publication_follows_verified_pair(monkeypatch: pytest.MonkeyPatch) -> None:
     chain = verified_release_chain()
     order: list[str] = []
