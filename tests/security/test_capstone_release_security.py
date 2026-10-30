@@ -880,6 +880,20 @@ def test_prepare_ready_never_receives_hcp_apply_credential() -> None:
     assert "_hcp_token()" not in function
 
 
+def test_artifact_digest_outputs_cannot_bypass_canonical_prefix() -> None:
+    workflow = (ROOT / ".github/workflows/capstone-release.yml").read_text()
+    raw_outputs = (
+        "record_artifact_digest: ${{ steps.upload.outputs.artifact-digest }}",
+        "build_artifact_digest: ${{ steps.upload_build.outputs.artifact-digest }}",
+        "ready_artifact_digest: ${{ steps.upload.outputs.artifact-digest }}",
+        "approved_artifact_digest: ${{ steps.upload_approved.outputs.artifact-digest }}",
+        "applied_artifact_digest: ${{ steps.upload_applied.outputs.artifact-digest }}",
+        "result_artifact_digest: ${{ steps.upload_result.outputs.artifact-digest }}",
+    )
+    assert not any(output in workflow for output in raw_outputs)
+    assert "format('sha256:sha256:{0}'," not in workflow
+
+
 def test_result_version_substitution_prevents_verified() -> None:
     from tools.capstone_release import _s3_result_version
 

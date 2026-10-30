@@ -49,7 +49,7 @@ jobs:
       opa_receipt_sha256: ${{ steps.validate.outputs.opa_receipt_sha256 }}
       record_artifact_id: ${{ steps.upload.outputs.artifact-id }}
       record_artifact_url: ${{ steps.upload.outputs.artifact-url }}
-      record_artifact_digest: ${{ steps.upload.outputs.artifact-digest }}
+      record_artifact_digest: ${{ format('sha256:{0}', steps.upload.outputs.artifact-digest) }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -140,7 +140,7 @@ jobs:
       w6_release_hashes_sha256: ${{ steps.build.outputs.w6_release_hashes_sha256 }}
       signature_sha256: ${{ steps.build.outputs.signature_sha256 }}
       build_artifact_id: ${{ steps.upload_build.outputs.artifact-id }}
-      build_artifact_digest: ${{ steps.upload_build.outputs.artifact-digest }}
+      build_artifact_digest: ${{ format('sha256:{0}', steps.upload_build.outputs.artifact-digest) }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -217,7 +217,7 @@ jobs:
       ready_record_sha256: ${{ steps.prepare.outputs.ready_record_sha256 }}
       ready_artifact_id: ${{ steps.upload.outputs.artifact-id }}
       ready_artifact_url: ${{ steps.upload.outputs.artifact-url }}
-      ready_artifact_digest: ${{ steps.upload.outputs.artifact-digest }}
+      ready_artifact_digest: ${{ format('sha256:{0}', steps.upload.outputs.artifact-digest) }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -305,10 +305,10 @@ jobs:
     outputs:
       approved_record_sha256: ${{ steps.apply.outputs.approved_record_sha256 }}
       approved_artifact_id: ${{ steps.upload_approved.outputs.artifact-id }}
-      approved_artifact_digest: ${{ steps.upload_approved.outputs.artifact-digest }}
+      approved_artifact_digest: ${{ format('sha256:{0}', steps.upload_approved.outputs.artifact-digest) }}
       applied_record_sha256: ${{ steps.apply.outputs.applied_record_sha256 }}
       applied_artifact_id: ${{ steps.upload_applied.outputs.artifact-id }}
-      applied_artifact_digest: ${{ steps.upload_applied.outputs.artifact-digest }}
+      applied_artifact_digest: ${{ format('sha256:{0}', steps.upload_applied.outputs.artifact-digest) }}
     steps:
       - name: First operation reads documented approval history
         env:
@@ -429,7 +429,7 @@ jobs:
       control_archive_sha256: ${{ steps.deploy.outputs.control_archive_sha256 }}
       codebuild_handoff_sha256: ${{ steps.deploy.outputs.codebuild_handoff_sha256 }}
       result_artifact_id: ${{ steps.upload_result.outputs.artifact-id }}
-      result_artifact_digest: ${{ steps.upload_result.outputs.artifact-digest }}
+      result_artifact_digest: ${{ format('sha256:{0}', steps.upload_result.outputs.artifact-digest) }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
