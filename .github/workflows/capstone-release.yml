@@ -181,6 +181,7 @@ jobs:
       - name: Build, scan, attest and sign immutable image
         id: build
         env:
+          GH_TOKEN: ${{ github.token }}
           AWS_ROLE_ARN: ${{ vars.W12_BUILD_ROLE_ARN }}
           W12_IMAGE_REPOSITORY: ${{ vars.W12_IMAGE_REPOSITORY }}
           W12_BUILD_TOOLCHAIN_DIGEST: ${{ vars.W12_BUILD_TOOLCHAIN_DIGEST }}

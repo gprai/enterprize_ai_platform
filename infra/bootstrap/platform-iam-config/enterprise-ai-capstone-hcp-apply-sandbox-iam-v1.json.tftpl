@@ -1,0 +1,117 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "iam:CreateRole"
+      ],
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "Environment",
+            "Owner",
+            "ManagedBy",
+            "CostCenter",
+            "Feature",
+            "Repository",
+            "ExpiresAt"
+          ]
+        },
+        "Null": {
+          "aws:RequestTag/ExpiresAt": "false"
+        },
+        "StringEquals": {
+          "aws:RequestTag/CostCenter": "Personal-Learning",
+          "aws:RequestTag/Environment": "sandbox",
+          "aws:RequestTag/Feature": "MVP-001",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "aws:RequestTag/Owner": "Gyan-Prakash-Rai",
+          "aws:RequestTag/Project": "enterprise-ai-platform",
+          "aws:RequestTag/Repository": "enterprise-ai-platform"
+        },
+        "StringNotEquals": {
+          "aws:RequestTag/ExpiresAt": "TODO_OWNER"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-build",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-codebuild",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-deploy-caller",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-pki-bootstrap",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-rollback-reader",
+        "arn:aws:iam::526338061652:role/enterprise-ai-platform-sandbox-github-oidc",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-fis",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-ingestion",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-opensearch-admin",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime",
+        "arn:aws:iam::526338061652:role/enterprise-ai-w12-prerequisite-image-publisher",
+        "arn:aws:iam::526338061652:role/enterprise-ai-w12-public-ecr-reader"
+      ],
+      "Sid": "CreateExactTaggedSandboxRoles"
+    },
+    {
+      "Action": [
+        "iam:DeleteRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-build",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-codebuild",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-deploy-caller",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-pki-bootstrap",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-rollback-reader",
+        "arn:aws:iam::526338061652:role/enterprise-ai-platform-sandbox-github-oidc",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-fis",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-ingestion",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-opensearch-admin",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime",
+        "arn:aws:iam::526338061652:role/enterprise-ai-w12-prerequisite-image-publisher",
+        "arn:aws:iam::526338061652:role/enterprise-ai-w12-public-ecr-reader"
+      ],
+      "Sid": "ManageExactSandboxRoles"
+    },
+    {
+      "Action": [
+        "iam:CreateServiceLinkedRole"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": "opensearchservice.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/aws-service-role/opensearchservice.amazonaws.com/*"
+      ],
+      "Sid": "CreateOpenSearchServiceLinkedRole"
+    },
+    {
+      "Action": "kms:CreateGrant",
+      "Condition": {
+        "StringEquals": {
+          "kms:CallerAccount": "526338061652",
+          "kms:ViaService": "ecr.ap-southeast-1.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "${sandbox_kms_key_arn}",
+      "Sid": "W12EcrCreateGrantExactSandboxKey"
+    },
+    {
+      "Action": [
+        "kms:RetireGrant",
+        "kms:DescribeKey"
+      ],
+      "Effect": "Allow",
+      "Resource": "${sandbox_kms_key_arn}",
+      "Sid": "W12EcrRetireGrantAndDescribeExactSandboxKey"
+    }
+  ],
+  "Version": "2012-10-17"
+}

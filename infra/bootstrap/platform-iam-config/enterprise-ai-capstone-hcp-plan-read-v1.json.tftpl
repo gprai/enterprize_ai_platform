@@ -1,0 +1,211 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "sts:GetCallerIdentity"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "CallerIdentity"
+    },
+    {
+      "Action": [
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeManagedPrefixLists",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribePrefixLists",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeTags",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeVpcEndpointServices",
+        "ec2:DescribeVpcs",
+        "logs:DescribeLogGroups",
+        "logs:DescribeResourcePolicies",
+        "logs:ListTagsForResource",
+        "tag:GetResources"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "RegionalDiscovery"
+    },
+    {
+      "Action": [
+        "kms:ListAliases"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "KmsAliasDiscovery"
+    },
+    {
+      "Action": [
+        "kms:DescribeKey",
+        "kms:GetKeyPolicy",
+        "kms:GetKeyRotationStatus",
+        "kms:ListGrants",
+        "kms:ListResourceTags"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1",
+          "aws:ResourceTag/Repository": "enterprise-ai-platform"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:kms:ap-southeast-1:526338061652:key/*"
+      ],
+      "Sid": "ProjectKmsKeyReads"
+    },
+    {
+      "Action": [
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketAcl",
+        "s3:GetBucketCORS",
+        "s3:GetBucketLocation",
+        "s3:GetBucketLogging",
+        "s3:GetBucketNotification",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketPolicyStatus",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:GetBucketRequestPayment",
+        "s3:GetBucketTagging",
+        "s3:GetBucketVersioning",
+        "s3:GetBucketWebsite",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetReplicationConfiguration",
+        "s3:ListBucket",
+        "s3:ListBucketVersions"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::enterprise-ai-platform-sbx-tfstate-526338061652-ap-southeast-1",
+        "arn:aws:s3:::enterprise-ai-platform-526338061652-ap-southeast-1-sandbox"
+      ],
+      "Sid": "ExactBucketReads"
+    },
+    {
+      "Action": [
+        "dynamodb:DescribeContinuousBackups",
+        "dynamodb:DescribeTable",
+        "dynamodb:ListTagsOfResource"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:dynamodb:ap-southeast-1:526338061652:table/enterprise-ai-platform-sandbox-tflock"
+      ],
+      "Sid": "ExactLockTableReads"
+    },
+    {
+      "Action": [
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:ListRolePolicies",
+        "iam:ListRoleTags"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-build",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-codebuild",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-deploy-caller",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-pki-bootstrap",
+        "arn:aws:iam::526338061652:role/enterprise-ai-capstone-rollback-reader",
+        "arn:aws:iam::526338061652:role/enterprise-ai-platform-sandbox-github-oidc",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-fis",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-ingestion",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-opensearch-admin",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime",
+        "arn:aws:iam::526338061652:role/enterprise-ai-w12-prerequisite-image-publisher",
+        "arn:aws:iam::526338061652:role/enterprise-ai-w12-public-ecr-reader"
+      ],
+      "Sid": "ExactRoleReads"
+    },
+    {
+      "Action": [
+        "ecr:DescribeRepositories",
+        "ecr:GetLifecyclePolicy",
+        "ecr:GetRepositoryPolicy",
+        "ecr:ListTagsForResource"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/api",
+        "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-toolchain",
+        "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-codebuild"
+      ],
+      "Sid": "ExactRepositoryReads"
+    },
+    {
+      "Action": [
+        "es:DescribeDomain",
+        "es:DescribeDomainConfig",
+        "es:ListTags"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox"
+      ],
+      "Sid": "ExactOpenSearchReads"
+    },
+    {
+      "Action": [
+        "sns:GetSubscriptionAttributes"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:sns:ap-southeast-1:526338061652:enterprise-ai-sandbox-alerts",
+      "Sid": "ReadExactSandboxAlertSubscriptionAttributes"
+    },
+    {
+      "Action": "logs:DescribeLogGroups",
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "ReadCapstoneCodeBuildLogDiscovery"
+    },
+    {
+      "Action": "logs:ListTagsForResource",
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/codebuild/enterprise-ai-capstone-deploy",
+      "Sid": "ReadExactCapstoneCodeBuildLogTags"
+    }
+  ],
+  "Version": "2012-10-17"
+}

@@ -1,56 +1,15 @@
-data "aws_iam_policy_document" "cluster_assume" {
-  statement {
-    sid     = "ExactEKSClusterServiceTrust"
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["eks.amazonaws.com"]
-    }
-  }
+data "aws_iam_role" "cluster" {
+  name = "${var.cluster_name}-cluster"
 }
 
-data "aws_iam_policy_document" "node_assume" {
-  statement {
-    sid     = "ExactEKSNodeServiceTrust"
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "cluster" {
-  name               = "${var.cluster_name}-cluster"
-  assume_role_policy = data.aws_iam_policy_document.cluster_assume.json
-  tags               = var.tags
-}
-
-resource "aws_iam_role_policy_attachment" "cluster" {
-  role       = aws_iam_role.cluster.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
-
-resource "aws_iam_role" "node" {
-  name               = "${var.cluster_name}-node"
-  assume_role_policy = data.aws_iam_policy_document.node_assume.json
-  tags               = var.tags
-}
-
-resource "aws_iam_role_policy_attachment" "node" {
-  for_each = toset([
-    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
-    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
-  ])
-  role       = aws_iam_role.node.name
-  policy_arn = each.value
+data "aws_iam_role" "node" {
+  name = "${var.cluster_name}-node"
 }
 
 resource "aws_eks_cluster" "this" {
   #checkov:skip=CKV_AWS_39:The owner-approved W6-004 boundary permits only the owner's temporary exact /32 during the bounded deployment window; workloads remain private.
   name     = var.cluster_name
-  role_arn = aws_iam_role.cluster.arn
+  role_arn = data.aws_iam_role.cluster.arn
   version  = var.kubernetes_version
 
   access_config {
@@ -71,7 +30,6 @@ resource "aws_eks_cluster" "this" {
   }
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
   tags                      = var.tags
-  depends_on                = [aws_iam_role_policy_attachment.cluster]
 }
 
 resource "aws_eks_access_entry" "administrator" {
@@ -137,7 +95,7 @@ resource "aws_eks_access_policy_association" "resilience" {
 resource "aws_eks_node_group" "application" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "application"
-  node_role_arn   = aws_iam_role.node.arn
+  node_role_arn   = data.aws_iam_role.node.arn
   subnet_ids      = var.subnet_ids
   instance_types  = var.node_instance_types
   capacity_type   = "ON_DEMAND"
@@ -149,8 +107,7 @@ resource "aws_eks_node_group" "application" {
   update_config {
     max_unavailable = 1
   }
-  tags       = var.tags
-  depends_on = [aws_iam_role_policy_attachment.node]
+  tags = var.tags
 }
 
 resource "aws_eks_addon" "this" {

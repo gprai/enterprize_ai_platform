@@ -1,0 +1,37 @@
+{
+  "Statement": [
+    {
+      "Action": "ec2:CreateVpcEndpoint",
+      "Condition": {
+        "StringEquals": {
+          "ec2:Region": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "${sandbox_route_table_arn}",
+        "${sandbox_endpoint_security_group_arn}",
+        "${sandbox_subnet_a_arn}",
+        "${sandbox_subnet_b_arn}",
+        "${sandbox_vpc_arn}"
+      ],
+      "Sid": "CreateVpcEndpointsUsingExactSandboxBindings"
+    },
+    {
+      "Action": "kms:CreateGrant",
+      "Condition": {
+        "Bool": {
+          "kms:GrantIsForAWSResource": "true"
+        },
+        "StringEquals": {
+          "kms:CallerAccount": "526338061652",
+          "kms:ViaService": "es.ap-southeast-1.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "${sandbox_kms_key_arn}",
+      "Sid": "CreateOpenSearchGrantOnExactSandboxKey"
+    }
+  ],
+  "Version": "2012-10-17"
+}

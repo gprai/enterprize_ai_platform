@@ -1,0 +1,23 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:DeleteRetentionPolicy",
+        "logs:TagResource",
+        "logs:UntagResource",
+        "logs:TagLogGroup",
+        "logs:UntagLogGroup"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/codebuild/enterprise-ai-capstone-deploy",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/codebuild/enterprise-ai-capstone-deploy:*"
+      ],
+      "Sid": "ManageExactCapstoneCodeBuildLogGroup"
+    }
+  ],
+  "Version": "2012-10-17"
+}

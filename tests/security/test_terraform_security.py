@@ -19,11 +19,11 @@ EXPECTED_CHECKOV_SKIPS = {
     ("infra/modules/kms/main.tf", "CKV_AWS_111"),
     ("infra/modules/kms/main.tf", "CKV_AWS_356"),
     ("infra/modules/eks/main.tf", "CKV_AWS_39"),
-    ("infra/modules/iam/main.tf", "CKV_AWS_111"),
-    ("infra/modules/iam/main.tf", "CKV_AWS_355"),
-    ("infra/modules/iam/main.tf", "CKV_AWS_358"),
-    ("infra/modules/iam/w12_prerequisite_images.tf", "CKV_AWS_107"),
-    ("infra/modules/iam/w12_prerequisite_images.tf", "CKV_AWS_358"),
+    ("infra/bootstrap/modules/platform-iam/main.tf", "CKV_AWS_111"),
+    ("infra/bootstrap/modules/platform-iam/main.tf", "CKV_AWS_355"),
+    ("infra/bootstrap/modules/platform-iam/main.tf", "CKV_AWS_358"),
+    ("infra/bootstrap/modules/platform-iam/w12_prerequisite_images.tf", "CKV_AWS_107"),
+    ("infra/bootstrap/modules/platform-iam/w12_prerequisite_images.tf", "CKV_AWS_358"),
     ("infra/modules/observability/main.tf", "CKV_AWS_158"),
     ("infra/modules/observability/main.tf", "CKV_AWS_338"),
     ("infra/modules/network/main.tf", "CKV2_AWS_11"),
@@ -56,7 +56,9 @@ def test_prohibited_action_wildcards_and_permissions_are_absent() -> None:
     network = (INFRA / "modules/network/main.tf").read_text(encoding="utf-8")
     assert source.count('"ecr:GetAuthorizationToken"') == 5
     assert network.count('"ecr:GetAuthorizationToken"') == 2
-    w12 = (INFRA / "modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
+    w12 = (INFRA / "bootstrap/modules/platform-iam/w12_prerequisite_images.tf").read_text(
+        encoding="utf-8"
+    )
     assert w12.count('"ecr:GetAuthorizationToken"') == 2
     assert w12.count('variable = "aws:RequestedRegion"') == 2
     assert '"ECR API" = [' in network
@@ -67,7 +69,9 @@ def test_only_approved_resource_and_principal_wildcards_exist() -> None:
     source = terraform_source()
     assert source.count('resources = ["*"]') == 18
     assert source.count('identifiers = ["*"]') == 5
-    w12 = (INFRA / "modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
+    w12 = (INFRA / "bootstrap/modules/platform-iam/w12_prerequisite_images.tf").read_text(
+        encoding="utf-8"
+    )
     assert w12.count('resources = ["*"]') == 4
     assert w12.count('identifiers = ["*"]') == 0
     public_ecr_reader = w12.split(
@@ -175,6 +179,41 @@ def test_no_public_or_nat_network_resource_is_declared() -> None:
     assert "egress  = []" in source
 
 
+def test_14_day_retention_exceptions_cover_only_the_two_sandbox_log_groups() -> None:
+    source = (INFRA / "modules/observability/main.tf").read_text(encoding="utf-8")
+    groups = dict(
+        re.findall(
+            r'^resource "aws_cloudwatch_log_group" "([^"]+)" \{(.*?)^\}',
+            source,
+            flags=re.MULTILINE | re.DOTALL,
+        )
+    )
+    marker = "#checkov:skip=CKV_AWS_338:Owner-approved sandbox-only 14-day retention"
+    assert {name for name, body in groups.items() if marker in body} == {"application", "eks"}
+    assert terraform_source().count(marker) == 2
+    for name in ("application", "eks"):
+        assert "retention_in_days = var.retention_days" in groups[name]
+        assert "Not approved for production." in groups[name]
+    # The separately approved seven-day Bedrock exception is unchanged.
+    assert "retention_in_days = 7" in groups["bedrock_invocations"]
+    assert (
+        "Owner-approved synthetic transcript retention is exactly seven days"
+        in groups["bedrock_invocations"]
+    )
+    sandbox = (INFRA / "environments/sandbox/main.tf").read_text(encoding="utf-8")
+    binding = sandbox.split('module "observability" {', maxsplit=1)[1].split("\n}", maxsplit=1)[0]
+    assert re.search(r"retention_days\s*=\s*14\b", binding)
+    assert re.search(r'name\s*=\s*"enterprise-ai-sandbox"', binding)
+    callers = {
+        path.relative_to(INFRA).as_posix()
+        for path in INFRA.rglob("*.tf")
+        if re.search(
+            r'source\s*=\s*"[^"]*/modules/observability"', path.read_text(encoding="utf-8")
+        )
+    }
+    assert callers == {"environments/sandbox/main.tf"}
+
+
 def test_secrets_module_has_no_value_bearing_surface() -> None:
     directory = INFRA / "modules/secrets"
     source = "\n".join(path.read_text(encoding="utf-8") for path in directory.glob("*.tf"))
@@ -184,7 +223,7 @@ def test_secrets_module_has_no_value_bearing_surface() -> None:
 
 
 def test_w7_prefix_access_prevents_raw_or_quarantine_retrieval() -> None:
-    source = (INFRA / "modules/iam/main.tf").read_text(encoding="utf-8")
+    source = (INFRA / "bootstrap/modules/platform-iam/main.tf").read_text(encoding="utf-8")
     runtime = source.split('data "aws_iam_policy_document" "runtime"', maxsplit=1)[1].split(
         'resource "aws_iam_role_policy" "runtime"', maxsplit=1
     )[0]

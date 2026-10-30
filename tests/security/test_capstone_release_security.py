@@ -172,7 +172,7 @@ def test_final_zero_change_state_fallback_requires_exact_finalized_current_state
 
 
 def test_codebuild_role_cannot_read_kubernetes_secret() -> None:
-    policy = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    policy = (ROOT / "infra/bootstrap/modules/platform-iam/main.tf").read_text(encoding="utf-8")
     role = policy.split('data "aws_iam_policy_document" "capstone_codebuild"', 1)[1]
     role = role.split('resource "aws_iam_role_policy" "capstone_codebuild"', 1)[0]
     assert "secretsmanager:GetSecretValue" not in role

@@ -1,0 +1,40 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "ec2:CreateSubnet",
+        "ec2:CreateRouteTable",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateVpcEndpoint"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Environment": "sandbox",
+          "aws:ResourceTag/Project": "enterprise-ai-platform",
+          "aws:ResourceTag/Repository": "enterprise-ai-platform",
+          "ec2:Region": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "${sandbox_vpc_arn}",
+      "Sid": "CreateNetworkResourcesInExactSandboxVpc"
+    },
+    {
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "ec2:Vpc": "${sandbox_vpc_arn}"
+        },
+        "StringEquals": {
+          "ec2:Region": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "${sandbox_default_security_group_arn}",
+      "Sid": "BootstrapExactSandboxDefaultSecurityGroupTags"
+    }
+  ],
+  "Version": "2012-10-17"
+}

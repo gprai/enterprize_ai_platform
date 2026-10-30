@@ -1,0 +1,77 @@
+{
+  "Statement": [
+    {
+      "Action": "fis:CreateExperimentTemplate",
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "Environment",
+            "Owner",
+            "ManagedBy",
+            "CostCenter",
+            "Feature",
+            "ExpiresAt",
+            "Repository"
+          ]
+        },
+        "StringEquals": {
+          "aws:RequestTag/CostCenter": "Personal-Learning",
+          "aws:RequestTag/Environment": "sandbox",
+          "aws:RequestTag/Feature": "MVP-001",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "aws:RequestTag/Owner": "Gyan-Prakash-Rai",
+          "aws:RequestTag/Project": "enterprise-ai-platform",
+          "aws:RequestTag/Repository": "enterprise-ai-platform"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:fis:ap-southeast-1:526338061652:action/aws:eks:pod-delete",
+        "arn:aws:fis:ap-southeast-1:526338061652:experiment-template/*"
+      ],
+      "Sid": "CreateOnlySandboxEksPodDeleteTemplate"
+    },
+    {
+      "Action": "fis:TagResource",
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "Environment",
+            "Owner",
+            "ManagedBy",
+            "CostCenter",
+            "Feature",
+            "ExpiresAt",
+            "Repository"
+          ]
+        },
+        "StringEquals": {
+          "aws:RequestTag/CostCenter": "Personal-Learning",
+          "aws:RequestTag/Environment": "sandbox",
+          "aws:RequestTag/Feature": "MVP-001",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "aws:RequestTag/Owner": "Gyan-Prakash-Rai",
+          "aws:RequestTag/Project": "enterprise-ai-platform",
+          "aws:RequestTag/Repository": "enterprise-ai-platform"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:fis:ap-southeast-1:526338061652:experiment-template/*",
+      "Sid": "TagOnlySandboxFisTemplates"
+    },
+    {
+      "Action": "iam:PassRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "fis.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-fis",
+      "Sid": "PassOnlySandboxFisRole"
+    }
+  ],
+  "Version": "2012-10-17"
+}

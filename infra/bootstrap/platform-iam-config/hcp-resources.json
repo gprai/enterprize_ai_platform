@@ -1,0 +1,236 @@
+{
+  "attachments": {
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-bootstrap-kms-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-bootstrap-kms-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-bootstrap-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-bootstrap-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-capstone-codebuild-logs-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-capstone-codebuild-logs-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-capstone-codebuild-project-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-capstone-codebuild-project-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-sandbox-core-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-sandbox-core-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-sandbox-iam-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-sandbox-iam-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-sandbox-network-bootstrap-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-sandbox-network-bootstrap-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-sandbox-service-recovery-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-sandbox-service-recovery-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-w6-eks-iam-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-w6-eks-iam-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-w6-observability-v1": {
+      "policy": "enterprise-ai-capstone-hcp-apply-w6-observability-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1": {
+      "policy": "enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-plan-read-v1": {
+      "policy": "enterprise-ai-capstone-hcp-plan-read-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1": {
+      "policy": "enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-plan/enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1": {
+      "policy": "enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1",
+      "role": "enterprise-ai-capstone-hcp-plan"
+    },
+    "enterprise-ai-capstone-hcp-plan/enterprise-ai-capstone-hcp-plan-read-v1": {
+      "policy": "enterprise-ai-capstone-hcp-plan-read-v1",
+      "role": "enterprise-ai-capstone-hcp-plan"
+    },
+    "enterprise-ai-capstone-hcp-plan/enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1": {
+      "policy": "enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1",
+      "role": "enterprise-ai-capstone-hcp-plan"
+    }
+  },
+  "inline_policies": {
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-eks-nodegroup-sns-recovery-v1": {
+      "file": "enterprise-ai-capstone-hcp-apply--enterprise-ai-capstone-hcp-apply-eks-nodegroup-sns-recovery-v1.json.tftpl",
+      "name": "enterprise-ai-capstone-hcp-apply-eks-nodegroup-sns-recovery-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-apply-fis-template-recovery-v1": {
+      "file": "enterprise-ai-capstone-hcp-apply--enterprise-ai-capstone-hcp-apply-fis-template-recovery-v1.json.tftpl",
+      "name": "enterprise-ai-capstone-hcp-apply-fis-template-recovery-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-apply/enterprise-ai-capstone-hcp-w6-read-recovery-v1": {
+      "file": "enterprise-ai-capstone-hcp-apply--enterprise-ai-capstone-hcp-w6-read-recovery-v1.json.tftpl",
+      "name": "enterprise-ai-capstone-hcp-w6-read-recovery-v1",
+      "role": "enterprise-ai-capstone-hcp-apply"
+    },
+    "enterprise-ai-capstone-hcp-plan/enterprise-ai-capstone-hcp-w6-read-recovery-v1": {
+      "file": "enterprise-ai-capstone-hcp-plan--enterprise-ai-capstone-hcp-w6-read-recovery-v1.json.tftpl",
+      "name": "enterprise-ai-capstone-hcp-w6-read-recovery-v1",
+      "role": "enterprise-ai-capstone-hcp-plan"
+    }
+  },
+  "policies": {
+    "enterprise-ai-capstone-hcp-apply-bootstrap-kms-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-bootstrap-kms-v1",
+      "description": "",
+      "path": "/",
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-apply-bootstrap-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-bootstrap-v1",
+      "description": "W12-001 exact bootstrap writes for HCP Terraform apply",
+      "path": "/",
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-apply-capstone-codebuild-logs-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-capstone-codebuild-logs-v1",
+      "description": "Exact capstone CodeBuild log-group lifecycle for the HCP apply role.",
+      "path": "/",
+      "tags": {}
+    },
+    "enterprise-ai-capstone-hcp-apply-capstone-codebuild-project-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-capstone-codebuild-project-v1",
+      "description": "Exact capstone CodeBuild project lifecycle and service-role pass permission for the HCP apply role.",
+      "path": "/",
+      "tags": {}
+    },
+    "enterprise-ai-capstone-hcp-apply-sandbox-core-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-sandbox-core-v1",
+      "description": "W12-001 bounded enabled sandbox infrastructure lifecycle",
+      "path": "/",
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-apply-sandbox-iam-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-sandbox-iam-v1",
+      "description": "W12-001 exact Terraform-managed sandbox IAM role lifecycle",
+      "path": "/",
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-apply-sandbox-network-bootstrap-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-sandbox-network-bootstrap-v1",
+      "description": "Bounded EC2 network-bootstrap permissions for W12 sandbox apply",
+      "path": "/",
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-apply-sandbox-service-recovery-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-sandbox-service-recovery-v1",
+      "description": "",
+      "path": "/",
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-apply-w6-eks-iam-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-w6-eks-iam-v1",
+      "description": "Bounded W12 W6 foundation recovery permissions.",
+      "path": "/",
+      "tags": {}
+    },
+    "enterprise-ai-capstone-hcp-apply-w6-observability-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-apply-w6-observability-v1",
+      "description": "Bounded W12 W6 foundation recovery permissions.",
+      "path": "/",
+      "tags": {}
+    },
+    "enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1",
+      "description": "W12-001 exact bootstrap lock table TTL read for HCP plan and apply roles",
+      "path": "/",
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-plan-read-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-plan-read-v1",
+      "description": "W12-001 bounded read permissions for HCP Terraform plans",
+      "path": "/",
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1": {
+      "arn": "arn:aws:iam::526338061652:policy/enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1",
+      "description": "Exact read-only capstone CodeBuild project access for HCP plan and apply roles.",
+      "path": "/",
+      "tags": {}
+    }
+  },
+  "roles": {
+    "enterprise-ai-capstone-hcp-apply": {
+      "description": "W12-001 HCP Terraform bounded apply dynamic credentials role",
+      "max_session_duration": 3600,
+      "path": "/",
+      "permissions_boundary": null,
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    },
+    "enterprise-ai-capstone-hcp-plan": {
+      "description": "W12-001 HCP Terraform plan-only dynamic credentials role",
+      "max_session_duration": 3600,
+      "path": "/",
+      "permissions_boundary": null,
+      "tags": {
+        "CostCenter": "Personal-Learning",
+        "ExpiresAt": "2026-12-31",
+        "Owner": "Gyan-Prakash-Rai",
+        "Repository": "enterprise-ai-platform"
+      }
+    }
+  }
+}

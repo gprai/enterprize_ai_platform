@@ -57,7 +57,7 @@ def test_static_iam_user_is_not_in_sandbox_composition() -> None:
 
 
 def test_runtime_and_ingestion_identity_permissions_remain_separate() -> None:
-    text = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    text = (ROOT / "infra/bootstrap/modules/platform-iam/main.tf").read_text(encoding="utf-8")
     assert (
         'opensearch_index_root_arn = "${local.opensearch_domain_arn}/enterprise_ai_sandbox"' in text
     )
@@ -152,7 +152,7 @@ def test_endpoint_policy_source_identity_tracks_expiry_update_source() -> None:
 
 
 def test_real_plan_normalizer_protects_eks_trust_and_runtime_policy_sources() -> None:
-    eks = (ROOT / "infra/modules/eks/main.tf").read_text(encoding="utf-8")
+    eks = (ROOT / "infra/bootstrap/modules/platform-iam/foundation.tf").read_text(encoding="utf-8")
     assert 'sid     = "ExactEKSClusterServiceTrust"' in eks
     assert 'sid     = "ExactEKSNodeServiceTrust"' in eks
     assert (
@@ -184,7 +184,7 @@ def test_real_plan_normalizer_protects_eks_trust_and_runtime_policy_sources() ->
 
 
 def test_runtime_bedrock_policy_uses_three_part_global_inference_contract() -> None:
-    iam = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    iam = (ROOT / "infra/bootstrap/modules/platform-iam/main.tf").read_text(encoding="utf-8")
 
     assert "foundation_model_id       = trimprefix(" in iam
     assert 'sid       = "InvokeExactGlobalInferenceProfile"' in iam
@@ -214,7 +214,7 @@ def test_fis_contract_is_single_target_with_two_stop_alarms() -> None:
 
 
 def test_fis_role_has_exact_eks_pod_delete_discovery_permissions() -> None:
-    text = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    text = (ROOT / "infra/bootstrap/modules/platform-iam/main.tf").read_text(encoding="utf-8")
     fis = text.split('data "aws_iam_policy_document" "fis" {', 1)[1].split(
         'resource "aws_iam_role_policy" "fis"', 1
     )[0]
@@ -228,6 +228,7 @@ def test_fis_role_has_exact_eks_pod_delete_discovery_permissions() -> None:
 
 def test_bedrock_invocation_logging_is_text_only_and_bounded() -> None:
     observability = (ROOT / "infra/modules/observability/main.tf").read_text(encoding="utf-8")
+    iam = (ROOT / "infra/bootstrap/modules/platform-iam/foundation.tf").read_text(encoding="utf-8")
     storage = (ROOT / "infra/modules/storage/main.tf").read_text(encoding="utf-8")
     kms = (ROOT / "infra/modules/kms/main.tf").read_text(encoding="utf-8")
 
@@ -237,8 +238,8 @@ def test_bedrock_invocation_logging_is_text_only_and_bounded() -> None:
     for modality in ("embedding", "image", "video"):
         assert re.search(rf"{modality}_data_delivery_enabled\s*=\s*false", observability)
     assert "retention_in_days = 7" in observability
-    assert 'Principal = { Service = "bedrock.amazonaws.com" }' in observability
-    assert 'Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]' in observability
+    assert 'Principal = { Service = "bedrock.amazonaws.com" }' in iam
+    assert 'Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]' in iam
     assert 'prefix = "${var.bedrock_log_prefix}/"' in storage
     assert "days = 7" in storage
     assert 'actions = ["s3:PutObject"]' in storage

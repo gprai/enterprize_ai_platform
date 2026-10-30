@@ -1,0 +1,49 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:PutBucketTagging",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketVersioning",
+        "s3:PutLifecycleConfiguration",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::enterprise-ai-platform-sbx-tfstate-526338061652-ap-southeast-1"
+      ],
+      "Sid": "ExactStateBucketWrites"
+    },
+    {
+      "Action": [
+        "dynamodb:CreateTable",
+        "dynamodb:DeleteTable",
+        "dynamodb:UpdateTable",
+        "dynamodb:UpdateContinuousBackups",
+        "dynamodb:TagResource",
+        "dynamodb:UntagResource"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:dynamodb:ap-southeast-1:526338061652:table/enterprise-ai-platform-sandbox-tflock"
+      ],
+      "Sid": "ExactLockTableWrites"
+    }
+  ],
+  "Version": "2012-10-17"
+}

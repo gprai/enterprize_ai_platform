@@ -148,7 +148,7 @@ def test_roots_pin_exact_terraform_and_aws_provider_bounds() -> None:
 
 def test_w12_private_codebuild_and_owner_gated_access_contract() -> None:
     sandbox = (SANDBOX / "main.tf").read_text(encoding="utf-8")
-    iam = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    iam = (ROOT / "infra/bootstrap/modules/platform-iam/main.tf").read_text(encoding="utf-8")
     eks = (ROOT / "infra/modules/eks/main.tf").read_text(encoding="utf-8")
     assert 'resource "aws_codebuild_project" "capstone_deploy"' in sandbox
     assert "count                  = var.w12_capstone_enabled ? 1 : 0" in sandbox
@@ -168,6 +168,8 @@ def test_every_approved_module_has_main_variables_and_outputs() -> None:
             "outputs.tf",
             "variables.tf",
         }
+        if module in {"iam", "eks", "observability"}:
+            expected.add("iam_ownership_transfer.tf")
         if module == "iam":
             expected.update({"w12_prerequisite_images.tf", "w12_prerequisite_outputs.tf"})
         assert {path.name for path in directory.glob("*.tf")} == expected
@@ -230,7 +232,7 @@ def test_backend_example_uses_exact_owner_approved_boundary() -> None:
 def test_github_repository_identity_produces_the_exact_immutable_oidc_subject() -> None:
     tfvars = (SANDBOX / "terraform.tfvars.example").read_text(encoding="utf-8")
     variables = (SANDBOX / "variables.tf").read_text(encoding="utf-8")
-    iam = (ROOT / "infra/modules/iam/main.tf").read_text(encoding="utf-8")
+    iam = (ROOT / "infra/bootstrap/modules/platform-iam/main.tf").read_text(encoding="utf-8")
 
     values = dict(
         re.findall(

@@ -214,30 +214,17 @@ module "secrets" {
 }
 
 module "iam" {
-  source = "../../modules/iam"
-
-  aws_account_id                 = var.aws_account_id
-  aws_region                     = var.aws_region
-  platform_bucket_name           = local.platform_bucket
-  data_zone_prefixes             = var.w7_data_zone_prefixes
-  kms_key_arn                    = module.kms.key_arn
-  opensearch_domain_name         = local.opensearch_domain
-  bedrock_inference_profile_id   = var.bedrock_model_id
-  expires_at                     = var.mandatory_tags["ExpiresAt"]
-  github_organization            = var.github_organization
-  github_organization_id         = var.github_organization_id
-  github_repository              = var.github_repository
-  github_repository_id           = var.github_repository_id
-  github_environment             = var.github_environment
-  github_oidc_role_name          = var.github_oidc_role_name
-  github_allowed_ref             = var.github_allowed_ref
-  external_administrator_arn     = var.administrator_role_arn
-  administrator_trust_expires_at = var.approval_expires_at
-  eks_namespace                  = "enterprise-ai-sandbox"
-  runtime_service_account        = "enterprise-ai-runtime"
-  ingestion_service_account      = "enterprise-ai-ingestion"
-  eks_cluster_name               = "enterprise-ai-sandbox"
-  tags                           = var.mandatory_tags
+  source                       = "../../modules/iam"
+  aws_account_id               = var.aws_account_id
+  aws_region                   = var.aws_region
+  bedrock_inference_profile_id = var.bedrock_model_id
+  github_organization          = var.github_organization
+  github_organization_id       = var.github_organization_id
+  github_repository            = var.github_repository
+  github_repository_id         = var.github_repository_id
+  github_environment           = var.github_environment
+  github_allowed_ref           = var.github_allowed_ref
+  github_oidc_role_name        = var.github_oidc_role_name
 }
 
 module "opensearch" {

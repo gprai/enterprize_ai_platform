@@ -112,7 +112,7 @@ EXPECTED_SKIPS = {
     ),
     "infra/modules/network/main.tf": ("CKV2_AWS_11",),
     "infra/modules/eks/main.tf": ("CKV_AWS_39",),
-    "infra/modules/iam/main.tf": (
+    "infra/bootstrap/modules/platform-iam/main.tf": (
         "CKV_AWS_358",
         "CKV_AWS_111",
         "CKV_AWS_355",
@@ -122,7 +122,9 @@ EXPECTED_SKIPS = {
     ),
     "infra/modules/observability/main.tf": (
         "CKV_AWS_158",
+        "CKV_AWS_338",
         "CKV_AWS_158",
+        "CKV_AWS_338",
         "CKV_AWS_158",
         "CKV_AWS_338",
     ),
@@ -131,7 +133,7 @@ EXPECTED_SKIPS = {
         "CKV_AWS_318",
         "CKV2_AWS_59",
     ),
-    "infra/modules/iam/w12_prerequisite_images.tf": (
+    "infra/bootstrap/modules/platform-iam/w12_prerequisite_images.tf": (
         "CKV_AWS_358",
         "CKV_AWS_107",
     ),
@@ -232,7 +234,7 @@ def test_inline_checkov_skip_inventory_and_rationales_are_exact() -> None:
         rationales.extend(item[1] for item in directives)
 
     assert observed == EXPECTED_SKIPS
-    assert sum(len(items) for items in observed.values()) == 29
+    assert sum(len(items) for items in observed.values()) == 31
     weighted_skips = 17 + 3
     assert weighted_skips == 20
     opensearch = (ROOT / "infra/modules/opensearch/main.tf").read_text(encoding="utf-8")
