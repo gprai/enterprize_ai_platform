@@ -1707,7 +1707,7 @@ def test_existing_opensearch_role_sensitivity_fails_closed_on_deviation(
         normalize_plan(raw, evaluation_time="2026-09-08T00:00:00Z")
 
 
-def test_iam_module_does_not_defer_policy_data_sources_to_expiry_gate() -> None:
+def test_sandbox_iam_module_is_read_only_and_not_deferred_to_expiry_gate() -> None:
     sandbox = (
         Path(__file__).resolve().parents[2] / "infra" / "environments" / "sandbox" / "main.tf"
     ).read_text(encoding="utf-8")
@@ -1716,8 +1716,10 @@ def test_iam_module_does_not_defer_policy_data_sources_to_expiry_gate() -> None:
     iam_module = sandbox[iam_start:iam_end]
 
     assert "depends_on" not in iam_module
-    assert 'expires_at                     = var.mandatory_tags["ExpiresAt"]' in iam_module
-    assert "tags                           = var.mandatory_tags" in iam_module
+    assert "expires_at" not in iam_module
+    assert "tags" not in iam_module
+    assert 'source                       = "../../modules/iam"' in iam_module
+    assert "bedrock_inference_profile_id = var.bedrock_model_id" in iam_module
 
 
 @pytest.mark.parametrize(

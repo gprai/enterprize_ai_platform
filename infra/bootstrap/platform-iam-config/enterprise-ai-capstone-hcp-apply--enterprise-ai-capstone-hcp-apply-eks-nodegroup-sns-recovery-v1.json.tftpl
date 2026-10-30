@@ -1,0 +1,28 @@
+{
+  "Statement": [
+    {
+      "Action": "iam:GetRole",
+      "Effect": "Allow",
+      "Resource": "arn:aws:iam::526338061652:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup",
+      "Sid": "ReadExactEksNodegroupServiceLinkedRole"
+    },
+    {
+      "Action": "iam:CreateServiceLinkedRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": "eks-nodegroup.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "CreateOnlyEksNodegroupServiceLinkedRole"
+    },
+    {
+      "Action": "sns:Unsubscribe",
+      "Effect": "Allow",
+      "Resource": "arn:aws:sns:ap-southeast-1:526338061652:enterprise-ai-sandbox-alerts",
+      "Sid": "UnsubscribeExactSandboxAlertTopic"
+    }
+  ],
+  "Version": "2012-10-17"
+}

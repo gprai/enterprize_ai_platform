@@ -121,7 +121,7 @@ def test_scan_exception_is_exact_and_time_bounded() -> None:
 
 
 def test_dedicated_publisher_and_exact_codebuild_pull() -> None:
-    iam = _source("infra/modules/iam/w12_prerequisite_images.tf")
+    iam = _source("infra/bootstrap/modules/platform-iam/w12_prerequisite_images.tf")
     publisher = iam.split('data "aws_iam_policy_document" "w12_image_publisher"', 1)[1]
     publisher = publisher.split('resource "aws_iam_role_policy" "w12_image_publisher"', 1)[0]
     assert "local.w12_toolchain_ecr_arn" in publisher
@@ -145,7 +145,7 @@ def test_dedicated_publisher_and_exact_codebuild_pull() -> None:
 
 
 def test_public_ecr_reader_is_token_only_and_uses_exact_environment_trust() -> None:
-    iam = _source("infra/modules/iam/w12_prerequisite_images.tf")
+    iam = _source("infra/bootstrap/modules/platform-iam/w12_prerequisite_images.tf")
     reader = iam.split('data "aws_iam_policy_document" "w12_public_ecr_reader"', 1)[1]
     reader = reader.split('resource "aws_iam_role_policy" "w12_public_ecr_reader"', 1)[0]
     assert 'actions   = ["ecr-public:GetAuthorizationToken"]' in reader

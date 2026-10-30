@@ -1,0 +1,100 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:ListRolePolicies",
+        "iam:ListRoleTags"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-cluster",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-node",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-bedrock-log-delivery"
+      ],
+      "Sid": "W6ReadExactCreatedRoles"
+    },
+    {
+      "Action": [
+        "sns:GetTopicAttributes",
+        "sns:ListTagsForResource",
+        "sns:ListSubscriptionsByTopic"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:sns:ap-southeast-1:526338061652:enterprise-ai-sandbox-alerts",
+      "Sid": "W6ReadExactAlertTopic"
+    },
+    {
+      "Action": [
+        "cloudwatch:GetDashboard"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:cloudwatch::526338061652:dashboard/enterprise-ai-sandbox",
+      "Sid": "W6ReadExactDashboard"
+    },
+    {
+      "Action": [
+        "cloudwatch:DescribeAlarms",
+        "cloudwatch:ListTagsForResource"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:cloudwatch:ap-southeast-1:526338061652:alarm:enterprise-ai-sandbox-availability-burn",
+        "arn:aws:cloudwatch:ap-southeast-1:526338061652:alarm:enterprise-ai-sandbox-safety"
+      ],
+      "Sid": "W6ReadExactAlarms"
+    },
+    {
+      "Action": [
+        "eks:DescribeCluster",
+        "eks:ListTagsForResource"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:eks:ap-southeast-1:526338061652:cluster/enterprise-ai-sandbox",
+      "Sid": "W6ReadExactEksCluster"
+    },
+    {
+      "Action": [
+        "eks:DescribeNodegroup",
+        "eks:DescribeAddon",
+        "eks:DescribeAccessEntry",
+        "eks:ListAssociatedAccessPolicies",
+        "eks:DescribePodIdentityAssociation",
+        "eks:ListTagsForResource"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:eks:ap-southeast-1:526338061652:nodegroup/enterprise-ai-sandbox/application/*",
+        "arn:aws:eks:ap-southeast-1:526338061652:addon/enterprise-ai-sandbox/*",
+        "arn:aws:eks:ap-southeast-1:526338061652:access-entry/enterprise-ai-sandbox/*",
+        "arn:aws:eks:ap-southeast-1:526338061652:podidentityassociation/enterprise-ai-sandbox/*"
+      ],
+      "Sid": "W6ReadEksChildren"
+    },
+    {
+      "Action": [
+        "fis:GetExperimentTemplate"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:fis:ap-southeast-1:526338061652:experiment-template/*",
+      "Sid": "W6ReadFisTemplate"
+    },
+    {
+      "Action": [
+        "bedrock:GetModelInvocationLoggingConfiguration"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "W6ReadBedrockInvocationLogging"
+    }
+  ],
+  "Version": "2012-10-17"
+}

@@ -6,6 +6,7 @@ import ast
 import hashlib
 from pathlib import Path
 
+import yaml
 from tools.capstone_release import (
     BOOTSTRAP_JSON,
     BOOTSTRAP_SHA,
@@ -64,6 +65,21 @@ def test_github_api_version_is_pinned() -> None:
     assert '"X-GitHub-Api-Version": _config()["github_api_version"]' in client
     assert '"X-GitHub-Api-Version":"2026-03-10"' in workflow
     assert "2022-11-28" not in workflow + client
+
+
+def test_build_step_can_revalidate_the_current_run_artifact() -> None:
+    """Step-local credentials must reach the artifact reader inside workflow_build."""
+    job = yaml.safe_load(_source(".github/workflows/capstone-release.yml"))["jobs"][
+        "build_scan_attest"
+    ]
+    build = next(step for step in job["steps"] if step.get("id") == "build")
+    assert "workflow_build()" in build["run"]
+    assert build["env"]["GH_TOKEN"] == "${{ github.token }}"
+    assert job["permissions"] == {
+        "contents": "read",
+        "actions": "read",
+        "id-token": "write",
+    }
 
 
 def test_workflow_helpers_are_defined_and_no_unapproved_owner_command() -> None:
@@ -763,7 +779,7 @@ def test_codebuild_result_upload_requires_checksum_and_kms() -> None:
 
 
 def test_codebuild_role_write_is_limited_to_result_prefix() -> None:
-    iam = _source("infra/modules/iam/main.tf")
+    iam = _source("infra/bootstrap/modules/platform-iam/main.tf")
     role = iam.split('data "aws_iam_policy_document" "capstone_codebuild"', 1)[1].split(
         'resource "aws_iam_role_policy" "capstone_codebuild"', 1
     )[0]
@@ -772,7 +788,7 @@ def test_codebuild_role_write_is_limited_to_result_prefix() -> None:
 
 
 def test_codebuild_role_cannot_modify_source_or_control_objects() -> None:
-    iam = _source("infra/modules/iam/main.tf")
+    iam = _source("infra/bootstrap/modules/platform-iam/main.tf")
     role = iam.split('data "aws_iam_policy_document" "capstone_codebuild"', 1)[1].split(
         'resource "aws_iam_role_policy" "capstone_codebuild"', 1
     )[0]

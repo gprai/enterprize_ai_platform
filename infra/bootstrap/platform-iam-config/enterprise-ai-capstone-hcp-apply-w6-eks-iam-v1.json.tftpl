@@ -1,0 +1,191 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "eks:AssociateAccessPolicy",
+        "eks:CreateAccessEntry",
+        "eks:CreateAddon",
+        "eks:CreateCluster",
+        "eks:CreateNodegroup",
+        "eks:CreatePodIdentityAssociation",
+        "eks:DeleteAccessEntry",
+        "eks:DeleteAddon",
+        "eks:DeleteCluster",
+        "eks:DeleteNodegroup",
+        "eks:DeletePodIdentityAssociation",
+        "eks:DescribeAccessEntry",
+        "eks:DescribeAddon",
+        "eks:DescribeCluster",
+        "eks:DescribeNodegroup",
+        "eks:DescribePodIdentityAssociation",
+        "eks:DisassociateAccessPolicy",
+        "eks:TagResource",
+        "eks:UntagResource",
+        "eks:UpdateAccessEntry",
+        "eks:UpdateAddon",
+        "eks:UpdateClusterConfig",
+        "eks:UpdateClusterVersion",
+        "eks:UpdateNodegroupConfig",
+        "eks:UpdateNodegroupVersion",
+        "eks:UpdatePodIdentityAssociation"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:eks:ap-southeast-1:526338061652:cluster/enterprise-ai-sandbox",
+        "arn:aws:eks:ap-southeast-1:526338061652:nodegroup/enterprise-ai-sandbox/*/*",
+        "arn:aws:eks:ap-southeast-1:526338061652:addon/enterprise-ai-sandbox/*/*",
+        "arn:aws:eks:ap-southeast-1:526338061652:access-entry/enterprise-ai-sandbox/*",
+        "arn:aws:eks:ap-southeast-1:526338061652:podidentityassociation/enterprise-ai-sandbox/*"
+      ],
+      "Sid": "ManageExactSandboxEksResources"
+    },
+    {
+      "Action": [
+        "eks:ListAccessEntries",
+        "eks:ListAddons",
+        "eks:ListAssociatedAccessPolicies",
+        "eks:ListNodegroups",
+        "eks:ListPodIdentityAssociations"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "ReadExactRegionalEksCollections"
+    },
+    {
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:ListRolePolicies",
+        "iam:ListRoleTags",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:UpdateAssumeRolePolicy"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-cluster",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-node",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-bedrock-log-delivery"
+      ],
+      "Sid": "ManageExactW6CreatedRoles"
+    },
+    {
+      "Action": [
+        "iam:DeleteRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:PutRolePolicy"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-bedrock-log-delivery",
+      "Sid": "ManageExactBedrockLogInlinePolicy"
+    },
+    {
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+            "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+            "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
+            "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+          ]
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-cluster",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-node"
+      ],
+      "Sid": "AttachOnlyApprovedEksPolicies"
+    },
+    {
+      "Action": "iam:PassRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "eks.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-cluster",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-node"
+      ],
+      "Sid": "PassExactEksServiceRoles"
+    },
+    {
+      "Action": "iam:PassRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "pods.eks.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-runtime",
+        "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-ingestion"
+      ],
+      "Sid": "PassExactPodIdentityRoles"
+    },
+    {
+      "Action": "iam:PassRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "fis.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-fis",
+      "Sid": "PassExactFisRole"
+    },
+    {
+      "Action": "iam:PassRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "bedrock.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:iam::526338061652:role/enterprise-ai-sandbox-bedrock-log-delivery",
+      "Sid": "PassExactBedrockLogRole"
+    },
+    {
+      "Action": "iam:CreateServiceLinkedRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": [
+            "eks.amazonaws.com",
+            "eks-nodegroup.amazonaws.com"
+          ]
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:iam::526338061652:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS",
+        "arn:aws:iam::526338061652:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup"
+      ],
+      "Sid": "CreateOnlyEksServiceLinkedRoles"
+    },
+    {
+      "Action": [
+        "kms:CreateGrant",
+        "kms:DescribeKey"
+      ],
+      "Effect": "Allow",
+      "Resource": "${sandbox_kms_key_arn}",
+      "Sid": "CreateEksGrantOnExactSandboxKey"
+    }
+  ],
+  "Version": "2012-10-17"
+}

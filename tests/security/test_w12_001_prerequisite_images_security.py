@@ -267,7 +267,9 @@ def test_cli_reports_only_sanitized_finding_set_mismatch(
 
 
 def test_public_ecr_reader_cannot_publish_or_manage_aws_resources() -> None:
-    source = (ROOT / "infra/modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
+    source = (ROOT / "infra/bootstrap/modules/platform-iam/w12_prerequisite_images.tf").read_text(
+        encoding="utf-8"
+    )
     reader = source.split('data "aws_iam_policy_document" "w12_public_ecr_reader"', 1)[1]
     reader = reader.split('resource "aws_iam_role_policy" "w12_public_ecr_reader"', 1)[0]
     assert "ecr-public:GetAuthorizationToken" in reader
@@ -288,7 +290,9 @@ def test_public_ecr_reader_cannot_publish_or_manage_aws_resources() -> None:
 
 
 def test_prerequisite_roles_use_only_the_immutable_repository_subject() -> None:
-    source = (ROOT / "infra/modules/iam/w12_prerequisite_images.tf").read_text(encoding="utf-8")
+    source = (ROOT / "infra/bootstrap/modules/platform-iam/w12_prerequisite_images.tf").read_text(
+        encoding="utf-8"
+    )
     assert "${local.github_repository_subject}:environment:${var.github_environment}" in source
     assert "repo:${var.github_organization}/${var.github_repository}" not in source
 

@@ -1,0 +1,22 @@
+{
+  "Statement": [
+    {
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "app.terraform.io:aud": "aws.workload.identity",
+          "app.terraform.io:sub": [
+            "organization:Enterprise_AI_AWS_Arch:project:enterprise-ai-capstone:workspace:enterprise-ai-bootstrap:run_phase:apply",
+            "organization:Enterprise_AI_AWS_Arch:project:enterprise-ai-capstone:workspace:enterprise-ai-sandbox:run_phase:apply"
+          ]
+        }
+      },
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::526338061652:oidc-provider/app.terraform.io"
+      },
+      "Sid": "ExactHcpTerraformApplyTrust"
+    }
+  ],
+  "Version": "2012-10-17"
+}

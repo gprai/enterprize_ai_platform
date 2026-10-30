@@ -1,0 +1,26 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncryptFrom",
+        "kms:ReEncryptTo",
+        "kms:GenerateDataKey",
+        "kms:GenerateDataKeyWithoutPlaintext",
+        "kms:DescribeKey",
+        "kms:CreateGrant"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "kms:CallerAccount": "526338061652",
+          "kms:ViaService": "dynamodb.ap-southeast-1.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "${bootstrap_kms_key_arn}",
+      "Sid": "DynamoDBUseExactBootstrapKey"
+    }
+  ],
+  "Version": "2012-10-17"
+}

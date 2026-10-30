@@ -1,0 +1,269 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "ec2:CreateVpc",
+        "ec2:CreateSubnet",
+        "ec2:CreateRouteTable",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateVpcEndpoint"
+      ],
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "Environment",
+            "Owner",
+            "ManagedBy",
+            "CostCenter",
+            "Feature",
+            "Repository",
+            "ExpiresAt",
+            "Name",
+            "Tier"
+          ]
+        },
+        "Null": {
+          "aws:RequestTag/ExpiresAt": "false"
+        },
+        "StringEquals": {
+          "aws:RequestTag/CostCenter": "Personal-Learning",
+          "aws:RequestTag/Environment": "sandbox",
+          "aws:RequestTag/Feature": "MVP-001",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "aws:RequestTag/Owner": "Gyan-Prakash-Rai",
+          "aws:RequestTag/Project": "enterprise-ai-platform",
+          "aws:RequestTag/Repository": "enterprise-ai-platform",
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "CreateTaggedNetwork"
+    },
+    {
+      "Action": [
+        "ec2:CreateTags"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1",
+          "ec2:CreateAction": [
+            "CreateVpc",
+            "CreateSubnet",
+            "CreateRouteTable",
+            "CreateSecurityGroup",
+            "CreateVpcEndpoint"
+          ]
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "TagNetworkOnCreate"
+    },
+    {
+      "Action": [
+        "ec2:DeleteVpc",
+        "ec2:ModifyVpcAttribute",
+        "ec2:DeleteSubnet",
+        "ec2:ModifySubnetAttribute",
+        "ec2:DeleteRouteTable",
+        "ec2:AssociateRouteTable",
+        "ec2:DisassociateRouteTable",
+        "ec2:DeleteSecurityGroup",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:ModifySecurityGroupRules",
+        "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
+        "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
+        "ec2:DeleteVpcEndpoints",
+        "ec2:ModifyVpcEndpoint",
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1",
+          "aws:ResourceTag/Repository": "enterprise-ai-platform"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "ManageProjectNetwork"
+    },
+    {
+      "Action": [
+        "kms:CreateKey"
+      ],
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "Environment",
+            "Owner",
+            "ManagedBy",
+            "CostCenter",
+            "Feature",
+            "Repository",
+            "ExpiresAt"
+          ]
+        },
+        "Null": {
+          "aws:RequestTag/ExpiresAt": "false"
+        },
+        "StringEquals": {
+          "aws:RequestTag/CostCenter": "Personal-Learning",
+          "aws:RequestTag/Environment": "sandbox",
+          "aws:RequestTag/Feature": "MVP-001",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "aws:RequestTag/Owner": "Gyan-Prakash-Rai",
+          "aws:RequestTag/Project": "enterprise-ai-platform",
+          "aws:RequestTag/Repository": "enterprise-ai-platform",
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "CreateTaggedKmsKeys"
+    },
+    {
+      "Action": [
+        "kms:ScheduleKeyDeletion",
+        "kms:CancelKeyDeletion",
+        "kms:EnableKeyRotation",
+        "kms:PutKeyPolicy",
+        "kms:UpdateKeyDescription",
+        "kms:TagResource",
+        "kms:UntagResource"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1",
+          "aws:ResourceTag/Repository": "enterprise-ai-platform"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:kms:ap-southeast-1:526338061652:key/*"
+      ],
+      "Sid": "ManageProjectKmsKeys"
+    },
+    {
+      "Action": [
+        "kms:CreateAlias",
+        "kms:DeleteAlias",
+        "kms:UpdateAlias"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:kms:ap-southeast-1:526338061652:alias/enterprise-ai-platform-sandbox",
+        "arn:aws:kms:ap-southeast-1:526338061652:alias/enterprise-ai-platform-sandbox-terraform-state",
+        "arn:aws:kms:ap-southeast-1:526338061652:key/*"
+      ],
+      "Sid": "ManageExactKmsAliases"
+    },
+    {
+      "Action": [
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:PutBucketTagging",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketVersioning",
+        "s3:PutLifecycleConfiguration",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketNotification",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::enterprise-ai-platform-526338061652-ap-southeast-1-sandbox"
+      ],
+      "Sid": "ManageExactPlatformBucket"
+    },
+    {
+      "Action": [
+        "ecr:CreateRepository",
+        "ecr:DeleteRepository",
+        "ecr:TagResource",
+        "ecr:UntagResource",
+        "ecr:PutLifecyclePolicy",
+        "ecr:DeleteLifecyclePolicy",
+        "ecr:PutImageScanningConfiguration",
+        "ecr:PutImageTagMutability"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/api",
+        "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-toolchain",
+        "arn:aws:ecr:ap-southeast-1:526338061652:repository/enterprise-ai/sandbox/w12-codebuild"
+      ],
+      "Sid": "ManageExactRepository"
+    },
+    {
+      "Action": [
+        "es:CreateDomain",
+        "es:DeleteDomain",
+        "es:UpdateDomainConfig",
+        "es:UpgradeDomain",
+        "es:AddTags",
+        "es:RemoveTags"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:es:ap-southeast-1:526338061652:domain/enterprise-ai-sandbox"
+      ],
+      "Sid": "ManageExactOpenSearchDomain"
+    },
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:AssociateKmsKey",
+        "logs:TagResource",
+        "logs:UntagResource"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/application-logs",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/application-logs:*",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/audit-logs",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/audit-logs:*",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/index-slow-logs",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/index-slow-logs:*",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/search-slow-logs",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/OpenSearchService/domains/enterprise-ai-sandbox/search-slow-logs:*"
+      ],
+      "Sid": "ManageExactOpenSearchLogs"
+    },
+    {
+      "Action": [
+        "logs:PutResourcePolicy",
+        "logs:DeleteResourcePolicy"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "ManageRegionalLogResourcePolicy"
+    }
+  ],
+  "Version": "2012-10-17"
+}

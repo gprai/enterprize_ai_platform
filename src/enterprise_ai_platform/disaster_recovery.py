@@ -65,7 +65,7 @@ SOURCE_PATHS: Final = {
     "storage_module_sha256": Path("infra/modules/storage/main.tf"),
     "opensearch_module_sha256": Path("infra/modules/opensearch/main.tf"),
     "kms_module_sha256": Path("infra/modules/kms/main.tf"),
-    "iam_module_sha256": Path("infra/modules/iam/main.tf"),
+    "iam_module_sha256": Path("infra/bootstrap/modules/platform-iam/main.tf"),
     "w7_recovery_test_sha256": Path("tests/rollback/test_w7_001_remediation_rollback.py"),
     "terraform_state_boundary_test_sha256": Path("tests/teardown/test_terraform_state_boundary.py"),
 }

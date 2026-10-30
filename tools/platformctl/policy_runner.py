@@ -109,7 +109,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "3c599aea07f20ed3f8c0e07fe373172ec05c662124d501a53f9ed2ba1c9f8dac",
+        "8e33057fb1da893f4163588dd70a9f688817d3541ee5c655c7523f0d45cc846f",
     ),
     (
         "infra/modules/ecr/main.tf",
@@ -168,13 +168,13 @@ PLATFORM_ALERT_TOPIC_ADDRESS = "module.observability[0].aws_sns_topic.alerts"
 PLATFORM_EKS_SOURCE_SHA256 = (
     (
         "infra/modules/eks/main.tf",
-        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
+        "d72452d9adb90d902668bc7b34fdc799174a7369b8b493703839409585a4f806",
     ),
 )
 PLATFORM_OBSERVABILITY_SOURCE_SHA256 = (
     (
         "infra/modules/observability/main.tf",
-        "83737a2a4bc7f4835cfc21c08d290cc4fdc8e1bea7fa8a88fcaeff7e6db4a534",
+        "4af51d75d4b86472a77a456f4cfe8eaf41f3e17b44b4fdd469914d714e528930",
     ),
 )
 PLATFORM_ENDPOINT_POLICY_BINDINGS = {
@@ -440,29 +440,29 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
 }
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     **{
         f"module.iam.data.aws_iam_policy_document.{name}": (
-            "infra/modules/iam/main.tf",
-            "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+            "infra/bootstrap/modules/platform-iam/main.tf",
+            "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
         )
         for name in (
             "capstone_build",
@@ -481,11 +481,11 @@ PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     ),
     "module.eks[0].data.aws_iam_policy_document.cluster_assume": (
         "infra/modules/eks/main.tf",
-        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
+        "d72452d9adb90d902668bc7b34fdc799174a7369b8b493703839409585a4f806",
     ),
     "module.eks[0].data.aws_iam_policy_document.node_assume": (
         "infra/modules/eks/main.tf",
-        "37b4d6e1a612e029bd9d71d6fc59d042f2f81f57e3e526786f7ef613936a93a4",
+        "d72452d9adb90d902668bc7b34fdc799174a7369b8b493703839409585a4f806",
     ),
     **{
         policy_address: (

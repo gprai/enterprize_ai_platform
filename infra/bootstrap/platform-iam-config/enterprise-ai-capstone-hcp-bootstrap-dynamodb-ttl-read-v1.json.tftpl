@@ -1,0 +1,11 @@
+{
+  "Statement": [
+    {
+      "Action": "dynamodb:DescribeTimeToLive",
+      "Effect": "Allow",
+      "Resource": "arn:aws:dynamodb:ap-southeast-1:526338061652:table/enterprise-ai-platform-sandbox-tflock",
+      "Sid": "ReadExactBootstrapLockTableTtl"
+    }
+  ],
+  "Version": "2012-10-17"
+}

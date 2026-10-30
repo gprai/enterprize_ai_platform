@@ -1,0 +1,14 @@
+{
+  "administrator_role_arn": "arn:aws:iam::526338061652:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AWSAdministratorAccess_e11a316dc857def9",
+  "administrator_trust_expires_at": "2026-10-29T14:24:44Z",
+  "bedrock_model_id": "global.amazon.nova-2-lite-v1:0",
+  "bootstrap_kms_key_arn": "arn:aws:kms:ap-southeast-1:526338061652:key/140b54ff-2df3-46e4-9402-3f6cdbe784c4",
+  "sandbox_default_security_group_arn": "arn:aws:ec2:ap-southeast-1:526338061652:security-group/sg-0f4c5da52518621e8",
+  "sandbox_endpoint_security_group_arn": "arn:aws:ec2:ap-southeast-1:526338061652:security-group/sg-000bfd6bd5e82c111",
+  "sandbox_kms_key_arn": "arn:aws:kms:ap-southeast-1:526338061652:key/b81865be-bf2e-4954-aa00-a14f5164e8f9",
+  "sandbox_route_table_arn": "arn:aws:ec2:ap-southeast-1:526338061652:route-table/rtb-015d35d93c9f3c436",
+  "sandbox_subnet_a_arn": "arn:aws:ec2:ap-southeast-1:526338061652:subnet/subnet-02b4be493f8eb9782",
+  "sandbox_subnet_b_arn": "arn:aws:ec2:ap-southeast-1:526338061652:subnet/subnet-073bc8d0404200f63",
+  "sandbox_vpc_arn": "arn:aws:ec2:ap-southeast-1:526338061652:vpc/vpc-01ba01f612b8c6b90",
+  "workload_expires_at": "2026-10-30T05:24:44Z"
+}

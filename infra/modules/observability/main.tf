@@ -1,5 +1,6 @@
 resource "aws_cloudwatch_log_group" "application" {
   #checkov:skip=CKV_AWS_158:The approved W5 customer-key policy is intentionally unchanged; CloudWatch service encryption is retained until fresh KMS compatibility evidence is approved.
+  #checkov:skip=CKV_AWS_338:Owner-approved sandbox-only 14-day retention for deployment/teardown testing; older application logs may expire. Not approved for production.
   name              = "/aws/enterprise-ai-platform/sandbox/application"
   retention_in_days = var.retention_days
   tags              = var.tags
@@ -7,6 +8,7 @@ resource "aws_cloudwatch_log_group" "application" {
 
 resource "aws_cloudwatch_log_group" "eks" {
   #checkov:skip=CKV_AWS_158:The approved W5 customer-key policy is intentionally unchanged; CloudWatch service encryption is retained until fresh KMS compatibility evidence is approved.
+  #checkov:skip=CKV_AWS_338:Owner-approved sandbox-only 14-day retention for deployment/teardown testing; older EKS cluster logs may expire. Not approved for production.
   name              = "/aws/eks/${var.name}/cluster"
   retention_in_days = var.retention_days
   tags              = var.tags
@@ -15,8 +17,6 @@ resource "aws_cloudwatch_log_group" "eks" {
 locals {
   bedrock_log_prefix     = "bedrock-model-invocations"
   bedrock_log_group_name = "/aws/bedrock/${var.name}/model-invocations"
-  bedrock_log_stream_arn = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:${local.bedrock_log_group_name}:log-stream:aws/bedrock/modelinvocations"
-  bedrock_source_arn     = "arn:aws:bedrock:${var.aws_region}:${var.aws_account_id}:*"
 }
 
 resource "aws_cloudwatch_log_group" "bedrock_invocations" {
@@ -27,36 +27,8 @@ resource "aws_cloudwatch_log_group" "bedrock_invocations" {
   tags              = var.tags
 }
 
-resource "aws_iam_role" "bedrock_log_delivery" {
+data "aws_iam_role" "bedrock_log_delivery" {
   name = "${var.name}-bedrock-log-delivery"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Sid       = "ExactBedrockLogDeliveryTrust"
-      Effect    = "Allow"
-      Action    = "sts:AssumeRole"
-      Principal = { Service = "bedrock.amazonaws.com" }
-      Condition = {
-        StringEquals = { "aws:SourceAccount" = var.aws_account_id }
-        ArnLike      = { "aws:SourceArn" = local.bedrock_source_arn }
-      }
-    }]
-  })
-  tags = var.tags
-}
-
-resource "aws_iam_role_policy" "bedrock_log_delivery" {
-  name = "write-exact-bedrock-invocation-log"
-  role = aws_iam_role.bedrock_log_delivery.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Sid      = "WriteExactBedrockLogStream"
-      Effect   = "Allow"
-      Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
-      Resource = local.bedrock_log_stream_arn
-    }]
-  })
 }
 
 resource "aws_bedrock_model_invocation_logging_configuration" "this" {
@@ -70,7 +42,7 @@ resource "aws_bedrock_model_invocation_logging_configuration" "this" {
 
     cloudwatch_config {
       log_group_name = aws_cloudwatch_log_group.bedrock_invocations.name
-      role_arn       = aws_iam_role.bedrock_log_delivery.arn
+      role_arn       = data.aws_iam_role.bedrock_log_delivery.arn
 
       large_data_delivery_s3_config {
         bucket_name = var.platform_bucket_name
@@ -84,7 +56,6 @@ resource "aws_bedrock_model_invocation_logging_configuration" "this" {
     }
   }
 
-  depends_on = [aws_iam_role_policy.bedrock_log_delivery]
 }
 
 resource "aws_sns_topic" "alerts" {

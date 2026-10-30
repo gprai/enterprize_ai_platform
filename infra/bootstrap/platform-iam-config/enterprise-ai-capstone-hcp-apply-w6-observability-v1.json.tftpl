@@ -1,0 +1,133 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:DeleteRetentionPolicy",
+        "logs:ListTagsForResource",
+        "logs:ListTagsLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:TagResource",
+        "logs:UntagResource"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/enterprise-ai-platform/sandbox/application",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/eks/enterprise-ai-sandbox/cluster",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/bedrock/enterprise-ai-sandbox/model-invocations",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/enterprise-ai-platform/sandbox/application:*",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/eks/enterprise-ai-sandbox/cluster:*",
+        "arn:aws:logs:ap-southeast-1:526338061652:log-group:/aws/bedrock/enterprise-ai-sandbox/model-invocations:*"
+      ],
+      "Sid": "CreateAndManageExactLogGroups"
+    },
+    {
+      "Action": "logs:DescribeLogGroups",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "DescribeRegionalLogGroups"
+    },
+    {
+      "Action": [
+        "cloudwatch:DeleteDashboards",
+        "cloudwatch:GetDashboard",
+        "cloudwatch:PutDashboard"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:cloudwatch::526338061652:dashboard/enterprise-ai-sandbox",
+      "Sid": "ManageExactDashboard"
+    },
+    {
+      "Action": [
+        "cloudwatch:DeleteAlarms",
+        "cloudwatch:ListTagsForResource",
+        "cloudwatch:PutMetricAlarm",
+        "cloudwatch:TagResource",
+        "cloudwatch:UntagResource"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:cloudwatch:ap-southeast-1:526338061652:alarm:enterprise-ai-sandbox-availability-burn",
+        "arn:aws:cloudwatch:ap-southeast-1:526338061652:alarm:enterprise-ai-sandbox-safety"
+      ],
+      "Sid": "ManageExactSandboxAlarms"
+    },
+    {
+      "Action": "cloudwatch:DescribeAlarms",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-southeast-1"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "*",
+      "Sid": "DescribeRegionalAlarms"
+    },
+    {
+      "Action": [
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:GetTopicAttributes",
+        "sns:ListSubscriptionsByTopic",
+        "sns:ListTagsForResource",
+        "sns:SetTopicAttributes",
+        "sns:Subscribe",
+        "sns:TagResource",
+        "sns:UntagResource"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:sns:ap-southeast-1:526338061652:enterprise-ai-sandbox-alerts",
+      "Sid": "ManageExactAlertTopic"
+    },
+    {
+      "Action": [
+        "sns:GetSubscriptionAttributes",
+        "sns:SetSubscriptionAttributes",
+        "sns:Unsubscribe"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:sns:ap-southeast-1:526338061652:enterprise-ai-sandbox-alerts:*",
+      "Sid": "ManageExactAlertSubscriptions"
+    },
+    {
+      "Action": [
+        "fis:CreateExperimentTemplate",
+        "fis:TagResource"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Environment": "sandbox",
+          "aws:RequestTag/Project": "enterprise-ai-platform"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:fis:ap-southeast-1:526338061652:experiment-template/*",
+      "Sid": "CreateTaggedSandboxFisTemplate"
+    },
+    {
+      "Action": [
+        "fis:DeleteExperimentTemplate",
+        "fis:GetExperimentTemplate",
+        "fis:ListTagsForResource",
+        "fis:UntagResource",
+        "fis:UpdateExperimentTemplate"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Environment": "sandbox",
+          "aws:ResourceTag/Project": "enterprise-ai-platform"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:fis:ap-southeast-1:526338061652:experiment-template/*",
+      "Sid": "ManageTaggedSandboxFisTemplate"
+    }
+  ],
+  "Version": "2012-10-17"
+}

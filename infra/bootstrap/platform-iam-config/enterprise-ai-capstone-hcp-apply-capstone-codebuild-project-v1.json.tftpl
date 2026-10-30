@@ -1,0 +1,26 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "codebuild:CreateProject",
+        "codebuild:UpdateProject",
+        "codebuild:DeleteProject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:codebuild:ap-southeast-1:526338061652:project/enterprise-ai-capstone-deploy",
+      "Sid": "ManageExactCapstoneCodeBuildProject"
+    },
+    {
+      "Action": "iam:PassRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "codebuild.amazonaws.com"
+        }
+      },
+      "Effect": "Allow",
+      "Resource": "arn:aws:iam::526338061652:role/enterprise-ai-capstone-codebuild",
+      "Sid": "PassExactCapstoneCodeBuildServiceRole"
+    }
+  ],
+  "Version": "2012-10-17"
+}
