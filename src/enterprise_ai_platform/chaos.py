@@ -40,7 +40,7 @@ SOURCE_PATHS: Final = {
     "fis_plan_sha256": Path("configs/chaos/fis-plan.yaml"),
     "slo_policy_sha256": Path("configs/observability/slo.yaml"),
     "fis_template_sha256": Path("infra/modules/observability/main.tf"),
-    "fis_iam_sha256": Path("infra/modules/iam/main.tf"),
+    "fis_iam_sha256": Path("infra/bootstrap/modules/platform-iam/main.tf"),
 }
 STOP_CONDITIONS: Final = (
     "missing_or_stale_telemetry",

@@ -2425,7 +2425,7 @@ DIAGNOSTIC_PROTECTED_IDENTITIES: tuple[tuple[str, str], ...] = (
     (
         "infra/environments/sandbox/main.tf",
         # pragma: allowlist nextline secret
-        "3c599aea07f20ed3f8c0e07fe373172ec05c662124d501a53f9ed2ba1c9f8dac",
+        "8e33057fb1da893f4163588dd70a9f688817d3541ee5c655c7523f0d45cc846f",
     ),
     (
         "infra/environments/sandbox/versions.tf",

@@ -109,7 +109,7 @@ PLATFORM_LOG_GROUP_ADDRESSES = {
 PLATFORM_ECR_REFERENCE_SOURCE_SHA256 = (
     (
         "infra/environments/sandbox/main.tf",
-        "3c599aea07f20ed3f8c0e07fe373172ec05c662124d501a53f9ed2ba1c9f8dac",
+        "8e33057fb1da893f4163588dd70a9f688817d3541ee5c655c7523f0d45cc846f",
     ),
     (
         "infra/modules/ecr/main.tf",
@@ -440,29 +440,29 @@ PLATFORM_POLICY_DOCUMENT_PLANNED_INPUT_SHA256 = {
 }
 PLATFORM_POLICY_DOCUMENT_SOURCE_SHA256 = {
     "module.iam.data.aws_iam_policy_document.runtime": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     "module.iam.data.aws_iam_policy_document.runtime_trust": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     "module.iam.data.aws_iam_policy_document.ingestion_trust": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     "module.iam.data.aws_iam_policy_document.administrator_trust": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     "module.iam.data.aws_iam_policy_document.github_trust": (
-        "infra/modules/iam/main.tf",
-        "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+        "infra/bootstrap/modules/platform-iam/main.tf",
+        "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
     ),
     **{
         f"module.iam.data.aws_iam_policy_document.{name}": (
-            "infra/modules/iam/main.tf",
-            "fd899aaa3cf92e2101a514320402ed436af04ba808effa95b744645b801d6d1a",
+            "infra/bootstrap/modules/platform-iam/main.tf",
+            "b16b2b56437c1a7d17ef81d524fd459ad4496b45c5fa04f94b1bc0cf5a79ccfc",
         )
         for name in (
             "capstone_build",
