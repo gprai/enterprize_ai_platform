@@ -192,3 +192,11 @@ policy-runner source bindings were refreshed to the reviewed bytes; the five
 corresponding existing secret-baseline fingerprints were updated. All 375
 contract tests pass after this correction. Historical deployment evidence and
 live-execution classifications were not rewritten.
+
+PR CI additionally exposed stale cleanliness inventories and a platform-specific
+unit-test fixture. The inventories now explicitly include the sandbox IAM
+handoff file and the reviewed baseline counts. The fake setup test supplies the
+actual test checkout instead of using the Windows owner-execution path on Linux;
+the production main-checkout guard is unchanged. The protected baseline identity
+was refreshed, and an OPA comment was clarified to avoid matching the existing
+command-escape check. No security check or approval gate was removed.

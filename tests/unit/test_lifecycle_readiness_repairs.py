@@ -265,6 +265,7 @@ def test_owner_setup_plan_then_apply_uses_existing_credentials_and_never_runs_te
         def current_state(self, workspace: str) -> Any:
             return {"id": "sv-exact", "serial": 4, "lineage": "same"}
 
+    monkeypatch.setattr(authority, "ROOT", ROOT)
     monkeypatch.setattr(authority, "Services", lambda *args: Service())
     monkeypatch.setattr(authority, "source_identity", lambda *args: {"commit": "a" * 40})
     monkeypatch.setattr(authority, "EVIDENCE", tmp_path)
