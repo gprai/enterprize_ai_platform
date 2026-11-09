@@ -185,3 +185,10 @@ and line positions; these are not credentials or live permission evidence.
 
 Deployment remains owner-executed. This PR publication performs no deployment,
 Terraform plan/apply, AWS/HCP setup mutation, or release-workflow dispatch.
+
+The PR contract run found stale source fingerprints for the tightened bootstrap
+administrator-expiry precondition. The chaos, disaster-recovery, incident, and
+policy-runner source bindings were refreshed to the reviewed bytes; the five
+corresponding existing secret-baseline fingerprints were updated. All 375
+contract tests pass after this correction. Historical deployment evidence and
+live-execution classifications were not rewritten.
