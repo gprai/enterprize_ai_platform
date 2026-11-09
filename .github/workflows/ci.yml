@@ -55,8 +55,8 @@ jobs:
       - name: Run bounded quality and secret gates
         shell: bash
         run: |
-          python -B -m ruff check --no-cache src tools tests
-          python -B -m ruff format --check --no-cache src tools tests
+          python -B -m ruff check --no-cache src tools tests provision
+          python -B -m ruff format --check --no-cache src tools tests provision
           python -B -m mypy --no-incremental --cache-dir=/dev/null
           python -B -m tools.secret_scan check --all-files
           python -B -m pytest
@@ -121,6 +121,7 @@ jobs:
           "$CHECKOV" --config-file .checkov.yml -d infra --framework terraform
           "$CHECKOV" --config-file .checkov.yml -d deploy/k8s --framework kubernetes
           opa check --strict policies/opa
+          opa test policies/opa/iam_binding_refresh.rego policies/opa/iam_binding_refresh_test.rego --verbose
           opa test policies/opa/terraform_plan.rego policies/opa/terraform_plan_test.rego \
             policies/opa/exceptions.json --verbose
           opa test policies/opa/kubernetes.rego policies/opa/kubernetes_test.rego --verbose

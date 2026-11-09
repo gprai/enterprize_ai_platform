@@ -66,6 +66,8 @@ EXPECTED_FILTER_PATHS = (
     "detect_secrets.filters.regex.should_exclude_file",
 )
 EXPECTED_REVIEWED_FINDING_COUNTS = {
+    "tests/fixtures/iam_incident_baseline.json": {"Hex High Entropy String": 18},
+    "provision/iam_handoff.py": {"Base64 High Entropy String": 1},
     "configs/chaos/controlled-dependency-chaos.yaml": {"Hex High Entropy String": 1},
     "configs/incidents/incident-operations.yaml": {"Hex High Entropy String": 4},
     "configs/recovery/disaster-recovery.yaml": {"Hex High Entropy String": 22},
@@ -125,6 +127,8 @@ EXPECTED_REVIEWED_FINDING_COUNTS = {
     "tools/w6_004_stage6_transcript.py": {"Secret Keyword": 1},
 }
 EXPECTED_REVIEWED_LINE_COUNTS = {
+    "tests/fixtures/iam_incident_baseline.json": {line: 1 for line in range(4, 22)},
+    "provision/iam_handoff.py": {139: 1},
     "configs/chaos/controlled-dependency-chaos.yaml": {15: 1},
     "configs/incidents/incident-operations.yaml": {185: 1, 187: 1, 189: 1, 191: 1},
     "configs/recovery/disaster-recovery.yaml": {line: 1 for line in range(39, 61)},
@@ -451,8 +455,8 @@ def test_secret_baseline_has_exact_default_and_reviewed_inventory() -> None:
     assert tuple(filter_["path"] for filter_ in baseline["filters_used"]) == (EXPECTED_FILTER_PATHS)
     results = baseline["results"]
     assert isinstance(results, dict)
-    assert len(results) == 57
-    assert sum(len(findings) for findings in results.values()) == 440
+    assert len(results) == 59
+    assert sum(len(findings) for findings in results.values()) == 459
     actual_counts: dict[str, dict[str, int]] = {}
     actual_line_counts: dict[str, dict[int, int]] = {}
     for path, findings in results.items():

@@ -132,7 +132,10 @@ resource "aws_iam_role" "opensearch_administrator" {
     precondition {
       condition = (
         can(regex("^arn:aws:iam::526338061652:role/", var.external_administrator_arn)) &&
-        can(timecmp(var.administrator_trust_expires_at, timestamp()))
+        try(timecmp(var.administrator_trust_expires_at, plantimestamp()) > 0 &&
+          timecmp(var.administrator_trust_expires_at, timeadd(plantimestamp(), "24h")) <= 0 &&
+          timecmp(var.expires_at, var.administrator_trust_expires_at) >= 0 &&
+        timecmp(var.expires_at, timeadd(plantimestamp(), "24h")) <= 0, false)
       )
       error_message = "OpenSearch administrator trust requires an approved account role and UTC expiry."
     }

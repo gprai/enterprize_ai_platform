@@ -28,7 +28,29 @@
           "ec2:Vpc": "${sandbox_vpc_arn}"
         },
         "StringEquals": {
-          "ec2:Region": "ap-southeast-1"
+          "ec2:Region": "ap-southeast-1",
+          "aws:RequestTag/Owner": "Gyan-Prakash-Rai",
+          "aws:RequestTag/CostCenter": "Personal-Learning",
+          "aws:RequestTag/Environment": "sandbox",
+          "aws:RequestTag/ManagedBy": "terraform",
+          "aws:RequestTag/Project": "enterprise-ai-platform",
+          "aws:RequestTag/Feature": "MVP-001",
+          "aws:RequestTag/Repository": "enterprise-ai-platform",
+          "aws:RequestTag/Name": "enterprise-ai-sandbox-default-restricted",
+          "aws:RequestTag/ExpiresAt": "${workload_expires_at}"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "CostCenter",
+            "Environment",
+            "ExpiresAt",
+            "Feature",
+            "ManagedBy",
+            "Name",
+            "Owner",
+            "Project",
+            "Repository"
+          ]
         }
       },
       "Effect": "Allow",

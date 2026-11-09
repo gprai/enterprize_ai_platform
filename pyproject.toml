@@ -1,7 +1,7 @@
 [tool.ruff]
 target-version = "py313"
 line-length = 100
-src = ["src", "tools", "tests"]
+src = ["src", "tools", "provision", "tests"]
 
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "S", "UP"]
@@ -16,7 +16,7 @@ known-first-party = ["enterprise_ai_platform"]
 plugins = ["pydantic.mypy"]
 python_version = "3.13"
 mypy_path = "src"
-files = ["src", "tools/record_test_evidence.py", "tools/bedrock_owner_verify.py", "tools/w5_002_ci.py", "tools/w6_001_k8s.py", "tools/w6_003_readiness.py", "tools/w9_004_supply_chain.py", "tools/capstone_release.py", "tools/capstone_deploy.py", "tools/platformctl", "tools/releasectl.py", "tools/secret_scan.py"]
+files = ["src", "tools/record_test_evidence.py", "tools/bedrock_owner_verify.py", "tools/w5_002_ci.py", "tools/w6_001_k8s.py", "tools/w6_003_readiness.py", "tools/w9_004_supply_chain.py", "tools/capstone_release.py", "tools/capstone_deploy.py", "tools/platformctl", "tools/releasectl.py", "tools/secret_scan.py", "provision"]
 strict = true
 show_error_codes = true
 warn_unreachable = true

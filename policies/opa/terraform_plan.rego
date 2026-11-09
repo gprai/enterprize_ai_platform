@@ -4209,6 +4209,13 @@ operational_destroy_resource_valid(change) if {
 	change.type == "terraform_data"
 }
 
+# The activated capstone's local input guard has no cloud resource to retain.
+# This exact address is permitted only inside the bound DESTROY profile.
+operational_destroy_resource_valid(change) if {
+	change.address == "terraform_data.w12_activation_gate[0]"
+	change.type == "terraform_data"
+}
+
 operational_destroy_change_valid(change, rule) if {
 	operational_destroy_resource_valid(change)
 	rule.update_paths == []

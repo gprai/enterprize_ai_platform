@@ -142,13 +142,12 @@ updating bootstrap-owned IAM therefore requires the existing owner-controlled
 administrative identity, such as the approved SSO session. An HCP team token
 authorizes HCP operations; it is not an AWS administrator credential.
 
-Do not run this new bootstrap IAM plan under the old HCP execution roles and
-assume it can succeed. A remote HCP run does not inherit the terminal's SSO
-session. Select an explicitly authorized owner execution path (for example,
-owner-local execution connected to the same bootstrap state with the required
-private inputs) before adoption/provisioning. Changing the workspace execution
-mode or injecting AWS credentials is not performed or authorized by this patch.
-No new static AWS keys are required or included.
+The historical adoption used an explicitly authorized local execution path.
+That is not the repeat-provisioning workflow. Current orchestration keeps HCP
+remote execution for all Terraform plans/applies. It requires dedicated,
+owner-bound bootstrap plan/apply identities and exact workspace trust; it never
+switches execution mode or grants workload roles self-administration. See the
+[HCP binding handoff](../../docs/runbooks/bootstrap-iam-handoff.md).
 
 ## Repeat provisioning after sandbox teardown
 
@@ -191,6 +190,18 @@ The earlier `GH_TOKEN_REQUIRED` application-release failure and successful
 Order 7/8/9 deployment history remain in
 [`docs/deployment-records`](../../docs/deployment-records/README.md).
 This IAM migration does not mark Group 3 deployed or live validation complete.
-Rollback and teardown remain pending the owner's instruction.
+The historical owner-executed rollback was a NOOP and sandbox teardown completed;
+see the preserved rollback records. This source change performs neither operation.
 
 See [IAM-VALIDATION.md](IAM-VALIDATION.md) for the checks actually executed.
+
+## Current binding workflow (2026-11-01)
+
+Captured ARNs and timestamps are no longer deployment defaults. Repeat deployment
+requires the four HCP handoff stages documented in the linked runbook, followed
+by the untargeted sandbox base plan. Source-state identities, current approval
+windows and dedicated remote authority are required. The seed binding phase
+withholds only endpoint-parent permissions until the new network IDs exist.
+The complete phase restores the exact statement before dependent provisioning.
+The original adoption receipt above remains historical proof, not validation of
+these new stages. No new import, plan or apply was executed for this correction.

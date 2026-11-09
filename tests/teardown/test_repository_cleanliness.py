@@ -76,6 +76,7 @@ class RepositoryCleanlinessTests(unittest.TestCase):
             "infra/modules/eks/iam_ownership_transfer.tf",
             "infra/modules/iam/iam_ownership_transfer.tf",
             "infra/modules/observability/iam_ownership_transfer.tf",
+            "infra/environments/sandbox/iam_handoff.tf",
             "infra/environments/sandbox/main.tf",
             "infra/environments/sandbox/outputs.tf",
             "infra/environments/sandbox/variables.tf",
