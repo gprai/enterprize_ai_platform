@@ -1,0 +1,92 @@
+{
+  "schema_version": "enterprise-ai.lifecycle-inputs.v1",
+  "aws_profile": "enterprise-ai-platform-w6-004",
+  "opa": {
+    "path": "E:\\AI\\.tools\\opa\\1.20.0\\opa.exe",
+    "sha256": "OWNER_VERIFIED_EXECUTABLE_SHA256"
+  },
+  "otel_collector_image": "OWNER_APPROVED_IMAGE_AT_SHA256",
+  "common_variables": {},
+  "stages": {
+    "identity-seed": {
+      "variables": {}
+    },
+    "bootstrap-bind-seed": {
+      "variables": {
+        "mandatory_tags": {
+          "Owner": "Gyan-Prakash-Rai",
+          "CostCenter": "Personal-Learning",
+          "Environment": "sandbox",
+          "ManagedBy": "terraform",
+          "Project": "enterprise-ai-platform",
+          "Feature": "MVP-001",
+          "Repository": "enterprise-ai-platform",
+          "ExpiresAt": "SAME_OWNER_APPROVED_WORKLOAD_EXPIRY"
+        }
+      }
+    },
+    "network-seed": {
+      "variables": {}
+    },
+    "bootstrap-bind-complete": {
+      "variables": {
+        "mandatory_tags": {
+          "Owner": "Gyan-Prakash-Rai",
+          "CostCenter": "Personal-Learning",
+          "Environment": "sandbox",
+          "ManagedBy": "terraform",
+          "Project": "enterprise-ai-platform",
+          "Feature": "MVP-001",
+          "Repository": "enterprise-ai-platform",
+          "ExpiresAt": "SAME_OWNER_APPROVED_WORKLOAD_EXPIRY"
+        }
+      }
+    },
+    "base": {
+      "variables": {}
+    },
+    "foundation": {
+      "variables": {}
+    },
+    "pki-access": {
+      "variables": {}
+    },
+    "pki-disable": {
+      "variables": {}
+    },
+    "activation": {
+      "variables": {}
+    },
+    "release-plan": {
+      "variables": {}
+    },
+    "teardown": {
+      "variables": {}
+    },
+    "bootstrap-teardown": {
+      "variables": {}
+    }
+  },
+  "hcp_variables": {
+    "bootstrap": {},
+    "sandbox": {}
+  },
+  "github_variables": {},
+  "github_secrets": {
+    "TFC_TOKEN": {
+      "from_env": "TFC_TOKEN"
+    },
+    "TFC_READ_TOKEN": {
+      "from_env": "TFC_TOKEN"
+    }
+  },
+  "bootstrap_execution": {
+    "plan_role_arn": "OWNER_APPROVED_DEDICATED_BOOTSTRAP_PLAN_ROLE_ARN",
+    "apply_role_arn": "OWNER_APPROVED_DEDICATED_BOOTSTRAP_APPLY_ROLE_ARN"
+  },
+  "iam_handoff": {
+    "administrator_role_arn": "OWNER_APPROVED_ADMINISTRATOR_ROLE_ARN",
+    "bedrock_model_id": "OWNER_APPROVED_BEDROCK_MODEL_ID",
+    "workload_expires_at": "OWNER_APPROVED_UTC_WITHIN_24_HOURS"
+  }
+}

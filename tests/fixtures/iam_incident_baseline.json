@@ -1,0 +1,46 @@
+{
+  "source": "live-2026-10-30.json; immutable historical comparison, not current AWS proof",
+  "documents": {
+    "enterprise-ai-capstone-hcp-apply-bootstrap-kms-v1.json.tftpl": "e1da0e8d29d6d8621b2ad11e0b95e4795d97bb5ca30265439f6f8138783c4793",
+    "enterprise-ai-capstone-hcp-apply-bootstrap-v1.json.tftpl": "90047d346565425cd8b581b0852ab9eaa41f59dd79765d93ec0f57fa9c3f6e5d",
+    "enterprise-ai-capstone-hcp-apply-capstone-codebuild-logs-v1.json.tftpl": "0b1f0e50f25697dfcc37182ec42bd51345154875e7935a2a843b213733272a40",
+    "enterprise-ai-capstone-hcp-apply-capstone-codebuild-project-v1.json.tftpl": "2fcd807a4ea82533a1b8fb143406f439d9bf0286ddb2c83c25a2e477dc49a6b8",
+    "enterprise-ai-capstone-hcp-apply-sandbox-core-v1.json.tftpl": "faab65b7aef7b0629cb7881eae154382af7e2bc1522a01feb63bb2ddd9c37aa4",
+    "enterprise-ai-capstone-hcp-apply-sandbox-iam-v1.json.tftpl": "4d834978b143799f955e7fac6016e9adab9a1f08abc1b5f81ce1ee7c111dda73",
+    "enterprise-ai-capstone-hcp-apply-sandbox-network-bootstrap-v1.json.tftpl": "9621565b91e008c3b8871992910a4d733464f997405774acd9394950a61e0a9c",
+    "enterprise-ai-capstone-hcp-apply-sandbox-service-recovery-v1.json.tftpl": "85fae64c72f44688041a2fb0bc18c3000f0728fbb0901e67b725f40f28efdb25",
+    "enterprise-ai-capstone-hcp-apply-w6-eks-iam-v1.json.tftpl": "384c96b9d450fccc3a2b8f589c321deba0d6f026d463cbff8423be41c8f6e245",
+    "enterprise-ai-capstone-hcp-apply-w6-observability-v1.json.tftpl": "313be40afc0b77c0334279fbeac1446cb433b4b2c7e10f9ade40bbeb25b26c79",
+    "enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1.json.tftpl": "83bdbbe56b52ff6851fb0609897c205ddd16955e290ecf5515ceccadd31cec3b",
+    "enterprise-ai-capstone-hcp-plan-read-v1.json.tftpl": "0af97a8654f25959c2b4cac0e92ca86b60b1399e34fb28410b475afc2067ebb0",
+    "enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1.json.tftpl": "54d12df27b3837a4850969f3f9efd6d91b57dfb7ce3012217e40e40d9552c33e",
+    "enterprise-ai-capstone-hcp-apply.trust.json.tftpl": "981f7f04fa42df49f0aa37fbdfbbeeb84221db2e84ea1e5b1bb7c32306abef50",
+    "enterprise-ai-capstone-hcp-plan.trust.json.tftpl": "57019e48358648d7784258c07f8b0074643bf0ff7c9442eb5bbdae34f6ae7918",
+    "enterprise-ai-capstone-hcp-apply--enterprise-ai-capstone-hcp-apply-eks-nodegroup-sns-recovery-v1.json.tftpl": "70dbf9a615c34479984b62303e802fbda7ba33946fbee80b61286c7ffef78351",
+    "enterprise-ai-capstone-hcp-apply--enterprise-ai-capstone-hcp-apply-fis-template-recovery-v1.json.tftpl": "4301b4041704d94cf279763204b5bae4b21049d475c324e5c160e9a40196746d",
+    "enterprise-ai-capstone-hcp-apply--enterprise-ai-capstone-hcp-w6-read-recovery-v1.json.tftpl": "9ed2c20921880f134c52f5bd3382047d2adb904bfd69327f286accc63d4f80c6",
+    "enterprise-ai-capstone-hcp-plan--enterprise-ai-capstone-hcp-w6-read-recovery-v1.json.tftpl": "9ed2c20921880f134c52f5bd3382047d2adb904bfd69327f286accc63d4f80c6"
+  },
+  "attachments": {
+    "enterprise-ai-capstone-hcp-apply": [
+      "enterprise-ai-capstone-hcp-apply-bootstrap-kms-v1",
+      "enterprise-ai-capstone-hcp-apply-bootstrap-v1",
+      "enterprise-ai-capstone-hcp-apply-capstone-codebuild-logs-v1",
+      "enterprise-ai-capstone-hcp-apply-capstone-codebuild-project-v1",
+      "enterprise-ai-capstone-hcp-apply-sandbox-core-v1",
+      "enterprise-ai-capstone-hcp-apply-sandbox-iam-v1",
+      "enterprise-ai-capstone-hcp-apply-sandbox-network-bootstrap-v1",
+      "enterprise-ai-capstone-hcp-apply-sandbox-service-recovery-v1",
+      "enterprise-ai-capstone-hcp-apply-w6-eks-iam-v1",
+      "enterprise-ai-capstone-hcp-apply-w6-observability-v1",
+      "enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1",
+      "enterprise-ai-capstone-hcp-plan-read-v1",
+      "enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1"
+    ],
+    "enterprise-ai-capstone-hcp-plan": [
+      "enterprise-ai-capstone-hcp-bootstrap-dynamodb-ttl-read-v1",
+      "enterprise-ai-capstone-hcp-plan-read-v1",
+      "enterprise-ai-capstone-hcp-read-capstone-codebuild-project-v1"
+    ]
+  }
+}

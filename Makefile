@@ -63,7 +63,13 @@ W11_004_PESTER_MODULE ?= C:/Program Files/WindowsPowerShell/Modules/Pester/3.4.0
 .PHONY: plan-sandbox w5-004-bootstrap-plan w5-004-bootstrap-apply w5-004-platform-plan w5-004-policy-review w5-004-cost-review w5-004-platform-apply w5-004-aws-verify w5-004-infrastructure-rollback w5-004-destroy-plan w5-004-purge-sandbox w5-004-platform-destroy w5-004-bootstrap-destroy w5-004-verify-clean
 .PHONY: w6-001-template-validate w6-001-policy w6-001-checkov w6-001-tests w6-001-release-bind w6-001-release-validate
 .PHONY: w6-002-validate w6-002-promtool w6-002-tests
-.PHONY: w12-001-record-tests w12-001-identity-tests w12-001-policy-tests w12-001-contract-tests w12-001-static-tests w12-001-tests
+.PHONY: w12-001-record-tests w12-001-identity-tests w12-001-policy-tests w12-001-contract-tests w12-001-static-tests w12-001-tests lifecycle-orchestration-tests
+
+lifecycle-orchestration-tests:
+	$(PYTHON) -B -m pytest --basetemp .tmp/lifecycle-tests -q -p no:cacheprovider tests/unit/test_lifecycle_orchestration.py tests/contract/test_lifecycle_orchestration_contract.py tests/security/test_lifecycle_orchestration_security.py tests/teardown/test_bootstrap_teardown.py
+	$(PYTHON) -B -m ruff check provision tests/unit/test_lifecycle_orchestration.py tests/contract/test_lifecycle_orchestration_contract.py tests/security/test_lifecycle_orchestration_security.py tests/teardown/test_bootstrap_teardown.py
+	$(PYTHON) -B -m ruff format --check provision tests/unit/test_lifecycle_orchestration.py tests/contract/test_lifecycle_orchestration_contract.py tests/security/test_lifecycle_orchestration_security.py tests/teardown/test_bootstrap_teardown.py
+	$(PYTHON) -B -m mypy provision
 
 w12-001-record-tests:
 	$(PYTHON) -B -m pytest -q tests/unit/test_capstone_release.py tests/contract/test_capstone_release_contract.py tests/integration/test_capstone_release_composition.py tests/feature/test_capstone_release.py tests/smoke/test_capstone_release_cli.py tests/security/test_capstone_release_security.py tests/rollback/test_capstone_release_rollback.py tests/teardown/test_capstone_release_cleanliness.py

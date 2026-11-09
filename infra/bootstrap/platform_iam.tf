@@ -9,11 +9,20 @@ provider "aws" {
 locals {
   platform_iam_hcp = jsondecode(file("${path.module}/platform-iam-config/hcp-resources.json"))
   platform_iam_bindings = merge(
-    jsondecode(file("${path.module}/platform-iam-config/bindings.captured.json")),
+    # Empty sentinels let static tools inspect expressions without owner inputs.
+    # Variable validation rejects absent required bindings before any apply.
+    {
+      sandbox_kms_key_arn     = "", sandbox_vpc_arn = "", sandbox_default_security_group_arn = "",
+      sandbox_route_table_arn = "", sandbox_endpoint_security_group_arn = "", sandbox_subnet_a_arn = "", sandbox_subnet_b_arn = "",
+      administrator_role_arn  = "", administrator_trust_expires_at = "", workload_expires_at = "", bedrock_model_id = ""
+    },
     var.platform_iam_binding_overrides,
     { bootstrap_kms_key_arn = aws_kms_key.terraform_state.arn }
   )
   platform_iam_tags = merge(var.platform_iam_tags, { ExpiresAt = local.platform_iam_bindings.workload_expires_at })
+  platform_iam_policies = {
+    for name, spec in local.platform_iam_hcp.policies : name => jsondecode(templatefile("${path.module}/platform-iam-config/${name}.json.tftpl", local.platform_iam_bindings))
+  }
 }
 
 # Shared OIDC providers stay under their existing ownership; this migration
@@ -75,8 +84,14 @@ resource "aws_iam_policy" "hcp" {
   name        = each.key
   path        = each.value.path
   description = each.value.description
-  policy      = templatefile("${path.module}/platform-iam-config/${each.key}.json.tftpl", local.platform_iam_bindings)
-  tags        = each.value.tags
+  # During the seed handoff only the endpoint parent-resource permission is withheld.
+  # It is restored with exact ARNs by the complete binding stage, before base provisioning.
+  policy = jsonencode(merge(local.platform_iam_policies[each.key], {
+    Statement = [for statement in local.platform_iam_policies[each.key].Statement : statement
+      if var.platform_iam_binding_phase == "complete" || statement.Sid != "CreateVpcEndpointsUsingExactSandboxBindings"
+    ]
+  }))
+  tags = each.value.tags
   lifecycle { prevent_destroy = true }
 }
 
@@ -104,4 +119,14 @@ output "platform_iam_role_arns" {
     { for name, role in aws_iam_role.hcp : name => role.arn }
   )
   depends_on = [module.platform_iam]
+}
+
+output "platform_iam_applied_bindings" {
+  description = "Exact IAM binding inputs for the next reviewed HCP delta; never a fallback for new resources."
+  value       = local.platform_iam_bindings
+}
+
+output "platform_iam_source_state" {
+  description = "Sandbox source-state identity used by the reviewed IAM binding handoff."
+  value       = var.platform_iam_source_state
 }
